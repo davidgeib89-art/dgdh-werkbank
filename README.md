@@ -228,6 +228,9 @@ pnpm db:generate      # Generate DB migration
 pnpm db:migrate       # Apply migrations
 ```
 
+For long-running heartbeat runs, the server performs throttled run keepalive updates while adapters execute.
+Recovery grace is configurable with `HEARTBEAT_RECOVERY_GRACE_MS` and `HEARTBEAT_STARTUP_RECOVERY_GRACE_MS`.
+
 See [doc/DEVELOPING.md](doc/DEVELOPING.md) for the full development guide.
 
 <br/>

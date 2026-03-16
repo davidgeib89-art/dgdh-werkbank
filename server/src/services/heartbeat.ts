@@ -59,6 +59,8 @@ import {
 const MAX_LIVE_LOG_CHUNK_BYTES = 8 * 1024;
 const HEARTBEAT_MAX_CONCURRENT_RUNS_DEFAULT = 1;
 const HEARTBEAT_MAX_CONCURRENT_RUNS_MAX = 10;
+const RUN_KEEPALIVE_INTERVAL_MS = 25_000;
+const RUN_KEEPALIVE_MIN_TOUCH_AGE_MS = 60_000;
 const DEFERRED_WAKE_CONTEXT_KEY = "_paperclipWakeContext";
 const startLocksByAgent = new Map<string, Promise<void>>();
 const REPO_ONLY_CWD_SENTINEL = "/__paperclip_repo_only__";
@@ -1572,6 +1574,25 @@ export function heartbeatService(db: Db) {
     }
 
     activeRunExecutions.add(run.id);
+    let keepaliveTimer: ReturnType<typeof setInterval> | null = null;
+    let keepaliveInFlight = false;
+    let lastRunTouchAt = Date.now();
+
+    const stopKeepalive = () => {
+      if (!keepaliveTimer) return;
+      clearInterval(keepaliveTimer);
+      keepaliveTimer = null;
+    };
+
+    const touchRunKeepalive = async () => {
+      const nowMs = Date.now();
+      if (nowMs - lastRunTouchAt < RUN_KEEPALIVE_MIN_TOUCH_AGE_MS) return;
+      await db
+        .update(heartbeatRuns)
+        .set({ updatedAt: new Date() })
+        .where(eq(heartbeatRuns.id, run.id));
+      lastRunTouchAt = nowMs;
+    };
 
     try {
       const agent = await getAgent(run.agentId);
@@ -1846,6 +1867,7 @@ export function heartbeatService(db: Db) {
       let handle: RunLogHandle | null = null;
       let stdoutExcerpt = "";
       let stderrExcerpt = "";
+
       try {
         const startedAt = run.startedAt ?? new Date();
         const runningWithSession = await db
@@ -1861,6 +1883,7 @@ export function heartbeatService(db: Db) {
           .returning()
           .then((rows) => rows[0] ?? null);
         if (runningWithSession) run = runningWithSession;
+        lastRunTouchAt = Date.now();
 
         const runningAgent = await db
           .update(agents)
@@ -1903,6 +1926,7 @@ export function heartbeatService(db: Db) {
             updatedAt: new Date(),
           })
           .where(eq(heartbeatRuns.id, runId));
+        lastRunTouchAt = Date.now();
 
         const onLog = async (stream: "stdout" | "stderr", chunk: string) => {
           const sanitizedChunk = redactCurrentUserText(chunk);
@@ -2034,6 +2058,22 @@ export function heartbeatService(db: Db) {
             "local agent jwt secret missing or invalid; running without injected PAPERCLIP_API_KEY",
           );
         }
+
+        keepaliveTimer = setInterval(() => {
+          if (keepaliveInFlight) return;
+          keepaliveInFlight = true;
+          void touchRunKeepalive()
+            .catch((err) => {
+              logger.warn(
+                { err, runId: run.id },
+                "heartbeat run keepalive update failed",
+              );
+            })
+            .finally(() => {
+              keepaliveInFlight = false;
+            });
+        }, RUN_KEEPALIVE_INTERVAL_MS);
+
         const adapterResult = await adapter.execute({
           runId: run.id,
           agent,
@@ -2414,6 +2454,7 @@ export function heartbeatService(db: Db) {
       // DB calls threw (e.g. a transient DB error in finalizeAgentStatus).
       await finalizeAgentStatus(run.agentId, "failed").catch(() => undefined);
     } finally {
+      stopKeepalive();
       await releaseRuntimeServicesForRun(run.id).catch(() => undefined);
       activeRunExecutions.delete(run.id);
       await startNextQueuedRunForAgent(run.agentId);

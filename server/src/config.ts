@@ -29,9 +29,10 @@ if (existsSync(PAPERCLIP_ENV_FILE_PATH)) {
 }
 
 const CWD_ENV_PATH = resolve(process.cwd(), ".env");
-const isSameFile = existsSync(CWD_ENV_PATH) && existsSync(PAPERCLIP_ENV_FILE_PATH)
-  ? realpathSync(CWD_ENV_PATH) === realpathSync(PAPERCLIP_ENV_FILE_PATH)
-  : CWD_ENV_PATH === PAPERCLIP_ENV_FILE_PATH;
+const isSameFile =
+  existsSync(CWD_ENV_PATH) && existsSync(PAPERCLIP_ENV_FILE_PATH)
+    ? realpathSync(CWD_ENV_PATH) === realpathSync(PAPERCLIP_ENV_FILE_PATH)
+    : CWD_ENV_PATH === PAPERCLIP_ENV_FILE_PATH;
 if (!isSameFile && existsSync(CWD_ENV_PATH)) {
   loadDotenv({ path: CWD_ENV_PATH, override: false, quiet: true });
 }
@@ -69,13 +70,16 @@ export interface Config {
   storageS3ForcePathStyle: boolean;
   heartbeatSchedulerEnabled: boolean;
   heartbeatSchedulerIntervalMs: number;
+  heartbeatRecoveryGraceMs: number;
+  heartbeatStartupRecoveryGraceMs: number;
   companyDeletionEnabled: boolean;
 }
 
 export function loadConfig(): Config {
   const fileConfig = readConfigFile();
-  const fileDatabaseMode =
-    (fileConfig?.database.mode === "postgres" ? "postgres" : "embedded-postgres") as DatabaseMode;
+  const fileDatabaseMode = (
+    fileConfig?.database.mode === "postgres" ? "postgres" : "embedded-postgres"
+  ) as DatabaseMode;
 
   const fileDbUrl =
     fileDatabaseMode === "postgres"
@@ -88,52 +92,73 @@ export function loadConfig(): Config {
   const secretsStrictMode =
     strictModeFromEnv !== undefined
       ? strictModeFromEnv === "true"
-      : (fileSecrets?.strictMode ?? false);
+      : fileSecrets?.strictMode ?? false;
 
   const providerFromEnvRaw = process.env.PAPERCLIP_SECRETS_PROVIDER;
   const providerFromEnv =
-    providerFromEnvRaw && SECRET_PROVIDERS.includes(providerFromEnvRaw as SecretProvider)
+    providerFromEnvRaw &&
+    SECRET_PROVIDERS.includes(providerFromEnvRaw as SecretProvider)
       ? (providerFromEnvRaw as SecretProvider)
       : null;
   const providerFromFile = fileSecrets?.provider;
-  const secretsProvider: SecretProvider = providerFromEnv ?? providerFromFile ?? "local_encrypted";
+  const secretsProvider: SecretProvider =
+    providerFromEnv ?? providerFromFile ?? "local_encrypted";
 
   const storageProviderFromEnvRaw = process.env.PAPERCLIP_STORAGE_PROVIDER;
   const storageProviderFromEnv =
-    storageProviderFromEnvRaw && STORAGE_PROVIDERS.includes(storageProviderFromEnvRaw as StorageProvider)
+    storageProviderFromEnvRaw &&
+    STORAGE_PROVIDERS.includes(storageProviderFromEnvRaw as StorageProvider)
       ? (storageProviderFromEnvRaw as StorageProvider)
       : null;
-  const storageProvider: StorageProvider = storageProviderFromEnv ?? fileStorage?.provider ?? "local_disk";
+  const storageProvider: StorageProvider =
+    storageProviderFromEnv ?? fileStorage?.provider ?? "local_disk";
   const storageLocalDiskBaseDir = resolveHomeAwarePath(
     process.env.PAPERCLIP_STORAGE_LOCAL_DIR ??
       fileStorage?.localDisk?.baseDir ??
       resolveDefaultStorageDir(),
   );
-  const storageS3Bucket = process.env.PAPERCLIP_STORAGE_S3_BUCKET ?? fileStorage?.s3?.bucket ?? "paperclip";
-  const storageS3Region = process.env.PAPERCLIP_STORAGE_S3_REGION ?? fileStorage?.s3?.region ?? "us-east-1";
-  const storageS3Endpoint = process.env.PAPERCLIP_STORAGE_S3_ENDPOINT ?? fileStorage?.s3?.endpoint ?? undefined;
-  const storageS3Prefix = process.env.PAPERCLIP_STORAGE_S3_PREFIX ?? fileStorage?.s3?.prefix ?? "";
+  const storageS3Bucket =
+    process.env.PAPERCLIP_STORAGE_S3_BUCKET ??
+    fileStorage?.s3?.bucket ??
+    "paperclip";
+  const storageS3Region =
+    process.env.PAPERCLIP_STORAGE_S3_REGION ??
+    fileStorage?.s3?.region ??
+    "us-east-1";
+  const storageS3Endpoint =
+    process.env.PAPERCLIP_STORAGE_S3_ENDPOINT ??
+    fileStorage?.s3?.endpoint ??
+    undefined;
+  const storageS3Prefix =
+    process.env.PAPERCLIP_STORAGE_S3_PREFIX ?? fileStorage?.s3?.prefix ?? "";
   const storageS3ForcePathStyle =
     process.env.PAPERCLIP_STORAGE_S3_FORCE_PATH_STYLE !== undefined
       ? process.env.PAPERCLIP_STORAGE_S3_FORCE_PATH_STYLE === "true"
-      : (fileStorage?.s3?.forcePathStyle ?? false);
+      : fileStorage?.s3?.forcePathStyle ?? false;
 
   const deploymentModeFromEnvRaw = process.env.PAPERCLIP_DEPLOYMENT_MODE;
   const deploymentModeFromEnv =
-    deploymentModeFromEnvRaw && DEPLOYMENT_MODES.includes(deploymentModeFromEnvRaw as DeploymentMode)
+    deploymentModeFromEnvRaw &&
+    DEPLOYMENT_MODES.includes(deploymentModeFromEnvRaw as DeploymentMode)
       ? (deploymentModeFromEnvRaw as DeploymentMode)
       : null;
-  const deploymentMode: DeploymentMode = deploymentModeFromEnv ?? fileConfig?.server.deploymentMode ?? "local_trusted";
-  const deploymentExposureFromEnvRaw = process.env.PAPERCLIP_DEPLOYMENT_EXPOSURE;
+  const deploymentMode: DeploymentMode =
+    deploymentModeFromEnv ??
+    fileConfig?.server.deploymentMode ??
+    "local_trusted";
+  const deploymentExposureFromEnvRaw =
+    process.env.PAPERCLIP_DEPLOYMENT_EXPOSURE;
   const deploymentExposureFromEnv =
     deploymentExposureFromEnvRaw &&
-    DEPLOYMENT_EXPOSURES.includes(deploymentExposureFromEnvRaw as DeploymentExposure)
+    DEPLOYMENT_EXPOSURES.includes(
+      deploymentExposureFromEnvRaw as DeploymentExposure,
+    )
       ? (deploymentExposureFromEnvRaw as DeploymentExposure)
       : null;
   const deploymentExposure: DeploymentExposure =
     deploymentMode === "local_trusted"
       ? "private"
-      : (deploymentExposureFromEnv ?? fileConfig?.server.exposure ?? "private");
+      : deploymentExposureFromEnv ?? fileConfig?.server.exposure ?? "private";
   const authBaseUrlModeFromEnvRaw = process.env.PAPERCLIP_AUTH_BASE_URL_MODE;
   const authBaseUrlModeFromEnv =
     authBaseUrlModeFromEnvRaw &&
@@ -156,27 +181,29 @@ export function loadConfig(): Config {
   const authDisableSignUp: boolean =
     disableSignUpFromEnv !== undefined
       ? disableSignUpFromEnv === "true"
-      : (fileConfig?.auth?.disableSignUp ?? false);
+      : fileConfig?.auth?.disableSignUp ?? false;
   const allowedHostnamesFromEnvRaw = process.env.PAPERCLIP_ALLOWED_HOSTNAMES;
   const allowedHostnamesFromEnv = allowedHostnamesFromEnvRaw
     ? allowedHostnamesFromEnvRaw
-      .split(",")
-      .map((value) => value.trim().toLowerCase())
-      .filter((value) => value.length > 0)
+        .split(",")
+        .map((value) => value.trim().toLowerCase())
+        .filter((value) => value.length > 0)
     : null;
   const publicUrlHostname = authPublicBaseUrl
     ? (() => {
-      try {
-        return new URL(authPublicBaseUrl).hostname.trim().toLowerCase();
-      } catch {
-        return null;
-      }
-    })()
+        try {
+          return new URL(authPublicBaseUrl).hostname.trim().toLowerCase();
+        } catch {
+          return null;
+        }
+      })()
     : null;
   const allowedHostnames = Array.from(
     new Set(
       [
-        ...(allowedHostnamesFromEnv ?? fileConfig?.server.allowedHostnames ?? []),
+        ...(allowedHostnamesFromEnv ??
+          fileConfig?.server.allowedHostnames ??
+          []),
         ...(publicUrlHostname ? [publicUrlHostname] : []),
       ]
         .map((value) => value.trim().toLowerCase())
@@ -191,7 +218,7 @@ export function loadConfig(): Config {
   const databaseBackupEnabled =
     process.env.PAPERCLIP_DB_BACKUP_ENABLED !== undefined
       ? process.env.PAPERCLIP_DB_BACKUP_ENABLED === "true"
-      : (fileDatabaseBackup?.enabled ?? true);
+      : fileDatabaseBackup?.enabled ?? true;
   const databaseBackupIntervalMinutes = Math.max(
     1,
     Number(process.env.PAPERCLIP_DB_BACKUP_INTERVAL_MINUTES) ||
@@ -209,6 +236,20 @@ export function loadConfig(): Config {
       fileDatabaseBackup?.dir ??
       resolveDefaultBackupDir(),
   );
+  const heartbeatRecoveryGraceMs = Math.max(
+    10_000,
+    Number(process.env.HEARTBEAT_RECOVERY_GRACE_MS) || 10 * 60 * 1000,
+  );
+  const heartbeatStartupRecoveryGraceFromEnv = Number(
+    process.env.HEARTBEAT_STARTUP_RECOVERY_GRACE_MS,
+  );
+  const heartbeatStartupRecoveryGraceMs = Math.max(
+    heartbeatRecoveryGraceMs,
+    Number.isFinite(heartbeatStartupRecoveryGraceFromEnv) &&
+      heartbeatStartupRecoveryGraceFromEnv > 0
+      ? heartbeatStartupRecoveryGraceFromEnv
+      : Math.max(heartbeatRecoveryGraceMs, 15 * 60 * 1000),
+  );
 
   return {
     deploymentMode,
@@ -222,7 +263,8 @@ export function loadConfig(): Config {
     databaseMode: fileDatabaseMode,
     databaseUrl: process.env.DATABASE_URL ?? fileDbUrl,
     embeddedPostgresDataDir: resolveHomeAwarePath(
-      fileConfig?.database.embeddedPostgresDataDir ?? resolveDefaultEmbeddedPostgresDir(),
+      fileConfig?.database.embeddedPostgresDataDir ??
+        resolveDefaultEmbeddedPostgresDir(),
     ),
     embeddedPostgresPort: fileConfig?.database.embeddedPostgresPort ?? 54329,
     databaseBackupEnabled,
@@ -236,12 +278,11 @@ export function loadConfig(): Config {
     uiDevMiddleware: process.env.PAPERCLIP_UI_DEV_MIDDLEWARE === "true",
     secretsProvider,
     secretsStrictMode,
-    secretsMasterKeyFilePath:
-      resolveHomeAwarePath(
-        process.env.PAPERCLIP_SECRETS_MASTER_KEY_FILE ??
-          fileSecrets?.localEncrypted.keyFilePath ??
-          resolveDefaultSecretsKeyFilePath(),
-      ),
+    secretsMasterKeyFilePath: resolveHomeAwarePath(
+      process.env.PAPERCLIP_SECRETS_MASTER_KEY_FILE ??
+        fileSecrets?.localEncrypted.keyFilePath ??
+        resolveDefaultSecretsKeyFilePath(),
+    ),
     storageProvider,
     storageLocalDiskBaseDir,
     storageS3Bucket,
@@ -249,8 +290,14 @@ export function loadConfig(): Config {
     storageS3Endpoint,
     storageS3Prefix,
     storageS3ForcePathStyle,
-    heartbeatSchedulerEnabled: process.env.HEARTBEAT_SCHEDULER_ENABLED !== "false",
-    heartbeatSchedulerIntervalMs: Math.max(10000, Number(process.env.HEARTBEAT_SCHEDULER_INTERVAL_MS) || 30000),
+    heartbeatSchedulerEnabled:
+      process.env.HEARTBEAT_SCHEDULER_ENABLED !== "false",
+    heartbeatSchedulerIntervalMs: Math.max(
+      10000,
+      Number(process.env.HEARTBEAT_SCHEDULER_INTERVAL_MS) || 30000,
+    ),
+    heartbeatRecoveryGraceMs,
+    heartbeatStartupRecoveryGraceMs,
     companyDeletionEnabled,
   };
 }
