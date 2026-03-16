@@ -8,7 +8,7 @@ import type {
 } from "@paperclipai/shared";
 import { api } from "./client";
 
-const BASE_URL = "/api/companies";
+const BASE_URL = "/companies";
 
 /**
  * Memory API client for the viewer and governance endpoints.

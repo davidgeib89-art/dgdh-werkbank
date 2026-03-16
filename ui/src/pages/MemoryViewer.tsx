@@ -1,5 +1,6 @@
 import { useMemo, useState, useCallback, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "@/lib/router";
 import type {
   MemoryScope,
   MemoryKind,
@@ -42,6 +43,10 @@ const SCOPE_COLORS: Record<MemoryScope, string> = {
   project: "bg-green-100 text-green-800",
   social: "bg-orange-100 text-orange-800",
 };
+
+const ANY_KIND = "__any_kind__";
+const ANY_AGENT = "__any_agent__";
+const ANY_PROJECT = "__any_project__";
 
 function ScopeBadge({ scope }: { scope: MemoryScope }) {
   return (
@@ -293,14 +298,25 @@ function ReflectionPanel({
 }
 
 export function MemoryViewer() {
-  const { selectedCompanyId } = useCompany();
+  const navigate = useNavigate();
+  const {
+    selectedCompanyId,
+    companies,
+    loading: companiesLoading,
+  } = useCompany();
   const { setBreadcrumbs } = useBreadcrumbs();
   const [selectedScope, setSelectedScope] = useState<MemoryScope | "all">(
     "all",
   );
-  const [selectedAgentId, setSelectedAgentId] = useState<string>("");
-  const [selectedProjectId, setSelectedProjectId] = useState<string>("");
-  const [selectedKinds, setSelectedKinds] = useState<MemoryKind[]>([]);
+  const [selectedAgentId, setSelectedAgentId] = useState<string | undefined>(
+    undefined,
+  );
+  const [selectedProjectId, setSelectedProjectId] = useState<
+    string | undefined
+  >(undefined);
+  const [selectedKind, setSelectedKind] = useState<MemoryKind | undefined>(
+    undefined,
+  );
   const [textSearch, setTextSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedMemory, setSelectedMemory] =
@@ -314,9 +330,9 @@ export function MemoryViewer() {
   const filter: MemoryViewerFilter = useMemo(
     () => ({
       scope: selectedScope === "all" ? undefined : [selectedScope],
-      kind: selectedKinds.length > 0 ? selectedKinds : undefined,
-      agentId: selectedAgentId || undefined,
-      projectId: selectedProjectId || undefined,
+      kind: selectedKind ? [selectedKind] : undefined,
+      agentId: selectedAgentId,
+      projectId: selectedProjectId,
       text: textSearch || undefined,
       page: currentPage,
       pageSize: 25,
@@ -324,7 +340,7 @@ export function MemoryViewer() {
     }),
     [
       selectedScope,
-      selectedKinds,
+      selectedKind,
       selectedAgentId,
       selectedProjectId,
       textSearch,
@@ -378,7 +394,7 @@ export function MemoryViewer() {
   } = useQuery({
     queryKey: queryKeys.memory.reflectionReport(
       selectedCompanyId!,
-      selectedAgentId,
+      selectedAgentId ?? "none",
     ),
     queryFn: async () => {
       if (!selectedAgentId) return undefined;
@@ -393,6 +409,17 @@ export function MemoryViewer() {
   });
 
   if (!selectedCompanyId) {
+    if (!companiesLoading && companies.length === 0) {
+      return (
+        <EmptyState
+          icon={Archive}
+          message="No company exists yet. Create your first company in onboarding, then open Memory Viewer."
+          action="Start onboarding"
+          onAction={() => navigate("/onboarding")}
+        />
+      );
+    }
+
     return (
       <EmptyState icon={Search} message="Select a company to view memory." />
     );
@@ -460,9 +487,11 @@ export function MemoryViewer() {
 
             {/* Kind filter */}
             <Select
-              value={selectedKinds.length === 1 ? selectedKinds[0] : ""}
+              value={selectedKind ?? ANY_KIND}
               onValueChange={(val) => {
-                setSelectedKinds(val ? [val as MemoryKind] : []);
+                setSelectedKind(
+                  val === ANY_KIND ? undefined : (val as MemoryKind),
+                );
                 setCurrentPage(1);
               }}
             >
@@ -470,7 +499,7 @@ export function MemoryViewer() {
                 <SelectValue placeholder="Kind" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All kinds</SelectItem>
+                <SelectItem value={ANY_KIND}>All kinds</SelectItem>
                 {MEMORY_KINDS.map((kind) => (
                   <SelectItem key={kind} value={kind}>
                     {kind}
@@ -481,9 +510,9 @@ export function MemoryViewer() {
 
             {/* Agent filter */}
             <Select
-              value={selectedAgentId}
+              value={selectedAgentId ?? ANY_AGENT}
               onValueChange={(val) => {
-                setSelectedAgentId(val);
+                setSelectedAgentId(val === ANY_AGENT ? undefined : val);
                 setCurrentPage(1);
               }}
             >
@@ -491,7 +520,7 @@ export function MemoryViewer() {
                 <SelectValue placeholder="Agent" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All agents</SelectItem>
+                <SelectItem value={ANY_AGENT}>All agents</SelectItem>
                 {agents?.map((agent) => (
                   <SelectItem key={agent.id} value={agent.id}>
                     {agent.name}
@@ -502,9 +531,9 @@ export function MemoryViewer() {
 
             {/* Project filter */}
             <Select
-              value={selectedProjectId}
+              value={selectedProjectId ?? ANY_PROJECT}
               onValueChange={(val) => {
-                setSelectedProjectId(val);
+                setSelectedProjectId(val === ANY_PROJECT ? undefined : val);
                 setCurrentPage(1);
               }}
             >
@@ -512,7 +541,7 @@ export function MemoryViewer() {
                 <SelectValue placeholder="Project" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All projects</SelectItem>
+                <SelectItem value={ANY_PROJECT}>All projects</SelectItem>
                 {projects?.map((project) => (
                   <SelectItem key={project.id} value={project.id}>
                     {project.name}
