@@ -60,6 +60,16 @@ export type { DashboardSummary } from "./dashboard.js";
 export type { ActivityEvent } from "./activity.js";
 export type { SidebarBadges } from "./sidebar-badges.js";
 export type {
+  MemoryScope,
+  MemoryKind,
+  MemoryItem,
+  MemorySearchParams,
+  MemoryStore,
+  ReflectionOutput,
+  CreateMemoryItemInput,
+  CorrectMemoryItemInput,
+} from "./memory.js";
+export type {
   CompanyMembership,
   PrincipalPermissionGrant,
   Invite,

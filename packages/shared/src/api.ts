@@ -10,6 +10,7 @@ export const API = {
   approvals: `${API_PREFIX}/approvals`,
   secrets: `${API_PREFIX}/secrets`,
   costs: `${API_PREFIX}/costs`,
+  memory: `${API_PREFIX}/memory`,
   activity: `${API_PREFIX}/activity`,
   dashboard: `${API_PREFIX}/dashboard`,
   sidebarBadges: `${API_PREFIX}/sidebar-badges`,

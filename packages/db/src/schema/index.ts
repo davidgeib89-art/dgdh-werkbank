@@ -1,5 +1,10 @@
 export { companies } from "./companies.js";
-export { authUsers, authSessions, authAccounts, authVerifications } from "./auth.js";
+export {
+  authUsers,
+  authSessions,
+  authAccounts,
+  authVerifications,
+} from "./auth.js";
 export { instanceUserRoles } from "./instance_user_roles.js";
 export { agents } from "./agents.js";
 export { companyMemberships } from "./company_memberships.js";
@@ -27,6 +32,7 @@ export { issueAttachments } from "./issue_attachments.js";
 export { documents } from "./documents.js";
 export { documentRevisions } from "./document_revisions.js";
 export { issueDocuments } from "./issue_documents.js";
+export { memoryItems } from "./memory_items.js";
 export { heartbeatRuns } from "./heartbeat_runs.js";
 export { heartbeatRunEvents } from "./heartbeat_run_events.js";
 export { costEvents } from "./cost_events.js";

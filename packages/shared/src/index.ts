@@ -95,6 +95,7 @@ export {
   type PluginEventType,
   type PluginBridgeErrorCode,
 } from "./constants.js";
+export { MEMORY_SCOPES, MEMORY_KINDS } from "./types/memory.js";
 
 export type {
   Company,
@@ -142,6 +143,14 @@ export type {
   DashboardSummary,
   ActivityEvent,
   SidebarBadges,
+  MemoryScope,
+  MemoryKind,
+  MemoryItem,
+  MemorySearchParams,
+  MemoryStore,
+  ReflectionOutput,
+  CreateMemoryItemInput,
+  CorrectMemoryItemInput,
   CompanyMembership,
   PrincipalPermissionGrant,
   Invite,
@@ -268,6 +277,11 @@ export {
   type UpdateSecret,
   createCostEventSchema,
   updateBudgetSchema,
+  memoryScopeSchema,
+  memoryKindSchema,
+  createMemoryItemSchema,
+  searchMemorySchema,
+  correctMemorySchema,
   createAssetImageMetadataSchema,
   createCompanyInviteSchema,
   createOpenClawInvitePromptSchema,
@@ -278,6 +292,9 @@ export {
   updateUserCompanyAccessSchema,
   type CreateCostEvent,
   type UpdateBudget,
+  type CreateMemoryItem,
+  type SearchMemory,
+  type CorrectMemory,
   type CreateAssetImageMetadata,
   type CreateCompanyInvite,
   type CreateOpenClawInvitePrompt,
@@ -337,8 +354,15 @@ export {
 } from "./validators/index.js";
 
 export { API_PREFIX, API } from "./api.js";
-export { normalizeAgentUrlKey, deriveAgentUrlKey, isUuidLike } from "./agent-url-key.js";
-export { deriveProjectUrlKey, normalizeProjectUrlKey } from "./project-url-key.js";
+export {
+  normalizeAgentUrlKey,
+  deriveAgentUrlKey,
+  isUuidLike,
+} from "./agent-url-key.js";
+export {
+  deriveProjectUrlKey,
+  normalizeProjectUrlKey,
+} from "./project-url-key.js";
 export {
   PROJECT_MENTION_SCHEME,
   buildProjectMentionHref,

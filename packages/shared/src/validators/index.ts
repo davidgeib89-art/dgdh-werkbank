@@ -127,6 +127,17 @@ export {
 } from "./asset.js";
 
 export {
+  memoryScopeSchema,
+  memoryKindSchema,
+  createMemoryItemSchema,
+  searchMemorySchema,
+  correctMemorySchema,
+  type CreateMemoryItem,
+  type SearchMemory,
+  type CorrectMemory,
+} from "./memory.js";
+
+export {
   createCompanyInviteSchema,
   createOpenClawInvitePromptSchema,
   acceptInviteSchema,
