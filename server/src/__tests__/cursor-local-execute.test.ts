@@ -3,8 +3,9 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { execute } from "@paperclipai/adapter-cursor-local/server";
+import { writeFakeNodeCommand } from "./test-command-utils.js";
 
-async function writeFakeCursorCommand(commandPath: string): Promise<void> {
+async function writeFakeCursorCommand(commandPath: string): Promise<string> {
   const script = `#!/usr/bin/env node
 const fs = require("node:fs");
 
@@ -36,8 +37,7 @@ console.log(JSON.stringify({
   result: "ok",
 }));
 `;
-  await fs.writeFile(commandPath, script, "utf8");
-  await fs.chmod(commandPath, 0o755);
+  return writeFakeNodeCommand(commandPath, script);
 }
 
 type CapturePayload = {
@@ -53,7 +53,7 @@ describe("cursor execute", () => {
     const commandPath = path.join(root, "agent");
     const capturePath = path.join(root, "capture.json");
     await fs.mkdir(workspace, { recursive: true });
-    await writeFakeCursorCommand(commandPath);
+    const executablePath = await writeFakeCursorCommand(commandPath);
 
     const previousHome = process.env.HOME;
     process.env.HOME = root;
@@ -76,7 +76,7 @@ describe("cursor execute", () => {
           taskKey: null,
         },
         config: {
-          command: commandPath,
+          command: executablePath,
           cwd: workspace,
           model: "auto",
           env: {
@@ -128,7 +128,7 @@ describe("cursor execute", () => {
     const commandPath = path.join(root, "agent");
     const capturePath = path.join(root, "capture.json");
     await fs.mkdir(workspace, { recursive: true });
-    await writeFakeCursorCommand(commandPath);
+    const executablePath = await writeFakeCursorCommand(commandPath);
 
     const previousHome = process.env.HOME;
     process.env.HOME = root;
@@ -150,7 +150,7 @@ describe("cursor execute", () => {
           taskKey: null,
         },
         config: {
-          command: commandPath,
+          command: executablePath,
           cwd: workspace,
           model: "auto",
           mode: "ask",

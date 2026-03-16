@@ -27,6 +27,8 @@ const DEFAULT_AGENT_JWT_TTL_SECONDS = "172800";
 const DEFAULT_AGENT_JWT_ISSUER = "paperclip";
 const DEFAULT_AGENT_JWT_AUDIENCE = "paperclip-api";
 const DEFAULT_HEARTBEAT_SCHEDULER_INTERVAL_MS = "30000";
+const DEFAULT_HEARTBEAT_RECOVERY_GRACE_MS = "600000";
+const DEFAULT_HEARTBEAT_STARTUP_RECOVERY_GRACE_MS = "900000";
 const DEFAULT_SECRETS_PROVIDER = "local_encrypted";
 const DEFAULT_STORAGE_PROVIDER = "local_disk";
 function defaultSecretsKeyFilePath(): string {
@@ -109,7 +111,10 @@ export async function envCommand(opts: { config?: string }): Promise<void> {
   p.outro("Done");
 }
 
-function collectDeploymentEnvRows(config: PaperclipConfig | null, configPath: string): EnvVarRow[] {
+export function collectDeploymentEnvRows(
+  config: PaperclipConfig | null,
+  configPath: string,
+): EnvVarRow[] {
   const agentJwtEnvFile = resolveAgentJwtEnvFile(configPath);
   const jwtEnv = readAgentJwtSecretFromEnv(configPath);
   const jwtFile = jwtEnv ? null : readAgentJwtSecretFromEnvFile(agentJwtEnvFile);
@@ -144,6 +149,12 @@ function collectDeploymentEnvRows(config: PaperclipConfig | null, configPath: st
 
   const heartbeatInterval = process.env.HEARTBEAT_SCHEDULER_INTERVAL_MS ?? DEFAULT_HEARTBEAT_SCHEDULER_INTERVAL_MS;
   const heartbeatEnabled = process.env.HEARTBEAT_SCHEDULER_ENABLED ?? "true";
+  const heartbeatRecoveryGraceMs =
+    process.env.HEARTBEAT_RECOVERY_GRACE_MS ??
+    DEFAULT_HEARTBEAT_RECOVERY_GRACE_MS;
+  const heartbeatStartupRecoveryGraceMs =
+    process.env.HEARTBEAT_STARTUP_RECOVERY_GRACE_MS ??
+    DEFAULT_HEARTBEAT_STARTUP_RECOVERY_GRACE_MS;
   const secretsProvider =
     process.env.PAPERCLIP_SECRETS_PROVIDER ??
     config?.secrets?.provider ??
@@ -267,6 +278,20 @@ function collectDeploymentEnvRows(config: PaperclipConfig | null, configPath: st
       source: process.env.HEARTBEAT_SCHEDULER_ENABLED ? "env" : "default",
       required: false,
       note: "Set to `false` to disable timer scheduling",
+    },
+    {
+      key: "HEARTBEAT_RECOVERY_GRACE_MS",
+      value: heartbeatRecoveryGraceMs,
+      source: process.env.HEARTBEAT_RECOVERY_GRACE_MS ? "env" : "default",
+      required: false,
+      note: "Grace period before recovering runs are marked lost during periodic recovery (minimum 10000 ms)",
+    },
+    {
+      key: "HEARTBEAT_STARTUP_RECOVERY_GRACE_MS",
+      value: heartbeatStartupRecoveryGraceMs,
+      source: process.env.HEARTBEAT_STARTUP_RECOVERY_GRACE_MS ? "env" : "default",
+      required: false,
+      note: "Startup grace for recovering runs; defaults to at least the periodic grace and 900000 ms",
     },
     {
       key: "PAPERCLIP_SECRETS_PROVIDER",

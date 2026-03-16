@@ -3,6 +3,7 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { testEnvironment } from "@paperclipai/adapter-gemini-local/server";
+import { writeFakeNodeCommand } from "./test-command-utils.js";
 
 async function writeFakeGeminiCommand(binDir: string, argsCapturePath: string): Promise<string> {
   const commandPath = path.join(binDir, "gemini");
@@ -22,9 +23,7 @@ console.log(JSON.stringify({
   result: "hello",
 }));
 `;
-  await fs.writeFile(commandPath, script, "utf8");
-  await fs.chmod(commandPath, 0o755);
-  return commandPath;
+  return writeFakeNodeCommand(commandPath, script);
 }
 
 describe("gemini_local environment diagnostics", () => {
@@ -62,13 +61,13 @@ describe("gemini_local environment diagnostics", () => {
     const cwd = path.join(root, "workspace");
     const argsCapturePath = path.join(root, "args.json");
     await fs.mkdir(binDir, { recursive: true });
-    await writeFakeGeminiCommand(binDir, argsCapturePath);
+    const commandPath = await writeFakeGeminiCommand(binDir, argsCapturePath);
 
     const result = await testEnvironment({
       companyId: "company-1",
       adapterType: "gemini_local",
       config: {
-        command: "gemini",
+        command: commandPath,
         cwd,
         model: "gemini-2.5-pro",
         yolo: true,

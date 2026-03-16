@@ -3,6 +3,7 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { testEnvironment } from "@paperclipai/adapter-cursor-local/server";
+import { writeFakeNodeCommand } from "./test-command-utils.js";
 
 async function writeFakeAgentCommand(binDir: string, argsCapturePath: string): Promise<string> {
   const commandPath = path.join(binDir, "agent");
@@ -22,9 +23,7 @@ console.log(JSON.stringify({
   result: "hello",
 }));
 `;
-  await fs.writeFile(commandPath, script, "utf8");
-  await fs.chmod(commandPath, 0o755);
-  return commandPath;
+  return writeFakeNodeCommand(commandPath, script);
 }
 
 describe("cursor environment diagnostics", () => {
@@ -62,13 +61,13 @@ describe("cursor environment diagnostics", () => {
     const cwd = path.join(root, "workspace");
     const argsCapturePath = path.join(root, "args.json");
     await fs.mkdir(binDir, { recursive: true });
-    await writeFakeAgentCommand(binDir, argsCapturePath);
+    const commandPath = await writeFakeAgentCommand(binDir, argsCapturePath);
 
     const result = await testEnvironment({
       companyId: "company-1",
       adapterType: "cursor",
       config: {
-        command: "agent",
+        command: commandPath,
         cwd,
         env: {
           CURSOR_API_KEY: "test-key",
@@ -93,13 +92,13 @@ describe("cursor environment diagnostics", () => {
     const cwd = path.join(root, "workspace");
     const argsCapturePath = path.join(root, "args.json");
     await fs.mkdir(binDir, { recursive: true });
-    await writeFakeAgentCommand(binDir, argsCapturePath);
+    const commandPath = await writeFakeAgentCommand(binDir, argsCapturePath);
 
     const result = await testEnvironment({
       companyId: "company-1",
       adapterType: "cursor",
       config: {
-        command: "agent",
+        command: commandPath,
         cwd,
         extraArgs: ["--yolo"],
         env: {

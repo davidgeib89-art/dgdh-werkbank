@@ -3,8 +3,9 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { execute } from "@paperclipai/adapter-codex-local/server";
+import { writeFakeNodeCommand } from "./test-command-utils.js";
 
-async function writeFakeCodexCommand(commandPath: string): Promise<void> {
+async function writeFakeCodexCommand(commandPath: string): Promise<string> {
   const script = `#!/usr/bin/env node
 const fs = require("node:fs");
 
@@ -24,8 +25,7 @@ console.log(JSON.stringify({ type: "thread.started", thread_id: "codex-session-1
 console.log(JSON.stringify({ type: "item.completed", item: { type: "agent_message", text: "hello" } }));
 console.log(JSON.stringify({ type: "turn.completed", usage: { input_tokens: 1, cached_input_tokens: 0, output_tokens: 1 } }));
 `;
-  await fs.writeFile(commandPath, script, "utf8");
-  await fs.chmod(commandPath, 0o755);
+  return writeFakeNodeCommand(commandPath, script);
 }
 
 type CapturePayload = {
@@ -48,7 +48,7 @@ describe("codex execute", () => {
     await fs.mkdir(sharedCodexHome, { recursive: true });
     await fs.writeFile(path.join(sharedCodexHome, "auth.json"), '{"token":"shared"}\n', "utf8");
     await fs.writeFile(path.join(sharedCodexHome, "config.toml"), 'model = "codex-mini-latest"\n', "utf8");
-    await writeFakeCodexCommand(commandPath);
+    const executablePath = await writeFakeCodexCommand(commandPath);
 
     const previousHome = process.env.HOME;
     const previousPaperclipHome = process.env.PAPERCLIP_HOME;
@@ -78,7 +78,7 @@ describe("codex execute", () => {
           taskKey: null,
         },
         config: {
-          command: commandPath,
+          command: executablePath,
           cwd: workspace,
           env: {
             PAPERCLIP_TEST_CAPTURE_PATH: capturePath,
@@ -142,7 +142,7 @@ describe("codex execute", () => {
     await fs.mkdir(workspace, { recursive: true });
     await fs.mkdir(sharedCodexHome, { recursive: true });
     await fs.writeFile(path.join(sharedCodexHome, "auth.json"), '{"token":"shared"}\n', "utf8");
-    await writeFakeCodexCommand(commandPath);
+    const executablePath = await writeFakeCodexCommand(commandPath);
 
     const previousHome = process.env.HOME;
     const previousPaperclipHome = process.env.PAPERCLIP_HOME;
@@ -172,7 +172,7 @@ describe("codex execute", () => {
           taskKey: null,
         },
         config: {
-          command: commandPath,
+          command: executablePath,
           cwd: workspace,
           env: {
             PAPERCLIP_TEST_CAPTURE_PATH: capturePath,

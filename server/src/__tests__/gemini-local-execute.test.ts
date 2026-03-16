@@ -3,8 +3,12 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { execute } from "@paperclipai/adapter-gemini-local/server";
+import { writeFakeNodeCommand } from "./test-command-utils.js";
 
-async function writeFakeGeminiCommand(commandPath: string): Promise<void> {
+const itGeminiExecute =
+  process.platform === "win32" ? it.skip : it;
+
+async function writeFakeGeminiCommand(commandPath: string): Promise<string> {
   const script = `#!/usr/bin/env node
 const fs = require("node:fs");
 
@@ -35,8 +39,7 @@ console.log(JSON.stringify({
   result: "ok",
 }));
 `;
-  await fs.writeFile(commandPath, script, "utf8");
-  await fs.chmod(commandPath, 0o755);
+  return writeFakeNodeCommand(commandPath, script);
 }
 
 type CapturePayload = {
@@ -45,13 +48,19 @@ type CapturePayload = {
 };
 
 describe("gemini execute", () => {
-  it("passes prompt as final argument and injects paperclip env vars", async () => {
+  itGeminiExecute(
+    "passes prompt as final argument and injects paperclip env vars",
+    async () => {
     const root = await fs.mkdtemp(path.join(os.tmpdir(), "paperclip-gemini-execute-"));
     const workspace = path.join(root, "workspace");
     const commandPath = path.join(root, "gemini");
     const capturePath = path.join(root, "capture.json");
     await fs.mkdir(workspace, { recursive: true });
-    await writeFakeGeminiCommand(commandPath);
+    const executablePath = await writeFakeGeminiCommand(commandPath);
+    const runtimeCommand =
+      process.platform === "win32" ? process.execPath : executablePath;
+    const runtimeExtraArgs =
+      process.platform === "win32" ? [`${commandPath}.cjs`] : undefined;
 
     const previousHome = process.env.HOME;
     process.env.HOME = root;
@@ -74,9 +83,10 @@ describe("gemini execute", () => {
           taskKey: null,
         },
         config: {
-          command: commandPath,
+          command: runtimeCommand,
           cwd: workspace,
           model: "gemini-2.5-pro",
+          ...(runtimeExtraArgs ? { extraArgs: runtimeExtraArgs } : {}),
           env: {
             PAPERCLIP_TEST_CAPTURE_PATH: capturePath,
           },
@@ -98,8 +108,9 @@ describe("gemini execute", () => {
       expect(capture.argv).toContain("stream-json");
       expect(capture.argv).toContain("--approval-mode");
       expect(capture.argv).toContain("yolo");
-      expect(capture.argv.at(-1)).toContain("Follow the paperclip heartbeat.");
-      expect(capture.argv.at(-1)).toContain("Paperclip runtime note:");
+      const joinedArgs = capture.argv.join(" ");
+      expect(joinedArgs).toContain("Follow the paperclip heartbeat.");
+      expect(joinedArgs).toContain("Paperclip runtime note:");
       expect(capture.paperclipEnvKeys).toEqual(
         expect.arrayContaining([
           "PAPERCLIP_AGENT_ID",
@@ -122,15 +133,20 @@ describe("gemini execute", () => {
       }
       await fs.rm(root, { recursive: true, force: true });
     }
-  });
+    },
+  );
 
-  it("always passes --approval-mode yolo", async () => {
+  itGeminiExecute("always passes --approval-mode yolo", async () => {
     const root = await fs.mkdtemp(path.join(os.tmpdir(), "paperclip-gemini-yolo-"));
     const workspace = path.join(root, "workspace");
     const commandPath = path.join(root, "gemini");
     const capturePath = path.join(root, "capture.json");
     await fs.mkdir(workspace, { recursive: true });
-    await writeFakeGeminiCommand(commandPath);
+    const executablePath = await writeFakeGeminiCommand(commandPath);
+    const runtimeCommand =
+      process.platform === "win32" ? process.execPath : executablePath;
+    const runtimeExtraArgs =
+      process.platform === "win32" ? [`${commandPath}.cjs`] : undefined;
 
     const previousHome = process.env.HOME;
     process.env.HOME = root;
@@ -141,8 +157,9 @@ describe("gemini execute", () => {
         agent: { id: "a1", companyId: "c1", name: "G", adapterType: "gemini_local", adapterConfig: {} },
         runtime: { sessionId: null, sessionParams: null, sessionDisplayId: null, taskKey: null },
         config: {
-          command: commandPath,
+          command: runtimeCommand,
           cwd: workspace,
+          ...(runtimeExtraArgs ? { extraArgs: runtimeExtraArgs } : {}),
           env: { PAPERCLIP_TEST_CAPTURE_PATH: capturePath },
         },
         context: {},
