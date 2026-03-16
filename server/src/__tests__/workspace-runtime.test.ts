@@ -130,17 +130,16 @@ describe("realizeExecutionWorkspace", () => {
     const repoRoot = await createTempRepo();
     await fs.mkdir(path.join(repoRoot, "scripts"), { recursive: true });
     await fs.writeFile(
-      path.join(repoRoot, "scripts", "provision.sh"),
+      path.join(repoRoot, "scripts", "provision.cjs"),
       [
-        "#!/usr/bin/env bash",
-        "set -euo pipefail",
-        "printf '%s\\n' \"$PAPERCLIP_WORKSPACE_BRANCH\" > .paperclip-provision-branch",
-        "printf '%s\\n' \"$PAPERCLIP_WORKSPACE_BASE_CWD\" > .paperclip-provision-base",
-        "printf '%s\\n' \"$PAPERCLIP_WORKSPACE_CREATED\" > .paperclip-provision-created",
+        'const fs = require("node:fs");',
+        'fs.writeFileSync(".paperclip-provision-branch", `${process.env.PAPERCLIP_WORKSPACE_BRANCH}\\n`, "utf8");',
+        'fs.writeFileSync(".paperclip-provision-base", `${process.env.PAPERCLIP_WORKSPACE_BASE_CWD}\\n`, "utf8");',
+        'fs.writeFileSync(".paperclip-provision-created", `${process.env.PAPERCLIP_WORKSPACE_CREATED}\\n`, "utf8");',
       ].join("\n"),
       "utf8",
     );
-    await runGit(repoRoot, ["add", "scripts/provision.sh"]);
+    await runGit(repoRoot, ["add", "scripts/provision.cjs"]);
     await runGit(repoRoot, ["commit", "-m", "Add worktree provision script"]);
 
     const workspace = await realizeExecutionWorkspace({
@@ -156,7 +155,7 @@ describe("realizeExecutionWorkspace", () => {
         workspaceStrategy: {
           type: "git_worktree",
           branchTemplate: "{{issue.identifier}}-{{slug}}",
-          provisionCommand: "bash ./scripts/provision.sh",
+          provisionCommand: "node ./scripts/provision.cjs",
         },
       },
       issue: {
@@ -194,7 +193,7 @@ describe("realizeExecutionWorkspace", () => {
         workspaceStrategy: {
           type: "git_worktree",
           branchTemplate: "{{issue.identifier}}-{{slug}}",
-          provisionCommand: "bash ./scripts/provision.sh",
+          provisionCommand: "node ./scripts/provision.cjs",
         },
       },
       issue: {
@@ -217,8 +216,16 @@ describe("ensureRuntimeServicesForRun", () => {
   it("reuses shared runtime services across runs and starts a new service after release", async () => {
     const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), "paperclip-runtime-workspace-"));
     const workspace = buildWorkspace(workspaceRoot);
-    const serviceCommand =
-      "node -e \"require('node:http').createServer((req,res)=>res.end('ok')).listen(Number(process.env.PORT), '127.0.0.1')\"";
+    await fs.writeFile(
+      path.join(workspaceRoot, "service.cjs"),
+      [
+        'require("node:http")',
+        '  .createServer((req, res) => res.end("ok"))',
+        '  .listen(Number(process.env.PORT), "127.0.0.1");',
+      ].join("\n"),
+      "utf8",
+    );
+    const serviceCommand = "node ./service.cjs";
 
     const config = {
       workspaceRuntime: {

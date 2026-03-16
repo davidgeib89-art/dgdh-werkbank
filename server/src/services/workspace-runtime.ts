@@ -267,15 +267,30 @@ function buildWorkspaceCommandEnv(input: {
   return env;
 }
 
+function resolveShellSpawn(command: string, opts: { login?: boolean } = {}) {
+  if (process.platform === "win32") {
+    return {
+      command: process.env.ComSpec?.trim() || "cmd.exe",
+      args: ["/d", "/s", "/c", command],
+    };
+  }
+
+  const shell = process.env.SHELL?.trim() || "/bin/sh";
+  return {
+    command: shell,
+    args: [opts.login ? "-lc" : "-c", command],
+  };
+}
+
 async function runWorkspaceCommand(input: {
   command: string;
   cwd: string;
   env: NodeJS.ProcessEnv;
   label: string;
 }) {
-  const shell = process.env.SHELL?.trim() || "/bin/sh";
+  const shell = resolveShellSpawn(input.command);
   const proc = await new Promise<{ stdout: string; stderr: string; code: number | null }>((resolve, reject) => {
-    const child = spawn(shell, ["-c", input.command], {
+    const child = spawn(shell.command, shell.args, {
       cwd: input.cwd,
       env: input.env,
       stdio: ["ignore", "pipe", "pipe"],
@@ -693,8 +708,8 @@ async function startLocalRuntimeService(input: {
     const portEnvKey = asString(portConfig.envKey, "PORT");
     env[portEnvKey] = String(port);
   }
-  const shell = process.env.SHELL?.trim() || "/bin/sh";
-  const child = spawn(shell, ["-lc", command], {
+  const shell = resolveShellSpawn(command, { login: true });
+  const child = spawn(shell.command, shell.args, {
     cwd: serviceCwd,
     env,
     detached: false,
@@ -702,6 +717,27 @@ async function startLocalRuntimeService(input: {
   });
   let stderrExcerpt = "";
   let stdoutExcerpt = "";
+  let clearStartupListeners = () => {};
+  const startupFailure = new Promise<never>((_, reject) => {
+    const handleError = (err: Error) => {
+      reject(err);
+    };
+    const handleClose = (code: number | null, signal: NodeJS.Signals | null) => {
+      const suffix =
+        code !== null
+          ? ` with exit code ${code}`
+          : signal
+            ? ` due to signal ${signal}`
+            : "";
+      reject(new Error(`Runtime service "${serviceName}" exited before becoming ready${suffix}.`));
+    };
+    child.once("error", handleError);
+    child.once("close", handleClose);
+    clearStartupListeners = () => {
+      child.off("error", handleError);
+      child.off("close", handleClose);
+    };
+  });
   child.stdout?.on("data", async (chunk) => {
     const text = String(chunk);
     stdoutExcerpt = (stdoutExcerpt + text).slice(-4096);
@@ -721,12 +757,16 @@ async function startLocalRuntimeService(input: {
   const url = urlTemplate ? renderTemplate(urlTemplate, templateData) : null;
 
   try {
-    await waitForReadiness({ service: input.service, url });
+    await Promise.race([waitForReadiness({ service: input.service, url }), startupFailure]);
   } catch (err) {
-    child.kill("SIGTERM");
+    if (!child.killed) {
+      child.kill("SIGTERM");
+    }
     throw new Error(
-      `Failed to start runtime service "${serviceName}": ${err instanceof Error ? err.message : String(err)}${stderrExcerpt ? ` | stderr: ${stderrExcerpt.trim()}` : ""}`,
+      `Failed to start runtime service "${serviceName}": ${err instanceof Error ? err.message : String(err)}${(stderrExcerpt.trim() || stdoutExcerpt.trim()) ? ` | output: ${(stderrExcerpt.trim() || stdoutExcerpt.trim())}` : ""}`,
     );
+  } finally {
+    clearStartupListeners();
   }
 
   const envFingerprint = createHash("sha256").update(stableStringify(envConfig)).digest("hex");
