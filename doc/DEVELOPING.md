@@ -39,6 +39,53 @@ This starts:
 
 `pnpm dev` runs the server in watch mode and restarts on changes from workspace packages (including adapter packages). Use `pnpm dev:once` to run without file watching.
 
+## Stable Heartbeat Verification Mode
+
+For heartbeat-run, recovery, and memory-persistence verification, do not use `pnpm dev`.
+
+Use this from the worktree root instead:
+
+```sh
+pnpm dev:once
+```
+
+This is the stable path for local verification because it resolves to:
+
+- root script: `node scripts/dev-runner.mjs dev`
+- server script: `pnpm --filter @paperclipai/server dev`
+- server runtime: `tsx src/index.ts`
+
+That path keeps the normal repo-local worktree config, but disables server watch/hot reload.
+
+Important notes:
+
+- Running inside a configured worktree automatically loads `.paperclip/.env`, so repo-local `PAPERCLIP_HOME`, `PAPERCLIP_INSTANCE_ID`, and `PAPERCLIP_CONFIG` do not need to be exported manually.
+- `pnpm dev:once` is preferred over calling the server package directly because it still runs the same root bootstrap flow used by local development.
+- UI source edits can still be exercised through the dev middleware without forcing a backend restart.
+
+Observed watch-mode behavior in this repo:
+
+- No restart when touching `README.md`
+- No restart when touching `doc/DEVELOPING.md`
+- No restart when touching `report/*.md`
+- No restart when touching `ui/src/pages/MemoryViewer.tsx`
+- Restart when touching `server/src/index.ts`
+- Restart when touching `packages/shared/src/constants.ts`
+- Restart when touching `packages/adapters/codex-local/src/server/execute.ts`
+
+Implication:
+
+- Docs and report files are not the current cause of heartbeat-run loss.
+- Server and imported workspace package edits are the current cause of orphaned runs in watch mode.
+
+Recommended verification workflow:
+
+```sh
+pnpm dev:once
+```
+
+Then run heartbeat or memory checks against the local server without editing `server/src` or imported package source during the run.
+
 Tailscale/private-auth dev mode:
 
 ```sh
@@ -176,19 +223,19 @@ eval "$(paperclipai worktree env)"
 
 **`pnpm paperclipai worktree init [options]`** — Create repo-local config/env and an isolated instance for the current worktree.
 
-| Option | Description |
-|---|---|
-| `--name <name>` | Display name used to derive the instance id |
-| `--instance <id>` | Explicit isolated instance id |
-| `--home <path>` | Home root for worktree instances (default: `~/.paperclip-worktrees`) |
-| `--from-config <path>` | Source config.json to seed from |
-| `--from-data-dir <path>` | Source PAPERCLIP_HOME used when deriving the source config |
-| `--from-instance <id>` | Source instance id (default: `default`) |
-| `--server-port <port>` | Preferred server port |
-| `--db-port <port>` | Preferred embedded Postgres port |
-| `--seed-mode <mode>` | Seed profile: `minimal` or `full` (default: `minimal`) |
-| `--no-seed` | Skip database seeding from the source instance |
-| `--force` | Replace existing repo-local config and isolated instance data |
+| Option                   | Description                                                          |
+| ------------------------ | -------------------------------------------------------------------- |
+| `--name <name>`          | Display name used to derive the instance id                          |
+| `--instance <id>`        | Explicit isolated instance id                                        |
+| `--home <path>`          | Home root for worktree instances (default: `~/.paperclip-worktrees`) |
+| `--from-config <path>`   | Source config.json to seed from                                      |
+| `--from-data-dir <path>` | Source PAPERCLIP_HOME used when deriving the source config           |
+| `--from-instance <id>`   | Source instance id (default: `default`)                              |
+| `--server-port <port>`   | Preferred server port                                                |
+| `--db-port <port>`       | Preferred embedded Postgres port                                     |
+| `--seed-mode <mode>`     | Seed profile: `minimal` or `full` (default: `minimal`)               |
+| `--no-seed`              | Skip database seeding from the source instance                       |
+| `--force`                | Replace existing repo-local config and isolated instance data        |
 
 Examples:
 
@@ -202,19 +249,19 @@ paperclipai worktree init --force
 
 **`pnpm paperclipai worktree:make <name> [options]`** — Create `~/NAME` as a git worktree, then initialize an isolated Paperclip instance inside it. This combines `git worktree add` with `worktree init` in a single step.
 
-| Option | Description |
-|---|---|
-| `--start-point <ref>` | Remote ref to base the new branch on (e.g. `origin/main`) |
-| `--instance <id>` | Explicit isolated instance id |
-| `--home <path>` | Home root for worktree instances (default: `~/.paperclip-worktrees`) |
-| `--from-config <path>` | Source config.json to seed from |
-| `--from-data-dir <path>` | Source PAPERCLIP_HOME used when deriving the source config |
-| `--from-instance <id>` | Source instance id (default: `default`) |
-| `--server-port <port>` | Preferred server port |
-| `--db-port <port>` | Preferred embedded Postgres port |
-| `--seed-mode <mode>` | Seed profile: `minimal` or `full` (default: `minimal`) |
-| `--no-seed` | Skip database seeding from the source instance |
-| `--force` | Replace existing repo-local config and isolated instance data |
+| Option                   | Description                                                          |
+| ------------------------ | -------------------------------------------------------------------- |
+| `--start-point <ref>`    | Remote ref to base the new branch on (e.g. `origin/main`)            |
+| `--instance <id>`        | Explicit isolated instance id                                        |
+| `--home <path>`          | Home root for worktree instances (default: `~/.paperclip-worktrees`) |
+| `--from-config <path>`   | Source config.json to seed from                                      |
+| `--from-data-dir <path>` | Source PAPERCLIP_HOME used when deriving the source config           |
+| `--from-instance <id>`   | Source instance id (default: `default`)                              |
+| `--server-port <port>`   | Preferred server port                                                |
+| `--db-port <port>`       | Preferred embedded Postgres port                                     |
+| `--seed-mode <mode>`     | Seed profile: `minimal` or `full` (default: `minimal`)               |
+| `--no-seed`              | Skip database seeding from the source instance                       |
+| `--force`                | Replace existing repo-local config and isolated instance data        |
 
 Examples:
 
@@ -226,10 +273,10 @@ pnpm paperclipai worktree:make experiment --no-seed
 
 **`pnpm paperclipai worktree env [options]`** — Print shell exports for the current worktree-local Paperclip instance.
 
-| Option | Description |
-|---|---|
-| `-c, --config <path>` | Path to config file |
-| `--json` | Print JSON instead of shell exports |
+| Option                | Description                         |
+| --------------------- | ----------------------------------- |
+| `-c, --config <path>` | Path to config file                 |
+| `--json`              | Print JSON instead of shell exports |
 
 Examples:
 

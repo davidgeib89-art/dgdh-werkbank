@@ -1,4 +1,4 @@
-import { useMemo, useState, useCallback, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@/lib/router";
 import type {
@@ -17,9 +17,11 @@ import { useCompany } from "../context/CompanyContext";
 import { useBreadcrumbs } from "../context/BreadcrumbContext";
 import { queryKeys } from "../lib/queryKeys";
 import { EmptyState } from "../components/EmptyState";
+import { MemoryDetailPanel } from "../components/memory/MemoryDetailPanel";
+import { MemoryFiltersBar } from "../components/memory/MemoryFiltersBar";
+import { MemoryListItem } from "../components/memory/MemoryListItem";
+import { ReflectionCandidateCard } from "../components/memory/ReflectionCandidateCard";
 import { Button } from "../components/ui/button";
-import { Input } from "../components/ui/input";
-import { Badge } from "../components/ui/badge";
 import {
   Card,
   CardContent,
@@ -27,172 +29,7 @@ import {
   CardHeader,
   CardTitle,
 } from "../components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../components/ui/select";
 import { Archive, Search, ChevronRight, Loader2 } from "lucide-react";
-import { cn } from "../lib/utils";
-
-const SCOPE_COLORS: Record<MemoryScope, string> = {
-  personal: "bg-blue-100 text-blue-800",
-  company: "bg-purple-100 text-purple-800",
-  project: "bg-green-100 text-green-800",
-  social: "bg-orange-100 text-orange-800",
-};
-
-const ANY_KIND = "__any_kind__";
-const ANY_AGENT = "__any_agent__";
-const ANY_PROJECT = "__any_project__";
-
-function ScopeBadge({ scope }: { scope: MemoryScope }) {
-  return (
-    <Badge className={cn("font-semibold", SCOPE_COLORS[scope])}>{scope}</Badge>
-  );
-}
-
-function KindBadge({ kind }: { kind: MemoryKind }) {
-  return (
-    <Badge variant="outline" className="text-xs">
-      {kind}
-    </Badge>
-  );
-}
-
-function ApprovalStatusBadge({ status }: { status: string }) {
-  const colors: Record<string, string> = {
-    approved: "bg-green-100 text-green-800",
-    pending_review: "bg-yellow-100 text-yellow-800",
-    rejected: "bg-red-100 text-red-800",
-    draft: "bg-gray-100 text-gray-800",
-  };
-  return (
-    <Badge className={cn("text-xs", colors[status] ?? colors.draft)}>
-      {status}
-    </Badge>
-  );
-}
-
-function MemoryListItem({
-  item,
-  isSelected,
-  onSelect,
-}: {
-  item: MemoryItemGoverned;
-  isSelected: boolean;
-  onSelect: (item: MemoryItemGoverned) => void;
-}) {
-  return (
-    <div
-      onClick={() => onSelect(item)}
-      className={cn(
-        "p-3 border rounded-lg cursor-pointer transition-colors",
-        isSelected
-          ? "bg-primary/10 border-primary"
-          : "border-border hover:bg-muted",
-      )}
-    >
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex-1 min-w-0">
-          <p className="font-medium text-sm truncate">{item.summary}</p>
-          <div className="flex flex-wrap gap-1 mt-1">
-            <ScopeBadge scope={item.scope} />
-            <KindBadge kind={item.kind} />
-            <ApprovalStatusBadge status={item.approvalStatus} />
-          </div>
-        </div>
-        <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-      </div>
-    </div>
-  );
-}
-
-interface DetailPanelProps {
-  item: MemoryItemGoverned;
-}
-
-function MemoryDetailPanel({ item }: DetailPanelProps) {
-  return (
-    <Card
-      className="border-l-4"
-      style={{
-        borderLeftColor: item.archivedAt ? "#888" : "#2563eb",
-      }}
-    >
-      <CardHeader className="pb-3">
-        <div className="space-y-2">
-          <CardTitle className="text-lg">{item.summary}</CardTitle>
-          <div className="flex flex-wrap gap-1">
-            <ScopeBadge scope={item.scope} />
-            <KindBadge kind={item.kind} />
-            <ApprovalStatusBadge status={item.approvalStatus} />
-            {item.archivedAt && (
-              <Badge variant="destructive" className="text-xs">
-                archived
-              </Badge>
-            )}
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div>
-          <p className="text-xs font-semibold text-muted-foreground mb-1">
-            Detail
-          </p>
-          <p className="text-sm text-foreground whitespace-pre-wrap">
-            {item.detail}
-          </p>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <p className="text-xs font-semibold text-muted-foreground mb-1">
-              Importance
-            </p>
-            <p className="text-sm font-medium">{item.importance}</p>
-          </div>
-          <div>
-            <p className="text-xs font-semibold text-muted-foreground mb-1">
-              Confidence
-            </p>
-            <p className="text-sm font-medium">{item.confidence}</p>
-          </div>
-        </div>
-
-        {item.tags && item.tags.length > 0 && (
-          <div>
-            <p className="text-xs font-semibold text-muted-foreground mb-1">
-              Tags
-            </p>
-            <div className="flex flex-wrap gap-1">
-              {item.tags.map((tag) => (
-                <Badge key={tag} variant="secondary" className="text-xs">
-                  {tag}
-                </Badge>
-              ))}
-            </div>
-          </div>
-        )}
-
-        <div className="pt-2 border-t space-y-1 text-xs text-muted-foreground">
-          <p>Created: {new Date(item.createdAt).toLocaleString()}</p>
-          {item.approvalStatus === "approved" && item.approvedAt && (
-            <p>
-              Approved: {new Date(item.approvedAt).toLocaleString()} by{" "}
-              {item.approvedBy}
-            </p>
-          )}
-          {item.archivedAt && (
-            <p>Archived: {new Date(item.archivedAt).toLocaleString()}</p>
-          )}
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
 
 interface ReflectionPanelProps {
   companyId: string;
@@ -264,32 +101,10 @@ function ReflectionPanel({
           <p className="text-sm text-muted-foreground">No candidates found</p>
         ) : (
           report?.candidates.map((candidate, idx) => (
-            <Card key={idx} className="bg-muted/50">
-              <CardContent className="pt-4">
-                <p className="font-medium text-sm mb-1">
-                  {candidate.suggestedSummary}
-                </p>
-                <p className="text-xs text-muted-foreground mb-2">
-                  {candidate.suggestedDetail}
-                </p>
-                <div className="flex flex-wrap gap-1">
-                  {candidate.sourceEpisodeIds.length > 0 && (
-                    <Badge variant="secondary" className="text-xs">
-                      Sources: {candidate.sourceEpisodeIds.length}
-                    </Badge>
-                  )}
-                  {candidate.sourceEpisodeIds.map((id) => (
-                    <Badge
-                      key={id}
-                      variant="outline"
-                      className="text-xs font-mono text-xxs"
-                    >
-                      {id.slice(0, 8)}
-                    </Badge>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+            <ReflectionCandidateCard
+              key={`${candidate.suggestedSummary}-${idx}`}
+              candidate={candidate}
+            />
           ))
         )}
       </CardContent>
@@ -435,6 +250,11 @@ export function MemoryViewer() {
 
   const displayItems = viewer?.items || [];
   const totalPages = viewer?.totalPages || 1;
+  const agentOptions =
+    agents?.map((agent) => ({ value: agent.id, label: agent.name })) ?? [];
+  const projectOptions =
+    projects?.map((project) => ({ value: project.id, label: project.name })) ??
+    [];
 
   return (
     <div className="space-y-6 p-6">
@@ -465,113 +285,35 @@ export function MemoryViewer() {
       </div>
 
       {/* Filters */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base">Filters</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
-            {/* Text search */}
-            <div className="relative md:col-span-2">
-              <Search className="absolute left-3 top-1/2 w-4 h-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="Search text..."
-                value={textSearch}
-                onChange={(e) => {
-                  setTextSearch(e.target.value);
-                  setCurrentPage(1);
-                }}
-                className="pl-9"
-              />
-            </div>
-
-            {/* Kind filter */}
-            <Select
-              value={selectedKind ?? ANY_KIND}
-              onValueChange={(val) => {
-                setSelectedKind(
-                  val === ANY_KIND ? undefined : (val as MemoryKind),
-                );
-                setCurrentPage(1);
-              }}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Kind" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={ANY_KIND}>All kinds</SelectItem>
-                {MEMORY_KINDS.map((kind) => (
-                  <SelectItem key={kind} value={kind}>
-                    {kind}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            {/* Agent filter */}
-            <Select
-              value={selectedAgentId ?? ANY_AGENT}
-              onValueChange={(val) => {
-                setSelectedAgentId(val === ANY_AGENT ? undefined : val);
-                setCurrentPage(1);
-              }}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Agent" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={ANY_AGENT}>All agents</SelectItem>
-                {agents?.map((agent) => (
-                  <SelectItem key={agent.id} value={agent.id}>
-                    {agent.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            {/* Project filter */}
-            <Select
-              value={selectedProjectId ?? ANY_PROJECT}
-              onValueChange={(val) => {
-                setSelectedProjectId(val === ANY_PROJECT ? undefined : val);
-                setCurrentPage(1);
-              }}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Project" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={ANY_PROJECT}>All projects</SelectItem>
-                {projects?.map((project) => (
-                  <SelectItem key={project.id} value={project.id}>
-                    {project.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Archive toggle */}
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="include-archived"
-              checked={includeArchived}
-              onChange={(e) => {
-                setIncludeArchived(e.target.checked);
-                setCurrentPage(1);
-              }}
-              className="w-4 h-4 rounded border-border"
-            />
-            <label
-              htmlFor="include-archived"
-              className="text-sm font-medium cursor-pointer"
-            >
-              Include archived
-            </label>
-          </div>
-        </CardContent>
-      </Card>
+      <MemoryFiltersBar
+        textSearch={textSearch}
+        selectedKind={selectedKind}
+        selectedAgentId={selectedAgentId}
+        selectedProjectId={selectedProjectId}
+        includeArchived={includeArchived}
+        agentOptions={agentOptions}
+        projectOptions={projectOptions}
+        onTextSearchChange={(value) => {
+          setTextSearch(value);
+          setCurrentPage(1);
+        }}
+        onKindChange={(value) => {
+          setSelectedKind(value);
+          setCurrentPage(1);
+        }}
+        onAgentChange={(value) => {
+          setSelectedAgentId(value);
+          setCurrentPage(1);
+        }}
+        onProjectChange={(value) => {
+          setSelectedProjectId(value);
+          setCurrentPage(1);
+        }}
+        onIncludeArchivedChange={(value) => {
+          setIncludeArchived(value);
+          setCurrentPage(1);
+        }}
+      />
 
       {/* Main content: List + Details */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

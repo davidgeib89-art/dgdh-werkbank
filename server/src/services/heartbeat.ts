@@ -1261,7 +1261,7 @@ export function heartbeatService(db: Db) {
       .where(
         and(
           eq(heartbeatRuns.agentId, agentId),
-          eq(heartbeatRuns.status, "running"),
+          inArray(heartbeatRuns.status, ["running", "recovering"]),
         ),
       );
     return Number(count ?? 0);
@@ -1354,27 +1354,70 @@ export function heartbeatService(db: Db) {
     }
   }
 
-  async function reapOrphanedRuns(opts?: { staleThresholdMs?: number }) {
+  async function reapOrphanedRuns(opts?: {
+    staleThresholdMs?: number;
+    recoveringGracePeriodMs?: number;
+  }) {
     const staleThresholdMs = opts?.staleThresholdMs ?? 0;
+    const recoveringGracePeriodMs =
+      opts?.recoveringGracePeriodMs ?? 5 * 60 * 1000;
     const now = new Date();
 
-    // Find all runs stuck in "running" state (queued runs are legitimately waiting; resumeQueuedRuns handles them)
-    const activeRuns = await db
+    // Phase 1: transition orphaned "running" runs to "recovering".
+    // At startup the in-memory execution maps are empty, so every DB-persisted
+    // "running" run is a candidate. Instead of failing them immediately we give
+    // them a grace period — this prevents dev-server hot-reloads from destroying
+    // in-flight runs before the finalization path can run.
+    const runningRuns = await db
       .select()
       .from(heartbeatRuns)
       .where(eq(heartbeatRuns.status, "running"));
 
-    const reaped: string[] = [];
+    const transitioned: string[] = [];
 
-    for (const run of activeRuns) {
+    for (const run of runningRuns) {
       if (runningProcesses.has(run.id) || activeRunExecutions.has(run.id))
         continue;
 
-      // Apply staleness threshold to avoid false positives
+      // Apply staleness threshold to avoid touching recently-started runs on periodic checks
       if (staleThresholdMs > 0) {
         const refTime = run.updatedAt ? new Date(run.updatedAt).getTime() : 0;
         if (now.getTime() - refTime < staleThresholdMs) continue;
       }
+
+      await setRunStatus(run.id, "recovering", {});
+      const updatedRun = await getRun(run.id);
+      if (updatedRun) {
+        await appendRunEvent(updatedRun, 1, {
+          eventType: "lifecycle",
+          stream: "system",
+          level: "warn",
+          message: "Server restarted — run entered recovery period",
+        });
+      }
+      runningProcesses.delete(run.id);
+      transitioned.push(run.id);
+    }
+
+    if (transitioned.length > 0) {
+      logger.warn(
+        { count: transitioned.length, runIds: transitioned },
+        "orphaned running runs transitioned to recovering",
+      );
+    }
+
+    // Phase 2: finalize "recovering" runs whose grace period has expired.
+    // These had no process reattach within the window — they are truly lost.
+    const recoveringRuns = await db
+      .select()
+      .from(heartbeatRuns)
+      .where(eq(heartbeatRuns.status, "recovering"));
+
+    const reaped: string[] = [];
+
+    for (const run of recoveringRuns) {
+      const refTime = run.updatedAt ? new Date(run.updatedAt).getTime() : 0;
+      if (now.getTime() - refTime < recoveringGracePeriodMs) continue;
 
       await setRunStatus(run.id, "failed", {
         error: "Process lost -- server may have restarted",
@@ -1397,7 +1440,6 @@ export function heartbeatService(db: Db) {
       }
       await finalizeAgentStatus(run.agentId, "failed");
       await startNextQueuedRunForAgent(run.agentId);
-      runningProcesses.delete(run.id);
       reaped.push(run.id);
     }
 
@@ -2687,7 +2729,8 @@ export function heartbeatService(db: Db) {
         if (
           activeExecutionRun &&
           activeExecutionRun.status !== "queued" &&
-          activeExecutionRun.status !== "running"
+          activeExecutionRun.status !== "running" &&
+          activeExecutionRun.status !== "recovering"
         ) {
           activeExecutionRun = null;
         }
@@ -2711,12 +2754,16 @@ export function heartbeatService(db: Db) {
             .where(
               and(
                 eq(heartbeatRuns.companyId, issue.companyId),
-                inArray(heartbeatRuns.status, ["queued", "running"]),
+                inArray(heartbeatRuns.status, [
+                  "queued",
+                  "running",
+                  "recovering",
+                ]),
                 sql`${heartbeatRuns.contextSnapshot} ->> 'issueId' = ${issue.id}`,
               ),
             )
             .orderBy(
-              sql`case when ${heartbeatRuns.status} = 'running' then 0 else 1 end`,
+              sql`case when ${heartbeatRuns.status} in ('running', 'recovering') then 0 else 1 end`,
               asc(heartbeatRuns.createdAt),
             )
             .limit(1)

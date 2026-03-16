@@ -46,6 +46,9 @@ export function Sidebar() {
     companyId: selectedCompanyId,
     companyPrefix: selectedCompany?.issuePrefix ?? null,
   };
+  const memoryPath = selectedCompany
+    ? `/${selectedCompany.issuePrefix}/memory`
+    : "/onboarding";
 
   return (
     <aside className="w-60 h-full min-h-0 border-r border-border bg-background flex flex-col">
@@ -116,7 +119,7 @@ export function Sidebar() {
           <SidebarNavItem to="/org" label="Org" icon={Network} />
           <SidebarNavItem to="/costs" label="Costs" icon={DollarSign} />
           <SidebarNavItem to="/activity" label="Activity" icon={History} />
-          <SidebarNavItem to="/memory" label="Memory" icon={Brain} />
+          <SidebarNavItem to={memoryPath} label="Memory" icon={Brain} />
           <SidebarNavItem
             to="/company/settings"
             label="Settings"
