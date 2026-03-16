@@ -132,9 +132,13 @@ export {
   createMemoryItemSchema,
   searchMemorySchema,
   correctMemorySchema,
+  runReflectionSchema,
+  promoteReflectionSchema,
   type CreateMemoryItem,
   type SearchMemory,
   type CorrectMemory,
+  type RunReflection,
+  type PromoteReflection,
 } from "./memory.js";
 
 export {

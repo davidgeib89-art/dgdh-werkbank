@@ -4,10 +4,13 @@ import {
   correctMemorySchema,
   createMemoryItemSchema,
   MEMORY_SCOPES,
+  promoteReflectionSchema,
+  runReflectionSchema,
   searchMemorySchema,
 } from "@paperclipai/shared";
 import { validate } from "../middleware/validate.js";
 import { memoryService } from "../services/memory.js";
+import { reflectionService } from "../services/reflection.js";
 import { assertCompanyAccess } from "./authz.js";
 
 function parseScopeQuery(scopeRaw: string | undefined) {
@@ -25,6 +28,7 @@ function parseScopeQuery(scopeRaw: string | undefined) {
 export function memoryRoutes(db: Db) {
   const router = Router();
   const memory = memoryService(db);
+  const reflection = reflectionService(db);
 
   router.get("/companies/:companyId/memory", async (req, res) => {
     const companyId = req.params.companyId as string;
@@ -116,6 +120,40 @@ export function memoryRoutes(db: Db) {
         limitPerScope: parsed.data.limit,
       });
       res.json(memory.asReflectionOutput(context));
+    },
+  );
+
+  // ── Sprint 2: Reflection Engine ──────────────────────────────────────────
+
+  /**
+   * POST /companies/:companyId/memory/reflect
+   * Analyse recent episodes for an agent and return reviewable candidates.
+   * Nothing is saved — all output is ephemeral until /reflect/promote is called.
+   */
+  router.post(
+    "/companies/:companyId/memory/reflect",
+    validate(runReflectionSchema),
+    async (req, res) => {
+      const companyId = req.params.companyId as string;
+      assertCompanyAccess(req, companyId);
+      const report = await reflection.runReflection(companyId, req.body);
+      res.json(report);
+    },
+  );
+
+  /**
+   * POST /companies/:companyId/memory/reflect/promote
+   * Persist selected (and optionally edited) candidates as real memory items.
+   * Returns the created MemoryItem array.
+   */
+  router.post(
+    "/companies/:companyId/memory/reflect/promote",
+    validate(promoteReflectionSchema),
+    async (req, res) => {
+      const companyId = req.params.companyId as string;
+      assertCompanyAccess(req, companyId);
+      const created = await reflection.promote(companyId, req.body);
+      res.status(201).json(created);
     },
   );
 

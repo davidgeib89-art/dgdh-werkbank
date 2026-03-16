@@ -57,3 +57,18 @@ export const correctMemorySchema = z
 export type CreateMemoryItem = z.infer<typeof createMemoryItemSchema>;
 export type SearchMemory = z.infer<typeof searchMemorySchema>;
 export type CorrectMemory = z.infer<typeof correctMemorySchema>;
+
+// ─── Sprint 2: Reflection Engine ─────────────────────────────────────────────
+
+export const runReflectionSchema = z.object({
+  agentId: z.string().uuid(),
+  projectId: z.string().uuid().nullable().optional(),
+  lookbackDays: z.number().int().min(1).max(90).optional().default(30),
+});
+
+export const promoteReflectionSchema = z.object({
+  items: z.array(createMemoryItemSchema).min(1).max(20),
+});
+
+export type RunReflection = z.infer<typeof runReflectionSchema>;
+export type PromoteReflection = z.infer<typeof promoteReflectionSchema>;

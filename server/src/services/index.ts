@@ -8,6 +8,13 @@ export {
   type MemoryContext,
   type RunEpisodeInput,
 } from "./memory.js";
+export {
+  reflectionService,
+  analyzeDiscards,
+  ruleRecurringFailure,
+  ruleConsistentSuccess,
+  ruleIssueResolution,
+} from "./reflection.js";
 export { projectService } from "./projects.js";
 export { issueService, type IssueFilters } from "./issues.js";
 export { issueApprovalService } from "./issue-approvals.js";

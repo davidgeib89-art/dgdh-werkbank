@@ -68,6 +68,12 @@ export type {
   ReflectionOutput,
   CreateMemoryItemInput,
   CorrectMemoryItemInput,
+  DiscardReason,
+  DiscardCandidate,
+  ReflectionCandidate,
+  ReflectionReport,
+  RunReflectionInput,
+  PromoteReflectionInput,
 } from "./memory.js";
 export type {
   CompanyMembership,
