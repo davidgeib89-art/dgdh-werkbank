@@ -45,6 +45,9 @@ export interface MemorySearchParams {
   agentId?: string;
   projectId?: string;
   limit?: number;
+  // Sprint 3 governance filters (optional, default = approved + not archived)
+  approvalStatuses?: MemoryApprovalStatus[];
+  includeArchived?: boolean;
 }
 
 export interface MemoryStore {
@@ -75,6 +78,8 @@ export interface CreateMemoryItemInput {
   confidence?: number;
   sourceRefs?: string[];
   lastUsedAt?: Date | null;
+  /** Sprint 3: agent or user who owns this memory (for governance tracking). */
+  ownerId?: string | null;
 }
 
 export type CorrectMemoryItemInput = Partial<
@@ -153,4 +158,97 @@ export interface RunReflectionInput {
 /** Input for the promote endpoint. Items are exactly the `CreateMemoryItemInput` shape so callers can edit suggestions before confirming. */
 export interface PromoteReflectionInput {
   items: CreateMemoryItemInput[];
+}
+
+// ─── Sprint 3: Governance ────────────────────────────────────────────────────
+
+export type MemoryApprovalStatus =
+  | "draft"
+  | "pending_review"
+  | "approved"
+  | "rejected";
+
+/**
+ * A `MemoryItem` enriched with governance metadata.
+ * Returned by the Viewer and Governance endpoints; never by the standard search.
+ */
+export interface MemoryItemGoverned extends MemoryItem {
+  approvalStatus: MemoryApprovalStatus;
+  /** agentId or free-form user ref of the creator/owner. */
+  ownerId: string | null;
+  /** Set when the item is soft-archived (excluded from context by default). */
+  archivedAt: Date | null;
+  /** Who approved the item ("system", userId, etc.). */
+  approvedBy: string | null;
+  approvedAt: Date | null;
+}
+
+export interface MemoryViewerFilter {
+  scope?: MemoryScope[];
+  kind?: MemoryKind[];
+  agentId?: string;
+  projectId?: string;
+  /** Default: all non-archived approval statuses (pending_review, approved). */
+  approvalStatus?: MemoryApprovalStatus[];
+  includeArchived?: boolean;
+  text?: string;
+  /** 1-based page number. Default: 1. */
+  page?: number;
+  /** Items per page, max 50. Default: 25. */
+  pageSize?: number;
+}
+
+export interface MemoryViewerPage {
+  items: MemoryItemGoverned[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}
+
+export interface MemoryGovernanceStats {
+  byScope: Partial<Record<MemoryScope, number>>;
+  byKind: Partial<Record<MemoryKind, number>>;
+  byApprovalStatus: Partial<Record<MemoryApprovalStatus, number>>;
+  totalActive: number;
+  totalArchived: number;
+  pendingReviewCount: number;
+}
+
+export interface RetentionConfig {
+  /** Archive succeeded episodes older than this many days. Default: 30. */
+  maxAgeDaysSucceeded: number;
+  /** Archive failed episodes older than this many days. Default: 90. */
+  maxAgeDaysFailed: number;
+  /** Only archive episodes with importance below this threshold. Default: 35. */
+  importanceThreshold: number;
+  /** When true, report what would be archived without actually archiving. */
+  dryRun: boolean;
+}
+
+export interface RetentionResult {
+  archivedCount: number;
+  dryRun: boolean;
+  archivedIds: string[];
+}
+
+export interface RetrievalTraceEntry {
+  scope: MemoryScope;
+  count: number;
+  topItems: Array<{
+    id: string;
+    summary: string;
+    importance: number;
+    matchedQuery: boolean;
+  }>;
+}
+
+/** Debug output showing which memories were (or would be) loaded before a run. */
+export interface RetrievalTrace {
+  companyId: string;
+  agentId: string;
+  queryText: string;
+  retrievedAt: Date;
+  entries: RetrievalTraceEntry[];
+  totalRetrieved: number;
 }

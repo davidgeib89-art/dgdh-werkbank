@@ -15,6 +15,7 @@ export {
   ruleConsistentSuccess,
   ruleIssueResolution,
 } from "./reflection.js";
+export { governanceService, canPromoteDirectly } from "./governance.js";
 export { projectService } from "./projects.js";
 export { issueService, type IssueFilters } from "./issues.js";
 export { issueApprovalService } from "./issue-approvals.js";

@@ -139,6 +139,15 @@ export {
   type CorrectMemory,
   type RunReflection,
   type PromoteReflection,
+  memoryApprovalStatusSchema,
+  approveMemorySchema,
+  rejectMemorySchema,
+  runRetentionSchema,
+  viewerFilterSchema,
+  type ApproveMemory,
+  type RejectMemory,
+  type RunRetention,
+  type ViewerFilter,
 } from "./memory.js";
 
 export {

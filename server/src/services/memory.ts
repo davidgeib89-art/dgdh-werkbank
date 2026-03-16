@@ -1,10 +1,11 @@
 import { randomUUID } from "node:crypto";
-import { and, desc, eq, ilike, inArray, or, sql } from "drizzle-orm";
+import { and, desc, eq, ilike, inArray, isNull, or, sql } from "drizzle-orm";
 import type { Db } from "@paperclipai/db";
 import { memoryItems } from "@paperclipai/db";
 import type {
   CorrectMemoryItemInput,
   CreateMemoryItemInput,
+  MemoryApprovalStatus,
   MemoryItem,
   MemoryScope,
   MemorySearchParams,
@@ -28,7 +29,10 @@ function normalizeStringList(values: string[] | undefined) {
   return Array.from(new Set(normalized));
 }
 
-function mapRowToMemoryItem(row: typeof memoryItems.$inferSelect): MemoryItem {
+// Export so governance.ts can reuse the base mapping without duplication.
+export function mapRowToMemoryItem(
+  row: typeof memoryItems.$inferSelect,
+): MemoryItem {
   return {
     id: row.id,
     companyId: row.companyId,
@@ -105,8 +109,9 @@ function createInMemoryMemoryStore(): MemoryStore {
         if (params.projectId && item.projectId !== params.projectId)
           return false;
         if (!needle) return true;
-        const haystack =
-          `${item.summary}\n${item.detail}\n${item.tags.join(" ")}`.toLowerCase();
+        const haystack = `${item.summary}\n${item.detail}\n${item.tags.join(
+          " ",
+        )}`.toLowerCase();
         return haystack.includes(needle);
       })
       .sort((a, b) => {
@@ -179,11 +184,29 @@ export function memoryService(db: Db) {
           createdAt: item.createdAt,
           updatedAt: item.updatedAt,
           lastUsedAt: item.lastUsedAt,
+          // Governance defaults: external add() always gets approved instantly.
+          approvalStatus: "approved" as MemoryApprovalStatus,
+          ownerId: item.agentId,
+          archivedAt: null,
+          approvedBy: null,
+          approvedAt: null,
         });
       },
 
       search: async (params) => {
         const conditions = [eq(memoryItems.companyId, companyId)];
+        // Sprint 3: by default only approved, non-archived items are returned.
+        const approvalFilter =
+          params.approvalStatuses && params.approvalStatuses.length > 0
+            ? inArray(memoryItems.approvalStatus, params.approvalStatuses)
+            : eq(
+                memoryItems.approvalStatus,
+                "approved" as MemoryApprovalStatus,
+              );
+        conditions.push(approvalFilter);
+        if (!params.includeArchived) {
+          conditions.push(isNull(memoryItems.archivedAt));
+        }
         if (params.scope && params.scope.length > 0) {
           conditions.push(inArray(memoryItems.scope, params.scope));
         }
@@ -265,6 +288,17 @@ export function memoryService(db: Db) {
     input: CreateMemoryItemInput,
   ): Promise<MemoryItem> {
     const now = new Date();
+    // Derive approval status from governance rule.
+    // Lazy import avoids circular dep: canPromoteDirectly is a pure function.
+    const { canPromoteDirectly } = await import("./governance.js");
+    const approvalStatus: MemoryApprovalStatus = canPromoteDirectly(
+      input.scope,
+      input.kind,
+    )
+      ? "approved"
+      : "pending_review";
+    const ownerId = input.ownerId ?? null;
+
     const item: MemoryItem = {
       id: randomUUID(),
       companyId,
@@ -284,7 +318,29 @@ export function memoryService(db: Db) {
       sourceRefs: normalizeStringList(input.sourceRefs),
     };
 
-    await forCompany(companyId).add(item);
+    await db.insert(memoryItems).values({
+      id: item.id,
+      companyId,
+      scope: item.scope,
+      kind: item.kind,
+      agentId: item.agentId,
+      projectId: item.projectId,
+      relatedAgentIds: normalizeStringList(item.relatedAgentIds),
+      summary: item.summary.trim(),
+      detail: item.detail.trim(),
+      tags: normalizeStringList(item.tags),
+      importance: clampScore(item.importance, 50),
+      confidence: clampScore(item.confidence, 50),
+      sourceRefs: normalizeStringList(item.sourceRefs),
+      createdAt: item.createdAt,
+      updatedAt: item.updatedAt,
+      lastUsedAt: item.lastUsedAt,
+      approvalStatus,
+      ownerId,
+      archivedAt: null,
+      approvedBy: null,
+      approvedAt: null,
+    });
     return item;
   }
 

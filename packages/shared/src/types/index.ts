@@ -74,6 +74,15 @@ export type {
   ReflectionReport,
   RunReflectionInput,
   PromoteReflectionInput,
+  MemoryApprovalStatus,
+  MemoryItemGoverned,
+  MemoryViewerFilter,
+  MemoryViewerPage,
+  MemoryGovernanceStats,
+  RetentionConfig,
+  RetentionResult,
+  RetrievalTraceEntry,
+  RetrievalTrace,
 } from "./memory.js";
 export type {
   CompanyMembership,

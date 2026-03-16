@@ -218,6 +218,13 @@
       "when": 1773668400000,
       "tag": "0030_memory_kernel",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1773754800000,
+      "tag": "0031_memory_governance",
+      "breakpoints": true
     }
   ]
 }

@@ -7,7 +7,11 @@ import {
   jsonb,
   index,
 } from "drizzle-orm/pg-core";
-import type { MemoryKind, MemoryScope } from "@paperclipai/shared";
+import type {
+  MemoryApprovalStatus,
+  MemoryKind,
+  MemoryScope,
+} from "@paperclipai/shared";
 import { companies } from "./companies.js";
 import { agents } from "./agents.js";
 import { projects } from "./projects.js";
@@ -44,6 +48,17 @@ export const memoryItems = pgTable(
     updatedAt: timestamp("updated_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
+    // Sprint 3: governance
+    approvalStatus: text("approval_status")
+      .$type<MemoryApprovalStatus>()
+      .notNull()
+      .default("approved"),
+    ownerId: uuid("owner_id").references(() => agents.id, {
+      onDelete: "set null",
+    }),
+    archivedAt: timestamp("archived_at", { withTimezone: true }),
+    approvedBy: text("approved_by"),
+    approvedAt: timestamp("approved_at", { withTimezone: true }),
   },
   (table) => ({
     companyScopeIdx: index("memory_items_company_scope_idx").on(
@@ -71,6 +86,10 @@ export const memoryItems = pgTable(
     companyCreatedIdx: index("memory_items_company_created_idx").on(
       table.companyId,
       table.createdAt,
+    ),
+    companyApprovalIdx: index("memory_items_company_approval_idx").on(
+      table.companyId,
+      table.approvalStatus,
     ),
   }),
 );
