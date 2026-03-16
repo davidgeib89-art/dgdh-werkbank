@@ -6,9 +6,9 @@ import type {
   ReflectionReport,
   RunReflectionInput,
 } from "@paperclipai/shared";
-import { client } from "./client";
+import { api } from "./client";
 
-const BASE_URL = "companies";
+const BASE_URL = "/api/companies";
 
 /**
  * Memory API client for the viewer and governance endpoints.
@@ -59,7 +59,7 @@ export const memoryApi = {
       ? `${BASE_URL}/${companyId}/memory/viewer?${query}`
       : `${BASE_URL}/${companyId}/memory/viewer`;
 
-    return client.get<MemoryViewerPage>(url);
+    return api.get<MemoryViewerPage>(url);
   },
 
   /**
@@ -67,7 +67,7 @@ export const memoryApi = {
    * Returns counts by scope, kind, approval status, and total active/archived.
    */
   async getViewerStats(companyId: string): Promise<MemoryGovernanceStats> {
-    return client.get<MemoryGovernanceStats>(
+    return api.get<MemoryGovernanceStats>(
       `${BASE_URL}/${companyId}/memory/viewer/stats`,
     );
   },
@@ -81,7 +81,7 @@ export const memoryApi = {
     companyId: string,
     input: RunReflectionInput,
   ): Promise<ReflectionReport> {
-    return client.post<ReflectionReport>(
+    return api.post<ReflectionReport>(
       `${BASE_URL}/${companyId}/memory/reflect`,
       input,
     );
@@ -131,7 +131,7 @@ export const memoryApi = {
     if (params.text) searchParams.append("text", params.text);
     if (params.limit) searchParams.append("limit", String(params.limit));
 
-    return client.get<{
+    return api.get<{
       context: {
         personal: MemoryItemGoverned[];
         company: MemoryItemGoverned[];
@@ -155,6 +155,6 @@ export const memoryApi = {
         }>;
         totalRetrieved: number;
       };
-    }>(`${BASE_URL}/${params.agentId}/memory/retrieval-trace?${searchParams}`);
+    }>(`${BASE_URL}/${companyId}/memory/retrieval-trace?${searchParams}`);
   },
 };
