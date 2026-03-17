@@ -485,6 +485,9 @@ export function buildHostServices(
     return rows.slice(offset, offset + limit);
   };
 
+  const createPluginWorkPacketId = (kind: string) =>
+    `plugin:${pluginKey}:${kind}:${randomUUID()}`;
+
   /**
    * Plugins are instance-wide in the current runtime. Company IDs are still
    * required for company-scoped data access, but there is no per-company
@@ -831,11 +834,20 @@ export function buildHostServices(
         await ensurePluginAvailableForCompany(companyId);
         const agent = await agents.getById(params.agentId);
         requireInCompany("Agent", agent, companyId);
+        const workPacketId = createPluginWorkPacketId("invoke");
         const run = await heartbeat.wakeup(params.agentId, {
           source: "automation",
           triggerDetail: "system",
           reason: params.reason ?? null,
-          payload: { prompt: params.prompt },
+          payload: {
+            prompt: params.prompt,
+            workPacketId,
+          },
+          contextSnapshot: {
+            workPacketId,
+            wakeSource: "automation",
+            wakeTriggerDetail: "system",
+          },
           requestedByActorType: "system",
           requestedByActorId: pluginId,
         });
@@ -965,9 +977,13 @@ export function buildHostServices(
           source: "automation",
           triggerDetail: "system",
           reason: params.reason ?? null,
-          payload: { prompt: params.prompt },
+          payload: {
+            prompt: params.prompt,
+            workPacketId: session.taskKey,
+          },
           contextSnapshot: {
             taskKey: session.taskKey,
+            workPacketId: session.taskKey,
             wakeSource: "automation",
             wakeTriggerDetail: "system",
           },

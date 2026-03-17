@@ -61,6 +61,7 @@ const HEARTBEAT_MAX_CONCURRENT_RUNS_DEFAULT = 1;
 const HEARTBEAT_MAX_CONCURRENT_RUNS_MAX = 10;
 const RUN_KEEPALIVE_INTERVAL_MS = 25_000;
 const RUN_KEEPALIVE_MIN_TOUCH_AGE_MS = 60_000;
+const ABSOLUTE_RUN_TOKEN_HARD_CAP = 150_000;
 const DEFERRED_WAKE_CONTEXT_KEY = "_paperclipWakeContext";
 const startLocksByAgent = new Map<string, Promise<void>>();
 const REPO_ONLY_CWD_SENTINEL = "/__paperclip_repo_only__";
@@ -137,7 +138,7 @@ async function withAgentStartLock<T>(agentId: string, fn: () => Promise<T>) {
 }
 
 interface WakeupOptions {
-  source?: "timer" | "assignment" | "on_demand" | "automation";
+  source?: WakeupSource;
   triggerDetail?: "manual" | "ping" | "callback" | "system";
   reason?: string | null;
   payload?: Record<string, unknown> | null;
@@ -147,7 +148,9 @@ interface WakeupOptions {
   contextSnapshot?: Record<string, unknown>;
 }
 
-type UsageTotals = {
+export type WakeupSource = "timer" | "assignment" | "on_demand" | "automation";
+
+export type UsageTotals = {
   inputTokens: number;
   cachedInputTokens: number;
   outputTokens: number;
@@ -416,6 +419,273 @@ function deriveTaskKey(
   );
 }
 
+export function deriveWorkPacketId(
+  contextSnapshot: Record<string, unknown> | null | undefined,
+  payload: Record<string, unknown> | null | undefined,
+) {
+  return (
+    readNonEmptyString(contextSnapshot?.workPacketId) ??
+    readNonEmptyString(contextSnapshot?.packetId) ??
+    readNonEmptyString(contextSnapshot?.taskPacketId) ??
+    readNonEmptyString(payload?.workPacketId) ??
+    readNonEmptyString(payload?.packetId) ??
+    deriveTaskKey(contextSnapshot, payload)
+  );
+}
+
+export function requiresGovernedWorkPacket(source: WakeupSource | undefined) {
+  return (
+    source === "automation" || source === "timer" || source === "assignment"
+  );
+}
+
+function parseBudgetClassDefaultHardCapTokens(value: string | null) {
+  if (!value) return null;
+  const normalized = value.trim().toLowerCase();
+  if (normalized === "small") return 35_000;
+  if (normalized === "medium") return 75_000;
+  if (normalized === "large") return 125_000;
+  return null;
+}
+
+export function resolveHardTokenCapTokens(context: Record<string, unknown>) {
+  const governanceBudget = parseObject(context.governanceBudget);
+  const packetBudget = parseObject(context.workPacketBudget);
+  const explicit =
+    asNumber(context.hardCapTokens, Number.NaN) ||
+    asNumber(governanceBudget.hardCapTokens, Number.NaN) ||
+    asNumber(packetBudget.hardCapTokens, Number.NaN);
+  if (Number.isFinite(explicit) && explicit > 0) {
+    return Math.max(1, Math.floor(explicit));
+  }
+
+  const budgetClass =
+    readNonEmptyString(context.budgetClass) ??
+    readNonEmptyString(governanceBudget.budgetClass) ??
+    readNonEmptyString(packetBudget.budgetClass);
+  const classCap = parseBudgetClassDefaultHardCapTokens(budgetClass);
+  if (classCap) return classCap;
+
+  return ABSOLUTE_RUN_TOKEN_HARD_CAP;
+}
+
+export function estimateTotalTokens(usage: UsageTotals | null) {
+  if (!usage) return null;
+  return Math.max(
+    0,
+    Math.floor(
+      usage.inputTokens + usage.cachedInputTokens + usage.outputTokens,
+    ),
+  );
+}
+
+export function isPhaseBExecution(context: Record<string, unknown>) {
+  const phase =
+    readNonEmptyString(context.phase) ??
+    readNonEmptyString(context.runPhase) ??
+    readNonEmptyString(context.executionPhase);
+  if (!phase) return false;
+
+  const normalized = phase.trim().toLowerCase();
+  return (
+    normalized === "b" ||
+    normalized === "phase_b" ||
+    normalized === "phase-b" ||
+    normalized === "phase2" ||
+    normalized === "phase_2" ||
+    normalized === "implementation"
+  );
+}
+
+export function hasPhaseBCheckpointApproval(context: Record<string, unknown>) {
+  if (
+    context.phaseCheckpointApproved === true ||
+    context.phaseBApproved === true ||
+    context.checkpointApproved === true ||
+    context.approvalGranted === true
+  ) {
+    return true;
+  }
+
+  return Boolean(
+    readNonEmptyString(context.phaseCheckpointId) ??
+      readNonEmptyString(context.phaseBApprovalId) ??
+      readNonEmptyString(context.approvalId),
+  );
+}
+
+export function readExecutionMode(
+  contextSnapshot: Record<string, unknown> | null | undefined,
+) {
+  return (
+    readNonEmptyString(contextSnapshot?.executionMode) ??
+    readNonEmptyString(contextSnapshot?.runMode) ??
+    readNonEmptyString(contextSnapshot?.mode) ??
+    null
+  );
+}
+
+export function isDryRunExecutionMode(mode: string | null | undefined) {
+  if (!mode) return false;
+  const normalized = mode.trim().toLowerCase();
+  return (
+    normalized === "dry_run" ||
+    normalized === "dry-run" ||
+    normalized === "dryrun" ||
+    normalized === "test" ||
+    normalized === "mock"
+  );
+}
+
+export function isGovernanceTestModeEnabled() {
+  return process.env.GOVERNANCE_TEST_MODE === "true";
+}
+
+export function isTestRunContext(
+  contextSnapshot: Record<string, unknown> | null | undefined,
+) {
+  if (!contextSnapshot) return false;
+  if (
+    contextSnapshot.isTestRun === true ||
+    contextSnapshot.dryRun === true ||
+    contextSnapshot.governanceTest === true
+  ) {
+    return true;
+  }
+  return isDryRunExecutionMode(readExecutionMode(contextSnapshot));
+}
+
+function resolveAdapterExecutionSafety(
+  contextSnapshot: Record<string, unknown> | null | undefined,
+) {
+  const executionMode = readExecutionMode(contextSnapshot);
+  if (isGovernanceTestModeEnabled()) {
+    return {
+      blockAdapterExecute: true,
+      reason: "env_governance_test_mode" as const,
+      executionMode,
+    };
+  }
+  if (isTestRunContext(contextSnapshot)) {
+    return {
+      blockAdapterExecute: true,
+      reason: "context_test_run" as const,
+      executionMode,
+    };
+  }
+  return {
+    blockAdapterExecute: false,
+    reason: null,
+    executionMode,
+  };
+}
+
+export function resolveDryRunUsageTotals(
+  contextSnapshot: Record<string, unknown> | null | undefined,
+): UsageTotals | null {
+  if (!contextSnapshot) return null;
+  const parsed = parseObject(
+    contextSnapshot.dryRunUsage ??
+      contextSnapshot.testUsage ??
+      contextSnapshot.governanceTestUsage,
+  );
+  if (Object.keys(parsed).length === 0) return null;
+
+  return {
+    inputTokens: Math.max(0, Math.floor(asNumber(parsed.inputTokens, 0))),
+    cachedInputTokens: Math.max(
+      0,
+      Math.floor(asNumber(parsed.cachedInputTokens, 0)),
+    ),
+    outputTokens: Math.max(0, Math.floor(asNumber(parsed.outputTokens, 0))),
+  };
+}
+
+export function buildDryRunAdapterResult(input: {
+  contextSnapshot: Record<string, unknown> | null | undefined;
+  safetyReason: "env_governance_test_mode" | "context_test_run" | string;
+}): AdapterExecutionResult {
+  const usage = resolveDryRunUsageTotals(input.contextSnapshot);
+  return {
+    exitCode: 0,
+    signal: null,
+    timedOut: false,
+    usage: usage ?? undefined,
+    billingType: "unknown",
+    costUsd: 0,
+    resultJson: {
+      mode: "dry_run",
+      adapterExecuteBlocked: true,
+      safetyReason: input.safetyReason,
+      dryRunUsage: usage,
+    },
+    summary: "Dry-run safety barrier blocked adapter.execute",
+  };
+}
+
+export function evaluateGovernanceDryRunValidation(input: {
+  source?: WakeupSource;
+  contextSnapshot?: Record<string, unknown> | null;
+  payload?: Record<string, unknown> | null;
+}) {
+  const source = input.source;
+  const contextSnapshot = parseObject(input.contextSnapshot);
+  const payload = parseObject(input.payload);
+  const workPacketId = deriveWorkPacketId(contextSnapshot, payload);
+
+  if (requiresGovernedWorkPacket(source) && !workPacketId) {
+    return {
+      status: "skipped" as const,
+      reason: "governance.work_packet_required" as const,
+      adapterExecuteBlocked: true,
+      workPacketId: null,
+      hardTokenCap: resolveHardTokenCapTokens(contextSnapshot),
+      totalTokensUsed: null,
+      adapterResult: null,
+    };
+  }
+
+  if (
+    isPhaseBExecution(contextSnapshot) &&
+    !hasPhaseBCheckpointApproval(contextSnapshot)
+  ) {
+    return {
+      status: "failed" as const,
+      reason: "phase_checkpoint_required" as const,
+      adapterExecuteBlocked: true,
+      workPacketId,
+      hardTokenCap: resolveHardTokenCapTokens(contextSnapshot),
+      totalTokensUsed: null,
+      adapterResult: null,
+    };
+  }
+
+  const adapterResult = buildDryRunAdapterResult({
+    contextSnapshot,
+    safetyReason: "context_test_run",
+  });
+  const totalTokensUsed = estimateTotalTokens(
+    normalizeUsageTotals(adapterResult.usage),
+  );
+  const hardTokenCap = resolveHardTokenCapTokens(contextSnapshot);
+
+  return {
+    status:
+      totalTokensUsed != null && totalTokensUsed > hardTokenCap
+        ? ("failed" as const)
+        : ("succeeded" as const),
+    reason:
+      totalTokensUsed != null && totalTokensUsed > hardTokenCap
+        ? ("budget_hard_cap_reached" as const)
+        : ("dry_run_validation_ok" as const),
+    adapterExecuteBlocked: true,
+    workPacketId,
+    hardTokenCap,
+    totalTokensUsed,
+    adapterResult,
+  };
+}
+
 export function shouldResetTaskSessionForWake(
   contextSnapshot: Record<string, unknown> | null | undefined,
 ) {
@@ -460,6 +730,7 @@ function enrichWakeContextSnapshot(input: {
   const issueIdFromPayload = readNonEmptyString(payload?.["issueId"]);
   const commentIdFromPayload = readNonEmptyString(payload?.["commentId"]);
   const taskKey = deriveTaskKey(contextSnapshot, payload);
+  const workPacketId = deriveWorkPacketId(contextSnapshot, payload);
   const wakeCommentId = deriveCommentId(contextSnapshot, payload);
 
   if (!readNonEmptyString(contextSnapshot["wakeReason"]) && reason) {
@@ -473,6 +744,9 @@ function enrichWakeContextSnapshot(input: {
   }
   if (!readNonEmptyString(contextSnapshot["taskKey"]) && taskKey) {
     contextSnapshot.taskKey = taskKey;
+  }
+  if (!readNonEmptyString(contextSnapshot["workPacketId"]) && workPacketId) {
+    contextSnapshot.workPacketId = workPacketId;
   }
   if (
     !readNonEmptyString(contextSnapshot["commentId"]) &&
@@ -498,6 +772,7 @@ function enrichWakeContextSnapshot(input: {
     issueIdFromPayload,
     commentIdFromPayload,
     taskKey,
+    workPacketId,
     wakeCommentId,
   };
 }
@@ -1614,6 +1889,31 @@ export function heartbeatService(db: Db) {
       const runtime = await ensureRuntimeState(agent);
       const context = parseObject(run.contextSnapshot);
       const taskKey = deriveTaskKey(context, null);
+      if (isPhaseBExecution(context) && !hasPhaseBCheckpointApproval(context)) {
+        const message =
+          "Phase B execution blocked: missing phase checkpoint approval";
+        await setRunStatus(run.id, "failed", {
+          error: message,
+          errorCode: "phase_checkpoint_required",
+          finishedAt: new Date(),
+        });
+        await setWakeupStatus(run.wakeupRequestId, "failed", {
+          finishedAt: new Date(),
+          error: message,
+        });
+        const failedRun = await getRun(run.id);
+        if (failedRun) {
+          await appendRunEvent(failedRun, 1, {
+            eventType: "lifecycle",
+            stream: "system",
+            level: "error",
+            message,
+          });
+          await releaseIssueExecutionAndPromote(failedRun);
+        }
+        await finalizeAgentStatus(agent.id, "failed");
+        return;
+      }
       const sessionCodec = getAdapterSessionCodec(agent.adapterType);
       const issueId = readNonEmptyString(context.issueId);
       const issueAssigneeConfig = issueId
@@ -1973,20 +2273,25 @@ export function heartbeatService(db: Db) {
               typeof entry[0] === "string" && typeof entry[1] === "string",
           ),
         );
-        const runtimeServices = await ensureRuntimeServicesForRun({
-          db,
-          runId: run.id,
-          agent: {
-            id: agent.id,
-            name: agent.name,
-            companyId: agent.companyId,
-          },
-          issue: issueRef,
-          workspace: executionWorkspace,
-          config: resolvedConfig,
-          adapterEnv,
-          onLog,
-        });
+        const adapterExecutionSafety = resolveAdapterExecutionSafety(context);
+        const runtimeServices: Awaited<
+          ReturnType<typeof ensureRuntimeServicesForRun>
+        > = adapterExecutionSafety.blockAdapterExecute
+          ? []
+          : await ensureRuntimeServicesForRun({
+              db,
+              runId: run.id,
+              agent: {
+                id: agent.id,
+                name: agent.name,
+                companyId: agent.companyId,
+              },
+              issue: issueRef,
+              workspace: executionWorkspace,
+              config: resolvedConfig,
+              adapterEnv,
+              onLog,
+            });
         if (runtimeServices.length > 0) {
           context.paperclipRuntimeServices = runtimeServices;
           context.paperclipRuntimePrimaryUrl =
@@ -2038,52 +2343,80 @@ export function heartbeatService(db: Db) {
           });
         };
 
-        const adapter = getServerAdapter(agent.adapterType);
-        const authToken = adapter.supportsLocalAgentJwt
-          ? createLocalAgentJwt(
-              agent.id,
-              agent.companyId,
-              agent.adapterType,
-              run.id,
-            )
-          : null;
-        if (adapter.supportsLocalAgentJwt && !authToken) {
-          logger.warn(
-            {
-              companyId: agent.companyId,
-              agentId: agent.id,
-              runId: run.id,
-              adapterType: agent.adapterType,
-            },
-            "local agent jwt secret missing or invalid; running without injected PAPERCLIP_API_KEY",
+        let adapterResult: AdapterExecutionResult;
+        if (adapterExecutionSafety.blockAdapterExecute) {
+          const safetyReason =
+            adapterExecutionSafety.reason ?? "context_test_run";
+          await onLog(
+            "stderr",
+            `[paperclip] Dry-run safety active (${safetyReason}); adapter.execute suppressed.\n`,
           );
+          await onAdapterMeta({
+            adapterType: agent.adapterType,
+            command: "adapter.execute suppressed",
+            commandNotes: [
+              `Safety reason: ${safetyReason}`,
+              `Execution mode: ${
+                adapterExecutionSafety.executionMode ?? "default"
+              }`,
+            ],
+            context: {
+              executionMode: adapterExecutionSafety.executionMode,
+              safetyReason,
+            },
+          });
+          adapterResult = buildDryRunAdapterResult({
+            contextSnapshot: context,
+            safetyReason,
+          });
+        } else {
+          const adapter = getServerAdapter(agent.adapterType);
+          const authToken = adapter.supportsLocalAgentJwt
+            ? createLocalAgentJwt(
+                agent.id,
+                agent.companyId,
+                agent.adapterType,
+                run.id,
+              )
+            : null;
+          if (adapter.supportsLocalAgentJwt && !authToken) {
+            logger.warn(
+              {
+                companyId: agent.companyId,
+                agentId: agent.id,
+                runId: run.id,
+                adapterType: agent.adapterType,
+              },
+              "local agent jwt secret missing or invalid; running without injected PAPERCLIP_API_KEY",
+            );
+          }
+
+          keepaliveTimer = setInterval(() => {
+            if (keepaliveInFlight) return;
+            keepaliveInFlight = true;
+            void touchRunKeepalive()
+              .catch((err) => {
+                logger.warn(
+                  { err, runId: run.id },
+                  "heartbeat run keepalive update failed",
+                );
+              })
+              .finally(() => {
+                keepaliveInFlight = false;
+              });
+          }, RUN_KEEPALIVE_INTERVAL_MS);
+
+          adapterResult = await adapter.execute({
+            runId: run.id,
+            agent,
+            runtime: runtimeForAdapter,
+            config: resolvedConfig,
+            context,
+            onLog,
+            onMeta: onAdapterMeta,
+            authToken: authToken ?? undefined,
+          });
         }
-
-        keepaliveTimer = setInterval(() => {
-          if (keepaliveInFlight) return;
-          keepaliveInFlight = true;
-          void touchRunKeepalive()
-            .catch((err) => {
-              logger.warn(
-                { err, runId: run.id },
-                "heartbeat run keepalive update failed",
-              );
-            })
-            .finally(() => {
-              keepaliveInFlight = false;
-            });
-        }, RUN_KEEPALIVE_INTERVAL_MS);
-
-        const adapterResult = await adapter.execute({
-          runId: run.id,
-          agent,
-          runtime: runtimeForAdapter,
-          config: resolvedConfig,
-          context,
-          onLog,
-          onMeta: onAdapterMeta,
-          authToken: authToken ?? undefined,
-        });
         const adapterManagedRuntimeServices = adapterResult.runtimeServices
           ? await persistAdapterManagedRuntimeServices({
               db,
@@ -2168,6 +2501,26 @@ export function heartbeatService(db: Db) {
           outcome = "failed";
         }
 
+        const effectiveUsage = normalizedUsage ?? rawUsage;
+        const totalTokensUsed = estimateTotalTokens(effectiveUsage);
+        const hardTokenCap = resolveHardTokenCapTokens(context);
+        const exceededHardTokenCap =
+          totalTokensUsed != null && totalTokensUsed > hardTokenCap;
+        const budgetExceededMessage = exceededHardTokenCap
+          ? `Hard token cap exceeded: used ${formatCount(
+              totalTokensUsed,
+            )} > cap ${formatCount(hardTokenCap)}`
+          : null;
+        if (exceededHardTokenCap) {
+          outcome = "failed";
+          await appendRunEvent(currentRun, seq++, {
+            eventType: "lifecycle",
+            stream: "system",
+            level: "error",
+            message: budgetExceededMessage ?? undefined,
+          });
+        }
+
         let logSummary: {
           bytes: number;
           sha256?: string;
@@ -2231,18 +2584,21 @@ export function heartbeatService(db: Db) {
           error:
             outcome === "succeeded"
               ? null
+              : budgetExceededMessage
+              ? budgetExceededMessage
               : redactCurrentUserText(
                   adapterResult.errorMessage ??
                     (outcome === "timed_out" ? "Timed out" : "Adapter failed"),
                 ),
-          errorCode:
-            outcome === "timed_out"
-              ? "timeout"
-              : outcome === "cancelled"
-              ? "cancelled"
-              : outcome === "failed"
-              ? adapterResult.errorCode ?? "adapter_failed"
-              : null,
+          errorCode: budgetExceededMessage
+            ? "budget_hard_cap_reached"
+            : outcome === "timed_out"
+            ? "timeout"
+            : outcome === "cancelled"
+            ? "cancelled"
+            : outcome === "failed"
+            ? adapterResult.errorCode ?? "adapter_failed"
+            : null,
           exitCode: adapterResult.exitCode,
           signal: adapterResult.signal,
           usageJson,
@@ -2261,7 +2617,7 @@ export function heartbeatService(db: Db) {
           outcome === "succeeded" ? "completed" : status,
           {
             finishedAt: new Date(),
-            error: adapterResult.errorMessage ?? null,
+            error: budgetExceededMessage ?? adapterResult.errorMessage ?? null,
           },
         );
 
@@ -2644,6 +3000,7 @@ export function heartbeatService(db: Db) {
       contextSnapshot: enrichedContextSnapshot,
       issueIdFromPayload,
       taskKey,
+      workPacketId,
       wakeCommentId,
     } = enrichWakeContextSnapshot({
       contextSnapshot,
@@ -2712,6 +3069,11 @@ export function heartbeatService(db: Db) {
     }
     if (source !== "timer" && !policy.wakeOnDemand) {
       await writeSkippedRequest("heartbeat.wakeOnDemand.disabled");
+      return null;
+    }
+
+    if (requiresGovernedWorkPacket(source) && !workPacketId) {
+      await writeSkippedRequest("governance.work_packet_required");
       return null;
     }
 
@@ -3341,6 +3703,7 @@ export function heartbeatService(db: Db) {
           requestedByActorType: "system",
           requestedByActorId: "heartbeat_scheduler",
           contextSnapshot: {
+            workPacketId: `timer:${agent.id}:${now.toISOString()}`,
             source: "scheduler",
             reason: "interval_elapsed",
             now: now.toISOString(),

@@ -148,6 +148,7 @@ export function approvalRoutes(db: Db) {
 
       if (approval.requestedByAgentId) {
         try {
+          const approvalWorkPacketId = primaryIssueId ?? `approval:${approval.id}`;
           const wakeRun = await heartbeat.wakeup(approval.requestedByAgentId, {
             source: "automation",
             triggerDetail: "system",
@@ -157,6 +158,7 @@ export function approvalRoutes(db: Db) {
               approvalStatus: approval.status,
               issueId: primaryIssueId,
               issueIds: linkedIssueIds,
+              workPacketId: approvalWorkPacketId,
             },
             requestedByActorType: "user",
             requestedByActorId: req.actor.userId ?? "board",
@@ -167,6 +169,7 @@ export function approvalRoutes(db: Db) {
               issueId: primaryIssueId,
               issueIds: linkedIssueIds,
               taskId: primaryIssueId,
+              workPacketId: approvalWorkPacketId,
               wakeReason: "approval_approved",
             },
           });
