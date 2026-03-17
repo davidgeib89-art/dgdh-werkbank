@@ -719,6 +719,67 @@ function deriveCommentId(
   );
 }
 
+type IssuePromptContext = {
+  id: string;
+  identifier: string | null;
+  title: string | null;
+  description: string | null;
+};
+
+function trimIssueText(value: unknown) {
+  return typeof value === "string" && value.trim().length > 0
+    ? value.trim()
+    : null;
+}
+
+export function extractSingleFileBenchmarkTarget(
+  description: string | null | undefined,
+) {
+  if (!description) return null;
+  const match = description.match(/read only the file:\s*\r?\n([^\r\n]+)/i);
+  return match?.[1]?.trim() || null;
+}
+
+function buildIssueTaskPrompt(issue: IssuePromptContext) {
+  const ref = issue.identifier ?? issue.id;
+  const title = trimIssueText(issue.title);
+  const description = trimIssueText(issue.description);
+  const summary = title ? `${ref} - ${title}` : ref;
+
+  return [
+    "Paperclip issue assignment:",
+    summary,
+    ...(description ? ["", description] : []),
+  ].join("\n");
+}
+
+export function applyIssuePromptContext(
+  contextSnapshot: Record<string, unknown>,
+  issue: IssuePromptContext | null,
+) {
+  if (!issue) return contextSnapshot;
+
+  const normalizedIssue = {
+    id: issue.id,
+    identifier: trimIssueText(issue.identifier),
+    title: trimIssueText(issue.title),
+    description: trimIssueText(issue.description),
+  };
+
+  contextSnapshot.paperclipIssue = normalizedIssue;
+  contextSnapshot.paperclipTaskPrompt = buildIssueTaskPrompt(normalizedIssue);
+
+  const singleFileTargetPath = extractSingleFileBenchmarkTarget(
+    normalizedIssue.description,
+  );
+  if (singleFileTargetPath) {
+    contextSnapshot.paperclipSingleFileTargetPath = singleFileTargetPath;
+    contextSnapshot.paperclipAbortOnMissingFile = true;
+  }
+
+  return contextSnapshot;
+}
+
 function enrichWakeContextSnapshot(input: {
   contextSnapshot: Record<string, unknown>;
   reason: string | null;
@@ -1523,7 +1584,7 @@ export function heartbeatService(db: Db) {
           heartbeat.wakeOnAssignment ??
           heartbeat.wakeOnOnDemand ??
           heartbeat.wakeOnAutomation,
-        true,
+        false,
       ),
       maxConcurrentRuns: normalizeMaxConcurrentRuns(
         heartbeat.maxConcurrentRuns,
@@ -2032,6 +2093,7 @@ export function heartbeatService(db: Db) {
               id: issues.id,
               identifier: issues.identifier,
               title: issues.title,
+              description: issues.description,
             })
             .from(issues)
             .where(
@@ -2042,6 +2104,7 @@ export function heartbeatService(db: Db) {
             )
             .then((rows) => rows[0] ?? null)
         : null;
+      applyIssuePromptContext(context, issueRef);
       const executionWorkspace = await realizeExecutionWorkspace({
         base: {
           baseCwd: resolvedWorkspace.cwd,
@@ -3014,6 +3077,23 @@ export function heartbeatService(db: Db) {
 
     const agent = await getAgent(agentId);
     if (!agent) throw notFound("Agent not found");
+
+    const issueContext = issueId
+      ? await db
+          .select({
+            id: issues.id,
+            identifier: issues.identifier,
+            title: issues.title,
+            description: issues.description,
+          })
+          .from(issues)
+          .where(
+            and(eq(issues.id, issueId), eq(issues.companyId, agent.companyId)),
+          )
+          .then((rows) => rows[0] ?? null)
+      : null;
+
+    applyIssuePromptContext(enrichedContextSnapshot, issueContext);
 
     try {
       const memoryContext = await memorySvc.hydrateRunContext({

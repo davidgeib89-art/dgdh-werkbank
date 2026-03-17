@@ -303,6 +303,85 @@ function parseTopLevelToolEvent(
   ];
 }
 
+function parseTopLevelToolUseEvent(
+  parsed: Record<string, unknown>,
+  ts: string,
+): TranscriptEntry[] {
+  return [
+    {
+      kind: "tool_call",
+      ts,
+      name: mapGeminiToolName(
+        asString(parsed.name, asString(parsed.tool, "tool")),
+      ),
+      toolUseId:
+        asString(parsed.tool_use_id) ||
+        asString(parsed.toolUseId) ||
+        asString(parsed.call_id) ||
+        asString(parsed.id) ||
+        undefined,
+      input: parsed.input ?? parsed.arguments ?? parsed.args ?? {},
+    },
+  ];
+}
+
+function parseTopLevelToolResultEvent(
+  parsed: Record<string, unknown>,
+  ts: string,
+): TranscriptEntry[] {
+  const content =
+    asString(parsed.output) ||
+    asString(parsed.text) ||
+    asString(parsed.result) ||
+    asString(parsed.response) ||
+    formatShellToolResultForLog(
+      parsed.output ?? parsed.result ?? parsed.response ?? parsed.content,
+    );
+
+  return [
+    {
+      kind: "tool_result",
+      ts,
+      toolUseId:
+        asString(parsed.tool_use_id) ||
+        asString(parsed.toolUseId) ||
+        asString(parsed.call_id) ||
+        asString(parsed.id) ||
+        "tool_result",
+      content,
+      isError:
+        parsed.is_error === true ||
+        asString(parsed.status).toLowerCase() === "error",
+    },
+  ];
+}
+
+function parseMessageEvent(
+  parsed: Record<string, unknown>,
+  ts: string,
+): TranscriptEntry[] {
+  const message = asRecord(parsed.message) ?? parsed;
+  const role = asString(parsed.role, asString(message.role))
+    .trim()
+    .toLowerCase();
+
+  if (role === "user") {
+    return collectTextEntries(message, ts, "user");
+  }
+  if (role === "thinking") {
+    const text =
+      asString(message.text).trim() ||
+      asString(asRecord(message.delta)?.text).trim();
+    return text ? [{ kind: "thinking", ts, text }] : [];
+  }
+  if (role === "system") {
+    const text = asString(message.text).trim();
+    return text ? [{ kind: "system", ts, text }] : [];
+  }
+
+  return parseAssistantMessage(message, ts);
+}
+
 function readSessionId(parsed: Record<string, unknown>): string {
   return (
     asString(parsed.session_id) ||
@@ -347,6 +426,17 @@ export function parseGeminiStdoutLine(
 
   const type = asString(parsed.type);
 
+  if (type === "init") {
+    return [
+      {
+        kind: "init",
+        ts,
+        model: asString(parsed.model, "gemini"),
+        sessionId: readSessionId(parsed),
+      },
+    ];
+  }
+
   if (type === "system") {
     const subtype = asString(parsed.subtype);
     if (subtype === "init") {
@@ -375,6 +465,10 @@ export function parseGeminiStdoutLine(
     return collectTextEntries(parsed.message, ts, "user");
   }
 
+  if (type === "message") {
+    return parseMessageEvent(parsed, ts);
+  }
+
   if (type === "thinking") {
     const text =
       asString(parsed.text).trim() ||
@@ -384,6 +478,14 @@ export function parseGeminiStdoutLine(
 
   if (type === "tool_call") {
     return parseTopLevelToolEvent(parsed, ts);
+  }
+
+  if (type === "tool_use") {
+    return parseTopLevelToolUseEvent(parsed, ts);
+  }
+
+  if (type === "tool_result") {
+    return parseTopLevelToolResultEvent(parsed, ts);
   }
 
   if (type === "result") {

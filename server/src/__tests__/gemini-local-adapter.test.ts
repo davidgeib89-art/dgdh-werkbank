@@ -198,6 +198,89 @@ describe("gemini_local ui stdout parser", () => {
       },
     ]);
   });
+
+  it("parses live init, message, tool_use, and tool_result events", () => {
+    const ts = "2026-03-08T00:00:00.000Z";
+
+    expect(
+      parseGeminiStdoutLine(
+        JSON.stringify({
+          type: "init",
+          session_id: "gemini-session-2",
+          model: "gemini-3-flash-preview",
+        }),
+        ts,
+      ),
+    ).toEqual([
+      {
+        kind: "init",
+        ts,
+        model: "gemini-3-flash-preview",
+        sessionId: "gemini-session-2",
+      },
+    ]);
+
+    expect(
+      parseGeminiStdoutLine(
+        JSON.stringify({
+          type: "message",
+          role: "assistant",
+          content: [
+            { type: "text", text: "Starting with the benchmark file." },
+          ],
+        }),
+        ts,
+      ),
+    ).toEqual([
+      {
+        kind: "assistant",
+        ts,
+        text: "Starting with the benchmark file.",
+      },
+    ]);
+
+    expect(
+      parseGeminiStdoutLine(
+        JSON.stringify({
+          type: "tool_use",
+          id: "tool_live_1",
+          name: "read_file",
+          input: {
+            path: "packages/adapters/gemini-local/src/server/models.ts",
+          },
+        }),
+        ts,
+      ),
+    ).toEqual([
+      {
+        kind: "tool_call",
+        ts,
+        name: "reading_files",
+        toolUseId: "tool_live_1",
+        input: { path: "packages/adapters/gemini-local/src/server/models.ts" },
+      },
+    ]);
+
+    expect(
+      parseGeminiStdoutLine(
+        JSON.stringify({
+          type: "tool_result",
+          tool_use_id: "tool_live_1",
+          result: "File not found",
+          is_error: true,
+        }),
+        ts,
+      ),
+    ).toEqual([
+      {
+        kind: "tool_result",
+        ts,
+        toolUseId: "tool_live_1",
+        content: "File not found",
+        isError: true,
+      },
+    ]);
+  });
 });
 
 function stripAnsi(value: string): string {

@@ -1,5 +1,25 @@
 # Agent Profiles for Paperclip
 
+## Human Operator
+
+**Name:** David Geib
+
+**Role in Paperclip:** Operator / Principal
+
+**Responsibilities:**
+
+- Sole authority to create Issues and assign them to Agents
+- Approves architecture proposals from Architect-Claude
+- Reviews Agent output in the Paperclip dashboard
+- Controls budget limits and activation of all agent lanes
+- Runs benchmark Issues to validate Agent behavior and token efficiency
+- No Agent acts autonomously without David's explicit instruction
+
+**Benchmark approach:**
+A benchmark run = creating an Issue via the Paperclip API (identical to what the WebGUI does). This simultaneously tests end-to-end Issue processing (Gemini starts cleanly, agent runs to completion, result visible in dashboard) and captures token/cost data via Paperclip's built-in cost-scoring engine for future efficiency baselines. Heartbeat processing is out of scope for now — Issue processing is tested first.
+
+---
+
 ## Governance Stack (Primary Entry)
 
 All profile behavior is constrained by this governance stack:
@@ -100,14 +120,22 @@ Deep analysis, alternative research, and fact-checking. Helps validate assumptio
 
 **Budget:** $30/month (soft limit)
 
-**Status:** Ready for controlled mini smoke runs
+**Status:** Ready for Issue-based benchmark run
 
 - Role: `researcher`
-- Model: `auto`
+- Model: `gemini-3-flash-preview` (fixed for benchmark #01 — no auto)
 - Heartbeats disabled
 - Wake-on-demand disabled (manual invoke only)
 - No automation triggers
 - No self-tasking and no follow-up task creation
+
+**Benchmark #01 — Issue processing smoke test:**
+
+- Trigger: David creates Issue via Paperclip API (same as WebGUI)
+- Task: Single-file structured extraction, read-only, JSON output
+- Metrics captured by Paperclip natively: duration, input_tokens, output_tokens, cost score
+- Success criteria: Agent starts cleanly, result visible in dashboard, JSON valid, correct output
+- Token baseline recorded here for future optimization comparison
 
 ---
 
@@ -138,3 +166,4 @@ Deep analysis, alternative research, and fact-checking. Helps validate assumptio
 ---
 
 Last updated: 2026-03-17
+Last updated by: David Geib (Operator)

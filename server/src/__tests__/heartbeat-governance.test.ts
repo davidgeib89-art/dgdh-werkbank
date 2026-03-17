@@ -1,9 +1,11 @@
 import { afterEach, describe, expect, it } from "vitest";
 import {
+  applyIssuePromptContext,
   buildDryRunAdapterResult,
   deriveWorkPacketId,
   evaluateGovernanceDryRunValidation,
   estimateTotalTokens,
+  extractSingleFileBenchmarkTarget,
   hasPhaseBCheckpointApproval,
   isDryRunExecutionMode,
   isGovernanceTestModeEnabled,
@@ -57,6 +59,41 @@ describe("heartbeat governance helpers", () => {
         null,
       ),
     ).toBe("issue-context");
+  });
+
+  it("extracts single-file benchmark targets and adds issue prompt context", () => {
+    const description = [
+      "Read only the file:",
+      "packages/adapters/gemini-local/src/server/models.ts",
+      "",
+      "Do not read any other file.",
+    ].join("\n");
+
+    expect(extractSingleFileBenchmarkTarget(description)).toBe(
+      "packages/adapters/gemini-local/src/server/models.ts",
+    );
+
+    expect(
+      applyIssuePromptContext(
+        {},
+        {
+          id: "issue-1",
+          identifier: "DAV-4",
+          title: "Gemini Benchmark #01",
+          description,
+        },
+      ),
+    ).toMatchObject({
+      paperclipIssue: {
+        id: "issue-1",
+        identifier: "DAV-4",
+        title: "Gemini Benchmark #01",
+        description,
+      },
+      paperclipSingleFileTargetPath:
+        "packages/adapters/gemini-local/src/server/models.ts",
+      paperclipAbortOnMissingFile: true,
+    });
   });
 
   it("requires governed work packets for automated, timer, and assignment wakes only", () => {

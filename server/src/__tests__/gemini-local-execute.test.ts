@@ -5,8 +5,7 @@ import path from "node:path";
 import { execute } from "@paperclipai/adapter-gemini-local/server";
 import { writeFakeNodeCommand } from "./test-command-utils.js";
 
-const itGeminiExecute =
-  process.platform === "win32" ? it.skip : it;
+const itGeminiExecute = process.platform === "win32" ? it.skip : it;
 
 async function writeFakeGeminiCommand(commandPath: string): Promise<string> {
   const script = `#!/usr/bin/env node
@@ -51,93 +50,99 @@ describe("gemini execute", () => {
   itGeminiExecute(
     "passes prompt as final argument and injects paperclip env vars",
     async () => {
-    const root = await fs.mkdtemp(path.join(os.tmpdir(), "paperclip-gemini-execute-"));
-    const workspace = path.join(root, "workspace");
-    const commandPath = path.join(root, "gemini");
-    const capturePath = path.join(root, "capture.json");
-    await fs.mkdir(workspace, { recursive: true });
-    const executablePath = await writeFakeGeminiCommand(commandPath);
-    const runtimeCommand =
-      process.platform === "win32" ? process.execPath : executablePath;
-    const runtimeExtraArgs =
-      process.platform === "win32" ? [`${commandPath}.cjs`] : undefined;
-
-    const previousHome = process.env.HOME;
-    process.env.HOME = root;
-
-    let invocationPrompt = "";
-    try {
-      const result = await execute({
-        runId: "run-1",
-        agent: {
-          id: "agent-1",
-          companyId: "company-1",
-          name: "Gemini Coder",
-          adapterType: "gemini_local",
-          adapterConfig: {},
-        },
-        runtime: {
-          sessionId: null,
-          sessionParams: null,
-          sessionDisplayId: null,
-          taskKey: null,
-        },
-        config: {
-          command: runtimeCommand,
-          cwd: workspace,
-          model: "gemini-2.5-pro",
-          ...(runtimeExtraArgs ? { extraArgs: runtimeExtraArgs } : {}),
-          env: {
-            PAPERCLIP_TEST_CAPTURE_PATH: capturePath,
-          },
-          promptTemplate: "Follow the paperclip heartbeat.",
-        },
-        context: {},
-        authToken: "run-jwt-token",
-        onLog: async () => {},
-        onMeta: async (meta) => {
-          invocationPrompt = meta.prompt ?? "";
-        },
-      });
-
-      expect(result.exitCode).toBe(0);
-      expect(result.errorMessage).toBeNull();
-
-      const capture = JSON.parse(await fs.readFile(capturePath, "utf8")) as CapturePayload;
-      expect(capture.argv).toContain("--output-format");
-      expect(capture.argv).toContain("stream-json");
-      expect(capture.argv).toContain("--approval-mode");
-      expect(capture.argv).toContain("yolo");
-      const joinedArgs = capture.argv.join(" ");
-      expect(joinedArgs).toContain("Follow the paperclip heartbeat.");
-      expect(joinedArgs).toContain("Paperclip runtime note:");
-      expect(capture.paperclipEnvKeys).toEqual(
-        expect.arrayContaining([
-          "PAPERCLIP_AGENT_ID",
-          "PAPERCLIP_API_KEY",
-          "PAPERCLIP_API_URL",
-          "PAPERCLIP_COMPANY_ID",
-          "PAPERCLIP_RUN_ID",
-        ]),
+      const root = await fs.mkdtemp(
+        path.join(os.tmpdir(), "paperclip-gemini-execute-"),
       );
-      expect(invocationPrompt).toContain("Paperclip runtime note:");
-      expect(invocationPrompt).toContain("PAPERCLIP_API_URL");
-      expect(invocationPrompt).toContain("Paperclip API access note:");
-      expect(invocationPrompt).toContain("run_shell_command");
-      expect(result.question).toBeNull();
-    } finally {
-      if (previousHome === undefined) {
-        delete process.env.HOME;
-      } else {
-        process.env.HOME = previousHome;
+      const workspace = path.join(root, "workspace");
+      const commandPath = path.join(root, "gemini");
+      const capturePath = path.join(root, "capture.json");
+      await fs.mkdir(workspace, { recursive: true });
+      const executablePath = await writeFakeGeminiCommand(commandPath);
+      const runtimeCommand =
+        process.platform === "win32" ? process.execPath : executablePath;
+      const runtimeExtraArgs =
+        process.platform === "win32" ? [`${commandPath}.cjs`] : undefined;
+
+      const previousHome = process.env.HOME;
+      process.env.HOME = root;
+
+      let invocationPrompt = "";
+      try {
+        const result = await execute({
+          runId: "run-1",
+          agent: {
+            id: "agent-1",
+            companyId: "company-1",
+            name: "Gemini Coder",
+            adapterType: "gemini_local",
+            adapterConfig: {},
+          },
+          runtime: {
+            sessionId: null,
+            sessionParams: null,
+            sessionDisplayId: null,
+            taskKey: null,
+          },
+          config: {
+            command: runtimeCommand,
+            cwd: workspace,
+            model: "gemini-2.5-pro",
+            ...(runtimeExtraArgs ? { extraArgs: runtimeExtraArgs } : {}),
+            env: {
+              PAPERCLIP_TEST_CAPTURE_PATH: capturePath,
+            },
+            promptTemplate: "Follow the paperclip heartbeat.",
+          },
+          context: {},
+          authToken: "run-jwt-token",
+          onLog: async () => {},
+          onMeta: async (meta) => {
+            invocationPrompt = meta.prompt ?? "";
+          },
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.errorMessage).toBeNull();
+
+        const capture = JSON.parse(
+          await fs.readFile(capturePath, "utf8"),
+        ) as CapturePayload;
+        expect(capture.argv).toContain("--output-format");
+        expect(capture.argv).toContain("stream-json");
+        expect(capture.argv).toContain("--approval-mode");
+        expect(capture.argv).toContain("yolo");
+        const joinedArgs = capture.argv.join(" ");
+        expect(joinedArgs).toContain("Follow the paperclip heartbeat.");
+        expect(joinedArgs).toContain("Paperclip runtime note:");
+        expect(capture.paperclipEnvKeys).toEqual(
+          expect.arrayContaining([
+            "PAPERCLIP_AGENT_ID",
+            "PAPERCLIP_API_KEY",
+            "PAPERCLIP_API_URL",
+            "PAPERCLIP_COMPANY_ID",
+            "PAPERCLIP_RUN_ID",
+          ]),
+        );
+        expect(invocationPrompt).toContain("Paperclip runtime note:");
+        expect(invocationPrompt).toContain("PAPERCLIP_API_URL");
+        expect(invocationPrompt).toContain("Paperclip API access note:");
+        expect(invocationPrompt).toContain("run_shell_command");
+        expect(result.question).toBeNull();
+      } finally {
+        if (previousHome === undefined) {
+          delete process.env.HOME;
+        } else {
+          process.env.HOME = previousHome;
+        }
+        await fs.rm(root, { recursive: true, force: true });
       }
-      await fs.rm(root, { recursive: true, force: true });
-    }
     },
   );
 
   itGeminiExecute("always passes --approval-mode yolo", async () => {
-    const root = await fs.mkdtemp(path.join(os.tmpdir(), "paperclip-gemini-yolo-"));
+    const root = await fs.mkdtemp(
+      path.join(os.tmpdir(), "paperclip-gemini-yolo-"),
+    );
     const workspace = path.join(root, "workspace");
     const commandPath = path.join(root, "gemini");
     const capturePath = path.join(root, "capture.json");
@@ -154,8 +159,19 @@ describe("gemini execute", () => {
     try {
       await execute({
         runId: "run-yolo",
-        agent: { id: "a1", companyId: "c1", name: "G", adapterType: "gemini_local", adapterConfig: {} },
-        runtime: { sessionId: null, sessionParams: null, sessionDisplayId: null, taskKey: null },
+        agent: {
+          id: "a1",
+          companyId: "c1",
+          name: "G",
+          adapterType: "gemini_local",
+          adapterConfig: {},
+        },
+        runtime: {
+          sessionId: null,
+          sessionParams: null,
+          sessionDisplayId: null,
+          taskKey: null,
+        },
         config: {
           command: runtimeCommand,
           cwd: workspace,
@@ -167,7 +183,9 @@ describe("gemini execute", () => {
         onLog: async () => {},
       });
 
-      const capture = JSON.parse(await fs.readFile(capturePath, "utf8")) as CapturePayload;
+      const capture = JSON.parse(
+        await fs.readFile(capturePath, "utf8"),
+      ) as CapturePayload;
       expect(capture.argv).toContain("--approval-mode");
       expect(capture.argv).toContain("yolo");
       expect(capture.argv).not.toContain("--policy");
@@ -182,4 +200,88 @@ describe("gemini execute", () => {
       await fs.rm(root, { recursive: true, force: true });
     }
   });
+
+  itGeminiExecute(
+    "prepends issue task notes and single-file benchmark guard",
+    async () => {
+      const root = await fs.mkdtemp(
+        path.join(os.tmpdir(), "paperclip-gemini-issue-"),
+      );
+      const workspace = path.join(root, "workspace");
+      const commandPath = path.join(root, "gemini");
+      const capturePath = path.join(root, "capture.json");
+      await fs.mkdir(workspace, { recursive: true });
+      const executablePath = await writeFakeGeminiCommand(commandPath);
+      const runtimeCommand =
+        process.platform === "win32" ? process.execPath : executablePath;
+      const runtimeExtraArgs =
+        process.platform === "win32" ? [`${commandPath}.cjs`] : undefined;
+
+      const previousHome = process.env.HOME;
+      process.env.HOME = root;
+
+      let invocationPrompt = "";
+      try {
+        await execute({
+          runId: "run-issue",
+          agent: {
+            id: "agent-1",
+            companyId: "company-1",
+            name: "Gemini Coder",
+            adapterType: "gemini_local",
+            adapterConfig: {},
+          },
+          runtime: {
+            sessionId: null,
+            sessionParams: null,
+            sessionDisplayId: null,
+            taskKey: null,
+          },
+          config: {
+            command: runtimeCommand,
+            cwd: workspace,
+            ...(runtimeExtraArgs ? { extraArgs: runtimeExtraArgs } : {}),
+            env: {
+              PAPERCLIP_TEST_CAPTURE_PATH: capturePath,
+            },
+            promptTemplate: "Follow the paperclip heartbeat.",
+          },
+          context: {
+            paperclipTaskPrompt: [
+              "Paperclip issue assignment:",
+              "DAV-4 - Gemini Benchmark #01",
+              "",
+              "Read only the file:",
+              "packages/adapters/gemini-local/src/server/models.ts",
+            ].join("\n"),
+            paperclipSingleFileTargetPath:
+              "packages/adapters/gemini-local/src/server/models.ts",
+            paperclipAbortOnMissingFile: true,
+          },
+          authToken: "run-jwt-token",
+          onLog: async () => {},
+          onMeta: async (meta) => {
+            invocationPrompt = meta.prompt ?? "";
+          },
+        });
+
+        expect(invocationPrompt).toContain("Paperclip issue assignment:");
+        expect(invocationPrompt).toContain("DAV-4 - Gemini Benchmark #01");
+        expect(invocationPrompt).toContain("Single-file benchmark guard:");
+        expect(invocationPrompt).toContain(
+          "If the file is missing or unreadable in the current workspace, stop immediately",
+        );
+        expect(invocationPrompt).toContain(
+          "Do not list directories, search the repository, inspect imports in other files, run commands, or read any other file.",
+        );
+      } finally {
+        if (previousHome === undefined) {
+          delete process.env.HOME;
+        } else {
+          process.env.HOME = previousHome;
+        }
+        await fs.rm(root, { recursive: true, force: true });
+      }
+    },
+  );
 });
