@@ -225,9 +225,7 @@ describe("gemini_local ui stdout parser", () => {
         JSON.stringify({
           type: "message",
           role: "assistant",
-          content: [
-            { type: "text", text: "Starting with the benchmark file." },
-          ],
+          content: "Starting with the benchmark file.",
         }),
         ts,
       ),
@@ -243,9 +241,9 @@ describe("gemini_local ui stdout parser", () => {
       parseGeminiStdoutLine(
         JSON.stringify({
           type: "tool_use",
-          id: "tool_live_1",
-          name: "read_file",
-          input: {
+          tool_id: "tool_live_1",
+          tool_name: "read_file",
+          parameters: {
             path: "packages/adapters/gemini-local/src/server/models.ts",
           },
         }),
@@ -265,8 +263,8 @@ describe("gemini_local ui stdout parser", () => {
       parseGeminiStdoutLine(
         JSON.stringify({
           type: "tool_result",
-          tool_use_id: "tool_live_1",
-          result: "File not found",
+          tool_id: "tool_live_1",
+          output: "File not found",
           is_error: true,
         }),
         ts,

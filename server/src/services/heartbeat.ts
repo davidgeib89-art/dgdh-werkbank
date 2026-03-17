@@ -780,6 +780,301 @@ export function applyIssuePromptContext(
   return contextSnapshot;
 }
 
+export type AdapterCwdResolution = {
+  effectiveRunCwd: string;
+  rawWorkspaceCwd: string | null;
+  effectiveWorkspaceCwd: string | null;
+  workspaceSource: string | null;
+  configuredCwd: string | null;
+  configuredCwdExists: boolean;
+  resolutionStrategy: "configured" | "workspace" | "process";
+};
+
+function arePathsEquivalent(left: string, right: string) {
+  const leftResolved = path.resolve(left);
+  const rightResolved = path.resolve(right);
+  if (process.platform === "win32") {
+    return leftResolved.toLowerCase() === rightResolved.toLowerCase();
+  }
+  return leftResolved === rightResolved;
+}
+
+function isPathWithinRoot(targetPath: string, rootPath: string) {
+  const relative = path.relative(
+    path.resolve(rootPath),
+    path.resolve(targetPath),
+  );
+  return (
+    relative.length === 0 ||
+    (!relative.startsWith("..") && !path.isAbsolute(relative))
+  );
+}
+
+export function resolveAdapterCwdForRun(
+  contextSnapshot: Record<string, unknown>,
+  resolvedConfig: Record<string, unknown>,
+): AdapterCwdResolution {
+  const workspaceContext = parseObject(contextSnapshot.paperclipWorkspace);
+  const rawWorkspaceCwd = readNonEmptyString(workspaceContext.cwd);
+  const workspaceSource = readNonEmptyString(workspaceContext.source);
+  const configuredCwd = readNonEmptyString(resolvedConfig.cwd);
+  const configuredCwdExists = Boolean(configuredCwd);
+
+  const prefersConfiguredForSingleFile =
+    contextSnapshot.paperclipAbortOnMissingFile === true ||
+    Boolean(readNonEmptyString(contextSnapshot.paperclipSingleFileTargetPath));
+  const useConfiguredCwd =
+    Boolean(configuredCwd) && prefersConfiguredForSingleFile;
+  const effectiveWorkspaceCwd =
+    useConfiguredCwd &&
+    (workspaceSource === "agent_home" || workspaceSource === "fallback")
+      ? null
+      : rawWorkspaceCwd;
+
+  const effectiveRunCwd = useConfiguredCwd
+    ? configuredCwd!
+    : effectiveWorkspaceCwd ?? configuredCwd ?? process.cwd();
+
+  const resolutionStrategy: AdapterCwdResolution["resolutionStrategy"] =
+    useConfiguredCwd || (!effectiveWorkspaceCwd && configuredCwd)
+      ? "configured"
+      : effectiveWorkspaceCwd
+      ? "workspace"
+      : "process";
+
+  return {
+    effectiveRunCwd,
+    rawWorkspaceCwd,
+    effectiveWorkspaceCwd,
+    workspaceSource,
+    configuredCwd,
+    configuredCwdExists,
+    resolutionStrategy,
+  };
+}
+
+export type SingleFileBenchmarkPreflight = {
+  required: boolean;
+  ok: boolean;
+  reason: string | null;
+  adapterCwd: string;
+  rawWorkspaceCwd: string | null;
+  effectiveWorkspaceCwd: string | null;
+  workspaceSource: string | null;
+  configuredCwd: string | null;
+  configuredCwdExists: boolean;
+  resolutionStrategy: "configured" | "workspace" | "process";
+  singleFileTargetPath: string | null;
+  singleFileTargetResolvedPath: string | null;
+  targetExists: boolean;
+  targetWithinEffectiveCwd: boolean;
+  issueTaskPromptPresent: boolean;
+  issueTaskPromptPreview: string | null;
+  abortOnMissingFile: boolean;
+};
+
+export async function evaluateSingleFileBenchmarkPreflight(input: {
+  contextSnapshot: Record<string, unknown>;
+  resolvedConfig: Record<string, unknown>;
+}): Promise<SingleFileBenchmarkPreflight> {
+  const { contextSnapshot, resolvedConfig } = input;
+  const singleFileTargetPath = readNonEmptyString(
+    contextSnapshot.paperclipSingleFileTargetPath,
+  );
+  const abortOnMissingFile =
+    contextSnapshot.paperclipAbortOnMissingFile === true;
+  const issueTaskPrompt = readNonEmptyString(
+    contextSnapshot.paperclipTaskPrompt,
+  );
+  const issueTaskPromptPreview = issueTaskPrompt
+    ? issueTaskPrompt.slice(0, 400)
+    : null;
+  const adapterCwdResolution = resolveAdapterCwdForRun(
+    contextSnapshot,
+    resolvedConfig,
+  );
+  const {
+    effectiveRunCwd,
+    rawWorkspaceCwd,
+    effectiveWorkspaceCwd,
+    workspaceSource,
+    configuredCwd,
+    configuredCwdExists,
+    resolutionStrategy,
+  } = adapterCwdResolution;
+  const configuredCwdAccessible = configuredCwd
+    ? await fs
+        .access(configuredCwd)
+        .then(() => true)
+        .catch(() => false)
+    : false;
+
+  const required = abortOnMissingFile || Boolean(singleFileTargetPath);
+  if (!required) {
+    return {
+      required,
+      ok: true,
+      reason: null,
+      adapterCwd: effectiveRunCwd,
+      rawWorkspaceCwd,
+      effectiveWorkspaceCwd,
+      workspaceSource,
+      configuredCwd,
+      configuredCwdExists: configuredCwdAccessible,
+      resolutionStrategy,
+      singleFileTargetPath,
+      singleFileTargetResolvedPath: null,
+      targetExists: false,
+      targetWithinEffectiveCwd: false,
+      issueTaskPromptPresent: Boolean(issueTaskPrompt),
+      issueTaskPromptPreview,
+      abortOnMissingFile,
+    };
+  }
+
+  if (!singleFileTargetPath) {
+    return {
+      required,
+      ok: false,
+      reason: "single_file_target_missing",
+      adapterCwd: effectiveRunCwd,
+      rawWorkspaceCwd,
+      effectiveWorkspaceCwd,
+      workspaceSource,
+      configuredCwd,
+      configuredCwdExists: configuredCwdAccessible,
+      resolutionStrategy,
+      singleFileTargetPath: null,
+      singleFileTargetResolvedPath: null,
+      targetExists: false,
+      targetWithinEffectiveCwd: false,
+      issueTaskPromptPresent: Boolean(issueTaskPrompt),
+      issueTaskPromptPreview,
+      abortOnMissingFile,
+    };
+  }
+
+  if (configuredCwd && !configuredCwdAccessible) {
+    return {
+      required,
+      ok: false,
+      reason: "configured_cwd_unavailable",
+      adapterCwd: effectiveRunCwd,
+      rawWorkspaceCwd,
+      effectiveWorkspaceCwd,
+      workspaceSource,
+      configuredCwd,
+      configuredCwdExists: false,
+      resolutionStrategy,
+      singleFileTargetPath,
+      singleFileTargetResolvedPath: null,
+      targetExists: false,
+      targetWithinEffectiveCwd: false,
+      issueTaskPromptPresent: Boolean(issueTaskPrompt),
+      issueTaskPromptPreview,
+      abortOnMissingFile,
+    };
+  }
+
+  if (
+    effectiveWorkspaceCwd &&
+    !arePathsEquivalent(effectiveWorkspaceCwd, effectiveRunCwd)
+  ) {
+    return {
+      required,
+      ok: false,
+      reason: "workspace_cwd_mismatch",
+      adapterCwd: effectiveRunCwd,
+      rawWorkspaceCwd,
+      effectiveWorkspaceCwd,
+      workspaceSource,
+      configuredCwd,
+      configuredCwdExists: configuredCwdAccessible,
+      resolutionStrategy,
+      singleFileTargetPath,
+      singleFileTargetResolvedPath: null,
+      targetExists: false,
+      targetWithinEffectiveCwd: false,
+      issueTaskPromptPresent: Boolean(issueTaskPrompt),
+      issueTaskPromptPreview,
+      abortOnMissingFile,
+    };
+  }
+
+  const singleFileTargetResolvedPath = path.isAbsolute(singleFileTargetPath)
+    ? singleFileTargetPath
+    : path.resolve(effectiveRunCwd, singleFileTargetPath);
+  const targetWithinEffectiveCwd = isPathWithinRoot(
+    singleFileTargetResolvedPath,
+    effectiveRunCwd,
+  );
+
+  if (!targetWithinEffectiveCwd) {
+    return {
+      required,
+      ok: false,
+      reason: "single_file_target_outside_cwd",
+      adapterCwd: effectiveRunCwd,
+      rawWorkspaceCwd,
+      effectiveWorkspaceCwd,
+      workspaceSource,
+      configuredCwd,
+      configuredCwdExists: configuredCwdAccessible,
+      resolutionStrategy,
+      singleFileTargetPath,
+      singleFileTargetResolvedPath,
+      targetExists: false,
+      targetWithinEffectiveCwd,
+      issueTaskPromptPresent: Boolean(issueTaskPrompt),
+      issueTaskPromptPreview,
+      abortOnMissingFile,
+    };
+  }
+
+  try {
+    await fs.access(singleFileTargetResolvedPath);
+    return {
+      required,
+      ok: true,
+      reason: null,
+      adapterCwd: effectiveRunCwd,
+      rawWorkspaceCwd,
+      effectiveWorkspaceCwd,
+      workspaceSource,
+      configuredCwd,
+      configuredCwdExists: configuredCwdAccessible,
+      resolutionStrategy,
+      singleFileTargetPath,
+      singleFileTargetResolvedPath,
+      targetExists: true,
+      targetWithinEffectiveCwd,
+      issueTaskPromptPresent: Boolean(issueTaskPrompt),
+      issueTaskPromptPreview,
+      abortOnMissingFile,
+    };
+  } catch {
+    return {
+      required,
+      ok: false,
+      reason: "single_file_target_unavailable",
+      adapterCwd: effectiveRunCwd,
+      rawWorkspaceCwd,
+      effectiveWorkspaceCwd,
+      workspaceSource,
+      configuredCwd,
+      configuredCwdExists: Boolean(configuredCwdExists),
+      resolutionStrategy,
+      singleFileTargetPath,
+      singleFileTargetResolvedPath,
+      targetExists: false,
+      targetWithinEffectiveCwd,
+      issueTaskPromptPresent: Boolean(issueTaskPrompt),
+      issueTaskPromptPreview,
+      abortOnMissingFile,
+    };
+  }
+}
+
 function enrichWakeContextSnapshot(input: {
   contextSnapshot: Record<string, unknown>;
   reason: string | null;
@@ -2330,6 +2625,54 @@ export function heartbeatService(db: Db) {
         for (const warning of runtimeWorkspaceWarnings) {
           await onLog("stderr", `[paperclip] ${warning}\n`);
         }
+        const singleFileBenchmarkPreflight =
+          await evaluateSingleFileBenchmarkPreflight({
+            contextSnapshot: context,
+            resolvedConfig,
+          });
+        if (singleFileBenchmarkPreflight.required) {
+          await appendRunEvent(currentRun, seq++, {
+            eventType: "lifecycle",
+            stream: "system",
+            level: singleFileBenchmarkPreflight.ok ? "info" : "error",
+            message: singleFileBenchmarkPreflight.ok
+              ? "single-file benchmark preflight passed"
+              : "single-file benchmark preflight blocked run",
+            payload: {
+              stage: "single_file.preflight",
+              preflightExecuted: true,
+              preflightResult: singleFileBenchmarkPreflight.ok
+                ? "ok"
+                : "blocked",
+              required: singleFileBenchmarkPreflight.required,
+              ok: singleFileBenchmarkPreflight.ok,
+              reason: singleFileBenchmarkPreflight.reason,
+              adapterCwd: singleFileBenchmarkPreflight.adapterCwd,
+              rawWorkspaceCwd: singleFileBenchmarkPreflight.rawWorkspaceCwd,
+              effectiveWorkspaceCwd:
+                singleFileBenchmarkPreflight.effectiveWorkspaceCwd,
+              workspaceSource: singleFileBenchmarkPreflight.workspaceSource,
+              configuredCwd: singleFileBenchmarkPreflight.configuredCwd,
+              configuredCwdExists:
+                singleFileBenchmarkPreflight.configuredCwdExists,
+              resolutionStrategy:
+                singleFileBenchmarkPreflight.resolutionStrategy,
+              issueTaskPromptPresent:
+                singleFileBenchmarkPreflight.issueTaskPromptPresent,
+              issueTaskPromptPreview:
+                singleFileBenchmarkPreflight.issueTaskPromptPreview,
+              singleFileTargetPath:
+                singleFileBenchmarkPreflight.singleFileTargetPath,
+              singleFileTargetResolvedPath:
+                singleFileBenchmarkPreflight.singleFileTargetResolvedPath,
+              targetExists: singleFileBenchmarkPreflight.targetExists,
+              targetWithinEffectiveCwd:
+                singleFileBenchmarkPreflight.targetWithinEffectiveCwd,
+              abortOnMissingFile:
+                singleFileBenchmarkPreflight.abortOnMissingFile,
+            },
+          });
+        }
         const adapterEnv = Object.fromEntries(
           Object.entries(parseObject(resolvedConfig.env)).filter(
             (entry): entry is [string, string] =>
@@ -2339,22 +2682,25 @@ export function heartbeatService(db: Db) {
         const adapterExecutionSafety = resolveAdapterExecutionSafety(context);
         const runtimeServices: Awaited<
           ReturnType<typeof ensureRuntimeServicesForRun>
-        > = adapterExecutionSafety.blockAdapterExecute
-          ? []
-          : await ensureRuntimeServicesForRun({
-              db,
-              runId: run.id,
-              agent: {
-                id: agent.id,
-                name: agent.name,
-                companyId: agent.companyId,
-              },
-              issue: issueRef,
-              workspace: executionWorkspace,
-              config: resolvedConfig,
-              adapterEnv,
-              onLog,
-            });
+        > =
+          adapterExecutionSafety.blockAdapterExecute ||
+          (singleFileBenchmarkPreflight.required &&
+            !singleFileBenchmarkPreflight.ok)
+            ? []
+            : await ensureRuntimeServicesForRun({
+                db,
+                runId: run.id,
+                agent: {
+                  id: agent.id,
+                  name: agent.name,
+                  companyId: agent.companyId,
+                },
+                issue: issueRef,
+                workspace: executionWorkspace,
+                config: resolvedConfig,
+                adapterEnv,
+                onLog,
+              });
         if (runtimeServices.length > 0) {
           context.paperclipRuntimeServices = runtimeServices;
           context.paperclipRuntimePrimaryUrl =
@@ -2397,12 +2743,20 @@ export function heartbeatService(db: Db) {
               if (key in meta.env) meta.env[key] = "***REDACTED***";
             }
           }
+          const invokeSuppressed =
+            meta.invokeSuppressed ??
+            meta.command.trim().toLowerCase() === "adapter.execute suppressed";
+          const adapterStarted = meta.adapterStarted ?? !invokeSuppressed;
           await appendRunEvent(currentRun, seq++, {
             eventType: "adapter.invoke",
             stream: "system",
             level: "info",
             message: "adapter invocation",
-            payload: meta as unknown as Record<string, unknown>,
+            payload: {
+              ...meta,
+              invokeSuppressed,
+              adapterStarted,
+            } as unknown as Record<string, unknown>,
           });
         };
 
@@ -2417,6 +2771,9 @@ export function heartbeatService(db: Db) {
           await onAdapterMeta({
             adapterType: agent.adapterType,
             command: "adapter.execute suppressed",
+            invokeSuppressed: true,
+            adapterStarted: false,
+            suppressionReason: safetyReason,
             commandNotes: [
               `Safety reason: ${safetyReason}`,
               `Execution mode: ${
@@ -2432,6 +2789,102 @@ export function heartbeatService(db: Db) {
             contextSnapshot: context,
             safetyReason,
           });
+        } else if (
+          singleFileBenchmarkPreflight.required &&
+          !singleFileBenchmarkPreflight.ok
+        ) {
+          const reason =
+            singleFileBenchmarkPreflight.reason ??
+            "single_file_preflight_failed";
+          await onLog(
+            "stderr",
+            `[paperclip] Single-file benchmark preflight blocked adapter execution (${reason}).\n`,
+          );
+          await onAdapterMeta({
+            adapterType: agent.adapterType,
+            command: "adapter.execute suppressed",
+            invokeSuppressed: true,
+            adapterStarted: false,
+            suppressionReason: reason,
+            commandNotes: [
+              `Single-file benchmark preflight failed: ${reason}`,
+              `Adapter cwd: ${singleFileBenchmarkPreflight.adapterCwd}`,
+              `Workspace cwd (raw): ${
+                singleFileBenchmarkPreflight.rawWorkspaceCwd ?? "(none)"
+              }`,
+              `Workspace cwd (effective): ${
+                singleFileBenchmarkPreflight.effectiveWorkspaceCwd ?? "(none)"
+              }`,
+              `Target path: ${
+                singleFileBenchmarkPreflight.singleFileTargetPath ?? "(none)"
+              }`,
+            ],
+            context: {
+              preflight: {
+                required: singleFileBenchmarkPreflight.required,
+                ok: singleFileBenchmarkPreflight.ok,
+                reason,
+                adapterCwd: singleFileBenchmarkPreflight.adapterCwd,
+                rawWorkspaceCwd: singleFileBenchmarkPreflight.rawWorkspaceCwd,
+                effectiveWorkspaceCwd:
+                  singleFileBenchmarkPreflight.effectiveWorkspaceCwd,
+                workspaceSource: singleFileBenchmarkPreflight.workspaceSource,
+                configuredCwd: singleFileBenchmarkPreflight.configuredCwd,
+                configuredCwdExists:
+                  singleFileBenchmarkPreflight.configuredCwdExists,
+                resolutionStrategy:
+                  singleFileBenchmarkPreflight.resolutionStrategy,
+                issueTaskPromptPresent:
+                  singleFileBenchmarkPreflight.issueTaskPromptPresent,
+                issueTaskPromptPreview:
+                  singleFileBenchmarkPreflight.issueTaskPromptPreview,
+                singleFileTargetPath:
+                  singleFileBenchmarkPreflight.singleFileTargetPath,
+                singleFileTargetResolvedPath:
+                  singleFileBenchmarkPreflight.singleFileTargetResolvedPath,
+                targetExists: singleFileBenchmarkPreflight.targetExists,
+                targetWithinEffectiveCwd:
+                  singleFileBenchmarkPreflight.targetWithinEffectiveCwd,
+                abortOnMissingFile:
+                  singleFileBenchmarkPreflight.abortOnMissingFile,
+              },
+            },
+          });
+          adapterResult = {
+            exitCode: 1,
+            signal: null,
+            timedOut: false,
+            errorCode: "single_file_preflight_failed",
+            errorMessage: `Single-file benchmark preflight blocked adapter execution: ${reason}`,
+            resultJson: {
+              type: "single_file_preflight",
+              status: "blocked",
+              reason,
+              adapterCwd: singleFileBenchmarkPreflight.adapterCwd,
+              rawWorkspaceCwd: singleFileBenchmarkPreflight.rawWorkspaceCwd,
+              effectiveWorkspaceCwd:
+                singleFileBenchmarkPreflight.effectiveWorkspaceCwd,
+              workspaceSource: singleFileBenchmarkPreflight.workspaceSource,
+              configuredCwd: singleFileBenchmarkPreflight.configuredCwd,
+              configuredCwdExists:
+                singleFileBenchmarkPreflight.configuredCwdExists,
+              resolutionStrategy:
+                singleFileBenchmarkPreflight.resolutionStrategy,
+              issueTaskPromptPresent:
+                singleFileBenchmarkPreflight.issueTaskPromptPresent,
+              issueTaskPromptPreview:
+                singleFileBenchmarkPreflight.issueTaskPromptPreview,
+              singleFileTargetPath:
+                singleFileBenchmarkPreflight.singleFileTargetPath,
+              singleFileTargetResolvedPath:
+                singleFileBenchmarkPreflight.singleFileTargetResolvedPath,
+              targetExists: singleFileBenchmarkPreflight.targetExists,
+              targetWithinEffectiveCwd:
+                singleFileBenchmarkPreflight.targetWithinEffectiveCwd,
+              abortOnMissingFile:
+                singleFileBenchmarkPreflight.abortOnMissingFile,
+            },
+          };
         } else {
           const adapter = getServerAdapter(agent.adapterType);
           const authToken = adapter.supportsLocalAgentJwt

@@ -63,7 +63,7 @@ describe("RunTranscriptView", () => {
       {
         kind: "stderr",
         ts: "2026-03-12T00:00:00.000Z",
-        text: "[paperclip] Skipping saved session resume for task \"PAP-485\" because wake reason is issue_assigned.",
+        text: '[paperclip] Skipping saved session resume for task "PAP-485" because wake reason is issue_assigned.',
       },
       {
         kind: "assistant",
@@ -79,6 +79,30 @@ describe("RunTranscriptView", () => {
       type: "message",
       role: "assistant",
       text: "Working on the task.",
+    });
+  });
+
+  it("hides noisy Windows PTY stderr blocks from nice mode normalization", () => {
+    const entries: TranscriptEntry[] = [
+      {
+        kind: "stderr",
+        ts: "2026-03-12T00:00:00.000Z",
+        text: "Error: AttachConsole failed\n    at Object.<anonymous> (conpty_console_list_agent.js:11:26)",
+      },
+      {
+        kind: "assistant",
+        ts: "2026-03-12T00:00:01.000Z",
+        text: "Returning benchmark result.",
+      },
+    ];
+
+    const blocks = normalizeTranscript(entries, false);
+
+    expect(blocks).toHaveLength(1);
+    expect(blocks[0]).toMatchObject({
+      type: "message",
+      role: "assistant",
+      text: "Returning benchmark result.",
     });
   });
 });

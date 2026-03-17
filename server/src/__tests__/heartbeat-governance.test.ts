@@ -1,8 +1,12 @@
+import fs from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import {
   applyIssuePromptContext,
   buildDryRunAdapterResult,
   deriveWorkPacketId,
+  evaluateSingleFileBenchmarkPreflight,
   evaluateGovernanceDryRunValidation,
   estimateTotalTokens,
   extractSingleFileBenchmarkTarget,
@@ -12,6 +16,7 @@ import {
   isPhaseBExecution,
   isTestRunContext,
   readExecutionMode,
+  resolveAdapterCwdForRun,
   requiresGovernedWorkPacket,
   resolveDryRunUsageTotals,
   resolveHardTokenCapTokens,
@@ -94,6 +99,64 @@ describe("heartbeat governance helpers", () => {
         "packages/adapters/gemini-local/src/server/models.ts",
       paperclipAbortOnMissingFile: true,
     });
+  });
+
+  it("prefers configured cwd for single-file benchmark with agent_home workspace source", () => {
+    const resolved = resolveAdapterCwdForRun(
+      {
+        paperclipAbortOnMissingFile: true,
+        paperclipSingleFileTargetPath:
+          "packages/adapters/gemini-local/src/server/models.ts",
+        paperclipWorkspace: {
+          cwd: "C:/Users/holyd/.paperclip-worktrees/instances/codex-work/workspaces/agent-1",
+          source: "agent_home",
+        },
+      },
+      {
+        cwd: "C:/Users/holyd/DGDH/worktrees/paperclip-codex",
+      },
+    );
+
+    expect(resolved.effectiveRunCwd).toBe(
+      "C:/Users/holyd/DGDH/worktrees/paperclip-codex",
+    );
+    expect(resolved.rawWorkspaceCwd).toBe(
+      "C:/Users/holyd/.paperclip-worktrees/instances/codex-work/workspaces/agent-1",
+    );
+    expect(resolved.effectiveWorkspaceCwd).toBeNull();
+    expect(resolved.resolutionStrategy).toBe("configured");
+  });
+
+  it("passes single-file preflight when configured cwd is valid and target exists", async () => {
+    const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "pc-preflight-"));
+    const targetPath = path.join(tempRoot, "target.ts");
+    await fs.writeFile(targetPath, "export const ok = true;\n", "utf8");
+
+    try {
+      const preflight = await evaluateSingleFileBenchmarkPreflight({
+        contextSnapshot: {
+          paperclipAbortOnMissingFile: true,
+          paperclipSingleFileTargetPath: "target.ts",
+          paperclipTaskPrompt: "Paperclip issue assignment:\nDAV-5\n",
+          paperclipWorkspace: {
+            cwd: "C:/Users/holyd/.paperclip-worktrees/instances/codex-work/workspaces/agent-1",
+            source: "agent_home",
+          },
+        },
+        resolvedConfig: {
+          cwd: tempRoot,
+        },
+      });
+
+      expect(preflight.ok).toBe(true);
+      expect(preflight.reason).toBeNull();
+      expect(preflight.adapterCwd).toBe(tempRoot);
+      expect(preflight.targetExists).toBe(true);
+      expect(preflight.targetWithinEffectiveCwd).toBe(true);
+      expect(preflight.configuredCwdExists).toBe(true);
+    } finally {
+      await fs.rm(tempRoot, { recursive: true, force: true });
+    }
   });
 
   it("requires governed work packets for automated, timer, and assignment wakes only", () => {

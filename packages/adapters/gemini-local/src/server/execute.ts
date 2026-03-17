@@ -114,6 +114,10 @@ function renderIssueTaskNote(context: Record<string, unknown>): string {
   return lines.join("\n");
 }
 
+function buildPromptHeader(prompt: string, maxLines = 18): string {
+  return prompt.split(/\r?\n/).slice(0, maxLines).join("\n").trim();
+}
+
 function geminiSkillsHome(): string {
   return path.join(os.homedir(), ".gemini", "skills");
 }
@@ -203,12 +207,24 @@ export async function execute(
       )
     : [];
   const configuredCwd = asString(config.cwd, "");
-  const useConfiguredInsteadOfAgentHome =
-    workspaceSource === "agent_home" && configuredCwd.length > 0;
-  const effectiveWorkspaceCwd = useConfiguredInsteadOfAgentHome
-    ? ""
-    : workspaceCwd;
-  const cwd = effectiveWorkspaceCwd || configuredCwd || process.cwd();
+  const singleFileTargetPath = asString(
+    context.paperclipSingleFileTargetPath,
+    "",
+  ).trim();
+  const prefersConfiguredCwdForSingleFile =
+    context.paperclipAbortOnMissingFile === true ||
+    singleFileTargetPath.length > 0;
+  const useConfiguredCwd =
+    configuredCwd.length > 0 &&
+    (prefersConfiguredCwdForSingleFile || workspaceSource === "agent_home");
+  const effectiveWorkspaceCwd =
+    useConfiguredCwd &&
+    (workspaceSource === "agent_home" || workspaceSource === "fallback")
+      ? ""
+      : workspaceCwd;
+  const cwd = useConfiguredCwd
+    ? configuredCwd
+    : effectiveWorkspaceCwd || configuredCwd || process.cwd();
   await ensureAbsoluteDirectory(cwd, { createIfMissing: true });
   await ensureGeminiSkillsInjected(onLog);
 
@@ -394,6 +410,7 @@ export async function execute(
     runtimeNoteChars: paperclipEnvNote.length + apiAccessNote.length,
     heartbeatPromptChars: renderedPrompt.length,
   };
+  const promptHeader = buildPromptHeader(prompt);
 
   const buildArgs = (resumeSessionId: string | null) => {
     const args = ["--output-format", "stream-json"];
@@ -417,6 +434,8 @@ export async function execute(
       await onMeta({
         adapterType: "gemini_local",
         command,
+        invokeSuppressed: false,
+        adapterStarted: true,
         cwd,
         commandNotes,
         commandArgs: args.map((value, index) =>
@@ -424,6 +443,7 @@ export async function execute(
         ),
         env: redactEnvForLogs(env),
         prompt,
+        promptHeader,
         promptMetrics,
         context,
       });

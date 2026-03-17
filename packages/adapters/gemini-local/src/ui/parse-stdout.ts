@@ -126,6 +126,8 @@ function collectTextEntries(
   const entries: TranscriptEntry[] = [];
   const directText = asString(message.text).trim();
   if (directText) entries.push({ kind, ts, text: directText });
+  const directContent = asString(message.content).trim();
+  if (directContent) entries.push({ kind, ts, text: directContent });
 
   const content = Array.isArray(message.content) ? message.content : [];
   for (const partRaw of content) {
@@ -156,6 +158,9 @@ function parseAssistantMessage(
   const entries: TranscriptEntry[] = [];
   const directText = asString(message.text).trim();
   if (directText) entries.push({ kind: "assistant", ts, text: directText });
+  const directContent = asString(message.content).trim();
+  if (directContent)
+    entries.push({ kind: "assistant", ts, text: directContent });
 
   const content = Array.isArray(message.content) ? message.content : [];
   for (const partRaw of content) {
@@ -312,15 +317,24 @@ function parseTopLevelToolUseEvent(
       kind: "tool_call",
       ts,
       name: mapGeminiToolName(
-        asString(parsed.name, asString(parsed.tool, "tool")),
+        asString(
+          parsed.tool_name,
+          asString(parsed.name, asString(parsed.tool, "tool")),
+        ),
       ),
       toolUseId:
         asString(parsed.tool_use_id) ||
+        asString(parsed.tool_id) ||
         asString(parsed.toolUseId) ||
         asString(parsed.call_id) ||
         asString(parsed.id) ||
         undefined,
-      input: parsed.input ?? parsed.arguments ?? parsed.args ?? {},
+      input:
+        parsed.parameters ??
+        parsed.input ??
+        parsed.arguments ??
+        parsed.args ??
+        {},
     },
   ];
 }
@@ -344,6 +358,7 @@ function parseTopLevelToolResultEvent(
       ts,
       toolUseId:
         asString(parsed.tool_use_id) ||
+        asString(parsed.tool_id) ||
         asString(parsed.toolUseId) ||
         asString(parsed.call_id) ||
         asString(parsed.id) ||
