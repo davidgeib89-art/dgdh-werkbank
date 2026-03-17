@@ -13,20 +13,20 @@ import { Dialog, DialogPortal } from "@/components/ui/dialog";
 import {
   Popover,
   PopoverContent,
-  PopoverTrigger
+  PopoverTrigger,
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { cn } from "../lib/utils";
 import {
   extractModelName,
-  extractProviderIdWithFallback
+  extractProviderIdWithFallback,
 } from "../lib/model-utils";
 import { getUIAdapter } from "../adapters";
 import { defaultCreateValues } from "./agent-config-defaults";
 import { parseOnboardingGoalInput } from "../lib/onboarding-goal";
 import {
   DEFAULT_CODEX_LOCAL_BYPASS_APPROVALS_AND_SANDBOX,
-  DEFAULT_CODEX_LOCAL_MODEL
+  DEFAULT_CODEX_LOCAL_MODEL,
 } from "@paperclipai/adapter-codex-local";
 import { DEFAULT_CURSOR_LOCAL_MODEL } from "@paperclipai/adapter-cursor-local";
 import { DEFAULT_GEMINI_LOCAL_MODEL } from "@paperclipai/adapter-gemini-local";
@@ -50,7 +50,7 @@ import {
   Loader2,
   FolderOpen,
   ChevronDown,
-  X
+  X,
 } from "lucide-react";
 
 type Step = 1 | 2 | 3 | 4;
@@ -112,7 +112,7 @@ export function OnboardingWizard() {
   // Step 3
   const [taskTitle, setTaskTitle] = useState("Create your CEO HEARTBEAT.md");
   const [taskDescription, setTaskDescription] = useState(
-    DEFAULT_TASK_DESCRIPTION
+    DEFAULT_TASK_DESCRIPTION,
   );
 
   // Auto-grow textarea for task description
@@ -126,7 +126,7 @@ export function OnboardingWizard() {
 
   // Created entity IDs — pre-populate from existing company when skipping step 1
   const [createdCompanyId, setCreatedCompanyId] = useState<string | null>(
-    existingCompanyId ?? null
+    existingCompanyId ?? null,
   );
   const [createdCompanyPrefix, setCreatedCompanyPrefix] = useState<
     string | null
@@ -146,7 +146,7 @@ export function OnboardingWizard() {
   }, [
     onboardingOpen,
     onboardingOptions.companyId,
-    onboardingOptions.initialStep
+    onboardingOptions.initialStep,
   ]);
 
   // Backfill issue prefix for an existing company once companies are loaded.
@@ -165,13 +165,13 @@ export function OnboardingWizard() {
     data: adapterModels,
     error: adapterModelsError,
     isLoading: adapterModelsLoading,
-    isFetching: adapterModelsFetching
+    isFetching: adapterModelsFetching,
   } = useQuery({
     queryKey: createdCompanyId
       ? queryKeys.agents.adapterModels(createdCompanyId, adapterType)
       : ["agents", "none", "adapter-models", adapterType],
     queryFn: () => agentsApi.adapterModels(createdCompanyId!, adapterType),
-    enabled: Boolean(createdCompanyId) && onboardingOpen && step === 2
+    enabled: Boolean(createdCompanyId) && onboardingOpen && step === 2,
   });
   const isLocalAdapter =
     adapterType === "claude_local" ||
@@ -184,7 +184,7 @@ export function OnboardingWizard() {
     (adapterType === "codex_local"
       ? "codex"
       : adapterType === "gemini_local"
-        ? "gemini"
+      ? "gemini"
       : adapterType === "cursor"
       ? "agent"
       : adapterType === "opencode_local"
@@ -201,7 +201,7 @@ export function OnboardingWizard() {
   const hasAnthropicApiKeyOverrideCheck =
     adapterEnvResult?.checks.some(
       (check) =>
-        check.code === "claude_anthropic_api_key_overrides_subscription"
+        check.code === "claude_anthropic_api_key_overrides_subscription",
     ) ?? false;
   const shouldSuggestUnsetAnthropicApiKey =
     adapterType === "claude_local" &&
@@ -224,8 +224,8 @@ export function OnboardingWizard() {
       return [
         {
           provider: "models",
-          entries: [...filteredModels].sort((a, b) => a.id.localeCompare(b.id))
-        }
+          entries: [...filteredModels].sort((a, b) => a.id.localeCompare(b.id)),
+        },
       ];
     }
     const groups = new Map<string, Array<{ id: string; label: string }>>();
@@ -239,7 +239,7 @@ export function OnboardingWizard() {
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([provider, entries]) => ({
         provider,
-        entries: [...entries].sort((a, b) => a.id.localeCompare(b.id))
+        entries: [...entries].sort((a, b) => a.id.localeCompare(b.id)),
       }));
   }, [filteredModels, adapterType]);
 
@@ -284,7 +284,7 @@ export function OnboardingWizard() {
         adapterType === "codex_local"
           ? model || DEFAULT_CODEX_LOCAL_MODEL
           : adapterType === "gemini_local"
-            ? model || DEFAULT_GEMINI_LOCAL_MODEL
+          ? model || DEFAULT_GEMINI_LOCAL_MODEL
           : adapterType === "cursor"
           ? model || DEFAULT_CURSOR_LOCAL_MODEL
           : model,
@@ -295,7 +295,7 @@ export function OnboardingWizard() {
       dangerouslyBypassSandbox:
         adapterType === "codex_local"
           ? DEFAULT_CODEX_LOCAL_BYPASS_APPROVALS_AND_SANDBOX
-          : defaultCreateValues.dangerouslyBypassSandbox
+          : defaultCreateValues.dangerouslyBypassSandbox,
     });
     if (adapterType === "claude_local" && forceUnsetAnthropicApiKey) {
       const env =
@@ -311,11 +311,11 @@ export function OnboardingWizard() {
   }
 
   async function runAdapterEnvironmentTest(
-    adapterConfigOverride?: Record<string, unknown>
+    adapterConfigOverride?: Record<string, unknown>,
   ): Promise<AdapterEnvironmentTestResult | null> {
     if (!createdCompanyId) {
       setAdapterEnvError(
-        "Create or select a company before testing adapter environment."
+        "Create or select a company before testing adapter environment.",
       );
       return null;
     }
@@ -326,14 +326,14 @@ export function OnboardingWizard() {
         createdCompanyId,
         adapterType,
         {
-          adapterConfig: adapterConfigOverride ?? buildAdapterConfig()
-        }
+          adapterConfig: adapterConfigOverride ?? buildAdapterConfig(),
+        },
       );
       setAdapterEnvResult(result);
       return result;
     } catch (err) {
       setAdapterEnvError(
-        err instanceof Error ? err.message : "Adapter environment test failed"
+        err instanceof Error ? err.message : "Adapter environment test failed",
       );
       return null;
     } finally {
@@ -359,10 +359,10 @@ export function OnboardingWizard() {
             ? { description: parsedGoal.description }
             : {}),
           level: "company",
-          status: "active"
+          status: "active",
         });
         queryClient.invalidateQueries({
-          queryKey: queryKeys.goals.list(company.id)
+          queryKey: queryKeys.goals.list(company.id),
         });
       }
 
@@ -383,7 +383,7 @@ export function OnboardingWizard() {
         const selectedModelId = model.trim();
         if (!selectedModelId) {
           setError(
-            "OpenCode requires an explicit model in provider/model format."
+            "OpenCode requires an explicit model in provider/model format.",
           );
           return;
         }
@@ -391,13 +391,13 @@ export function OnboardingWizard() {
           setError(
             adapterModelsError instanceof Error
               ? adapterModelsError.message
-              : "Failed to load OpenCode models."
+              : "Failed to load OpenCode models.",
           );
           return;
         }
         if (adapterModelsLoading || adapterModelsFetching) {
           setError(
-            "OpenCode models are still loading. Please wait and try again."
+            "OpenCode models are still loading. Please wait and try again.",
           );
           return;
         }
@@ -406,7 +406,7 @@ export function OnboardingWizard() {
           setError(
             discoveredModels.length === 0
               ? "No OpenCode models discovered. Run `opencode models` and authenticate providers."
-              : `Configured OpenCode model is unavailable: ${selectedModelId}`
+              : `Configured OpenCode model is unavailable: ${selectedModelId}`,
           );
           return;
         }
@@ -426,15 +426,15 @@ export function OnboardingWizard() {
           heartbeat: {
             enabled: true,
             intervalSec: 3600,
-            wakeOnDemand: true,
+            wakeOnDemand: false,
             cooldownSec: 10,
-            maxConcurrentRuns: 1
-          }
-        }
+            maxConcurrentRuns: 1,
+          },
+        },
       });
       setCreatedAgentId(agent.id);
       queryClient.invalidateQueries({
-        queryKey: queryKeys.agents.list(createdCompanyId)
+        queryKey: queryKeys.agents.list(createdCompanyId),
       });
       setStep(3);
     } catch (err) {
@@ -469,24 +469,24 @@ export function OnboardingWizard() {
         await agentsApi.update(
           createdAgentId,
           { adapterConfig: configWithUnset },
-          createdCompanyId
+          createdCompanyId,
         );
         queryClient.invalidateQueries({
-          queryKey: queryKeys.agents.list(createdCompanyId)
+          queryKey: queryKeys.agents.list(createdCompanyId),
         });
       }
 
       const result = await runAdapterEnvironmentTest(configWithUnset);
       if (result?.status === "fail") {
         setError(
-          "Retried with ANTHROPIC_API_KEY unset in adapter config, but the environment test is still failing."
+          "Retried with ANTHROPIC_API_KEY unset in adapter config, but the environment test is still failing.",
         );
       }
     } catch (err) {
       setError(
         err instanceof Error
           ? err.message
-          : "Failed to unset ANTHROPIC_API_KEY and retry."
+          : "Failed to unset ANTHROPIC_API_KEY and retry.",
       );
     } finally {
       setUnsetAnthropicLoading(false);
@@ -512,12 +512,12 @@ export function OnboardingWizard() {
             ? { description: taskDescription.trim() }
             : {}),
           assigneeAgentId: createdAgentId,
-          status: "todo"
+          status: "todo",
         });
         issueRef = issue.identifier ?? issue.id;
         setCreatedIssueRef(issueRef);
         queryClient.invalidateQueries({
-          queryKey: queryKeys.issues.list(createdCompanyId)
+          queryKey: queryKeys.issues.list(createdCompanyId),
         });
       }
 
@@ -527,7 +527,7 @@ export function OnboardingWizard() {
       navigate(
         createdCompanyPrefix
           ? `/${createdCompanyPrefix}/issues/${issueRef}`
-          : `/issues/${issueRef}`
+          : `/issues/${issueRef}`,
       );
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create task");
@@ -574,7 +574,7 @@ export function OnboardingWizard() {
           <div
             className={cn(
               "w-full flex flex-col overflow-y-auto transition-[width] duration-500 ease-in-out",
-              step === 1 ? "md:w-1/2" : "md:w-full"
+              step === 1 ? "md:w-1/2" : "md:w-full",
             )}
           >
             <div className="w-full max-w-md mx-auto my-auto px-8 py-12 shrink-0">
@@ -585,7 +585,7 @@ export function OnboardingWizard() {
                     { step: 1 as Step, label: "Company", icon: Building2 },
                     { step: 2 as Step, label: "Agent", icon: Bot },
                     { step: 3 as Step, label: "Task", icon: ListTodo },
-                    { step: 4 as Step, label: "Launch", icon: Rocket }
+                    { step: 4 as Step, label: "Launch", icon: Rocket },
                   ] as const
                 ).map(({ step: s, label, icon: Icon }) => (
                   <button
@@ -596,7 +596,7 @@ export function OnboardingWizard() {
                       "flex items-center gap-1.5 px-3 py-2 text-xs font-medium border-b-2 -mb-px transition-colors cursor-pointer",
                       s === step
                         ? "border-foreground text-foreground"
-                        : "border-transparent text-muted-foreground hover:text-foreground/70 hover:border-border"
+                        : "border-transparent text-muted-foreground hover:text-foreground/70 hover:border-border",
                     )}
                   >
                     <Icon className="h-3.5 w-3.5" />
@@ -625,7 +625,7 @@ export function OnboardingWizard() {
                         "text-xs mb-1 block transition-colors",
                         companyName.trim()
                           ? "text-foreground"
-                          : "text-muted-foreground group-focus-within:text-foreground"
+                          : "text-muted-foreground group-focus-within:text-foreground",
                       )}
                     >
                       Company name
@@ -644,7 +644,7 @@ export function OnboardingWizard() {
                         "text-xs mb-1 block transition-colors",
                         companyGoal.trim()
                           ? "text-foreground"
-                          : "text-muted-foreground group-focus-within:text-foreground"
+                          : "text-muted-foreground group-focus-within:text-foreground",
                       )}
                     >
                       Mission / goal (optional)
@@ -697,15 +697,15 @@ export function OnboardingWizard() {
                           label: "Claude Code",
                           icon: Sparkles,
                           desc: "Local Claude agent",
-                          recommended: true
+                          recommended: true,
                         },
                         {
                           value: "codex_local" as const,
                           label: "Codex",
                           icon: Code,
                           desc: "Local Codex agent",
-                          recommended: true
-                        }
+                          recommended: true,
+                        },
                       ].map((opt) => (
                         <button
                           key={opt.value}
@@ -713,7 +713,7 @@ export function OnboardingWizard() {
                             "flex flex-col items-center gap-1.5 rounded-md border p-3 text-xs transition-colors relative",
                             adapterType === opt.value
                               ? "border-foreground bg-accent"
-                              : "border-border hover:bg-accent/50"
+                              : "border-border hover:bg-accent/50",
                           )}
                           onClick={() => {
                             const nextType = opt.value as AdapterType;
@@ -747,7 +747,7 @@ export function OnboardingWizard() {
                       <ChevronDown
                         className={cn(
                           "h-3 w-3 transition-transform",
-                          showMoreAdapters ? "rotate-0" : "-rotate-90"
+                          showMoreAdapters ? "rotate-0" : "-rotate-90",
                         )}
                       />
                       More Agent Adapter Types
@@ -760,25 +760,25 @@ export function OnboardingWizard() {
                             value: "gemini_local" as const,
                             label: "Gemini CLI",
                             icon: Gem,
-                            desc: "Local Gemini agent"
+                            desc: "Local Gemini agent",
                           },
                           {
                             value: "opencode_local" as const,
                             label: "OpenCode",
                             icon: OpenCodeLogoIcon,
-                            desc: "Local multi-provider agent"
+                            desc: "Local multi-provider agent",
                           },
                           {
                             value: "pi_local" as const,
                             label: "Pi",
                             icon: Terminal,
-                            desc: "Local Pi agent"
+                            desc: "Local Pi agent",
                           },
                           {
                             value: "cursor" as const,
                             label: "Cursor",
                             icon: MousePointer2,
-                            desc: "Local Cursor agent"
+                            desc: "Local Cursor agent",
                           },
                           {
                             value: "openclaw_gateway" as const,
@@ -786,8 +786,8 @@ export function OnboardingWizard() {
                             icon: Bot,
                             desc: "Invoke OpenClaw via gateway protocol",
                             comingSoon: true,
-                            disabledLabel: "Configure OpenClaw within the App"
-                          }
+                            disabledLabel: "Configure OpenClaw within the App",
+                          },
                         ].map((opt) => (
                           <button
                             key={opt.value}
@@ -798,7 +798,7 @@ export function OnboardingWizard() {
                                 ? "border-border opacity-40 cursor-not-allowed"
                                 : adapterType === opt.value
                                 ? "border-foreground bg-accent"
-                                : "border-border hover:bg-accent/50"
+                                : "border-border hover:bg-accent/50",
                             )}
                             onClick={() => {
                               if (opt.comingSoon) return;
@@ -876,7 +876,7 @@ export function OnboardingWizard() {
                             <button className="inline-flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-sm hover:bg-accent/50 transition-colors w-full justify-between">
                               <span
                                 className={cn(
-                                  !model && "text-muted-foreground"
+                                  !model && "text-muted-foreground",
                                 )}
                               >
                                 {selectedModel
@@ -904,7 +904,7 @@ export function OnboardingWizard() {
                               <button
                                 className={cn(
                                   "flex items-center gap-2 w-full px-2 py-1.5 text-sm rounded hover:bg-accent/50",
-                                  !model && "bg-accent"
+                                  !model && "bg-accent",
                                 )}
                                 onClick={() => {
                                   setModel("");
@@ -930,7 +930,7 @@ export function OnboardingWizard() {
                                       key={m.id}
                                       className={cn(
                                         "flex items-center w-full px-2 py-1.5 text-sm rounded hover:bg-accent/50",
-                                        m.id === model && "bg-accent"
+                                        m.id === model && "bg-accent",
                                       )}
                                       onClick={() => {
                                         setModel(m.id);
@@ -1024,58 +1024,61 @@ export function OnboardingWizard() {
                         </div>
                       )}
 
-                      {adapterEnvResult && adapterEnvResult.status === "fail" && (
-                        <div className="rounded-md border border-border/70 bg-muted/20 px-2.5 py-2 text-[11px] space-y-1.5">
-                          <p className="font-medium">Manual debug</p>
-                          <p className="text-muted-foreground font-mono break-all">
-                            {adapterType === "cursor"
-                              ? `${effectiveAdapterCommand} -p --mode ask --output-format json \"Respond with hello.\"`
-                              : adapterType === "codex_local"
-                              ? `${effectiveAdapterCommand} exec --json -`
-                              : adapterType === "gemini_local"
+                      {adapterEnvResult &&
+                        adapterEnvResult.status === "fail" && (
+                          <div className="rounded-md border border-border/70 bg-muted/20 px-2.5 py-2 text-[11px] space-y-1.5">
+                            <p className="font-medium">Manual debug</p>
+                            <p className="text-muted-foreground font-mono break-all">
+                              {adapterType === "cursor"
+                                ? `${effectiveAdapterCommand} -p --mode ask --output-format json \"Respond with hello.\"`
+                                : adapterType === "codex_local"
+                                ? `${effectiveAdapterCommand} exec --json -`
+                                : adapterType === "gemini_local"
                                 ? `${effectiveAdapterCommand} --output-format json "Respond with hello."`
-                              : adapterType === "opencode_local"
+                                : adapterType === "opencode_local"
                                 ? `${effectiveAdapterCommand} run --format json "Respond with hello."`
-                              : `${effectiveAdapterCommand} --print - --output-format stream-json --verbose`}
-                          </p>
-                          <p className="text-muted-foreground">
-                            Prompt:{" "}
-                            <span className="font-mono">Respond with hello.</span>
-                          </p>
-                          {adapterType === "cursor" ||
-                          adapterType === "codex_local" ||
-                          adapterType === "gemini_local" ||
-                          adapterType === "opencode_local" ? (
+                                : `${effectiveAdapterCommand} --print - --output-format stream-json --verbose`}
+                            </p>
                             <p className="text-muted-foreground">
-                              If auth fails, set{" "}
+                              Prompt:{" "}
                               <span className="font-mono">
-                                {adapterType === "cursor"
-                                  ? "CURSOR_API_KEY"
-                                  : adapterType === "gemini_local"
+                                Respond with hello.
+                              </span>
+                            </p>
+                            {adapterType === "cursor" ||
+                            adapterType === "codex_local" ||
+                            adapterType === "gemini_local" ||
+                            adapterType === "opencode_local" ? (
+                              <p className="text-muted-foreground">
+                                If auth fails, set{" "}
+                                <span className="font-mono">
+                                  {adapterType === "cursor"
+                                    ? "CURSOR_API_KEY"
+                                    : adapterType === "gemini_local"
                                     ? "GEMINI_API_KEY"
                                     : "OPENAI_API_KEY"}
-                              </span>{" "}
-                              in env or run{" "}
-                              <span className="font-mono">
-                                {adapterType === "cursor"
-                                  ? "agent login"
-                                  : adapterType === "codex_local"
+                                </span>{" "}
+                                in env or run{" "}
+                                <span className="font-mono">
+                                  {adapterType === "cursor"
+                                    ? "agent login"
+                                    : adapterType === "codex_local"
                                     ? "codex login"
                                     : adapterType === "gemini_local"
-                                      ? "gemini auth"
-                                      : "opencode auth login"}
-                              </span>
-                              .
-                            </p>
-                          ) : (
-                            <p className="text-muted-foreground">
-                              If login is required, run{" "}
-                              <span className="font-mono">claude login</span>{" "}
-                              and retry.
-                            </p>
-                          )}
-                        </div>
-                      )}
+                                    ? "gemini auth"
+                                    : "opencode auth login"}
+                                </span>
+                                .
+                              </p>
+                            ) : (
+                              <p className="text-muted-foreground">
+                                If login is required, run{" "}
+                                <span className="font-mono">claude login</span>{" "}
+                                and retry.
+                              </p>
+                            )}
+                          </div>
+                        )}
                     </div>
                   )}
 
@@ -1307,7 +1310,7 @@ export function OnboardingWizard() {
           <div
             className={cn(
               "hidden md:block overflow-hidden bg-[#1d1d1d] transition-[width,opacity] duration-500 ease-in-out",
-              step === 1 ? "w-1/2 opacity-100" : "w-0 opacity-0"
+              step === 1 ? "w-1/2 opacity-100" : "w-0 opacity-0",
             )}
           >
             <AsciiArtAnimation />
@@ -1319,7 +1322,7 @@ export function OnboardingWizard() {
 }
 
 function AdapterEnvironmentResult({
-  result
+  result,
 }: {
   result: AdapterEnvironmentTestResult;
 }) {

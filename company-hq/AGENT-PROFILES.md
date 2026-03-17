@@ -40,7 +40,9 @@ Specialized for implementation, refactoring, and file-level engineering work. Ex
 **Status:** Configured but dormant
 
 - No Heartbeats enabled
+- Wake-on-demand disabled
 - No active Tasks assigned
+- No assignment/automation triggers
 - Paused by default
 - Only activated by explicit David directive
 
@@ -70,19 +72,21 @@ Reviews code changes, refines system design, proposes architecture decisions, an
 **Status:** Configured but dormant
 
 - No Heartbeats enabled
+- Wake-on-demand disabled
 - No active Tasks assigned
+- No assignment/automation triggers
 - Paused by default
 - Only activated by explicit David directive
 
 ---
 
-## Agent 3: Research-Gemini [Optional / TBD]
+## Agent 3: Research-Gemini (Controlled Test Lane)
 
 **Name in Paperclip:** `Research-Gemini`
 
-**Adapter:** [TBD - requires verified Paperclip Gemini adapter]
+**Adapter:** `gemini_local`
 
-**Working Directory:** `~/DGDH/worktrees/paperclip-gemini`
+**Working Directory:** `C:\Users\holyd\DGDH\worktrees\paperclip-gemini`
 
 **Role Description:**
 Deep analysis, alternative research, and fact-checking. Helps validate assumptions and explore design alternatives before Builder-Codex commits to implementation.
@@ -96,11 +100,14 @@ Deep analysis, alternative research, and fact-checking. Helps validate assumptio
 
 **Budget:** $30/month (soft limit)
 
-**Status:** RESERVED (NOT YET ACTIVE)
+**Status:** Ready for controlled mini smoke runs
 
-- Adapter stability must be verified first
-- No Tasks, no Heartbeats
-- Gemini-Claude collaboration model TBD
+- Role: `researcher`
+- Model: `auto`
+- Heartbeats disabled
+- Wake-on-demand disabled (manual invoke only)
+- No automation triggers
+- No self-tasking and no follow-up task creation
 
 ---
 
@@ -123,10 +130,11 @@ Deep analysis, alternative research, and fact-checking. Helps validate assumptio
 ### Token Safety Defaults
 
 - **Heartbeats**: Disabled (Agents do not auto-wake)
-- **Event Triggers**: None except explicit Task assignment
+- **Wake-on-demand**: Disabled by default (manual run invoke only)
+- **Event Triggers**: No assignment/automation triggers for dormant lanes
 - **@mentions**: Only from David or Architect
 - **Budgets**: Hard stop at limit; Agent pauses, does not retry
 
 ---
 
-Last updated: 2026-03-16
+Last updated: 2026-03-17

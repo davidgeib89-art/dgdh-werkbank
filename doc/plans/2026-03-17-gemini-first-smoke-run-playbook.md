@@ -19,7 +19,7 @@ Run exactly one very small live Gemini task to verify:
 - Command: gemini (or explicit path to gemini.cmd if PATH differs)
 - Model: auto (preferred)
 - Heartbeat interval: disabled
-- Wake on demand: enabled
+- Wake on demand: disabled (manual invoke only)
 - Permissions.canCreateAgents: false
 
 ## Model Policy
@@ -32,11 +32,20 @@ Run exactly one very small live Gemini task to verify:
 
 - One run only.
 - No heartbeat scheduling.
+- Start run only via explicit manual invoke action.
 - No follow-up task creation.
 - No self-tasking.
 - No parallel Gemini runs.
 - No repo exploration beyond explicit task scope.
 - Abort and report if scope becomes ambiguous.
+
+## Pre-Click Preflight (David)
+
+1. Verify working directory exists: `C:\Users\holyd\DGDH\worktrees\paperclip-gemini`.
+2. In agent config, verify `adapterType=gemini_local` and `model=auto`.
+3. Confirm `heartbeat.enabled=false` and `heartbeat.wakeOnDemand=false`.
+4. Run adapter environment test once and confirm no blocking error.
+5. Confirm task prompt is mini-scope (single source file, single output file).
 
 ## Mini Smoke Task (Paste into Paperclip)
 
