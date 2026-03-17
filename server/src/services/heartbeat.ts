@@ -55,6 +55,8 @@ import {
   redactCurrentUserText,
   redactCurrentUserValue,
 } from "../log-redaction.js";
+import { runPromptResolverPreflight } from "./prompt-resolver-preflight.js";
+import type { PromptResolverInput } from "./prompt-resolver-schema.js";
 
 const MAX_LIVE_LOG_CHUNK_BYTES = 8 * 1024;
 const HEARTBEAT_MAX_CONCURRENT_RUNS_DEFAULT = 1;
@@ -193,6 +195,14 @@ export type ResolvedWorkspaceForRun = {
 
 function readNonEmptyString(value: unknown): string | null {
   return typeof value === "string" && value.trim().length > 0 ? value : null;
+}
+
+function readNonEmptyStringArray(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .filter((entry): entry is string => typeof entry === "string")
+    .map((entry) => entry.trim())
+    .filter((entry) => entry.length > 0);
 }
 
 function normalizeUsageTotals(
@@ -753,6 +763,108 @@ function buildIssueTaskPrompt(issue: IssuePromptContext) {
   ].join("\n");
 }
 
+function buildPromptResolverDryRunInput(
+  contextSnapshot: Record<string, unknown>,
+  issueTaskPrompt: string,
+): PromptResolverInput {
+  const targetPath = readNonEmptyString(
+    contextSnapshot.paperclipSingleFileTargetPath,
+  );
+  const allowedTargets = targetPath ? [targetPath] : ["paperclipTaskPrompt"];
+  const requestedTargets = readNonEmptyStringArray(
+    contextSnapshot.paperclipRequestedTargets,
+  );
+  const allowedTools = readNonEmptyStringArray(
+    contextSnapshot.paperclipAllowedTools,
+  );
+  const blockedTools = readNonEmptyStringArray(
+    contextSnapshot.paperclipBlockedTools,
+  );
+
+  const overrideRaw = parseObject(contextSnapshot.paperclipRoleOverrideAttempt);
+  const overrideAttempt: PromptResolverInput["roleAddon"]["overrideAttempt"] = {
+    ...(readNonEmptyString(overrideRaw.approvalMode)
+      ? {
+          approvalMode:
+            readNonEmptyString(overrideRaw.approvalMode) ?? undefined,
+        }
+      : {}),
+    ...(readNonEmptyString(overrideRaw.riskClass)
+      ? { riskClass: readNonEmptyString(overrideRaw.riskClass) ?? undefined }
+      : {}),
+    ...(readNonEmptyString(overrideRaw.budgetClass)
+      ? {
+          budgetClass: readNonEmptyString(overrideRaw.budgetClass) ?? undefined,
+        }
+      : {}),
+    ...(readNonEmptyStringArray(overrideRaw.forbiddenChanges).length > 0
+      ? {
+          forbiddenChanges: readNonEmptyStringArray(
+            overrideRaw.forbiddenChanges,
+          ),
+        }
+      : {}),
+    ...(readNonEmptyStringArray(overrideRaw.blockedTools).length > 0
+      ? { blockedTools: readNonEmptyStringArray(overrideRaw.blockedTools) }
+      : {}),
+    ...(typeof overrideRaw.decisionTraceRequired === "boolean"
+      ? { decisionTraceRequired: overrideRaw.decisionTraceRequired }
+      : {}),
+  };
+
+  return {
+    layerOrder: [
+      "companyCore",
+      "governanceExecution",
+      "taskDelta",
+      "roleAddon",
+    ],
+    companyCore: {
+      missionGuardrails: "Human-led governance first",
+      governancePrinciples: "Escalate before scope growth",
+      tokenDiscipline: "Delta over full context",
+      behaviorSeparation: "plan vs build vs review",
+      versionTag: "heartbeat-dry-run",
+    },
+    governanceExecution: {
+      scope: {
+        allowedTargets,
+        ...(requestedTargets.length > 0
+          ? { requestedTargets }
+          : { requestedTargets: [...allowedTargets] }),
+        forbiddenChanges: ["runtime_mutation"],
+      },
+      tools: {
+        allowedTools: allowedTools.length > 0 ? allowedTools : ["read_file"],
+        blockedTools:
+          blockedTools.length > 0 ? blockedTools : ["run_in_terminal"],
+      },
+      governance: {
+        approvalMode: "manual_required_for_phase_b",
+        riskClass: "medium",
+        budgetClass: "medium",
+      },
+      audit: {
+        decisionTraceRequired: true,
+        reasonCodes: ["HEARTBEAT_DRY_RUN_PREFLIGHT"],
+      },
+      notes: issueTaskPrompt,
+    },
+    taskDelta: {
+      objective: "Attach issue task prompt context",
+      allowedTargets,
+      acceptanceCriteria: ["Issue prompt context preserved"],
+      constraints: ["No execution branching", "No prompt mutation"],
+    },
+    roleAddon: {
+      roleName: "HeartbeatDryRunObserver",
+      roleMandate: "Observe prompt preflight only",
+      roleLimits: ["no policy override", "no runtime control"],
+      ...(Object.keys(overrideAttempt).length > 0 ? { overrideAttempt } : {}),
+    },
+  };
+}
+
 export function applyIssuePromptContext(
   contextSnapshot: Record<string, unknown>,
   issue: IssuePromptContext | null,
@@ -767,7 +879,16 @@ export function applyIssuePromptContext(
   };
 
   contextSnapshot.paperclipIssue = normalizedIssue;
-  contextSnapshot.paperclipTaskPrompt = buildIssueTaskPrompt(normalizedIssue);
+  const issueTaskPrompt = buildIssueTaskPrompt(normalizedIssue);
+  contextSnapshot.paperclipTaskPrompt = issueTaskPrompt;
+
+  if (isTestRunContext(contextSnapshot)) {
+    contextSnapshot.paperclipPromptResolverPreflight =
+      runPromptResolverPreflight(
+        buildPromptResolverDryRunInput(contextSnapshot, issueTaskPrompt),
+        { includeAuditMeta: true },
+      );
+  }
 
   const singleFileTargetPath = extractSingleFileBenchmarkTarget(
     normalizedIssue.description,

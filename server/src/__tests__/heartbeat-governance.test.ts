@@ -101,6 +101,127 @@ describe("heartbeat governance helpers", () => {
     });
   });
 
+  it("keeps issue prompt output unchanged while adding dry-run-only preflight telemetry", () => {
+    const issue = {
+      id: "issue-1",
+      identifier: "DAV-4",
+      title: "Gemini Benchmark #01",
+      description:
+        "Read only the file:\npackages/adapters/gemini-local/src/server/models.ts",
+    };
+
+    const nonDryRun = applyIssuePromptContext({}, issue);
+    const dryRun = applyIssuePromptContext(
+      {
+        executionMode: "dry_run",
+        isTestRun: true,
+      },
+      issue,
+    );
+
+    expect(dryRun.paperclipTaskPrompt).toBe(nonDryRun.paperclipTaskPrompt);
+    expect(nonDryRun.paperclipPromptResolverPreflight).toBeUndefined();
+    expect(dryRun.paperclipPromptResolverPreflight).toMatchObject({
+      resolverDecision: "ok",
+      reasonCodes: [],
+      auditMeta: {
+        ruleSetVersion: "stage1-draft",
+      },
+    });
+  });
+
+  it("emits reliable dry-run preflight telemetry and keeps it deterministic", () => {
+    const issue = {
+      id: "issue-2",
+      identifier: "DAV-5",
+      title: "Preflight telemetry",
+      description:
+        "Read only the file:\npackages/adapters/gemini-local/src/server/models.ts",
+    };
+
+    const first = applyIssuePromptContext(
+      {
+        executionMode: "dry_run",
+        isTestRun: true,
+      },
+      issue,
+    );
+    const second = applyIssuePromptContext(
+      {
+        executionMode: "dry_run",
+        isTestRun: true,
+      },
+      issue,
+    );
+
+    expect(first.paperclipPromptResolverPreflight).toEqual(
+      second.paperclipPromptResolverPreflight,
+    );
+    expect(first.paperclipPromptResolverPreflight).toMatchObject({
+      resolverDecision: "ok",
+      reasonCodes: [],
+      auditMeta: {
+        normalizedLayerOrder: [
+          "companyCore",
+          "governanceExecution",
+          "taskDelta",
+          "roleAddon",
+        ],
+      },
+    });
+  });
+
+  it("keeps fail and escalated outcomes distinguishable in dry-run telemetry", () => {
+    const issue = {
+      id: "issue-3",
+      identifier: "DAV-6",
+      title: "Preflight outcomes",
+      description:
+        "Read only the file:\npackages/adapters/gemini-local/src/server/models.ts",
+    };
+
+    const escalated = applyIssuePromptContext(
+      {
+        executionMode: "dry_run",
+        isTestRun: true,
+        paperclipRequestedTargets: [
+          "packages/adapters/gemini-local/src/server/models.ts",
+          "server/src/app.ts",
+        ],
+      },
+      issue,
+    );
+
+    expect(escalated.paperclipPromptResolverPreflight).toMatchObject({
+      resolverDecision: "escalated",
+      reasonCodes: ["SCOPE_EXPANSION_OUTSIDE_ALLOWED_TARGETS"],
+    });
+
+    const failed = applyIssuePromptContext(
+      {
+        executionMode: "dry_run",
+        isTestRun: true,
+        paperclipRequestedTargets: [
+          "packages/adapters/gemini-local/src/server/models.ts",
+          "server/src/app.ts",
+        ],
+        paperclipAllowedTools: ["read_file"],
+        paperclipBlockedTools: ["read_file"],
+      },
+      issue,
+    );
+
+    expect(failed.paperclipPromptResolverPreflight).toMatchObject({
+      resolverDecision: "fail",
+    });
+    expect(failed.paperclipPromptResolverPreflight).toMatchObject({
+      reasonCodes: expect.arrayContaining([
+        "TOOL_CONFLICT",
+        "SCOPE_EXPANSION_OUTSIDE_ALLOWED_TARGETS",
+      ]),
+    });
+  });
+
   it("prefers configured cwd for single-file benchmark with agent_home workspace source", () => {
     const resolved = resolveAdapterCwdForRun(
       {

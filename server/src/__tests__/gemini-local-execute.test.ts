@@ -284,4 +284,138 @@ describe("gemini execute", () => {
       }
     },
   );
+
+  itGeminiExecute(
+    "emits dry-run preflight telemetry without changing prompt or execution behavior",
+    async () => {
+      const root = await fs.mkdtemp(
+        path.join(os.tmpdir(), "paperclip-gemini-preflight-observe-"),
+      );
+      const workspace = path.join(root, "workspace");
+      const commandPath = path.join(root, "gemini");
+      const capturePath = path.join(root, "capture.json");
+      await fs.mkdir(workspace, { recursive: true });
+      const executablePath = await writeFakeGeminiCommand(commandPath);
+      const runtimeCommand =
+        process.platform === "win32" ? process.execPath : executablePath;
+      const runtimeExtraArgs =
+        process.platform === "win32" ? [`${commandPath}.cjs`] : undefined;
+
+      const previousHome = process.env.HOME;
+      process.env.HOME = root;
+
+      let baselinePrompt = "";
+      let dryRunPrompt = "";
+      let dryRunTelemetry: unknown = null;
+      let shadowTelemetry: unknown = null;
+      try {
+        const baselineResult = await execute({
+          runId: "run-observe-baseline",
+          agent: {
+            id: "agent-1",
+            companyId: "company-1",
+            name: "Gemini Coder",
+            adapterType: "gemini_local",
+            adapterConfig: {},
+          },
+          runtime: {
+            sessionId: null,
+            sessionParams: null,
+            sessionDisplayId: null,
+            taskKey: null,
+          },
+          config: {
+            command: runtimeCommand,
+            cwd: workspace,
+            ...(runtimeExtraArgs ? { extraArgs: runtimeExtraArgs } : {}),
+            env: {
+              PAPERCLIP_TEST_CAPTURE_PATH: capturePath,
+            },
+            promptTemplate: "Follow the paperclip heartbeat.",
+          },
+          context: {
+            paperclipTaskPrompt: "Paperclip issue assignment:\nDAV-4",
+          },
+          authToken: "run-jwt-token",
+          onLog: async () => {},
+          onMeta: async (meta) => {
+            baselinePrompt = meta.prompt ?? "";
+          },
+        });
+
+        const dryRunResult = await execute({
+          runId: "run-observe-dry-run",
+          agent: {
+            id: "agent-1",
+            companyId: "company-1",
+            name: "Gemini Coder",
+            adapterType: "gemini_local",
+            adapterConfig: {},
+          },
+          runtime: {
+            sessionId: null,
+            sessionParams: null,
+            sessionDisplayId: null,
+            taskKey: null,
+          },
+          config: {
+            command: runtimeCommand,
+            cwd: workspace,
+            ...(runtimeExtraArgs ? { extraArgs: runtimeExtraArgs } : {}),
+            env: {
+              PAPERCLIP_TEST_CAPTURE_PATH: capturePath,
+            },
+            promptTemplate: "Follow the paperclip heartbeat.",
+          },
+          context: {
+            executionMode: "dry_run",
+            isTestRun: true,
+            paperclipTaskPrompt: "Paperclip issue assignment:\nDAV-4",
+          },
+          authToken: "run-jwt-token",
+          onLog: async () => {},
+          onMeta: async (meta) => {
+            dryRunPrompt = meta.prompt ?? "";
+            dryRunTelemetry = meta.promptResolverDryRunPreflight ?? null;
+            shadowTelemetry = meta.promptResolverShadow ?? null;
+          },
+        });
+
+        expect(baselineResult.exitCode).toBe(0);
+        expect(dryRunResult.exitCode).toBe(0);
+        expect(baselineResult.errorMessage).toBeNull();
+        expect(dryRunResult.errorMessage).toBeNull();
+        expect(dryRunPrompt).toBe(baselinePrompt);
+        expect(dryRunTelemetry).toMatchObject({
+          resolverDecision: "ok",
+          reasonCodes: [],
+          auditMeta: {
+            source: "gemini_local.execute",
+            dryRunObserved: true,
+          },
+        });
+        expect(shadowTelemetry).toMatchObject({
+          resolverPath: {
+            resolverDecision: "ok",
+            reasonCodes: [],
+          },
+          comparison: {
+            promptsEquivalent: true,
+          },
+          auditMeta: {
+            source: "gemini_local.execute",
+            mode: "shadow",
+            readOnly: true,
+          },
+        });
+      } finally {
+        if (previousHome === undefined) {
+          delete process.env.HOME;
+        } else {
+          process.env.HOME = previousHome;
+        }
+        await fs.rm(root, { recursive: true, force: true });
+      }
+    },
+  );
 });

@@ -33,6 +33,10 @@ import {
   isGeminiUnknownSessionError,
   parseGeminiJsonl,
 } from "./parse.js";
+import {
+  buildGeminiDryRunPreflightTelemetry,
+  buildGeminiPromptResolverShadowTelemetry,
+} from "./prompt-core-shadow.js";
 import { firstNonEmptyLine } from "./utils.js";
 
 const __moduleDir = path.dirname(fileURLToPath(import.meta.url));
@@ -411,6 +415,15 @@ export async function execute(
     heartbeatPromptChars: renderedPrompt.length,
   };
   const promptHeader = buildPromptHeader(prompt);
+  const promptResolverDryRunPreflight = buildGeminiDryRunPreflightTelemetry({
+    context,
+    prompt,
+  });
+  const promptResolverShadow = buildGeminiPromptResolverShadowTelemetry({
+    context,
+    prompt,
+    renderedPrompt,
+  });
 
   const buildArgs = (resumeSessionId: string | null) => {
     const args = ["--output-format", "stream-json"];
@@ -445,6 +458,10 @@ export async function execute(
         prompt,
         promptHeader,
         promptMetrics,
+        ...(promptResolverDryRunPreflight
+          ? { promptResolverDryRunPreflight }
+          : {}),
+        ...(promptResolverShadow ? { promptResolverShadow } : {}),
         context,
       });
     }

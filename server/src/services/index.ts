@@ -26,6 +26,13 @@ export { secretService } from "./secrets.js";
 export { costService } from "./costs.js";
 export { heartbeatService } from "./heartbeat.js";
 export { dashboardService } from "./dashboard.js";
+export {
+  summarizePromptShadowTelemetry,
+  evaluateControlledLiveGateReadiness,
+  type PromptShadowGateReadiness,
+  type PromptShadowGateThresholds,
+  type PromptShadowReviewSummary,
+} from "./prompt-shadow-gate.js";
 export { sidebarBadgeService } from "./sidebar-badges.js";
 export { accessService } from "./access.js";
 export { companyPortabilityService } from "./company-portability.js";

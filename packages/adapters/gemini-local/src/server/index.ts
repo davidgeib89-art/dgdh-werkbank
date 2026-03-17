@@ -1,4 +1,13 @@
 export { execute } from "./execute.js";
+export {
+  buildDgdhPromptCoreAssembler,
+  buildGeminiDryRunPreflightTelemetry,
+  buildGeminiPromptResolverShadowTelemetry,
+  type DgdhPromptCoreAssemblerInput,
+  type DgdhPromptCoreAssemblerOutput,
+  type GeminiPromptResolverDryRunTelemetry,
+  type GeminiPromptResolverShadowTelemetry,
+} from "./prompt-core-shadow.js";
 export { testEnvironment } from "./test.js";
 export {
   parseGeminiJsonl,

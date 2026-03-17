@@ -99,6 +99,38 @@ export interface AdapterInvocationMeta {
   invokeSuppressed?: boolean;
   adapterStarted?: boolean;
   suppressionReason?: string;
+  promptResolverDryRunPreflight?: {
+    resolverDecision: "ok" | "fail" | "escalated";
+    reasonCodes: string[];
+    auditMeta?: {
+      source: string;
+      promptChars: number;
+      dryRunObserved: boolean;
+    };
+  };
+  promptResolverShadow?: {
+    legacyPath: {
+      promptChars: number;
+    };
+    resolverPath: {
+      promptChars: number;
+      resolverDecision: "ok" | "fail" | "escalated";
+      reasonCodes: string[];
+    };
+    comparison: {
+      legacyPromptChars: number;
+      resolvedPromptChars: number;
+      promptsEquivalent: boolean;
+      legacyPromptSha256: string;
+      resolvedPromptSha256: string;
+      comparedAt: string;
+    };
+    auditMeta: {
+      source: string;
+      mode: string;
+      readOnly: boolean;
+    };
+  };
   cwd?: string;
   commandArgs?: string[];
   commandNotes?: string[];
