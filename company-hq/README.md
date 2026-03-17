@@ -1,13 +1,27 @@
 # company-hq (Canonical In-Repo)
 
-This directory is the canonical, versioned home for DGDH governance and platform strategy documents.
+This directory is the canonical, versioned home for DGDH governance, platform strategy, and operating context.
+
+## Current focus
+
+- Reduce documentation drift and remove obsolete Paperclip-era naming.
+- Keep the strategy readable for a solo founder operating under real quota limits.
+- Establish a repeatable Gemini benchmark so token optimization is based on evidence.
+- Use small internal test projects and fun projects as the first real proof that the firm can work.
 
 ## Scope
 
 - Vision and platform direction
 - Governance stack and autonomy rules
 - Token economy and model roadmap
-- Operating constraints for active/dormant/legacy lanes
+- Operating constraints for active, dormant, and legacy lanes
+- Board, probe, and validation artifacts
+
+## Canonical repo context
+
+- Primary repo: `dgdh-werkbank`
+- Primary branch: `main`
+- Primary working directory: `~/DGDH/worktrees/dgdh-werkbank`
 
 ## Related docs
 

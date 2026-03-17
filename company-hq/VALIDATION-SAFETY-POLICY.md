@@ -9,7 +9,7 @@ Governance-, Runtime-, and Heartbeat-validation must never consume real model to
 1. No live E2E validation against productive agents.
 2. No test harness may call `adapter.execute` against a real adapter.
 3. Governance validation must use only mock, dry-run, or explicitly test-only adapter paths.
-4. Builder-Codex and other productive agents are not test targets.
+4. Productive worker lanes and active agents are not test targets.
 5. If a validation path cannot prove that `adapter.execute` is blocked, it is not an approved test path.
 
 ## Approved Test Modes
@@ -23,7 +23,7 @@ Governance-, Runtime-, and Heartbeat-validation must never consume real model to
 
 - Seeding `heartbeat_runs` or `agent_wakeup_requests` for a productive agent and letting the normal scheduler execute them.
 - Hitting live wakeup endpoints for productive agents when the resulting run can reach a real adapter.
-- Reusing Builder-Codex, Claude, Gemini, or other productive operator agents as validation targets.
+- Reusing productive Gemini, Claude, Codex, or other active operator lanes as validation targets.
 - Assuming cancellation is safe after execution has already started.
 
 ## Required Safeguards
@@ -35,4 +35,4 @@ Governance-, Runtime-, and Heartbeat-validation must never consume real model to
 
 ## Incident Lesson
 
-The prior governance E2E harness created real automation runs for the productive Builder-Codex agent. Some runs reached real execution and consumed tokens before they were cancelled. Cancellation after start is not a safety control.
+The prior governance E2E harness created real automation runs for a productive worker lane. Some runs reached real execution and consumed tokens before they were cancelled. Cancellation after start is not a safety control.

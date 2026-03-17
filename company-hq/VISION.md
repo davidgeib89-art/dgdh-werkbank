@@ -1,5 +1,20 @@
 # David Geib - Digitales Handwerk
 
+## Current Company Reality
+
+- DGDH is currently a solo-founded, founder-funded company in build mode.
+- The immediate goal is to get the firm itself running reliably before pursuing external scale.
+- The first proof of value is internal: small test projects, fun projects, research tasks, and useful miniature builds that show the company can actually produce results.
+- Planning should stay lean. Governance stays strict, but unnecessary conceptual overhead should be removed.
+
+## First Major Milestone
+
+- Gemini should become good enough, token-efficient enough, and operationally safe enough to complete real bounded company tasks.
+- The practical target is to turn the already-paid Gemini CLI quota into useful company output across each 24-hour reset window.
+- Success means not just running tests, but genuinely taking work off the founder in a controlled and economical way.
+- Once this works with Gemini, the same cost-disciplined operating model can later be used to attach Claude and Codex more intentionally.
+- If narrow custom tools help Gemini stay compact and save tokens on recurring tasks, building those tools is aligned with the vision.
+
 ## Governance Stack (Primary Entry)
 
 Use this stack as the canonical operating entry for autonomous execution:
@@ -29,57 +44,63 @@ The following documents are the canonical source for platform strategy and rollo
 
 Wir bauen an einer Zukunft, in der Mensch, Maschine und KI ihre Stärken in echter Symbiose verbinden, um die reale Welt intelligenter, menschlicher und wirksamer zu gestalten.
 
+Kurzfristig bedeutet das:
+
+- zuerst eine robuste Werkbank aufbauen,
+- dann Gemini als ersten sparsamen produktiven Worker fuer die Firma nutzbar machen,
+- dann kleine interne Test- und Fun-Projekte erfolgreich ausliefern,
+- danach größere nützliche Produkte bauen,
+- und erst dann weitere Agenten und stärkere Autonomie freischalten.
+
 ## Company Values
 
 - **Human-Centric**: Technology serves humans, not the reverse
 - **Symbiosis**: AI augments human capability; humans guide AI direction
 - **Craft**: Quality, thoughtfulness, and intentionality in every decision
 - **Autonomy with Governance**: Agents have clear roles and boundaries
+- **Clarity over complexity**: If the system becomes unreadable, it is not yet good enough
 
-## Organizational Structure (Paperclip)
+## Organizational Structure (Current Phase)
 
 ### Leadership Tier
 
 - **David Geib** (CEO, Final Authority)
-
   - Sets company direction, approves major decisions, guards the mission
   - Manages budgets and governance
+  - Operates in a go-with-the-flow style inside hard cost and governance boundaries
 
-- **ChatGPT in Chat** (Architect)
+- **ChatGPT in Chat** (Architect / Reflection Partner)
+  - Helps clarify direction, structure, reflection, and roadmap coherence
+  - Supports synthesis, review, and strategic reframing
 
-  - System design, long-term strategy, memory and roadmap management
-  - High-level decisions, reflection, review
+- **Copilot in Repo** (Builder / Execution Partner)
+  - Fast implementation, refactoring, and repository work
+  - Helps turn architectural decisions into concrete code and docs
 
-- **Copilot in Repo** (Builder)
-  - Fast implementation, code refactoring, file-level work
-  - Executes architecture decisions from chat
+### Provider / Agent Lanes (Phase 1)
 
-### Agent Tier (Dormant, Governed)
+- **Gemini lane**
+  - Primary experimental worker because quota availability is strongest here
+  - First target for repeatable token measurement and controlled benchmark work
 
-- **Builder-Codex** (Development)
+- **Claude lane**
+  - High-intelligence specialist for architecture, critique, and difficult reasoning
+  - Used sparingly because quota is tighter
 
-  - Role: Implementation, refactors, file work
-  - Adapter: Codex
-  - Status: Configured but no active tasks
+- **Codex lane**
+  - Precision implementation specialist for focused engineering work
+  - Also used sparingly because quota is tighter than Gemini
 
-- **Architect-Claude** (Review & Design)
-
-  - Role: Architecture review, spec refinement, reflection
-  - Adapter: Claude Code
-  - Status: Configured but no active tasks
-
-- **Research-Gemini** (Analysis) [Optional]
-  - Role: Alternative analysis, research, fact-checking
-  - Adapter: TBD (when Gemini adapter is stable)
-  - Status: Reserved
+Role/provider mapping may evolve with evidence. The current priority is practical usefulness under real quota constraints, not rigid theory.
 
 ## Key Principles
 
-1. **No autonomous CEO agent**: David is the human CEO
-2. **Humans control workflow**: No@mentions without explicit instruction
-3. **Paperclip as substrate**: foundation layer for DGDH platform evolution
-4. **Token safety**: Agents start dormant; no Heartbeats until reviewed
-5. **One project initially**: "Adapt Paperclip for human-centric firm"
+1. **No autonomous CEO agent**: David is the human CEO.
+2. **Humans control workflow**: no significant task starts without explicit human intent.
+3. **Paperclip as substrate**: Paperclip is foundation, not final identity.
+4. **Token safety first**: no broad autonomy before token behavior is measured and understood.
+5. **Internal proof first**: small internal projects and fun projects must work before larger ambitions.
+6. **Measure before optimizing**: no large architectural claims without benchmark evidence.
 
 ---
 

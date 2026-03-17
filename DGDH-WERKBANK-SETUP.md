@@ -27,6 +27,7 @@ The **DGDH Werkbank** is your dedicated, decoupled working environment for gover
 ### Step 1: GitHub Repo Creation
 
 Go to https://github.com/new and create:
+
 - **Owner:** davidgeib89-art
 - **Repo name:** `dgdh-werkbank`
 - **Description:** "DGDH Werkbank - Governance, Prompt Resolver, and Agent Operations"
@@ -85,141 +86,188 @@ git push -u origin main
 
 After GitHub push, your remotes will be:
 
+# DGDH Werkbank Setup
+
+**Status:** Live on GitHub  
+**Date:** 2026-03-17  
+**Folder:** `~/DGDH/worktrees/dgdh-werkbank`
+
+---
+
+## What This Is
+
+The **DGDH Werkbank** is the active DGDH repository and working environment.
+
+It exists to do three things well:
+
+- keep the current company state readable,
+- run controlled experiments under real quota constraints,
+- evolve from internal test projects toward a genuinely working AI firm.
+
+---
+
+## Current State
+
+- **Main branch:** `main`
+- **Origin:** `https://github.com/davidgeib89-art/dgdh-werkbank.git`
+- **Upstream reference:** `https://github.com/paperclipai/paperclip.git`
+- **Current priority:** clean the docs, define a fixed Gemini benchmark, measure tokens per run, then optimize from evidence
+
+The main current risk is not lack of ideas. It is unnecessary complexity without trustworthy measurements.
+
+---
+
+## Immediate Focus
+
+The next cycle is:
+
+1. smooth out outdated docs and roadmaps
+2. make the current company intent readable again
+3. define one fixed Gemini benchmark task
+4. measure tokens per run
+5. improve the system based on the measurements
+
+The guiding rule is simple: fewer theories, more readable state, one repeatable benchmark, measured improvement.
+
+---
+
+## What This Repo Is For
+
+- founder-led development of the company operating system
+- governance and runtime experimentation under strict cost discipline
+- small internal test projects and fun projects as the first true proof that the firm can ship
+- later, larger useful projects and eventually external-facing value
+
+---
+
+## Folder Structure
+
+```
+~/DGDH/
+  worktrees/
+    dgdh-werkbank/         <- MAIN ACTIVE WORKSPACE
+      packages/
+      server/
+      company-hq/
+      skills/
+      README.md
+      package.json
+      ...
+
+  repos/
+    paperclip-main/        <- upstream substrate reference
+```
+
+---
+
+## Remote Setup
+
+Current remotes:
+
 ```
 origin     https://github.com/davidgeib89-art/dgdh-werkbank.git
 upstream   https://github.com/paperclipai/paperclip.git
 ```
 
-### What They Do
+### What they do
 
-**origin:** Your GitHub fork
-- Push your DGDH changes here
-- This is what ChatGPT agents read
+**origin**
 
-**upstream:** Paperclip main
-- Pull feature updates selectively
-- Only use for `git cherry-pick` or `git merge` of specific commits
+- active DGDH repo
+- what ChatGPT agents should read
+- where canonical progress is pushed
+
+**upstream**
+
+- Paperclip substrate reference
+- source for selective syncs only
+- not a target for blind merges
 
 ---
 
-## Workflow: How to Update
+## Workflow
 
-### For New DGDH Governance Work
+### For normal DGDH work
 
 ```powershell
 cd ~/DGDH/worktrees/dgdh-werkbank
-
-# Make changes
-# ... edit files ...
-
-# Commit
 git add .
 git commit -m "chore: PHASE-X <description>"
-
-# Push to GitHub
 git push origin main
 ```
 
-### For Paperclip Feature Updates
+### For documentation cleanup
 
-**Check upstream:**
+1. Prefer updating canonical docs over creating side docs.
+2. Remove stale naming when it obscures the real current setup.
+3. Keep roadmap language tied to measured next actions.
+
+### For token optimization work
+
+1. Pick one fixed Gemini task.
+2. Run it through the real issue path.
+3. Record input tokens, output tokens, duration, and output quality.
+4. Change one system variable at a time.
+5. Re-run and compare.
+
+### For Paperclip feature updates
+
 ```powershell
 git fetch upstream master
 git log upstream/master -5 --oneline
 ```
 
-**Selectively merge (example: heartbeat fix):**
-```powershell
-git cherry-pick <commit-hash>
-# or
-git merge --no-commit --no-ff upstream/master -- packages/adapters/
-git commit -m "chore: sync Paperclip <feature> update"
-git push origin main
-```
-
-**NO automatic syncs.** You control what comes in.
+Then selectively cherry-pick or manually port only what is worth taking.
 
 ---
 
-## Key Files for ChatGPT Agent Access
+## Key Files for Agent Access
 
-After GitHub push, agents will read these:
+Agents should start with:
 
-- `company-hq/BOARD-MEMO-PROBE-01-STATUS-2026-03-17.md` → Current decision scope
-- `company-hq/DGDH-RE-SYNC-STATE-2026-03-17.md` → Architecture snapshot
-- `company-hq/GITHUB-AGENT-ACCESS-WORKFLOW-2026-03-17.md` → How to use this repo
-- `server/src/services/prompt-shadow-gate.ts` → Resolver gate logic
-- `packages/adapters/gemini-local/src/server/` → Adapter implementations
+- `company-hq/BOARD-MEMO-PROBE-01-STATUS-2026-03-17.md`
+- `company-hq/DGDH-RE-SYNC-STATE-2026-03-17.md`
+- `company-hq/MODEL-ROADMAP.md`
+- `company-hq/GITHUB-AGENT-ACCESS-WORKFLOW-2026-03-17.md`
+- `server/src/services/prompt-shadow-gate.ts`
 
 ---
 
 ## Decoupling from Paperclip
 
-**What's independent:**
-- All governance (`company-hq/`)
-- DGDH-specific services (gates, probe operations)
-- Your decision history and board records
+**Independent now:**
 
-**What you can still sync:**
-- Heartbeat improvements
-- Adapter bug fixes
-- Package compatibility updates
-- (You cherry-pick, not auto-merge)
+- governance docs
+- DGDH-specific service logic
+- roadmap and benchmark strategy
+- company identity and repo structure
 
-**What breaks:**
-- Direct worktree sharing (Claude/Gemini names are gone ✓)
-- Tight coupling to Paperclip release schedule
-- Confusion about "which codebase is active" (now: one clear line)
+**Still selectively reusable from Paperclip:**
 
----
+- heartbeat improvements
+- adapter fixes
+- shared utility updates
 
-## Tech Debt & Cleanup
-
-**Done:**
-- ✅ Removed `paperclip-claude` worktree
-- ✅ Removed `paperclip-gemini` worktree
-- ✅ Created dedicated `dgdh-werkbank` repo
-- ✅ Paperclip as optional upstream
-
-**Remaining (Optional):**
-- `paperclip-codex` worktree can be archived/deleted (reference only now)
-- `paperclip-main` repo can be archived (reference only)
-- Clean up old branches in forks (not critical)
+The point is not full isolation. The point is that DGDH now controls its own operating line.
 
 ---
 
 ## Next Steps
 
-1. **Create repo on GitHub** (see "How to Push to GitHub" above)
-2. **Run:** `git remote set-url origin https://github.com/davidgeib89-art/dgdh-werkbank.git`
-3. **Run:** `git push -u origin main`
-4. **Verify:** Visit `https://github.com/davidgeib89-art/dgdh-werkbank` and check all files are there
-5. **Inform ChatGPT:** Update agent instructions to point to new repo URL
+1. finish smoothing the canonical docs and roadmap
+2. define the first fixed Gemini benchmark packet
+3. run the benchmark through the real issue path
+4. record token metrics and quality observations
+5. decide what to simplify or redesign based on evidence
 
 ---
 
-## Quick Links (After GitHub Push)
+## Quick Links
 
-- **Repo:** https://github.com/davidgeib89-art/dgdh-werkbank
-- **Main Branch:** https://github.com/davidgeib89-art/dgdh-werkbank/tree/main
-- **Board Memo:** https://github.com/davidgeib89-art/dgdh-werkbank/blob/main/company-hq/BOARD-MEMO-PROBE-01-STATUS-2026-03-17.md
-- **Governance:** https://github.com/davidgeib89-art/dgdh-werkbank/tree/main/company-hq
-
----
-
-## File Ownership
-
-**In dgdh-werkbank (your responsibility):**
-- All `company-hq/` docs
-- `server/src/services/prompt-shadow-gate.ts`
-- `packages/` DGDH-specific mods
-- README, package.json, build configs (DGDH-customized)
-
-**From Paperclip (reference only, don't edit):**
-- Core heartbeat logic (unless critical bugfix)
-- Base adapter structure
-- Shared utilities (update via cherry-pick)
+- Repo: https://github.com/davidgeib89-art/dgdh-werkbank
+- Main branch: https://github.com/davidgeib89-art/dgdh-werkbank/tree/main
+- Governance docs: https://github.com/davidgeib89-art/dgdh-werkbank/tree/main/company-hq
 
 ---
 
-**Ready to push!** 🚀
+**Ready for the first real optimization cycle.**

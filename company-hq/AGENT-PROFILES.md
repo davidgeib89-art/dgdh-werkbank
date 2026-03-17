@@ -1,22 +1,22 @@
-# Agent Profiles for Paperclip
+# Agent Profiles for DGDH Phase 1
 
 ## Human Operator
 
 **Name:** David Geib
 
-**Role in Paperclip:** Operator / Principal
+**Role in Paperclip / DGDH:** Operator / Principal
 
 **Responsibilities:**
 
-- Sole authority to create Issues and assign them to Agents
-- Approves architecture proposals from Architect-Claude
-- Reviews Agent output in the Paperclip dashboard
-- Controls budget limits and activation of all agent lanes
-- Runs benchmark Issues to validate Agent behavior and token efficiency
-- No Agent acts autonomously without David's explicit instruction
+- Sole authority to create Issues and assign active work
+- Approves lane activation and task scope
+- Reviews output in the dashboard
+- Controls budget limits and activation of all provider lanes
+- Decides when a benchmark is trustworthy enough to justify optimization work
+- No agent acts autonomously without David's explicit instruction
 
-**Benchmark approach:**
-A benchmark run = creating an Issue via the Paperclip API (identical to what the WebGUI does). This simultaneously tests end-to-end Issue processing (Gemini starts cleanly, agent runs to completion, result visible in dashboard) and captures token/cost data via Paperclip's built-in cost-scoring engine for future efficiency baselines. Heartbeat processing is out of scope for now — Issue processing is tested first.
+**Current benchmark mindset:**
+A benchmark run should be small, repeatable, and readable by the founder. The immediate goal is not maximum capability but a trustworthy token baseline for one fixed Gemini task.
 
 ---
 
@@ -36,106 +36,108 @@ Technical implementation reference:
 - ../doc/plans/2026-03-16-dgdh-autonomous-governance-framework.md
 - ../docs/guides/dgdh-governance-shift.md
 
-## Agent 1: Builder-Codex
+## Phase-1 Operating Rule
 
-**Name in Paperclip:** `Builder-Codex`
+Phase 1 is not about freezing final permanent roles too early.
 
-**Adapter:** Codex (OpenAI Code Interpreter)
+- Real quota availability matters more than elegant theory.
+- Gemini is the first measured worker lane because its quota envelope is strongest.
+- Claude and Codex are specialist lanes that should be activated only when their extra quality is worth the tighter quotas.
+- All lanes operate against the same canonical repo context: `~/DGDH/worktrees/dgdh-werkbank`.
 
-**Working Directory:** `~/DGDH/worktrees/paperclip-codex`
+## Lane 1: Gemini Primary Worker Lane
+
+**Adapter:** `gemini_local`
+
+**Working Directory:** `~/DGDH/worktrees/dgdh-werkbank`
 
 **Role Description:**
-Specialized for implementation, refactoring, and file-level engineering work. Executes architecture specifications from the Architect-Claude review. Focuses on code quality, test coverage, and PR-ready output.
+Primary controlled worker lane for the next measurement phase. This lane should prove that DGDH can run bounded useful tasks, keep scope, and report token usage clearly enough to improve the system.
 
 **Responsibilities:**
 
-- Implement features as specified by the Architect
-- Refactor code for clarity and performance
-- Handle file creation, edits, and structure
-- Run tests and validate builds
-- Prepare commits with clear messages
+- Execute one fixed benchmark task repeatedly enough to establish token and quality baselines
+- Handle small internal implementation, research, and structured output tasks
+- Produce evidence that is compact and comparable across runs
+- Help expose where the current Paperclip-based system wastes context or tokens
+- Turn paid Gemini quota into useful bounded company work instead of leaving reset windows underused
+- Help prepare the ground for later Claude and Codex attachment under the same token-discipline rules
 
-**Budget:** $50/month (soft limit, Agent pauses at limit)
+**Status:** Controlled pilot / benchmark target
 
-**Status:** Configured but dormant
+- No open-ended autonomy
+- No follow-up task creation
+- No automation triggers
+- Manual invoke only
+- One fixed benchmark packet first, then carefully chosen internal tasks
+- Narrow custom tools are allowed when they reduce repeated context load and token waste
 
-- No Heartbeats enabled
-- Wake-on-demand disabled
-- No active Tasks assigned
-- No assignment/automation triggers
-- Paused by default
-- Only activated by explicit David directive
-
----
-
-## Agent 2: Architect-Claude
-
-**Name in Paperclip:** `Architect-Claude`
+## Lane 2: Claude Specialist Lane
 
 **Adapter:** Claude Code
 
-**Working Directory:** `~/DGDH/worktrees/paperclip-claude`
+**Working Directory:** `~/DGDH/worktrees/dgdh-werkbank`
 
 **Role Description:**
-Reviews code changes, refines system design, proposes architecture decisions, and reflects on direction. Acts as a guard rail for quality and strategic coherence. Bridges the gap between David's vision and Builder-Codex's implementation.
+High-intelligence lane for architecture, critique, reframing, and difficult reasoning work where the additional quality justifies the tighter quota.
 
 **Responsibilities:**
 
-- Review Builder-Codex pull requests and code quality
+- Review major design choices and system direction
 - Propose architecture improvements
 - Refine and clarify specifications
 - Challenge designs and suggest alternatives
 - Maintain long-term coherence
 
-**Budget:** $75/month (soft limit, Agent pauses at limit)
-
-**Status:** Configured but dormant
+**Status:** Dormant specialist
 
 - No Heartbeats enabled
 - Wake-on-demand disabled
-- No active Tasks assigned
-- No assignment/automation triggers
-- Paused by default
-- Only activated by explicit David directive
+- No active tasks by default
+- Activated only when Gemini is insufficient for the task or the upside is clearly worth the quota
 
----
+## Lane 3: Codex Specialist Builder Lane
 
-## Agent 3: Research-Gemini (Controlled Test Lane)
+**Adapter:** Codex
 
-**Name in Paperclip:** `Research-Gemini`
-
-**Adapter:** `gemini_local`
-
-**Working Directory:** `C:\Users\holyd\DGDH\worktrees\paperclip-gemini`
+**Working Directory:** `~/DGDH/worktrees/dgdh-werkbank`
 
 **Role Description:**
-Deep analysis, alternative research, and fact-checking. Helps validate assumptions and explore design alternatives before Builder-Codex commits to implementation.
+Precision implementation lane for focused engineering work where Codex quality or speed is materially helpful.
 
 **Responsibilities:**
 
-- Research alternative approaches
-- Validate assumptions
-- Fact-check design decisions
-- Provide counterarguments to proposed directions
+- Focused implementation and refactoring
+- Code-quality-sensitive work
+- Tight file-level tasks with strong acceptance criteria
+- Assistance on difficult engineering packets when quota is worth spending
 
-**Budget:** $30/month (soft limit)
+**Status:** Dormant specialist
 
-**Status:** Ready for Issue-based benchmark run
+- No Heartbeats enabled
+- Wake-on-demand disabled
+- No active tasks by default
+- Activated only for clearly justified engineering packets
 
-- Role: `researcher`
-- Model: `gemini-3-flash-preview` (fixed for benchmark #01 — no auto)
-- Heartbeats disabled
-- Wake-on-demand disabled (manual invoke only)
-- No automation triggers
-- No self-tasking and no follow-up task creation
+---
 
-**Benchmark #01 — Issue processing smoke test:**
+## Immediate Benchmark Goal
 
-- Trigger: David creates Issue via Paperclip API (same as WebGUI)
-- Task: Single-file structured extraction, read-only, JSON output
-- Metrics captured by Paperclip natively: duration, input_tokens, output_tokens, cost score
-- Success criteria: Agent starts cleanly, result visible in dashboard, JSON valid, correct output
-- Token baseline recorded here for future optimization comparison
+The next benchmark should be designed for one purpose:
+
+- give Gemini one fixed, bounded task,
+- measure tokens per run,
+- compare output quality across repeats,
+- identify where the system wastes context or adds unnecessary complexity.
+
+The first meaningful milestone after that is simple: Gemini should be able to complete real small company tasks cheaply enough and reliably enough that using the 24-hour resettable quota becomes an operational advantage.
+
+Good benchmark properties:
+
+- easy to inspect by eye
+- small enough to rerun often
+- useful enough to matter
+- stable enough to compare token deltas after system changes
 
 ---
 
@@ -143,25 +145,25 @@ Deep analysis, alternative research, and fact-checking. Helps validate assumptio
 
 ### How Tasks Are Created
 
-1. David identifies work via chat with ChatGPT (Architect)
-2. ChatGPT proposes assignment: Builder-Codex or both
-3. David approves and creates Task in Paperclip
-4. Task is assigned to specific Agent
+1. David identifies work through real need, curiosity, or highest-excitement direction.
+2. A lane choice is proposed based on quota reality and task type.
+3. David approves and creates the task in Paperclip.
+4. The task is assigned to a specific lane or agent profile.
 
 ### How Agents Are Activated
 
-- Start: David @mentions Agent in Paperclip Task
-- Work: Agent executes; posts updates to Task thread
-- Review: Architect-Claude (or David) reviews in Paperclip
-- Conclude: David marks Task complete
+- Start: David explicitly invokes the lane through the issue/task flow
+- Work: the agent executes and posts updates to the task thread
+- Review: David or a specialist lane reviews the output
+- Conclude: David marks the task complete or routes the next bounded step
 
 ### Token Safety Defaults
 
-- **Heartbeats**: Disabled (Agents do not auto-wake)
-- **Wake-on-demand**: Disabled by default (manual run invoke only)
-- **Event Triggers**: No assignment/automation triggers for dormant lanes
-- **@mentions**: Only from David or Architect
-- **Budgets**: Hard stop at limit; Agent pauses, does not retry
+- **Heartbeats**: Disabled unless explicitly justified
+- **Wake-on-demand**: Manual only by default
+- **Event Triggers**: No assignment or automation triggers for dormant lanes
+- **Budgets**: Hard stop at limit; no blind retry behavior
+- **Benchmark rule**: small fixed benchmark before broader optimization claims
 
 ---
 
