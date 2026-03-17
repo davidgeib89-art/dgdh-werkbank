@@ -9,7 +9,8 @@ function safeJsonParse(text: string): unknown {
 }
 
 function asRecord(value: unknown): Record<string, unknown> | null {
-  if (typeof value !== "object" || value === null || Array.isArray(value)) return null;
+  if (typeof value !== "object" || value === null || Array.isArray(value))
+    return null;
   return value as Record<string, unknown>;
 }
 
@@ -31,6 +32,67 @@ function stringifyUnknown(value: unknown): string {
   }
 }
 
+/** Max chars of stdout/stderr to show in run log for shell tool results. */
+const SHELL_OUTPUT_TRUNCATE = 2000;
+
+function formatShellToolResultForLog(result: unknown): string {
+  const obj = asRecord(result);
+  if (!obj) return stringifyUnknown(result);
+  const success = asRecord(obj.success);
+  if (!success) return stringifyUnknown(result);
+  const exitCode = asNumber(success.exitCode, Number.NaN);
+  const stdout = asString(success.stdout).trim();
+  const stderr = asString(success.stderr).trim();
+  const hasShellShape =
+    Number.isFinite(exitCode) || stdout.length > 0 || stderr.length > 0;
+  if (!hasShellShape) return stringifyUnknown(result);
+
+  const lines: string[] = [];
+  if (Number.isFinite(exitCode)) lines.push(`exit ${exitCode}`);
+  if (stdout) {
+    const out =
+      stdout.length > SHELL_OUTPUT_TRUNCATE
+        ? `${stdout.slice(0, SHELL_OUTPUT_TRUNCATE)}\n... (truncated)`
+        : stdout;
+    lines.push("<stdout>");
+    lines.push(out);
+  }
+  if (stderr) {
+    const err =
+      stderr.length > SHELL_OUTPUT_TRUNCATE
+        ? `${stderr.slice(0, SHELL_OUTPUT_TRUNCATE)}\n... (truncated)`
+        : stderr;
+    lines.push("<stderr>");
+    lines.push(err);
+  }
+  return lines.join("\n");
+}
+
+function mapGeminiToolName(rawName: string): string {
+  const normalized = rawName.trim().toLowerCase();
+  if (
+    normalized === "run_shell_command" ||
+    normalized === "shell" ||
+    normalized === "shelltoolcall"
+  ) {
+    return "command_execution";
+  }
+  if (normalized === "read_file" || normalized === "search_codebase") {
+    return "reading_files";
+  }
+  if (
+    normalized === "replace" ||
+    normalized === "write_file" ||
+    normalized === "edit_file"
+  ) {
+    return "editing_files";
+  }
+  if (normalized === "memory") {
+    return "memory_update";
+  }
+  return rawName;
+}
+
 function errorText(value: unknown): string {
   if (typeof value === "string") return value;
   const rec = asRecord(value);
@@ -48,7 +110,11 @@ function errorText(value: unknown): string {
   }
 }
 
-function collectTextEntries(messageRaw: unknown, ts: string, kind: "assistant" | "user"): TranscriptEntry[] {
+function collectTextEntries(
+  messageRaw: unknown,
+  ts: string,
+  kind: "assistant" | "user",
+): TranscriptEntry[] {
   if (typeof messageRaw === "string") {
     const text = messageRaw.trim();
     return text ? [{ kind, ts, text }] : [];
@@ -66,7 +132,8 @@ function collectTextEntries(messageRaw: unknown, ts: string, kind: "assistant" |
     const part = asRecord(partRaw);
     if (!part) continue;
     const type = asString(part.type).trim();
-    if (type !== "output_text" && type !== "text" && type !== "content") continue;
+    if (type !== "output_text" && type !== "text" && type !== "content")
+      continue;
     const text = asString(part.text).trim() || asString(part.content).trim();
     if (text) entries.push({ kind, ts, text });
   }
@@ -74,7 +141,10 @@ function collectTextEntries(messageRaw: unknown, ts: string, kind: "assistant" |
   return entries;
 }
 
-function parseAssistantMessage(messageRaw: unknown, ts: string): TranscriptEntry[] {
+function parseAssistantMessage(
+  messageRaw: unknown,
+  ts: string,
+): TranscriptEntry[] {
   if (typeof messageRaw === "string") {
     const text = messageRaw.trim();
     return text ? [{ kind: "assistant", ts, text }] : [];
@@ -106,11 +176,19 @@ function parseAssistantMessage(messageRaw: unknown, ts: string): TranscriptEntry
     }
 
     if (type === "tool_call") {
-      const name = asString(part.name, asString(part.tool, "tool"));
+      const name = mapGeminiToolName(
+        asString(part.name, asString(part.tool, "tool")),
+      );
       entries.push({
         kind: "tool_call",
         ts,
         name,
+        toolUseId:
+          asString(part.tool_use_id) ||
+          asString(part.toolUseId) ||
+          asString(part.call_id) ||
+          asString(part.id) ||
+          undefined,
         input: part.input ?? part.arguments ?? part.args ?? {},
       });
       continue;
@@ -127,8 +205,12 @@ function parseAssistantMessage(messageRaw: unknown, ts: string): TranscriptEntry
         asString(part.output) ||
         asString(part.text) ||
         asString(part.result) ||
-        stringifyUnknown(part.output ?? part.result ?? part.text ?? part.response);
-      const isError = part.is_error === true || asString(part.status).toLowerCase() === "error";
+        formatShellToolResultForLog(
+          part.output ?? part.result ?? part.text ?? part.response,
+        );
+      const isError =
+        part.is_error === true ||
+        asString(part.status).toLowerCase() === "error";
       entries.push({
         kind: "tool_result",
         ts,
@@ -142,46 +224,83 @@ function parseAssistantMessage(messageRaw: unknown, ts: string): TranscriptEntry
   return entries;
 }
 
-function parseTopLevelToolEvent(parsed: Record<string, unknown>, ts: string): TranscriptEntry[] {
+function parseTopLevelToolEvent(
+  parsed: Record<string, unknown>,
+  ts: string,
+): TranscriptEntry[] {
   const subtype = asString(parsed.subtype).trim().toLowerCase();
-  const callId = asString(parsed.call_id, asString(parsed.callId, asString(parsed.id, "tool_call")));
+  const callId = asString(
+    parsed.call_id,
+    asString(parsed.callId, asString(parsed.id, "tool_call")),
+  );
   const toolCall = asRecord(parsed.tool_call ?? parsed.toolCall);
   if (!toolCall) {
-    return [{ kind: "system", ts, text: `tool_call${subtype ? ` (${subtype})` : ""}` }];
+    return [
+      {
+        kind: "system",
+        ts,
+        text: `tool_call${subtype ? ` (${subtype})` : ""}`,
+      },
+    ];
   }
 
-  const [toolName] = Object.keys(toolCall);
-  if (!toolName) {
-    return [{ kind: "system", ts, text: `tool_call${subtype ? ` (${subtype})` : ""}` }];
+  const [toolNameRaw] = Object.keys(toolCall);
+  const toolName = mapGeminiToolName(toolNameRaw ?? "tool");
+  if (!toolNameRaw) {
+    return [
+      {
+        kind: "system",
+        ts,
+        text: `tool_call${subtype ? ` (${subtype})` : ""}`,
+      },
+    ];
   }
-  const payload = asRecord(toolCall[toolName]) ?? {};
+  const payload = asRecord(toolCall[toolNameRaw]) ?? {};
 
   if (subtype === "started" || subtype === "start") {
-    return [{
-      kind: "tool_call",
-      ts,
-      name: toolName,
-      input: payload.args ?? payload.input ?? payload.arguments ?? payload,
-    }];
+    return [
+      {
+        kind: "tool_call",
+        ts,
+        name: toolName,
+        toolUseId: callId,
+        input: payload.args ?? payload.input ?? payload.arguments ?? payload,
+      },
+    ];
   }
 
-  if (subtype === "completed" || subtype === "complete" || subtype === "finished") {
+  if (
+    subtype === "completed" ||
+    subtype === "complete" ||
+    subtype === "finished"
+  ) {
     const result = payload.result ?? payload.output ?? payload.error;
     const isError =
       parsed.is_error === true ||
       payload.is_error === true ||
       payload.error !== undefined ||
       asString(payload.status).toLowerCase() === "error";
-    return [{
-      kind: "tool_result",
-      ts,
-      toolUseId: callId,
-      content: result !== undefined ? stringifyUnknown(result) : `${toolName} completed`,
-      isError,
-    }];
+    return [
+      {
+        kind: "tool_result",
+        ts,
+        toolUseId: callId,
+        content:
+          result !== undefined
+            ? formatShellToolResultForLog(result)
+            : `${toolName} completed`,
+        isError,
+      },
+    ];
   }
 
-  return [{ kind: "system", ts, text: `tool_call${subtype ? ` (${subtype})` : ""}: ${toolName}` }];
+  return [
+    {
+      kind: "system",
+      ts,
+      text: `tool_call${subtype ? ` (${subtype})` : ""}: ${toolName}`,
+    },
+  ];
 }
 
 function readSessionId(parsed: Record<string, unknown>): string {
@@ -199,16 +318,28 @@ function readUsage(parsed: Record<string, unknown>) {
   const usageMetadata = asRecord(usage?.usageMetadata);
   const source = usageMetadata ?? usage ?? {};
   return {
-    inputTokens: asNumber(source.input_tokens, asNumber(source.inputTokens, asNumber(source.promptTokenCount))),
-    outputTokens: asNumber(source.output_tokens, asNumber(source.outputTokens, asNumber(source.candidatesTokenCount))),
+    inputTokens: asNumber(
+      source.input_tokens,
+      asNumber(source.inputTokens, asNumber(source.promptTokenCount)),
+    ),
+    outputTokens: asNumber(
+      source.output_tokens,
+      asNumber(source.outputTokens, asNumber(source.candidatesTokenCount)),
+    ),
     cachedTokens: asNumber(
       source.cached_input_tokens,
-      asNumber(source.cachedInputTokens, asNumber(source.cachedContentTokenCount)),
+      asNumber(
+        source.cachedInputTokens,
+        asNumber(source.cachedContentTokenCount),
+      ),
     ),
   };
 }
 
-export function parseGeminiStdoutLine(line: string, ts: string): TranscriptEntry[] {
+export function parseGeminiStdoutLine(
+  line: string,
+  ts: string,
+): TranscriptEntry[] {
   const parsed = asRecord(safeJsonParse(line));
   if (!parsed) {
     return [{ kind: "stdout", ts, text: line }];
@@ -220,7 +351,14 @@ export function parseGeminiStdoutLine(line: string, ts: string): TranscriptEntry
     const subtype = asString(parsed.subtype);
     if (subtype === "init") {
       const sessionId = readSessionId(parsed);
-      return [{ kind: "init", ts, model: asString(parsed.model, "gemini"), sessionId }];
+      return [
+        {
+          kind: "init",
+          ts,
+          model: asString(parsed.model, "gemini"),
+          sessionId,
+        },
+      ];
     }
     if (subtype === "error") {
       const text = errorText(parsed.error ?? parsed.message ?? parsed.detail);
@@ -238,7 +376,9 @@ export function parseGeminiStdoutLine(line: string, ts: string): TranscriptEntry
   }
 
   if (type === "thinking") {
-    const text = asString(parsed.text).trim() || asString(asRecord(parsed.delta)?.text).trim();
+    const text =
+      asString(parsed.text).trim() ||
+      asString(asRecord(parsed.delta)?.text).trim();
     return text ? [{ kind: "thinking", ts, text }] : [];
   }
 
@@ -248,21 +388,32 @@ export function parseGeminiStdoutLine(line: string, ts: string): TranscriptEntry
 
   if (type === "result") {
     const usage = readUsage(parsed);
-    const errors = parsed.is_error === true
-      ? [errorText(parsed.error ?? parsed.message ?? parsed.result)].filter(Boolean)
-      : [];
-    return [{
-      kind: "result",
-      ts,
-      text: asString(parsed.result) || asString(parsed.text) || asString(parsed.response),
-      inputTokens: usage.inputTokens,
-      outputTokens: usage.outputTokens,
-      cachedTokens: usage.cachedTokens,
-      costUsd: asNumber(parsed.total_cost_usd, asNumber(parsed.cost_usd, asNumber(parsed.cost))),
-      subtype: asString(parsed.subtype, "result"),
-      isError: parsed.is_error === true,
-      errors,
-    }];
+    const errors =
+      parsed.is_error === true
+        ? [errorText(parsed.error ?? parsed.message ?? parsed.result)].filter(
+            Boolean,
+          )
+        : [];
+    return [
+      {
+        kind: "result",
+        ts,
+        text:
+          asString(parsed.result) ||
+          asString(parsed.text) ||
+          asString(parsed.response),
+        inputTokens: usage.inputTokens,
+        outputTokens: usage.outputTokens,
+        cachedTokens: usage.cachedTokens,
+        costUsd: asNumber(
+          parsed.total_cost_usd,
+          asNumber(parsed.cost_usd, asNumber(parsed.cost)),
+        ),
+        subtype: asString(parsed.subtype, "result"),
+        isError: parsed.is_error === true,
+        errors,
+      },
+    ];
   }
 
   if (type === "error") {

@@ -7,15 +7,19 @@ export {
   detectGeminiAuthRequired,
   isGeminiTurnLimitResult,
 } from "./parse.js";
+export { listGeminiModels } from "./models.js";
 import type { AdapterSessionCodec } from "@paperclipai/adapter-utils";
 
 function readNonEmptyString(value: unknown): string | null {
-  return typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
+  return typeof value === "string" && value.trim().length > 0
+    ? value.trim()
+    : null;
 }
 
 export const sessionCodec: AdapterSessionCodec = {
   deserialize(raw: unknown) {
-    if (typeof raw !== "object" || raw === null || Array.isArray(raw)) return null;
+    if (typeof raw !== "object" || raw === null || Array.isArray(raw))
+      return null;
     const record = raw as Record<string, unknown>;
     const sessionId =
       readNonEmptyString(record.sessionId) ??
@@ -26,9 +30,13 @@ export const sessionCodec: AdapterSessionCodec = {
       readNonEmptyString(record.cwd) ??
       readNonEmptyString(record.workdir) ??
       readNonEmptyString(record.folder);
-    const workspaceId = readNonEmptyString(record.workspaceId) ?? readNonEmptyString(record.workspace_id);
-    const repoUrl = readNonEmptyString(record.repoUrl) ?? readNonEmptyString(record.repo_url);
-    const repoRef = readNonEmptyString(record.repoRef) ?? readNonEmptyString(record.repo_ref);
+    const workspaceId =
+      readNonEmptyString(record.workspaceId) ??
+      readNonEmptyString(record.workspace_id);
+    const repoUrl =
+      readNonEmptyString(record.repoUrl) ?? readNonEmptyString(record.repo_url);
+    const repoRef =
+      readNonEmptyString(record.repoRef) ?? readNonEmptyString(record.repo_ref);
     return {
       sessionId,
       ...(cwd ? { cwd } : {}),
@@ -48,9 +56,13 @@ export const sessionCodec: AdapterSessionCodec = {
       readNonEmptyString(params.cwd) ??
       readNonEmptyString(params.workdir) ??
       readNonEmptyString(params.folder);
-    const workspaceId = readNonEmptyString(params.workspaceId) ?? readNonEmptyString(params.workspace_id);
-    const repoUrl = readNonEmptyString(params.repoUrl) ?? readNonEmptyString(params.repo_url);
-    const repoRef = readNonEmptyString(params.repoRef) ?? readNonEmptyString(params.repo_ref);
+    const workspaceId =
+      readNonEmptyString(params.workspaceId) ??
+      readNonEmptyString(params.workspace_id);
+    const repoUrl =
+      readNonEmptyString(params.repoUrl) ?? readNonEmptyString(params.repo_url);
+    const repoRef =
+      readNonEmptyString(params.repoRef) ?? readNonEmptyString(params.repo_ref);
     return {
       sessionId,
       ...(cwd ? { cwd } : {}),

@@ -1,12 +1,20 @@
 import { describe, expect, it, vi } from "vitest";
-import { isGeminiUnknownSessionError, parseGeminiJsonl } from "@paperclipai/adapter-gemini-local/server";
+import {
+  isGeminiUnknownSessionError,
+  parseGeminiJsonl,
+} from "@paperclipai/adapter-gemini-local/server";
 import { parseGeminiStdoutLine } from "@paperclipai/adapter-gemini-local/ui";
 import { printGeminiStreamEvent } from "@paperclipai/adapter-gemini-local/cli";
 
 describe("gemini_local parser", () => {
   it("extracts session, summary, usage, cost, and terminal error message", () => {
     const stdout = [
-      JSON.stringify({ type: "system", subtype: "init", session_id: "gemini-session-1", model: "gemini-2.5-pro" }),
+      JSON.stringify({
+        type: "system",
+        subtype: "init",
+        session_id: "gemini-session-1",
+        model: "gemini-2.5-pro",
+      }),
       JSON.stringify({
         type: "assistant",
         message: {
@@ -74,8 +82,12 @@ describe("gemini_local parser", () => {
 
 describe("gemini_local stale session detection", () => {
   it("treats missing session messages as an unknown session error", () => {
-    expect(isGeminiUnknownSessionError("", "unknown session id abc")).toBe(true);
-    expect(isGeminiUnknownSessionError("", "checkpoint latest not found")).toBe(true);
+    expect(isGeminiUnknownSessionError("", "unknown session id abc")).toBe(
+      true,
+    );
+    expect(isGeminiUnknownSessionError("", "checkpoint latest not found")).toBe(
+      true,
+    );
   });
 });
 
@@ -91,8 +103,18 @@ describe("gemini_local ui stdout parser", () => {
             content: [
               { type: "output_text", text: "I checked the repo." },
               { type: "thinking", text: "Reviewing adapter registry" },
-              { type: "tool_call", name: "shell", input: { command: "ls -1" } },
-              { type: "tool_result", tool_use_id: "tool_1", output: "AGENTS.md\n", status: "ok" },
+              {
+                type: "tool_call",
+                id: "tool_1",
+                name: "shell",
+                input: { command: "ls -1" },
+              },
+              {
+                type: "tool_result",
+                tool_use_id: "tool_1",
+                output: "AGENTS.md\n",
+                status: "ok",
+              },
             ],
           },
         }),
@@ -101,8 +123,20 @@ describe("gemini_local ui stdout parser", () => {
     ).toEqual([
       { kind: "assistant", ts, text: "I checked the repo." },
       { kind: "thinking", ts, text: "Reviewing adapter registry" },
-      { kind: "tool_call", ts, name: "shell", input: { command: "ls -1" } },
-      { kind: "tool_result", ts, toolUseId: "tool_1", content: "AGENTS.md\n", isError: false },
+      {
+        kind: "tool_call",
+        ts,
+        name: "command_execution",
+        toolUseId: "tool_1",
+        input: { command: "ls -1" },
+      },
+      {
+        kind: "tool_result",
+        ts,
+        toolUseId: "tool_1",
+        content: "AGENTS.md\n",
+        isError: false,
+      },
     ]);
 
     expect(
@@ -136,6 +170,34 @@ describe("gemini_local ui stdout parser", () => {
       },
     ]);
   });
+
+  it("maps top-level tool events to readable runtime phases", () => {
+    const ts = "2026-03-08T00:00:00.000Z";
+
+    expect(
+      parseGeminiStdoutLine(
+        JSON.stringify({
+          type: "tool_call",
+          subtype: "started",
+          call_id: "top_1",
+          tool_call: {
+            read_file: {
+              args: { path: "README.md" },
+            },
+          },
+        }),
+        ts,
+      ),
+    ).toEqual([
+      {
+        kind: "tool_call",
+        ts,
+        name: "reading_files",
+        toolUseId: "top_1",
+        input: { path: "README.md" },
+      },
+    ]);
+  });
 });
 
 function stripAnsi(value: string): string {
@@ -149,7 +211,12 @@ describe("gemini_local cli formatter", () => {
 
     try {
       printGeminiStreamEvent(
-        JSON.stringify({ type: "system", subtype: "init", session_id: "gemini-session-1", model: "gemini-2.5-pro" }),
+        JSON.stringify({
+          type: "system",
+          subtype: "init",
+          session_id: "gemini-session-1",
+          model: "gemini-2.5-pro",
+        }),
         false,
       );
       printGeminiStreamEvent(
@@ -176,7 +243,9 @@ describe("gemini_local cli formatter", () => {
         JSON.stringify({ type: "error", message: "boom" }),
         false,
       );
-      joined = spy.mock.calls.map((call) => stripAnsi(call.join(" "))).join("\n");
+      joined = spy.mock.calls
+        .map((call) => stripAnsi(call.join(" ")))
+        .join("\n");
     } finally {
       spy.mockRestore();
     }
