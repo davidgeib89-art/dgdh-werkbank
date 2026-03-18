@@ -1,6 +1,7 @@
 param(
-  [string]$BaseUrl = "http://127.0.0.1:3101",
+  [string]$BaseUrl = "http://127.0.0.1:3100",
   [Parameter(Mandatory = $true)][string]$CompanyId,
+  [string]$ProjectId,
   [string]$AgentRef = "Research-Gemini",
   [ValidateSet("T1-floor-v1", "T1-paperclip-default-v1")]
   [string]$BenchmarkFamily = "T1-floor-v1",
@@ -20,6 +21,10 @@ $ErrorActionPreference = "Stop"
 
 if ($Repeats -lt 1) {
   throw "-Repeats must be >= 1"
+}
+
+if (-not $DryRun -and [string]::IsNullOrWhiteSpace($ProjectId)) {
+  throw "-ProjectId is required for live benchmark runs so the issue is bound to the intended project workspace."
 }
 
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
@@ -86,10 +91,12 @@ function New-IssueForTest {
   param(
     [Parameter(Mandatory = $true)][string]$Title,
     [Parameter(Mandatory = $true)][string]$Description,
-    [Parameter(Mandatory = $true)][string]$AssigneeAgentId
+    [Parameter(Mandatory = $true)][string]$AssigneeAgentId,
+    [Parameter(Mandatory = $true)][string]$ProjectId
   )
 
   $payload = @{
+    projectId = $ProjectId
     title = $Title
     description = $Description
     status = "backlog"
@@ -226,7 +233,13 @@ function Test-ContainsForbiddenToolInChunk {
     @{ tool = "list_directory"; reason = "list_directory_used"; pattern = "list_directory" },
     @{ tool = "grep_search"; reason = "search_tool_used"; pattern = "grep_search" },
     @{ tool = "glob_search"; reason = "search_tool_used"; pattern = "glob_search" },
-    @{ tool = "find_files"; reason = "search_tool_used"; pattern = "find_files" }
+    @{ tool = "find_files"; reason = "search_tool_used"; pattern = "find_files" },
+    @{ tool = "codebase_investigator"; reason = "forbidden_tool_used"; pattern = "codebase_investigator" },
+    @{ tool = "generalist"; reason = "forbidden_tool_used"; pattern = "generalist" },
+    @{ tool = "google_web_search"; reason = "forbidden_tool_used"; pattern = "google_web_search" },
+    @{ tool = "web_fetch"; reason = "forbidden_tool_used"; pattern = "web_fetch" },
+    @{ tool = "save_memory"; reason = "forbidden_tool_used"; pattern = "save_memory" },
+    @{ tool = "cli_help"; reason = "forbidden_tool_used"; pattern = "cli_help" }
   )
 
   foreach ($entry in $checks) {
@@ -500,16 +513,16 @@ function Get-RunToolAndReadStats {
           }
           $toolCounts[$toolName] = [int]$toolCounts[$toolName] + 1
 
-          if ($toolName -eq "read_file") {
-            $pathValue = ""
-            if ($entry.parameters -and $entry.parameters.path) {
+            if ($toolName -eq "read_file") {
+              $pathValue = ""
+            if ($entry.parameters -and $entry.parameters.PSObject.Properties.Name -contains "path" -and $entry.parameters.path) {
               $pathValue = [string]$entry.parameters.path
-            } elseif ($entry.input -and $entry.input.path) {
+            } elseif ($entry.input -and $entry.input.PSObject.Properties.Name -contains "path" -and $entry.input.path) {
               $pathValue = [string]$entry.input.path
-            }
-            if (-not [string]::IsNullOrWhiteSpace($pathValue)) {
-              [void]$readPaths.Add($pathValue)
-            }
+              }
+              if (-not [string]::IsNullOrWhiteSpace($pathValue)) {
+                [void]$readPaths.Add($pathValue)
+              }
           }
         }
       }
@@ -524,7 +537,7 @@ function Get-RunToolAndReadStats {
               }
               $toolCounts[$toolName] = [int]$toolCounts[$toolName] + 1
 
-              if ($toolName -eq "read_file" -and $part.input -and $part.input.path) {
+              if ($toolName -eq "read_file" -and $part.input -and $part.input.PSObject.Properties.Name -contains "path" -and $part.input.path) {
                 [void]$readPaths.Add([string]$part.input.path)
               }
             }
@@ -670,6 +683,7 @@ if ($DryRun) {
     mode = "dry-run"
     benchmarkFamily = $BenchmarkFamily
     companyId = $CompanyId
+    projectId = $ProjectId
     agentRef = $AgentRef
     agentId = $agentId
     testKey = $selectedTest.key
@@ -709,7 +723,7 @@ Hard constraints:
 "@
   }
 
-  $issue = New-IssueForTest -Title $issueTitle -Description $description -AssigneeAgentId $agentId
+  $issue = New-IssueForTest -Title $issueTitle -Description $description -AssigneeAgentId $agentId -ProjectId $ProjectId
 
   [void](Start-IssueRun -IssueId ([string]$issue.id) -AgentId $agentId)
 
@@ -864,6 +878,7 @@ Hard constraints:
 
   $results += [pscustomobject]@{
     benchmarkFamily = $BenchmarkFamily
+    projectId = $ProjectId
     iteration = $iteration
     testKey = $selectedTest.key
     testName = $selectedTest.name
@@ -970,6 +985,7 @@ $summary = [ordered]@{
   benchmarkFamily = $BenchmarkFamily
   baseUrl = $BaseUrl
   companyId = $CompanyId
+  projectId = $ProjectId
   agentRef = $AgentRef
   agentId = $agentId
   testKey = $selectedTest.key

@@ -61,6 +61,10 @@ interface IssueCheckoutOptions extends BaseClientOptions {
   expectedStatuses?: string;
 }
 
+interface IssueAssignOptions extends BaseClientOptions {
+  agentId: string;
+}
+
 export function registerIssueCommands(program: Command): void {
   const issue = program.command("issue").description("Issue operations");
 
@@ -208,6 +212,45 @@ export function registerIssueCommands(program: Command): void {
           });
 
           const updated = await ctx.api.patch<Issue & { comment?: IssueComment | null }>(`/api/issues/${issueId}`, payload);
+          printOutput(updated, { json: ctx.json });
+        } catch (err) {
+          handleCommandError(err);
+        }
+      }),
+  );
+
+  addCommonClientOptions(
+    issue
+      .command("assign")
+      .description("Assign an issue to an agent")
+      .argument("<issueId>", "Issue ID")
+      .requiredOption("--agent-id <id>", "Agent ID to assign")
+      .action(async (issueId: string, opts: IssueAssignOptions) => {
+        try {
+          const ctx = resolveCommandContext(opts);
+          const payload = updateIssueSchema.parse({
+            assigneeAgentId: opts.agentId,
+          });
+          const updated = await ctx.api.patch<Issue>(`/api/issues/${issueId}`, payload);
+          printOutput(updated, { json: ctx.json });
+        } catch (err) {
+          handleCommandError(err);
+        }
+      }),
+  );
+
+  addCommonClientOptions(
+    issue
+      .command("unassign")
+      .description("Unassign an issue")
+      .argument("<issueId>", "Issue ID")
+      .action(async (issueId: string, opts: BaseClientOptions) => {
+        try {
+          const ctx = resolveCommandContext(opts);
+          const payload = updateIssueSchema.parse({
+            assigneeAgentId: null,
+          });
+          const updated = await ctx.api.patch<Issue>(`/api/issues/${issueId}`, payload);
           printOutput(updated, { json: ctx.json });
         } catch (err) {
           handleCommandError(err);

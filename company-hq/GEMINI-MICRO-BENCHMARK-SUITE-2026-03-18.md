@@ -21,6 +21,8 @@ This suite provides a smaller harness so you can run the same small task 3 times
 - Agent: Research-Gemini
 - Adapter: gemini_local
 - Model: keep fixed during one comparison series
+- Benchmark issue must be bound to the intended project via `projectId`
+- That project must have a primary workspace with cwd `C:/Users/holyd/DGDH/worktrees/dgdh-werkbank`
 - Workspace: C:/Users/holyd/DGDH/worktrees/dgdh-werkbank
 - Morph features: OFF for baseline phase
 
@@ -115,6 +117,7 @@ Apply to every benchmark run:
 
 Per run, record:
 
+- projectId
 - duration_seconds
 - benchmarkTokens
 - cachedInputTokens
@@ -146,15 +149,20 @@ Practical first target:
 
 Run the default baseline series:
 
-powershell -ExecutionPolicy Bypass -File scripts/gemini-micro-benchmark-suite.ps1 -CompanyId <COMPANY_ID> -TestKey T1 -Repeats 3
+powershell -ExecutionPolicy Bypass -File scripts/gemini-micro-benchmark-suite.ps1 -CompanyId <COMPANY_ID> -ProjectId <PROJECT_ID> -TestKey T1 -Repeats 3
 
 Run a quick verification only once:
 
-powershell -ExecutionPolicy Bypass -File scripts/gemini-micro-benchmark-suite.ps1 -CompanyId <COMPANY_ID> -TestKey T1 -Repeats 1
+powershell -ExecutionPolicy Bypass -File scripts/gemini-micro-benchmark-suite.ps1 -CompanyId <COMPANY_ID> -ProjectId <PROJECT_ID> -TestKey T1 -Repeats 1
 
 Strict token requirement:
 
-powershell -ExecutionPolicy Bypass -File scripts/gemini-micro-benchmark-suite.ps1 -CompanyId <COMPANY_ID> -TestKey T1 -Repeats 3 -RequireTokenMeasurement
+powershell -ExecutionPolicy Bypass -File scripts/gemini-micro-benchmark-suite.ps1 -CompanyId <COMPANY_ID> -ProjectId <PROJECT_ID> -TestKey T1 -Repeats 3 -RequireTokenMeasurement
+
+Benchmark gate before any live run:
+
+- do not run if `projectId` is missing
+- do not run if the project primary workspace is not bound to `C:/Users/holyd/DGDH/worktrees/dgdh-werkbank`
 
 ## Morph Rollout Comparison Plan
 

@@ -121,23 +121,34 @@ It is a heartbeat persistence hardening commit:
 - commit: `5705804`
 - message: `Server: harden heartbeat persistence for legacy DB encodings`
 
-## Current Blocker
-
-The current blocker is runtime parity on the new hardened instance.
+## Runtime Parity Status
 
 Do not assume old benchmark runs on the older runtime are evidence for the hardened floor.
 
-At the point of handoff, these facts are true:
+Latest live parity verification status is:
 
-1. strict-floor code is present in the repo
-2. the benchmark harness is instrumented and hardened
-3. the local target runtime was not yet cleanly verified as the correct benchmark instance
-4. port and instance identity were still ambiguous
-5. `http://127.0.0.1:3101` was not reachable at last check from this Copilot session
+1. hardened runtime on port `3100` is reachable
+2. `Research-Gemini` resolves in the intended company context
+3. company id, agent id, agent name, adapter type, adapter config, model config, benchmark family, target path, and target file hash match
+4. the strict-floor benchmark issue exists on the live runtime
+5. repo/workspace binding is still unresolved
+
+Current live mismatch:
+
+- heartbeat-run context is falling back to the agent-home workspace under `.paperclip/instances/default/workspaces/...`
+- `paperclipWorkspace.worktreePath = null`
+- `paperclipWorkspaces = []`
+- the run context is not yet bound to `C:\Users\holyd\DGDH\worktrees\dgdh-werkbank`
+
+Root cause currently established:
+
+- the benchmark issue was created without `projectId`
+- the live company also lacks a benchmark project primary workspace bound to `C:\Users\holyd\DGDH\worktrees\dgdh-werkbank`
+- because of that, heartbeat resolves no project workspace and falls back to agent-home
 
 This means:
 
-- no valid `3x T1-floor-v1` live result exists yet on the confirmed new hardened runtime
+- no valid `3x T1-floor-v1` live result exists yet on the correctly bound hardened runtime
 - no valid A/B comparison against `T1-paperclip-default-v1` exists yet
 - Morph discussion must stay gated
 
@@ -154,7 +165,13 @@ Follow these rules strictly:
 
 ## Required Next Step
 
-The next operational goal is runtime parity verification on the real target instance.
+The next operational goal is workspace-binding parity on the real target instance.
+
+Minimal safe fix path:
+
+1. create or repoint a dedicated benchmark project workspace so its primary cwd is `C:\Users\holyd\DGDH\worktrees\dgdh-werkbank`
+2. create benchmark issues with that `projectId`
+3. keep `project_primary` mode for the first fix; `git_worktree` is optional and should be a later step only if needed
 
 Before any new live benchmark run, verify and record all of the following:
 
@@ -170,7 +187,7 @@ Before any new live benchmark run, verify and record all of the following:
 10. benchmark family
 11. target file hash
 
-The benchmark agent must exist in the target company context with the intended purpose and configuration.
+The benchmark agent must exist in the target company context with the intended purpose and configuration, and it must execute from the intended repo/worktree rather than agent-home fallback.
 
 ## Required Runtime Parity Checklist
 
@@ -249,6 +266,6 @@ Do not continue from old run history.
 Continue from this fact pattern instead:
 
 1. strict-floor hardening is implemented
-2. runtime parity on the target instance is not yet fully verified
-3. the immediate mission is to prove the hardened floor is runnable on the correct instance
+2. runtime identity parity is mostly verified on port `3100`, but workspace binding is still unresolved
+3. the immediate mission is to bind the benchmark run to the intended repo/worktree and then prove the hardened floor is runnable on that correct instance
 4. only after that may live benchmark evidence be interpreted

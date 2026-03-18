@@ -1,0 +1,10 @@
+{
+  "projectId": "706e2e91-c17f-48b9-8edf-05af02c692ab",
+  "title": "Gemini MicroBench T1: Models Constants Extraction [run 1] - VERIFY BINDING",
+  "description": "Read only the file: packages/adapters/gemini-local/src/server/models.ts\n\nDo not read any other file.\nDo not write or modify any file.\nDo not run commands.\nDo not create follow-up tasks.\n\nReturn exactly one JSON object and nothing else.\nUse exactly this schema:\n{\n  \"env_keys\": [\"...\"],\n  \"model_sets\": [\"...\"],\n  \"fallback_rule\": \"...\"\n}\n\nRules:\n- env_keys: keys from EXTRA_GEMINI_MODELS_ENV_KEYS in source order\n- model_sets: top-level exported const arrays only\n- fallback_rule: max 1 sentence\n\nBenchmark family: T1-floor-v1 (strict)\n\nHard constraints:\n- Only read_file is allowed.\n- Any shell command, API call, directory listing, search, or skill activation is a FAIL.\n- Any non-target file read is a FAIL.\n- Output must be raw JSON with exact schema and no prose.",
+  "priority": "medium",
+  "assigneeAgentId": "7f6d741f-dcd8-44a5-ba55-a72d94a61fad",
+  "executionWorkspaceSettings": {
+    "mode": "isolated"
+  }
+}

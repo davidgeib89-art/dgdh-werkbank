@@ -517,7 +517,6 @@ export async function execute(
       args.push("--sandbox=none");
     }
     if (extraArgs.length > 0) args.push(...extraArgs);
-    args.push(prompt);
     return args;
   };
 
@@ -531,9 +530,7 @@ export async function execute(
         adapterStarted: true,
         cwd,
         commandNotes,
-        commandArgs: args.map((value, index) =>
-          index === args.length - 1 ? `<prompt ${prompt.length} chars>` : value,
-        ),
+        commandArgs: args,
         env: redactEnvForLogs(env),
         prompt,
         promptHeader,
@@ -552,6 +549,7 @@ export async function execute(
       timeoutSec,
       graceSec,
       onLog,
+      stdin: prompt,
     });
     return {
       proc,
