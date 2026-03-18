@@ -36,7 +36,7 @@ Engineering mapping and rollout:
 
 The following documents are the canonical source for platform strategy and rollout priority:
 
-- PLATFORM-VISION.md
+- HARNESS-LEARNINGS-FOR-DGDH-2026-03-18.md
 - TOKEN-ECONOMY-STRATEGY.md
 - MODEL-ROADMAP.md
 - ../doc/plans/2026-03-17-dgdh-platform-evolution-strategy.md

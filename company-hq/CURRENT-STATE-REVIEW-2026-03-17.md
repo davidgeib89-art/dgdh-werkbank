@@ -104,6 +104,8 @@ Interpretation:
 - token efficiency should be improved through benchmark evidence, not abstract debate
 - new tools, memory, and expanded capabilities come later, only after the current path has been made lean for one task
 - the first optimization pass should happen inside the existing Paperclip flow, not by adding another big layer on top
+- the current role and assignment runtime path is now documented canonically and should be kept in sync as this area changes
+- recent harness research has been extracted into a DGDH-specific note and supports the current minimal-harness-first direction
 
 ## What Should Not Be Confused
 
@@ -151,6 +153,8 @@ That is more valuable right now than expanding theory.
 The resulting next action is clear:
 
 - use the benchmark packet in `GEMINI-BENCHMARK-PACKET-01-2026-03-17.md`
+- keep `ROLE-ASSIGNMENT-RUNTIME-MAP-2026-03-18.md` in sync whenever role, assignment, or heartbeat behavior changes
+- use `HARNESS-LEARNINGS-FOR-DGDH-2026-03-18.md` as the canonical research extraction for what DGDH should adopt now versus later
 - run it manually through the Gemini lane
 - inspect what the current issue/heartbeat path actually feeds Gemini
 - record the first baseline

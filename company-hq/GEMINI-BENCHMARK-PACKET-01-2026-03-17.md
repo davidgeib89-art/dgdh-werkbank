@@ -19,6 +19,17 @@ It is intentionally:
 It is not a governance probe.
 It is an operational productivity benchmark.
 
+## Baseline Purity Rule
+
+This packet is the no-Morph baseline packet.
+
+- Morph MCP is not part of this baseline run.
+- Morph Compact is not part of this baseline run.
+
+Reason:
+
+- baseline attribution must stay clean before tool-layer optimization is introduced.
+
 ## Work Packet Identity
 
 - workPacketId: `gemini-benchmark-01-current-state-snapshot`
