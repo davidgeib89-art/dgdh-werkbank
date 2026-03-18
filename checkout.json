@@ -1,0 +1,4 @@
+{
+  "agentId": "435dd097-865a-4e41-b6e5-f4a6de3d6c21",
+  "expectedStatuses": ["todo", "backlog", "blocked", "in_progress"]
+}

@@ -815,6 +815,13 @@ export function extractSingleFileBenchmarkTarget(
   return match?.[1]?.trim() || null;
 }
 
+export function extractBenchmarkFamily(description: string | null | undefined) {
+  if (!description) return null;
+  const match = description.match(/benchmark family:\s*([^\r\n]+)/i);
+  const value = match?.[1]?.trim();
+  return value && value.length > 0 ? value : null;
+}
+
 function buildIssueTaskPrompt(issue: IssuePromptContext) {
   const ref = issue.identifier ?? issue.id;
   const title = trimIssueText(issue.title);
@@ -961,6 +968,26 @@ export function applyIssuePromptContext(
   if (singleFileTargetPath) {
     contextSnapshot.paperclipSingleFileTargetPath = singleFileTargetPath;
     contextSnapshot.paperclipAbortOnMissingFile = true;
+  }
+
+  const benchmarkFamily = extractBenchmarkFamily(normalizedIssue.description);
+  if (benchmarkFamily) {
+    contextSnapshot.paperclipBenchmarkFamily = benchmarkFamily;
+  }
+
+  const strictFloorMode =
+    typeof benchmarkFamily === "string" &&
+    benchmarkFamily.trim().toLowerCase().startsWith("t1-floor-v1");
+  if (strictFloorMode) {
+    contextSnapshot.paperclipStrictFloorMode = true;
+    contextSnapshot.paperclipAllowedTools = ["read_file"];
+    contextSnapshot.paperclipBlockedTools = [
+      "run_shell_command",
+      "list_directory",
+      "glob_search",
+      "grep_search",
+      "activate_skill",
+    ];
   }
 
   return contextSnapshot;

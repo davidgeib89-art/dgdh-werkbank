@@ -1,0 +1,4 @@
+{
+  "status": "done",
+  "comment": "{\n  \"status_codes\": [\"400\", \"500\"],\n  \"invalid_json_branch\": \"The handler identifies JSON body parse failures and returns a 400 status with an 'Invalid JSON request body' message.\",\n  \"default_error_branch\": \"Any otherwise unhandled error results in a 500 status response with a generic 'Internal server error' message.\"\n}"
+}

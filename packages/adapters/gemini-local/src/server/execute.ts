@@ -188,16 +188,56 @@ async function ensureGeminiSkillsInjected(
   }
 }
 
+async function removeGeminiPaperclipSkillSymlinksForFloor(
+  onLog: AdapterExecutionContext["onLog"],
+): Promise<void> {
+  const skillsEntries = await listPaperclipSkillEntries(__moduleDir);
+  if (skillsEntries.length === 0) return;
+
+  const skillsHome = geminiSkillsHome();
+  for (const entry of skillsEntries) {
+    const target = path.join(skillsHome, entry.name);
+    try {
+      const stats = await fs.lstat(target);
+      if (!stats.isSymbolicLink()) continue;
+      await fs.unlink(target);
+      await onLog(
+        "stderr",
+        `[paperclip] Strict floor mode removed Gemini skill symlink: ${entry.name}\n`,
+      );
+    } catch {
+      // Ignore missing entries and non-fatal filesystem errors.
+    }
+  }
+}
+
 export async function execute(
   ctx: AdapterExecutionContext,
 ): Promise<AdapterExecutionResult> {
   const { runId, agent, runtime, config, context, onLog, onMeta, authToken } =
     ctx;
 
-  const promptTemplate = asString(
-    config.promptTemplate,
-    "You are agent {{agent.id}} ({{agent.name}}). Continue your Paperclip work.",
-  );
+  const benchmarkFamily = asString(context.paperclipBenchmarkFamily, "").trim();
+  const strictFloorMode =
+    context.paperclipStrictFloorMode === true ||
+    benchmarkFamily.toLowerCase().startsWith("t1-floor-v1");
+
+  const promptTemplate = strictFloorMode
+    ? asString(
+        config.floorPromptTemplate,
+        [
+          "You are a strict benchmark executor.",
+          "Execute only the benchmark contract.",
+          "Do not activate skills.",
+          "Do not run shell commands.",
+          "Do not perform API workflow behavior.",
+          "Return raw JSON only.",
+        ].join(" "),
+      )
+    : asString(
+        config.promptTemplate,
+        "You are agent {{agent.id}} ({{agent.name}}). Continue your Paperclip work.",
+      );
   const command = asString(config.command, "gemini");
   const model = asString(config.model, DEFAULT_GEMINI_LOCAL_MODEL).trim();
   const sandbox = asBoolean(config.sandbox, false);
@@ -235,7 +275,15 @@ export async function execute(
     ? configuredCwd
     : effectiveWorkspaceCwd || configuredCwd || process.cwd();
   await ensureAbsoluteDirectory(cwd, { createIfMissing: true });
-  await ensureGeminiSkillsInjected(onLog);
+  if (strictFloorMode) {
+    await removeGeminiPaperclipSkillSymlinksForFloor(onLog);
+    await onLog(
+      "stderr",
+      "[paperclip] Strict floor mode active: Gemini skill injection disabled.\n",
+    );
+  } else {
+    await ensureGeminiSkillsInjected(onLog);
+  }
 
   const envConfig = parseObject(config.env);
   const hasExplicitApiKey =
@@ -296,6 +344,12 @@ export async function execute(
   if (agentHome) env.AGENT_HOME = agentHome;
   if (workspaceHints.length > 0)
     env.PAPERCLIP_WORKSPACES_JSON = JSON.stringify(workspaceHints);
+  if (strictFloorMode) {
+    env.PAPERCLIP_BENCHMARK_FLOOR_MODE = "true";
+    if (benchmarkFamily.length > 0) {
+      env.PAPERCLIP_BENCHMARK_FAMILY = benchmarkFamily;
+    }
+  }
 
   for (const [key, value] of Object.entries(envConfig)) {
     if (typeof value === "string") env[key] = value;
@@ -325,7 +379,11 @@ export async function execute(
     runtimeSessionId.length > 0 &&
     (runtimeSessionCwd.length === 0 ||
       path.resolve(runtimeSessionCwd) === path.resolve(cwd));
-  const sessionId = canResumeSession ? runtimeSessionId : null;
+  const sessionId = strictFloorMode
+    ? null
+    : canResumeSession
+    ? runtimeSessionId
+    : null;
   if (runtimeSessionId && !canResumeSession) {
     await onLog(
       "stderr",
@@ -338,7 +396,7 @@ export async function execute(
     ? `${path.dirname(instructionsFilePath)}/`
     : "";
   let instructionsPrefix = "";
-  if (instructionsFilePath) {
+  if (!strictFloorMode && instructionsFilePath) {
     try {
       const instructionsContents = await fs.readFile(
         instructionsFilePath,
@@ -365,7 +423,13 @@ export async function execute(
       "Prompt is passed to Gemini as the final positional argument.",
     ];
     notes.push("Added --approval-mode yolo for unattended execution.");
+    if (strictFloorMode) {
+      notes.push(
+        "Strict floor mode: no skill injection, no instruction prefix, no session handoff note, and no Paperclip API access note.",
+      );
+    }
     if (!instructionsFilePath) return notes;
+    if (strictFloorMode) return notes;
     if (instructionsPrefix.length > 0) {
       notes.push(
         `Loaded agent instructions from ${instructionsFilePath}`,
@@ -391,21 +455,32 @@ export async function execute(
   };
   const renderedPrompt = renderTemplate(promptTemplate, templateData);
   const renderedBootstrapPrompt =
-    !sessionId && bootstrapPromptTemplate.trim().length > 0
+    !strictFloorMode && !sessionId && bootstrapPromptTemplate.trim().length > 0
       ? renderTemplate(bootstrapPromptTemplate, templateData).trim()
       : "";
-  const sessionHandoffNote = asString(
-    context.paperclipSessionHandoffMarkdown,
-    "",
-  ).trim();
+  const sessionHandoffNote = strictFloorMode
+    ? ""
+    : asString(context.paperclipSessionHandoffMarkdown, "").trim();
   const issueTaskNote = renderIssueTaskNote(context);
-  const paperclipEnvNote = renderPaperclipEnvNote(env);
-  const apiAccessNote = renderApiAccessNote(env);
+  const paperclipEnvNote = strictFloorMode ? "" : renderPaperclipEnvNote(env);
+  const apiAccessNote = strictFloorMode ? "" : renderApiAccessNote(env);
+  const floorModeGateNote = strictFloorMode
+    ? [
+        "Strict floor gate:",
+        "- Do not activate skills.",
+        "- Do not run shell commands.",
+        "- Do not perform API/task workflow actions.",
+        "- Read only the benchmark target file.",
+        "- Output raw JSON only.",
+        "",
+      ].join("\n")
+    : "";
   const prompt = joinPromptSections([
-    instructionsPrefix,
+    strictFloorMode ? "" : instructionsPrefix,
     renderedBootstrapPrompt,
     sessionHandoffNote,
     issueTaskNote,
+    floorModeGateNote,
     paperclipEnvNote,
     apiAccessNote,
     renderedPrompt,
@@ -525,7 +600,7 @@ export async function execute(
     const resolvedSessionId =
       attempt.parsed.sessionId ??
       (canFallbackToRuntimeSession
-        ? (runtimeSessionId ?? runtime.sessionId ?? null)
+        ? runtimeSessionId ?? runtime.sessionId ?? null
         : null);
     const resolvedSessionParams = resolvedSessionId
       ? ({

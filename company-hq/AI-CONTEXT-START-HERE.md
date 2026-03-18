@@ -36,8 +36,12 @@ If you are a new AI agent in this repo:
 
 1. `company-hq/GEMINI-BENCHMARK-PACKET-01-2026-03-17.md`
 2. `company-hq/GEMINI-MICRO-BENCHMARK-SUITE-2026-03-18.md`
-3. `company-hq/BOARD-MEMO-PROBE-01-STATUS-2026-03-17.md`
-4. `company-hq/MORPH-INTEGRATION-PLAN-2026-03-18.md` (load when tool-layer optimization is in scope)
+3. `company-hq/GEMINI-T1-BASELINE-ANALYSIS-2026-03-18.md`
+4. `company-hq/GEMINI-T1-BENCHMARK-DESIGN-V2-2026-03-18.md`
+5. `company-hq/GEMINI-T1-DRY-RUN-CHECKBERICHT-2026-03-18.md`
+6. `company-hq/AI-HANDOFF-GEMINI-RUNTIME-PARITY-2026-03-18.md` (load first when re-entering the current benchmark strand)
+7. `company-hq/BOARD-MEMO-PROBE-01-STATUS-2026-03-17.md`
+8. `company-hq/MORPH-INTEGRATION-PLAN-2026-03-18.md` (load when tool-layer optimization is in scope)
 
 ## Probe-01 Packet Docs (Load Only For Probe Work)
 
@@ -66,3 +70,9 @@ When two docs conflict:
 ## Maintenance Rule
 
 If a change updates operating behavior, this file should be reviewed in the same change set.
+
+Current operator note:
+
+- use Copilot primarily for short repo work, edits, reviews, and handoffs
+- use CLI AI for runtime bring-up and benchmark execution
+- use ChatGPT as reflection lane for important decisions after evidence exists

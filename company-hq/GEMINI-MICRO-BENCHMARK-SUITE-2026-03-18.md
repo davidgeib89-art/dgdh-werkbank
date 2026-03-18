@@ -2,12 +2,12 @@
 
 Status: active
 Date: 2026-03-18
-Purpose: fast, repeatable, low-noise Gemini benchmark suite for token and latency optimization
+Purpose: fast, repeatable, low-noise Gemini baseline harness for token and latency optimization
 
 ## Why This Exists
 
 DAV-6 is useful, but too broad for rapid optimization loops.
-This suite provides a smaller harness so you can run 2-3 fast cycles and compare changes with low variance.
+This suite provides a smaller harness so you can run the same small task 3 times and compare token cost with low variance.
 
 ## Suite Design Goals
 
@@ -26,9 +26,9 @@ This suite provides a smaller harness so you can run 2-3 fast cycles and compare
 
 If model or workspace changes, start a new series.
 
-## Test Set
+## Current Baseline Test
 
-Run these three tests as one suite cycle.
+Current default baseline means one tiny task repeated three times.
 
 ### T1 Models Constants Extraction
 
@@ -48,6 +48,20 @@ Rules:
 - env_keys: keys from EXTRA_GEMINI_MODELS_ENV_KEYS in source order
 - model_sets: top-level exported const arrays only
 - fallback_rule: max 1 sentence
+
+This is the canonical baseline test right now.
+
+Reason:
+
+- tiny input scope
+- single-file benchmark guard already exists in the core
+- no edits and no shell calls
+- output is easy to hash and compare
+
+## Expansion Tests
+
+These are not part of the default baseline right now.
+Use them later only after T1 is stable and cheap.
 
 ### T2 Error Handler Mapping
 
@@ -88,7 +102,7 @@ Rules:
 
 ## Universal Task Guardrails
 
-Apply to T1, T2, and T3:
+Apply to every benchmark run:
 
 - read only the declared file
 - do not read other files
@@ -107,49 +121,55 @@ Per run, record:
 - tokenMeasurementStatus
 - outputHashSha256
 
-Per suite cycle, record:
+Per 3-run baseline series, record:
 
-- cycleDurationSeconds
-- totalBenchmarkTokens
+- seriesDurationSeconds
+- minBenchmarkTokens
+- maxBenchmarkTokens
+- meanBenchmarkTokens
 - meanRunDurationSeconds
-- meanRunBenchmarkTokens
+- outputHashEquality
 
 ## Determinism Rule
 
-A cycle is deterministic when all are true:
+A 3-run baseline series is deterministic when all are true:
 
 - all three runs succeed
-- each test output hash is equal to the previous cycle hash for that test
-- benchmark token deltas are within +/-10% against previous cycle for each test
+- all three output hashes are equal
+- benchmark token spread stays within a narrow range that is believable for the same task
+
+Practical first target:
+
+- token spread no worse than about +/-10%
 
 ## Usage
 
-Run one cycle:
+Run the default baseline series:
 
-powershell -ExecutionPolicy Bypass -File scripts/gemini-micro-benchmark-suite.ps1 -CompanyId <COMPANY_ID>
+powershell -ExecutionPolicy Bypass -File scripts/gemini-micro-benchmark-suite.ps1 -CompanyId <COMPANY_ID> -TestKey T1 -Repeats 3
 
-Run three cycles for stability check:
+Run a quick verification only once:
 
-powershell -ExecutionPolicy Bypass -File scripts/gemini-micro-benchmark-suite.ps1 -CompanyId <COMPANY_ID> -Cycles 3
+powershell -ExecutionPolicy Bypass -File scripts/gemini-micro-benchmark-suite.ps1 -CompanyId <COMPANY_ID> -TestKey T1 -Repeats 1
 
 Strict token requirement:
 
-powershell -ExecutionPolicy Bypass -File scripts/gemini-micro-benchmark-suite.ps1 -CompanyId <COMPANY_ID> -Cycles 3 -RequireTokenMeasurement
+powershell -ExecutionPolicy Bypass -File scripts/gemini-micro-benchmark-suite.ps1 -CompanyId <COMPANY_ID> -TestKey T1 -Repeats 3 -RequireTokenMeasurement
 
 ## Morph Rollout Comparison Plan
 
 Use this exact sequence to attribute gains cleanly:
 
-1. Baseline series (Morph OFF): 3 cycles
-2. Enable WarpGrep only: 3 cycles
-3. Enable Fast Apply only: 3 cycles
-4. Enable Compact only: 3 cycles
-5. Combined Morph set: 3 cycles
+1. Baseline series with T1 only: 3 runs
+2. Enable WarpGrep only and repeat T1: 3 runs
+3. Enable Fast Apply only and repeat an edit benchmark later
+4. Enable Compact only and repeat a longer conversational benchmark later
+5. Add T2 or T3 only after the baseline floor is understood
 
 Compare each phase against baseline using:
 
-- meanRunBenchmarkTokens
+- minBenchmarkTokens / maxBenchmarkTokens / meanBenchmarkTokens
 - meanRunDurationSeconds
-- deterministic-cycle pass rate
+- outputHashEquality
 
-Only accept an optimization phase as positive if deterministic pass rate does not degrade.
+Only accept an optimization phase as positive if output stability does not degrade.
