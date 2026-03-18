@@ -565,6 +565,71 @@ export function isTestRunContext(
   return isDryRunExecutionMode(readExecutionMode(contextSnapshot));
 }
 
+const LEGACY_DB_ASCII_REPLACEMENTS: Record<string, string> = {
+  "\u00a0": " ",
+  "\u2013": "-",
+  "\u2014": "-",
+  "\u2018": "'",
+  "\u2019": "'",
+  "\u201c": '"',
+  "\u201d": '"',
+  "\u2022": "*",
+  "\u2026": "...",
+  "\u2190": "<-",
+  "\u2192": "->",
+  "\u21d0": "<=",
+  "\u21d2": "=>",
+  "\u0394": "Delta",
+  "\u03b4": "delta",
+  "\u2713": "[ok]",
+  "\u2714": "[ok]",
+  "\u2717": "x",
+  "\u2718": "x",
+};
+
+export function isLegacyDatabaseEncodingError(err: unknown) {
+  return (
+    typeof err === "object" &&
+    err !== null &&
+    "code" in err &&
+    err.code === "22P05"
+  );
+}
+
+export function sanitizeLegacyDatabaseValue<T>(value: T): T {
+  if (typeof value === "string") {
+    const replaced = Array.from(value, (char) => {
+      return LEGACY_DB_ASCII_REPLACEMENTS[char] ?? char;
+    }).join("");
+
+    return replaced
+      .normalize("NFKD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^\x09\x0A\x0D\x20-\x7E]/g, "?")
+      .replace(/\?{2,}/g, "?") as T;
+  }
+
+  if (Array.isArray(value)) {
+    return value.map((item) => sanitizeLegacyDatabaseValue(item)) as T;
+  }
+
+  if (
+    value &&
+    typeof value === "object" &&
+    !(value instanceof Date) &&
+    !(value instanceof Uint8Array)
+  ) {
+    return Object.fromEntries(
+      Object.entries(value).map(([key, nestedValue]) => [
+        key,
+        sanitizeLegacyDatabaseValue(nestedValue),
+      ]),
+    ) as T;
+  }
+
+  return value;
+}
+
 function resolveAdapterExecutionSafety(
   contextSnapshot: Record<string, unknown> | null | undefined,
 ) {
@@ -1895,12 +1960,40 @@ export function heartbeatService(db: Db) {
     status: string,
     patch?: Partial<typeof heartbeatRuns.$inferInsert>,
   ) {
-    const updated = await db
-      .update(heartbeatRuns)
-      .set({ status, ...patch, updatedAt: new Date() })
-      .where(eq(heartbeatRuns.id, runId))
-      .returning()
-      .then((rows) => rows[0] ?? null);
+    const buildUpdatePatch = () => ({
+      status,
+      ...patch,
+      updatedAt: new Date(),
+    });
+    const updateStatus = (
+      updatePatch: Partial<typeof heartbeatRuns.$inferInsert> & {
+        status: string;
+        updatedAt: Date;
+      },
+    ) => {
+      return db
+        .update(heartbeatRuns)
+        .set(updatePatch)
+        .where(eq(heartbeatRuns.id, runId))
+        .returning()
+        .then((rows) => rows[0] ?? null);
+    };
+
+    let updated;
+    try {
+      updated = await updateStatus(buildUpdatePatch());
+    } catch (err) {
+      if (!isLegacyDatabaseEncodingError(err)) {
+        throw err;
+      }
+
+      const sanitizedPatch = sanitizeLegacyDatabaseValue(buildUpdatePatch());
+      logger.warn(
+        { err, runId, status },
+        "heartbeat run status hit legacy database encoding limits; retrying with sanitized payload",
+      );
+      updated = await updateStatus(sanitizedPatch);
+    }
 
     if (updated) {
       publishLiveEvent({
