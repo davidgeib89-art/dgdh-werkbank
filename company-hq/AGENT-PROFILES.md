@@ -38,12 +38,15 @@ Technical implementation reference:
 
 ## Phase-1 Operating Rule
 
-Phase 1 is not about freezing final permanent roles too early.
+For DGDH Phase 1, roles are fixed by David and are not fluid runtime settings.
 
+- The active role set is founder-defined and intentionally stable for the current optimization phase.
+- Paperclip may support company-specific or database-defined role changes in the general product, but that flexibility is not the source of truth for DGDH right now.
 - Real quota availability matters more than elegant theory.
 - Gemini is the first measured worker lane because its quota envelope is strongest.
 - Claude and Codex are specialist lanes that should be activated only when their extra quality is worth the tighter quotas.
 - All lanes operate against the same canonical repo context: `~/DGDH/worktrees/dgdh-werkbank`.
+- Role changes require an explicit founder decision and should be reflected in the canonical company docs before they are reflected in runtime configuration.
 
 ## Lane 1: Gemini Primary Worker Lane
 

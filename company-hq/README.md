@@ -27,6 +27,8 @@ This directory is the canonical, versioned home for DGDH governance, platform st
 
 - `../docs/guides/dgdh-repo-operating-model.md`
 - `../doc/plans/2026-03-17-dgdh-repo-restructure-plan.md`
+- `CURRENT-STATE-REVIEW-2026-03-17.md`
+- `GEMINI-BENCHMARK-PACKET-01-2026-03-17.md`
 
 ## Note on top-level mirror
 

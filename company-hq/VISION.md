@@ -14,6 +14,7 @@
 - Success means not just running tests, but genuinely taking work off the founder in a controlled and economical way.
 - Once this works with Gemini, the same cost-disciplined operating model can later be used to attach Claude and Codex more intentionally.
 - If narrow custom tools help Gemini stay compact and save tokens on recurring tasks, building those tools is aligned with the vision.
+- Before new complexity is added, the current inherited Paperclip path should be understood, simplified, and cut down so Gemini can do one task extremely well and cheaply.
 
 ## Governance Stack (Primary Entry)
 
@@ -98,9 +99,10 @@ Role/provider mapping may evolve with evidence. The current priority is practica
 1. **No autonomous CEO agent**: David is the human CEO.
 2. **Humans control workflow**: no significant task starts without explicit human intent.
 3. **Paperclip as substrate**: Paperclip is foundation, not final identity.
-4. **Token safety first**: no broad autonomy before token behavior is measured and understood.
-5. **Internal proof first**: small internal projects and fun projects must work before larger ambitions.
-6. **Measure before optimizing**: no large architectural claims without benchmark evidence.
+4. **Cut before adding**: first simplify what already exists before adding memory, tools, or new capability layers.
+5. **Token safety first**: no broad autonomy before token behavior is measured and understood.
+6. **Internal proof first**: small internal projects and fun projects must work before larger ambitions.
+7. **Measure before optimizing**: no large architectural claims without benchmark evidence.
 
 ---
 

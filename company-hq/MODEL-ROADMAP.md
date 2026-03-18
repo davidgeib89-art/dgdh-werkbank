@@ -6,11 +6,14 @@ Status: Prioritized roadmap baseline
 ## Jetzt
 
 1. Clean and simplify the canonical documentation so current operating reality is readable again.
-2. Use Gemini as the first measured worker lane because quota availability is strongest there.
-3. Define one fixed, repeatable benchmark task and record tokens per run.
-4. Use the remaining current quota windows to collect real benchmark evidence before the next reset.
-5. Keep Claude and Codex dormant unless a task clearly justifies spending their tighter quotas.
-6. Keep main delivery velocity through David plus repo assistance while runtime behavior is being clarified.
+2. Optimize the shared core used by all agents before splitting attention across role-specific prompt behavior.
+3. Inspect the current Paperclip issue and heartbeat path as it exists today and understand exactly what the first active role receives.
+4. Cut down prompt, context, and workflow waste inside that inherited path before adding new system layers.
+5. Use Gemini as the first measured worker lane because quota availability is strongest there.
+6. Define one fixed, repeatable benchmark task and record tokens per run.
+7. Use the remaining current quota windows to collect real benchmark evidence before the next reset.
+8. Keep Claude and Codex dormant unless a task clearly justifies spending their tighter quotas.
+9. Keep main delivery velocity through David plus repo assistance while runtime behavior is being clarified.
 
 ## Naechster Ausbau
 
@@ -18,9 +21,10 @@ Status: Prioritized roadmap baseline
    - task class -> provider lane -> budget profile
 2. Add per-lane cost and quality scorecards.
 3. Build narrow task-specific tools where tool use is cheaper and more reliable than repeatedly expanding prompt context.
-4. Reduce prompt and context waste based on measured runs rather than speculative redesign.
-5. Define reactivation checklist for Claude and Codex based on actual benchmark evidence.
-6. Add provider profiles for low-cost experimentation once baseline telemetry is trustworthy.
+4. Add memory, external skills, or other capability expansion only after one Gemini task is already lean and stable.
+5. Reduce prompt and context waste based on measured runs rather than speculative redesign.
+6. Define reactivation checklist for Claude and Codex based on actual benchmark evidence.
+7. Add provider profiles for low-cost experimentation once baseline telemetry is trustworthy.
 
 ## Spaeter
 
@@ -44,6 +48,8 @@ Codex/Claude can move from Dormant to Controlled Pilot only if all are true:
 
 1. Adapter contracts stay stable while providers change.
 2. Routing decisions are policy-driven, not hardcoded by model vendor.
-3. Cost telemetry is available per run, per role, and per adapter.
-4. The first optimization cycle starts only after a trustworthy Gemini benchmark exists.
-5. Repeated firm work should move into tools or compact structured flows whenever that lowers token spend.
+3. A shared core should stay common across agents; role behavior remains a thinner layer above it.
+4. Cost telemetry is available per run, per role, and per adapter.
+5. The first optimization cycle starts only after a trustworthy Gemini benchmark exists.
+6. Repeated firm work should move into tools or compact structured flows whenever that lowers token spend.
+7. New capability layers are justified only after the current inherited execution path has been made lean for one real task.

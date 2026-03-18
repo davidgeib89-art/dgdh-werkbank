@@ -9,6 +9,8 @@ Scope: Verbindliche Stage-1-Spezifikation fuer den token-effizienten Minimal-Cor
 - [confirmed] Dieser Vertrag definiert den kleinsten gemeinsamen Prompt-Core fuer alle Agentenrollen.
 - [confirmed] Ziel ist maximale Token-Disziplin bei klarer Governance und auditierbarer Ausfuehrung.
 - [confirmed] Rollenlogik liegt ueber dem Core als kleine Zusatzschicht, nicht als Core-Ersatz.
+- [confirmed] Der erste Optimierungsfokus gilt dem gemeinsamen Core, nicht getrennten Spezial-Core-Versionen pro Rolle.
+- [confirmed] Gemini ist nur die erste Rolle, an der dieser gemeinsame Core praktisch gemessen und verbessert wird.
 
 ## 2. Prompt layers (verbindlich)
 
@@ -64,6 +66,7 @@ Verbindliche Feldgruppen im Governance/Execution Layer:
 - [confirmed] Rollen duerfen Core-Regeln nicht ueberschreiben.
 - [confirmed] Rollen duerfen nur Zusatzlogik liefern (Arbeitsstil, Prioritaet, Eskalationsverhalten).
 - [confirmed] Bei Konflikt gewinnt immer Company Core plus Governance/Execution Layer.
+- [confirmed] Das vorhandene Paperclip-Rollensystem kann weiter genutzt werden, aber zuerst muss der gemeinsame Core fuer alle Rollen schlank und stabil sein.
 
 ## 8. Token-Disziplin-Regeln (Stage 1)
 

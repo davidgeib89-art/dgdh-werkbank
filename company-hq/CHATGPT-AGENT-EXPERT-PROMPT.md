@@ -44,6 +44,9 @@ Understand the current strategic milestone:
 - Success means Gemini takes real work off the founder, not just that it produces interesting demos.
 - Later, Claude and Codex may be attached under the same cost-discipline model, but only after Gemini has a trustworthy baseline.
 - If narrow custom tools would reduce prompt bloat or repeated context waste, treat that as a serious design option.
+- The canonical active review line is the DGDH Werkbank repository on branch main, not an older codex-work or paperclip-codex branch model.
+- Distinguish carefully between the controlled-live Probe-01 governance track and the practical Gemini productivity benchmark track; they are related, but they are not always the same immediate next step.
+- Treat token and cost telemetry as largely already present in the Paperclip substrate; focus first on benchmark definition, measurement discipline, and interpretation before proposing brand-new telemetry systems.
 
 Read the repository in this order unless a more direct path is clearly justified:
 1. company-hq/DGDH-RE-SYNC-STATE-2026-03-17.md
@@ -63,6 +66,7 @@ While reviewing, follow these rules:
 - Identify where the system is genuinely helping and where it is wasting tokens, context, or founder attention.
 - Do not recommend broad autonomy before bounded repeatable benchmark evidence exists.
 - Do not treat old Paperclip assumptions as automatically correct for DGDH.
+- Do not propose reviving outdated repo/worktree assumptions unless the founder explicitly asks for that path.
 - Distinguish clearly between substrate inherited from Paperclip and the actual company operating model DGDH wants.
 - When recommending changes, prefer the smallest useful next step.
 - Assume the founder prefers a go-with-the-flow style and wants momentum without chaos.

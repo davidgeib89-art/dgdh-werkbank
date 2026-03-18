@@ -10,6 +10,14 @@ Scope: Operativer Rollen- und Routing-Vertrag fuer DGDH auf Paperclip-Substrat
 - [confirmed] Ziel ist token-effiziente, auditierbare und governance-konforme Ausfuehrung.
 - [confirmed] Keine Runtime-Aenderung durch dieses Dokument; es ist ein Architekturvertrag.
 
+## 1.1 DGDH Festschreibung der Rollen
+
+- [confirmed] Fuer DGDH sind Rollen im aktuellen Betriebsmodus fest definiert und nicht fluide pro Firma oder pro Lauf konfigurierbar.
+- [confirmed] Die kanonischen Rollen werden durch David in den Company-Dokumenten festgelegt.
+- [confirmed] Runtime- oder datenbankseitige Rollenflexibilitaet aus dem allgemeinen Paperclip-Modell ist fuer DGDH vorerst deaktiviert, ignoriert oder nachrangig gegenueber dem kanonischen Vertrag.
+- [confirmed] Rollen duerfen derzeit nicht autonom von Agenten veraendert, neu erfunden oder umgedeutet werden.
+- [open question] Ob spaeter ein kontrollierter Mechanismus fuer Rollenaenderungen sinnvoll ist, wird erst nach stabiler Shared-Core-Optimierung entschieden.
+
 ## 2. Role Routing Matrix
 
 | Rolle                  | Hauptzweck                                                 | Standardmodell / bevorzugter Provider                       | Budgetklasse | Approval-Mode               | Erlaubte Toolklasse                       | Eskalationspflicht |
