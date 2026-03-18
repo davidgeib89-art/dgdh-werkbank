@@ -3,7 +3,7 @@ param(
   [Parameter(Mandatory = $true)][string]$CompanyId,
   [string]$ProjectId,
   [string]$AgentRef = "Research-Gemini",
-  [ValidateSet("T1-floor-v1", "T1-paperclip-default-v1")]
+  [ValidateSet("T1-floor-v1", "T1-floor-v2", "T1-floor-normalized-v1", "T1-paperclip-default-v1")]
   [string]$BenchmarkFamily = "T1-floor-v1",
   [string]$TestKey = "T1",
   [int]$Repeats = 3,
@@ -409,6 +409,94 @@ function Get-LatestIssueCommentBody {
   return ""
 }
 
+function Get-RunFinalAssistantText {
+  param([Parameter(Mandatory = $true)][string]$LogContent)
+
+  $latestText = ""
+  if ([string]::IsNullOrWhiteSpace($LogContent)) {
+    return $latestText
+  }
+
+  $outerLines = [string]$LogContent -split "`n"
+  foreach ($outer in $outerLines) {
+    if ([string]::IsNullOrWhiteSpace($outer)) { continue }
+
+    $outerObj = $null
+    try { $outerObj = $outer | ConvertFrom-Json } catch { continue }
+    if ($null -eq $outerObj) { continue }
+    if (-not ($outerObj.PSObject.Properties.Name -contains "chunk")) { continue }
+
+    $chunkText = [string]$outerObj.chunk
+    if ([string]::IsNullOrWhiteSpace($chunkText)) { continue }
+
+    foreach ($inner in ($chunkText -split "`n")) {
+      if ([string]::IsNullOrWhiteSpace($inner)) { continue }
+
+      $entry = $null
+      try { $entry = $inner | ConvertFrom-Json } catch { continue }
+      if ($null -eq $entry) { continue }
+
+      $entryType = [string]$entry.type
+      if ($entryType -eq "assistant") {
+        $parts = New-Object System.Collections.Generic.List[string]
+        if ($entry.message -and $entry.message.text) {
+          $text = [string]$entry.message.text
+          if (-not [string]::IsNullOrWhiteSpace($text)) {
+            [void]$parts.Add($text.Trim())
+          }
+        }
+        if ($entry.message -and $entry.message.content) {
+          foreach ($partRaw in @($entry.message.content)) {
+            $part = $partRaw
+            if ($null -eq $part) { continue }
+            $partType = [string]$part.type
+            if ($partType -notin @("output_text", "text", "content")) { continue }
+            $partValue = if ($null -ne $part.text) { $part.text } else { $part.content }
+            $partText = [string]$partValue
+            if (-not [string]::IsNullOrWhiteSpace($partText)) {
+              [void]$parts.Add($partText.Trim())
+            }
+          }
+        }
+        if ($parts.Count -gt 0) {
+          $latestText = ($parts -join "`n").Trim()
+        }
+        continue
+      }
+
+      if ($entryType -eq "text") {
+        $part = $null
+        if ($entry.PSObject.Properties.Name -contains "part") {
+          $part = $entry.part
+        }
+        $partText = if ($part -and $part.text) { [string]$part.text } else { "" }
+        if (-not [string]::IsNullOrWhiteSpace($partText)) {
+          $latestText = $partText.Trim()
+        }
+        continue
+      }
+
+      if ($entryType -eq "result") {
+        $resultValue = if ($entry.result) {
+          $entry.result
+        } elseif ($entry.text) {
+          $entry.text
+        } elseif ($entry.response) {
+          $entry.response
+        } else {
+          ""
+        }
+        $resultText = [string]$resultValue
+        if (-not [string]::IsNullOrWhiteSpace($resultText)) {
+          $latestText = $resultText.Trim()
+        }
+      }
+    }
+  }
+
+  return $latestText
+}
+
 function Get-TextSha256 {
   param([string]$Text)
 
@@ -513,16 +601,25 @@ function Get-RunToolAndReadStats {
           }
           $toolCounts[$toolName] = [int]$toolCounts[$toolName] + 1
 
-            if ($toolName -eq "read_file") {
-              $pathValue = ""
-            if ($entry.parameters -and $entry.parameters.PSObject.Properties.Name -contains "path" -and $entry.parameters.path) {
+          if ($toolName -eq "read_file") {
+            $pathValue = ""
+            if (
+              $entry.parameters -and
+              $entry.parameters.PSObject.Properties.Name -contains "path" -and
+              $entry.parameters.path
+            ) {
               $pathValue = [string]$entry.parameters.path
-            } elseif ($entry.input -and $entry.input.PSObject.Properties.Name -contains "path" -and $entry.input.path) {
+            } elseif (
+              $entry.PSObject.Properties.Name -contains "input" -and
+              $entry.input -and
+              $entry.input.PSObject.Properties.Name -contains "path" -and
+              $entry.input.path
+            ) {
               $pathValue = [string]$entry.input.path
-              }
-              if (-not [string]::IsNullOrWhiteSpace($pathValue)) {
-                [void]$readPaths.Add($pathValue)
-              }
+            }
+            if (-not [string]::IsNullOrWhiteSpace($pathValue)) {
+              [void]$readPaths.Add($pathValue)
+            }
           }
         }
       }
@@ -537,7 +634,13 @@ function Get-RunToolAndReadStats {
               }
               $toolCounts[$toolName] = [int]$toolCounts[$toolName] + 1
 
-              if ($toolName -eq "read_file" -and $part.input -and $part.input.PSObject.Properties.Name -contains "path" -and $part.input.path) {
+              if (
+                $toolName -eq "read_file" -and
+                $part.PSObject.Properties.Name -contains "input" -and
+                $part.input -and
+                $part.input.PSObject.Properties.Name -contains "path" -and
+                $part.input.path
+              ) {
                 [void]$readPaths.Add([string]$part.input.path)
               }
             }
@@ -566,6 +669,42 @@ function Test-IsRawJson {
     return $true
   } catch {
     return $false
+  }
+}
+
+function Get-StrictFloorOutputAnalysis {
+  param(
+    [Parameter(Mandatory = $true)][string]$Text,
+    [Parameter(Mandatory = $true)][bool]$AllowFenceNormalization
+  )
+
+  $trimmed = if ($null -eq $Text) { "" } else { $Text.Trim() }
+  $strictRawOutputPass = Test-IsRawJson -Text $trimmed
+  $normalizedForAnalysis = $false
+  $normalizationReason = "none"
+  $analysisText = $trimmed
+
+  if (-not $strictRawOutputPass -and $AllowFenceNormalization -and $trimmed.StartsWith('```') -and $trimmed.Contains('```')) {
+    $candidate = $trimmed -replace '^\s*```(?:json)?\s*', ''
+    $candidate = $candidate -replace '\s*```\s*$', ''
+    $candidate = $candidate.Trim()
+    if (Test-IsRawJson -Text $candidate) {
+      $normalizedForAnalysis = $true
+      $normalizationReason = "fenced_json_output"
+      $analysisText = $candidate
+    }
+  }
+
+  $analysisObject = $null
+  if ($strictRawOutputPass -or $normalizedForAnalysis) {
+    $analysisObject = $analysisText | ConvertFrom-Json
+  }
+
+  return [pscustomobject]@{
+    strictRawOutputPass = $strictRawOutputPass
+    normalizedForAnalysis = $normalizedForAnalysis
+    normalizationReason = $normalizationReason
+    analysisObject = $analysisObject
   }
 }
 
@@ -700,26 +839,45 @@ if ($DryRun) {
 
 $results = @()
 $seriesStartedAt = Get-Date
-$strictFloorMode = ($BenchmarkFamily -eq "T1-floor-v1")
+$strictFloorMode = $BenchmarkFamily -like "T1-floor-v*"
+$normalizedAnalysisMode = ($BenchmarkFamily -eq "T1-floor-normalized-v1")
 $allowedToolsForFloor = @("read_file")
 
 for ($iteration = 1; $iteration -le $Repeats; $iteration++) {
   Reset-AgentSessionHard -AgentId $agentId
 
   $issueTitle = "$($selectedTest.titlePrefix): $($selectedTest.name) [run $iteration]"
+  if ($normalizedAnalysisMode) {
+    $issueTitle += " (normalized)"
+  }
   $description = New-TestDescription -TargetPath $selectedTest.targetPath -SchemaBlock $selectedTest.schema -Rules $selectedTest.rules
 
   if ($strictFloorMode) {
+    $strictFloorVersionNote = if ($BenchmarkFamily -eq "T1-floor-v2") {
+      "Benchmark family: T1-floor-v2 (strict)"
+    } elseif ($BenchmarkFamily -eq "T1-floor-normalized-v1") {
+      "Benchmark family: T1-floor-normalized-v1 (analysis-only normalized)"
+    } else {
+      "Benchmark family: T1-floor-v1 (strict)"
+    }
     $description = @"
 $description
 
-Benchmark family: T1-floor-v1 (strict)
+${strictFloorVersionNote}
+
+Analysis-only note:
+- fenced JSON may be normalized for analysis only
+- strict_raw_output_pass remains false unless the raw output is already an unwrapped JSON object
 
 Hard constraints:
 - Only read_file is allowed.
 - Any shell command, API call, directory listing, search, or skill activation is a FAIL.
 - Any non-target file read is a FAIL.
-- Output must be raw JSON with exact schema and no prose.
+- Output must be exactly one raw JSON object.
+- The first non-whitespace character must be {.
+- The last non-whitespace character must be }.
+- Do not use markdown fences.
+- Do not add any prose before or after the JSON object.
 "@
   }
 
@@ -771,10 +929,13 @@ Hard constraints:
     }
   }
 
-  $commentBody = Get-LatestIssueCommentBody -IssueId ([string]$issue.id)
-  $outputHash = Get-TextSha256 -Text $commentBody
-
   $runLog = Get-RunLogContent -RunId $runId
+  $commentBody = if ($strictFloorMode) {
+    Get-RunFinalAssistantText -LogContent $runLog
+  } else {
+    Get-LatestIssueCommentBody -IssueId ([string]$issue.id)
+  }
+  $outputHash = Get-TextSha256 -Text $commentBody
   $toolStats = Get-RunToolAndReadStats -LogContent $runLog
   $toolCounts = $toolStats.toolCounts
   $readPaths = @($toolStats.readPaths)
@@ -839,17 +1000,20 @@ Hard constraints:
     [void]$reasonCodes.Add("other_issue_context_touched")
   }
 
-  $isRawJsonOutput = Test-IsRawJson -Text $commentBody
+  $floorOutputAnalysis = Get-StrictFloorOutputAnalysis -Text $commentBody -AllowFenceNormalization:$normalizedAnalysisMode
+  $isRawJsonOutput = [bool]$floorOutputAnalysis.strictRawOutputPass
+  $normalizedForAnalysis = [bool]$floorOutputAnalysis.normalizedForAnalysis
+  $normalizationReason = [string]$floorOutputAnalysis.normalizationReason
+  $analysisOutputObj = $floorOutputAnalysis.analysisObject
   $outputSchemaValid = $false
-  if ($isRawJsonOutput) {
-    $outputObj = $commentBody.Trim() | ConvertFrom-Json
-    $outputSchemaValid = Test-OutputSchema -TestKey $selectedTest.key -JsonObject $outputObj
+  if ($null -ne $analysisOutputObj) {
+    $outputSchemaValid = Test-OutputSchema -TestKey $selectedTest.key -JsonObject $analysisOutputObj
   }
 
-  if (-not $isRawJsonOutput -and -not $reasonCodes.Contains("non_json_output")) {
+  if (-not $isRawJsonOutput -and -not $normalizedForAnalysis -and -not $reasonCodes.Contains("non_json_output")) {
     [void]$reasonCodes.Add("non_json_output")
   }
-  if ($isRawJsonOutput -and -not $outputSchemaValid -and -not $reasonCodes.Contains("output_schema_mismatch")) {
+  if (($isRawJsonOutput -or $normalizedForAnalysis) -and -not $outputSchemaValid -and -not $reasonCodes.Contains("output_schema_mismatch")) {
     [void]$reasonCodes.Add("output_schema_mismatch")
   }
 
@@ -908,6 +1072,9 @@ Hard constraints:
     firstForbiddenToolName = $firstForbiddenToolName
     firstForbiddenPattern = $firstForbiddenPattern
     rawOutputValidJson = $isRawJsonOutput
+    normalizedForAnalysis = $normalizedForAnalysis
+    strictRawOutputPass = $isRawJsonOutput
+    normalizationReason = $normalizationReason
     rawOutputSchemaValid = $outputSchemaValid
     passFail = $passFail
     failReasonCodes = $failReasonCodes
@@ -995,6 +1162,9 @@ $summary = [ordered]@{
   passCount = $passCount
   failCount = $failCount
   passRate = $passRate
+  normalizedForAnalysisCount = @($results | Where-Object { $_.normalizedForAnalysis -eq $true }).Count
+  strictRawOutputPassCount = @($results | Where-Object { $_.strictRawOutputPass -eq $true }).Count
+  normalizationReasonHistogram = @{}
   minTotalTokens = $minBenchmarkTokens
   maxTotalTokens = $maxBenchmarkTokens
   meanTotalTokens = $meanBenchmarkTokens
@@ -1015,6 +1185,15 @@ $summary = [ordered]@{
   violationHistogram = $violationHistogram
   totalRuns = $results.Count
   results = $results
+}
+
+foreach ($row in $results) {
+  $reason = [string]$row.normalizationReason
+  if ([string]::IsNullOrWhiteSpace($reason)) { $reason = "none" }
+  if (-not $summary.normalizationReasonHistogram.Contains($reason)) {
+    $summary.normalizationReasonHistogram[$reason] = 0
+  }
+  $summary.normalizationReasonHistogram[$reason] = [int]$summary.normalizationReasonHistogram[$reason] + 1
 }
 
 $summary | ConvertTo-Json -Depth 20

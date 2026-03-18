@@ -211,6 +211,19 @@ async function removeGeminiPaperclipSkillSymlinksForFloor(
   }
 }
 
+function isStrictFloorRawJsonObjectText(text: string): boolean {
+  const trimmed = text.trim();
+  if (!trimmed) return false;
+  if (trimmed.startsWith("```") || trimmed.includes("```")) return false;
+  if (!(trimmed.startsWith("{") && trimmed.endsWith("}"))) return false;
+  try {
+    const parsed = JSON.parse(trimmed) as unknown;
+    return typeof parsed === "object" && parsed !== null && !Array.isArray(parsed);
+  } catch {
+    return false;
+  }
+}
+
 export async function execute(
   ctx: AdapterExecutionContext,
 ): Promise<AdapterExecutionResult> {
@@ -220,7 +233,7 @@ export async function execute(
   const benchmarkFamily = asString(context.paperclipBenchmarkFamily, "").trim();
   const strictFloorMode =
     context.paperclipStrictFloorMode === true ||
-    benchmarkFamily.toLowerCase().startsWith("t1-floor-v1");
+    benchmarkFamily.toLowerCase().startsWith("t1-floor-v");
 
   const promptTemplate = strictFloorMode
     ? asString(
@@ -613,11 +626,19 @@ export async function execute(
       typeof attempt.parsed.errorMessage === "string"
         ? attempt.parsed.errorMessage.trim()
         : "";
+    const strictFloorOutputValid =
+      !strictFloorMode ||
+      isStrictFloorRawJsonObjectText(attempt.parsed.summary);
+    const strictFloorOutputError =
+      strictFloorMode && !strictFloorOutputValid
+        ? "Strict floor output was not raw JSON"
+        : "";
     const stderrLine = firstNonEmptyLine(attempt.proc.stderr);
     const structuredFailure = attempt.parsed.resultEvent
       ? describeGeminiFailure(attempt.parsed.resultEvent)
       : null;
     const fallbackErrorMessage =
+      strictFloorOutputError ||
       parsedError ||
       structuredFailure ||
       stderrLine ||
@@ -628,9 +649,13 @@ export async function execute(
       signal: attempt.proc.signal,
       timedOut: false,
       errorMessage:
-        (attempt.proc.exitCode ?? 0) === 0 ? null : fallbackErrorMessage,
+        (attempt.proc.exitCode ?? 0) === 0 && !strictFloorOutputError
+          ? null
+          : fallbackErrorMessage,
       errorCode:
-        (attempt.proc.exitCode ?? 0) !== 0 && authMeta.requiresAuth
+        strictFloorOutputError
+          ? "non_json_output"
+          : (attempt.proc.exitCode ?? 0) !== 0 && authMeta.requiresAuth
           ? "gemini_auth_required"
           : null,
       usage: attempt.parsed.usage,

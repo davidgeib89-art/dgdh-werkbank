@@ -7,7 +7,17 @@ import { writeFakeNodeCommand } from "./test-command-utils.js";
 
 const itGeminiExecute = process.platform === "win32" ? it.skip : it;
 
-async function writeFakeGeminiCommand(commandPath: string): Promise<string> {
+async function writeFakeGeminiCommand(
+  commandPath: string,
+  options?: {
+    assistantText?: string;
+    resultText?: string;
+    model?: string;
+  },
+): Promise<string> {
+  const assistantText = options?.assistantText ?? "hello";
+  const resultText = options?.resultText ?? "ok";
+  const model = options?.model ?? "gemini-2.5-pro";
   const script = `#!/usr/bin/env node
 const fs = require("node:fs");
 
@@ -25,17 +35,17 @@ console.log(JSON.stringify({
   type: "system",
   subtype: "init",
   session_id: "gemini-session-1",
-  model: "gemini-2.5-pro",
+  model: ${JSON.stringify(model)},
 }));
 console.log(JSON.stringify({
   type: "assistant",
-  message: { content: [{ type: "output_text", text: "hello" }] },
+  message: { content: [{ type: "output_text", text: ${JSON.stringify(assistantText)} }] },
 }));
 console.log(JSON.stringify({
   type: "result",
   subtype: "success",
   session_id: "gemini-session-1",
-  result: "ok",
+  result: ${JSON.stringify(resultText)},
 }));
 `;
   return writeFakeNodeCommand(commandPath, script);
@@ -408,6 +418,74 @@ describe("gemini execute", () => {
             readOnly: true,
           },
         });
+      } finally {
+        if (previousHome === undefined) {
+          delete process.env.HOME;
+        } else {
+          process.env.HOME = previousHome;
+        }
+        await fs.rm(root, { recursive: true, force: true });
+      }
+    },
+  );
+
+  itGeminiExecute(
+    "fails strict floor on fenced final output",
+    async () => {
+      const root = await fs.mkdtemp(
+        path.join(os.tmpdir(), "paperclip-gemini-strict-floor-"),
+      );
+      const workspace = path.join(root, "workspace");
+      const commandPath = path.join(root, "gemini");
+      const capturePath = path.join(root, "capture.json");
+      await fs.mkdir(workspace, { recursive: true });
+      const executablePath = await writeFakeGeminiCommand(commandPath, {
+        assistantText: ["```json", "{", '  "answer": true', "}", "```"].join("\n"),
+      });
+      const runtimeCommand =
+        process.platform === "win32" ? process.execPath : executablePath;
+      const runtimeExtraArgs =
+        process.platform === "win32" ? [`${commandPath}.cjs`] : undefined;
+
+      const previousHome = process.env.HOME;
+      process.env.HOME = root;
+
+      try {
+        const result = await execute({
+          runId: "run-strict-floor",
+          agent: {
+            id: "agent-1",
+            companyId: "company-1",
+            name: "Gemini Coder",
+            adapterType: "gemini_local",
+            adapterConfig: {},
+          },
+          runtime: {
+            sessionId: null,
+            sessionParams: null,
+            sessionDisplayId: null,
+            taskKey: null,
+          },
+          config: {
+            command: runtimeCommand,
+            cwd: workspace,
+            ...(runtimeExtraArgs ? { extraArgs: runtimeExtraArgs } : {}),
+            env: {
+              PAPERCLIP_TEST_CAPTURE_PATH: capturePath,
+            },
+            promptTemplate: "Follow the paperclip heartbeat.",
+          },
+          context: {
+            paperclipBenchmarkFamily: "T1-floor-v1",
+            paperclipStrictFloorMode: true,
+          },
+          authToken: "run-jwt-token",
+          onLog: async () => {},
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.errorCode).toBe("non_json_output");
+        expect(result.errorMessage).toContain("Strict floor output was not raw JSON");
       } finally {
         if (previousHome === undefined) {
           delete process.env.HOME;
