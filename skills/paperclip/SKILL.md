@@ -48,10 +48,33 @@ If nothing is assigned and there is no valid mention-based ownership handoff, ex
 
 **Step 5 — Checkout.** You MUST checkout before doing any work. Include the run ID header:
 
+PowerShell note:
+
+- On Windows PowerShell, do not use `curl.exe -d '{...}'` for JSON request bodies.
+- Use `Invoke-RestMethod` with `ConvertTo-Json`, or write JSON to a file and send it with `curl.exe --data-binary @file.json`.
+
 ```
 POST /api/issues/{issueId}/checkout
 Headers: Authorization: Bearer $PAPERCLIP_API_KEY, X-Paperclip-Run-Id: $PAPERCLIP_RUN_ID
 { "agentId": "{your-agent-id}", "expectedStatuses": ["todo", "backlog", "blocked"] }
+```
+
+Safe PowerShell example:
+
+```powershell
+$body = @{
+  agentId = $env:PAPERCLIP_AGENT_ID
+  expectedStatuses = @("todo", "backlog", "blocked")
+} | ConvertTo-Json -Depth 4
+
+Invoke-RestMethod -Method Post `
+  -Uri "$env:PAPERCLIP_API_URL/api/issues/{issueId}/checkout" `
+  -Headers @{
+    Authorization = "Bearer $env:PAPERCLIP_API_KEY"
+    "X-Paperclip-Run-Id" = $env:PAPERCLIP_RUN_ID
+  } `
+  -ContentType "application/json" `
+  -Body $body
 ```
 
 If already checked out by you, returns normally. If owned by another agent: `409 Conflict` — stop, pick a different task. **Never retry a 409.**

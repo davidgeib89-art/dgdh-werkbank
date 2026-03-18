@@ -1,12 +1,14 @@
 # Gemini Benchmark Packet 01 - Current State Snapshot
 
-Status: draft benchmark packet
+Status: canonical fixed benchmark packet
 Date: 2026-03-17
-Purpose: first small real Gemini work packet for a useful, measurable, repeatable company task
+Purpose: fixed Gemini baseline run for a useful, measurable, repeatable company task inside the default Paperclip path
 
 ## Why This Packet Exists
 
 This packet is designed to create the first practical Gemini productivity baseline for DGDH.
+
+Until it is explicitly replaced, this is the default fixed Gemini benchmark run for DGDH.
 
 It is intentionally:
 
@@ -18,6 +20,9 @@ It is intentionally:
 
 It is not a governance probe.
 It is an operational productivity benchmark.
+
+It is also not a toy extraction test.
+It is meant to measure the current shared Paperclip core on a real founder-useful summary task.
 
 ## Baseline Purity Rule
 
@@ -39,6 +44,42 @@ Reason:
 - assignedAgentRole: `Gemini`
 - autonomyMode: `Supervised Build`
 
+## Official Run Lane
+
+Use the current Research-Gemini lane for this packet.
+
+Current baseline assumptions:
+
+- adapterType: `gemini_local`
+- execution path: default Paperclip issue/heartbeat flow
+- tool layer: no Morph
+- model family must stay fixed across comparison runs
+
+If the model is changed, start a new benchmark series instead of mixing results.
+
+## Measurement Contract
+
+Primary benchmark numbers:
+
+- `runtimeSeconds` = `duration_ms / 1000`
+- `benchmarkTokens` = `inputTokens + outputTokens`
+
+Secondary benchmark numbers:
+
+- `cachedInputTokens`
+- `costUsd` if available
+- `logBytes`
+
+Interpretation rule:
+
+- when reporting the run in one sentence, use this format: `Run took X seconds and used Y benchmark tokens (+ Z cached input tokens).`
+
+Token measurement rule:
+
+- if `inputTokens`, `outputTokens`, raw token fallback values, and `resultJson.stats` token fields are all absent or zero, the run is not benchmark-complete
+- in that case record the run as `token-measurement-blocked`, not as a passed baseline
+- fix the data path first before claiming token optimization progress
+
 ## Objective
 
 Read a fixed set of canonical DGDH documents and produce one compact current-state snapshot for founder use.
@@ -48,6 +89,57 @@ The output should help David answer three questions quickly:
 1. What is the current true operating focus?
 2. What are the top 3 current risks?
 3. What are the next 3 smallest useful steps?
+
+## Paperclip Issue Template
+
+Use this exact issue title prefix for repeated runs:
+
+- `Gemini Baseline: Founder Current-State Snapshot`
+
+Issue description must contain only this task contract:
+
+```text
+Read only these files:
+- company-hq/CURRENT-STATE-REVIEW-2026-03-17.md
+- company-hq/VISION.md
+- company-hq/MODEL-ROADMAP.md
+- company-hq/AGENT-PROFILES.md
+- company-hq/BOARD-MEMO-PROBE-01-STATUS-2026-03-17.md
+
+Preferred minimum read set:
+- company-hq/CURRENT-STATE-REVIEW-2026-03-17.md
+- company-hq/MODEL-ROADMAP.md
+- company-hq/BOARD-MEMO-PROBE-01-STATUS-2026-03-17.md
+
+Return exactly two artifacts:
+1. a short markdown summary
+2. a JSON block
+
+Markdown sections:
+- Current Focus
+- Top 3 Risks
+- Next 3 Steps
+
+JSON schema:
+{
+  "currentFocus": ["...", "..."],
+  "topRisks": ["...", "...", "..."],
+  "nextSteps": ["...", "...", "..."],
+  "sourceFiles": ["...", "...", "..."]
+}
+
+Rules:
+- keep markdown under 220 words
+- no motivational language
+- exactly 2 items in currentFocus
+- exactly 3 items in topRisks
+- exactly 3 items in nextSteps
+- sourceFiles must list only files actually read
+- do not read files outside the allowed list
+- do not edit files
+- do not read implementation code
+- do not propose major architecture changes
+```
 
 ## Expected Output
 
@@ -159,6 +251,10 @@ Budget class: smaller than standard `Small Task`
 - maxRuntimeMinutes: `15`
 - maxFilesChanged: `0`
 
+Enforcement rule:
+
+- if token measurement is unavailable, the run may still be operationally informative, but it does not count as the baseline pass needed for token optimization work
+
 Retry policy for this packet:
 
 - max retries: `2`
@@ -198,6 +294,14 @@ Acceptance evidence:
 - run duration
 - human usefulness score
 
+Required machine readout command:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/gemini-benchmark-readout.ps1 -IssueId <ISSUE_ID> -RequireTokenMeasurement
+```
+
+The run should only be called a valid token baseline if that command returns benchmark numbers instead of a token-measurement-blocked result.
+
 minimalEvidenceOnly: `yes`
 
 ## Human Evaluation Record
@@ -214,6 +318,7 @@ After each run, record:
 - usefulnessScore from 1 to 5
 - formatPass: yes/no
 - notes: one short sentence only
+- measurementStatus: `available` or `token-measurement-blocked`
 
 ## Stop and Escalation
 
@@ -229,6 +334,7 @@ Escalation trigger:
 - repeated vagueness across 2 runs
 - hard cap reached before usable output
 - contradiction between current-state review and board memo cannot be resolved inside scope
+- token measurement remains unavailable on a successful Gemini run
 
 Escalation target: `David`
 
@@ -255,3 +361,7 @@ It is trying to prove one smaller thing:
 - status:
 - escalationOccurred: yes/no
 - summary:
+- runtimeSeconds:
+- benchmarkTokens:
+- cachedInputTokens:
+- measurementStatus:

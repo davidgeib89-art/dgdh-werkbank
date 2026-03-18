@@ -1,4 +1,9 @@
-import { asNumber, asString, parseJson, parseObject } from "@paperclipai/adapter-utils/server-utils";
+import {
+  asNumber,
+  asString,
+  parseJson,
+  parseObject,
+} from "@paperclipai/adapter-utils/server-utils";
 
 function collectMessageText(message: unknown): string[] {
   if (typeof message === "string") {
@@ -15,7 +20,8 @@ function collectMessageText(message: unknown): string[] {
     const part = parseObject(partRaw);
     const type = asString(part.type, "").trim();
     if (type === "output_text" || type === "text" || type === "content") {
-      const text = asString(part.text, "").trim() || asString(part.content, "").trim();
+      const text =
+        asString(part.text, "").trim() || asString(part.content, "").trim();
       if (text) lines.push(text);
     }
   }
@@ -51,24 +57,49 @@ function asErrorText(value: unknown): string {
 }
 
 function accumulateUsage(
-  target: { inputTokens: number; cachedInputTokens: number; outputTokens: number },
+  target: {
+    inputTokens: number;
+    cachedInputTokens: number;
+    outputTokens: number;
+  },
   usageRaw: unknown,
 ) {
   const usage = parseObject(usageRaw);
   const usageMetadata = parseObject(usage.usageMetadata);
-  const source = Object.keys(usageMetadata).length > 0 ? usageMetadata : usage;
+  const stats = parseObject(usage.stats);
+  const source =
+    Object.keys(usageMetadata).length > 0
+      ? usageMetadata
+      : Object.keys(stats).length > 0
+        ? stats
+        : usage;
 
   target.inputTokens += asNumber(
     source.input_tokens,
-    asNumber(source.inputTokens, asNumber(source.promptTokenCount, 0)),
+    asNumber(
+      source.inputTokens,
+      asNumber(
+        source.promptTokenCount,
+        asNumber(source.input, asNumber(source.total_input_tokens, 0)),
+      ),
+    ),
   );
   target.cachedInputTokens += asNumber(
     source.cached_input_tokens,
-    asNumber(source.cachedInputTokens, asNumber(source.cachedContentTokenCount, 0)),
+    asNumber(
+      source.cachedInputTokens,
+      asNumber(source.cachedContentTokenCount, asNumber(source.cached, 0)),
+    ),
   );
   target.outputTokens += asNumber(
     source.output_tokens,
-    asNumber(source.outputTokens, asNumber(source.candidatesTokenCount, 0)),
+    asNumber(
+      source.outputTokens,
+      asNumber(
+        source.candidatesTokenCount,
+        asNumber(source.total_output_tokens, 0),
+      ),
+    ),
   );
 }
 
@@ -78,7 +109,10 @@ export function parseGeminiJsonl(stdout: string) {
   let errorMessage: string | null = null;
   let costUsd: number | null = null;
   let resultEvent: Record<string, unknown> | null = null;
-  let question: { prompt: string; choices: Array<{ key: string; label: string; description?: string }> } | null = null;
+  let question: {
+    prompt: string;
+    choices: Array<{ key: string; label: string; description?: string }>;
+  } | null = null;
   const usage = {
     inputTokens: 0,
     cachedInputTokens: 0,
@@ -100,20 +134,25 @@ export function parseGeminiJsonl(stdout: string) {
     if (type === "assistant") {
       messages.push(...collectMessageText(event.message));
       const messageObj = parseObject(event.message);
-      const content = Array.isArray(messageObj.content) ? messageObj.content : [];
+      const content = Array.isArray(messageObj.content)
+        ? messageObj.content
+        : [];
       for (const partRaw of content) {
         const part = parseObject(partRaw);
         if (asString(part.type, "").trim() === "question") {
           question = {
             prompt: asString(part.prompt, "").trim(),
-            choices: (Array.isArray(part.choices) ? part.choices : []).map((choiceRaw) => {
-              const choice = parseObject(choiceRaw);
-              return {
-                key: asString(choice.key, "").trim(),
-                label: asString(choice.label, "").trim(),
-                description: asString(choice.description, "").trim() || undefined,
-              };
-            }),
+            choices: (Array.isArray(part.choices) ? part.choices : []).map(
+              (choiceRaw) => {
+                const choice = parseObject(choiceRaw);
+                return {
+                  key: asString(choice.key, "").trim(),
+                  label: asString(choice.label, "").trim(),
+                  description:
+                    asString(choice.description, "").trim() || undefined,
+                };
+              },
+            ),
           };
           break; // only one question per message
         }
@@ -123,23 +162,36 @@ export function parseGeminiJsonl(stdout: string) {
 
     if (type === "result") {
       resultEvent = event;
-      accumulateUsage(usage, event.usage ?? event.usageMetadata);
+      accumulateUsage(
+        usage,
+        event.usage ?? event.usageMetadata ?? event.stats ?? event,
+      );
       const resultText =
         asString(event.result, "").trim() ||
         asString(event.text, "").trim() ||
         asString(event.response, "").trim();
       if (resultText && messages.length === 0) messages.push(resultText);
-      costUsd = asNumber(event.total_cost_usd, asNumber(event.cost_usd, asNumber(event.cost, costUsd ?? 0))) || costUsd;
-      const isError = event.is_error === true || asString(event.subtype, "").toLowerCase() === "error";
+      costUsd =
+        asNumber(
+          event.total_cost_usd,
+          asNumber(event.cost_usd, asNumber(event.cost, costUsd ?? 0)),
+        ) || costUsd;
+      const isError =
+        event.is_error === true ||
+        asString(event.subtype, "").toLowerCase() === "error";
       if (isError) {
-        const text = asErrorText(event.error ?? event.message ?? event.result).trim();
+        const text = asErrorText(
+          event.error ?? event.message ?? event.result,
+        ).trim();
         if (text) errorMessage = text;
       }
       continue;
     }
 
     if (type === "error") {
-      const text = asErrorText(event.error ?? event.message ?? event.detail).trim();
+      const text = asErrorText(
+        event.error ?? event.message ?? event.detail,
+      ).trim();
       if (text) errorMessage = text;
       continue;
     }
@@ -147,7 +199,9 @@ export function parseGeminiJsonl(stdout: string) {
     if (type === "system") {
       const subtype = asString(event.subtype, "").trim().toLowerCase();
       if (subtype === "error") {
-        const text = asErrorText(event.error ?? event.message ?? event.detail).trim();
+        const text = asErrorText(
+          event.error ?? event.message ?? event.detail,
+        ).trim();
         if (text) errorMessage = text;
       }
       continue;
@@ -162,7 +216,11 @@ export function parseGeminiJsonl(stdout: string) {
 
     if (type === "step_finish" || event.usage || event.usageMetadata) {
       accumulateUsage(usage, event.usage ?? event.usageMetadata);
-      costUsd = asNumber(event.total_cost_usd, asNumber(event.cost_usd, asNumber(event.cost, costUsd ?? 0))) || costUsd;
+      costUsd =
+        asNumber(
+          event.total_cost_usd,
+          asNumber(event.cost_usd, asNumber(event.cost, costUsd ?? 0)),
+        ) || costUsd;
       continue;
     }
   }
@@ -178,7 +236,10 @@ export function parseGeminiJsonl(stdout: string) {
   };
 }
 
-export function isGeminiUnknownSessionError(stdout: string, stderr: string): boolean {
+export function isGeminiUnknownSessionError(
+  stdout: string,
+  stderr: string,
+): boolean {
   const haystack = `${stdout}\n${stderr}`
     .split(/\r?\n/)
     .map((line) => line.trim())
@@ -202,9 +263,13 @@ function extractGeminiErrorMessages(parsed: Record<string, unknown>): string[] {
       if (msg) messages.push(msg);
       continue;
     }
-    if (typeof entry !== "object" || entry === null || Array.isArray(entry)) continue;
+    if (typeof entry !== "object" || entry === null || Array.isArray(entry))
+      continue;
     const obj = entry as Record<string, unknown>;
-    const msg = asString(obj.message, "") || asString(obj.error, "") || asString(obj.code, "");
+    const msg =
+      asString(obj.message, "") ||
+      asString(obj.error, "") ||
+      asString(obj.code, "");
     if (msg) {
       messages.push(msg);
       continue;
@@ -219,7 +284,9 @@ function extractGeminiErrorMessages(parsed: Record<string, unknown>): string[] {
   return messages;
 }
 
-export function describeGeminiFailure(parsed: Record<string, unknown>): string | null {
+export function describeGeminiFailure(
+  parsed: Record<string, unknown>,
+): string | null {
   const status = asString(parsed.status, "");
   const errors = extractGeminiErrorMessages(parsed);
 
@@ -230,7 +297,8 @@ export function describeGeminiFailure(parsed: Record<string, unknown>): string |
   return parts.length > 1 ? parts.join(": ") : null;
 }
 
-const GEMINI_AUTH_REQUIRED_RE = /(?:not\s+authenticated|please\s+authenticate|api[_ ]?key\s+(?:required|missing|invalid)|authentication\s+required|unauthorized|invalid\s+credentials|not\s+logged\s+in|login\s+required|run\s+`?gemini\s+auth(?:\s+login)?`?\s+first)/i;
+const GEMINI_AUTH_REQUIRED_RE =
+  /(?:not\s+authenticated|please\s+authenticate|api[_ ]?key\s+(?:required|missing|invalid)|authentication\s+required|unauthorized|invalid\s+credentials|not\s+logged\s+in|login\s+required|run\s+`?gemini\s+auth(?:\s+login)?`?\s+first)/i;
 
 export function detectGeminiAuthRequired(input: {
   parsed: Record<string, unknown> | null;
@@ -244,7 +312,9 @@ export function detectGeminiAuthRequired(input: {
     .map((line) => line.trim())
     .filter(Boolean);
 
-  const requiresAuth = messages.some((line) => GEMINI_AUTH_REQUIRED_RE.test(line));
+  const requiresAuth = messages.some((line) =>
+    GEMINI_AUTH_REQUIRED_RE.test(line),
+  );
   return { requiresAuth };
 }
 

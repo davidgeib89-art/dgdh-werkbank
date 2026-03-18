@@ -35,8 +35,9 @@ If you are a new AI agent in this repo:
 ## Active Benchmark Context (Load For Gemini Productivity Work)
 
 1. `company-hq/GEMINI-BENCHMARK-PACKET-01-2026-03-17.md`
-2. `company-hq/BOARD-MEMO-PROBE-01-STATUS-2026-03-17.md`
-3. `company-hq/MORPH-INTEGRATION-PLAN-2026-03-18.md` (load when tool-layer optimization is in scope)
+2. `company-hq/GEMINI-MICRO-BENCHMARK-SUITE-2026-03-18.md`
+3. `company-hq/BOARD-MEMO-PROBE-01-STATUS-2026-03-17.md`
+4. `company-hq/MORPH-INTEGRATION-PLAN-2026-03-18.md` (load when tool-layer optimization is in scope)
 
 ## Probe-01 Packet Docs (Load Only For Probe Work)
 

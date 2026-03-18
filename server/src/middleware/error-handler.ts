@@ -3,12 +3,38 @@ import { ZodError } from "zod";
 import { HttpError } from "../errors.js";
 
 export interface ErrorContext {
-  error: { message: string; stack?: string; name?: string; details?: unknown; raw?: unknown };
+  error: {
+    message: string;
+    stack?: string;
+    name?: string;
+    details?: unknown;
+    raw?: unknown;
+  };
   method: string;
   url: string;
   reqBody?: unknown;
   reqParams?: unknown;
   reqQuery?: unknown;
+}
+
+function isJsonBodyParseError(err: unknown): err is Error & {
+  status?: number;
+  statusCode?: number;
+  type?: string;
+  body?: unknown;
+} {
+  if (!(err instanceof Error)) return false;
+  const typed = err as Error & {
+    status?: number;
+    statusCode?: number;
+    type?: string;
+    body?: unknown;
+  };
+  return (
+    typed.type === "entity.parse.failed" ||
+    typed.status === 400 ||
+    typed.statusCode === 400
+  );
 }
 
 function attachErrorContext(
@@ -41,7 +67,12 @@ export function errorHandler(
       attachErrorContext(
         req,
         res,
-        { message: err.message, stack: err.stack, name: err.name, details: err.details },
+        {
+          message: err.message,
+          stack: err.stack,
+          name: err.name,
+          details: err.details,
+        },
         err,
       );
     }
@@ -57,13 +88,23 @@ export function errorHandler(
     return;
   }
 
+  if (isJsonBodyParseError(err)) {
+    res.status(400).json({ error: "Invalid JSON request body" });
+    return;
+  }
+
   const rootError = err instanceof Error ? err : new Error(String(err));
   attachErrorContext(
     req,
     res,
     err instanceof Error
       ? { message: err.message, stack: err.stack, name: err.name }
-      : { message: String(err), raw: err, stack: rootError.stack, name: rootError.name },
+      : {
+          message: String(err),
+          raw: err,
+          stack: rootError.stack,
+          name: rootError.name,
+        },
     rootError,
   );
 

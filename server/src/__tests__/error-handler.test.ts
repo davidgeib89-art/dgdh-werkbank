@@ -50,4 +50,21 @@ describe("errorHandler", () => {
     expect(res.err).toBe(err);
     expect(res.__errorContext?.error?.message).toBe("db exploded");
   });
+
+  it("returns 400 for invalid JSON request bodies", () => {
+    const req = makeReq();
+    const res = makeRes() as any;
+    const next = vi.fn() as unknown as NextFunction;
+    const err = Object.assign(new SyntaxError("Unexpected token ' in JSON"), {
+      status: 400,
+      type: "entity.parse.failed",
+    });
+
+    errorHandler(err, req, res, next);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({
+      error: "Invalid JSON request body",
+    });
+  });
 });

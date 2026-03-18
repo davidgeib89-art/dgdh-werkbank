@@ -33,6 +33,7 @@ These are current operating documents and should be preferred over historical ma
 - `ROLE-ASSIGNMENT-RUNTIME-MAP-2026-03-18.md`
 - `HARNESS-LEARNINGS-FOR-DGDH-2026-03-18.md`
 - `GEMINI-BENCHMARK-PACKET-01-2026-03-17.md`
+- `GEMINI-MICRO-BENCHMARK-SUITE-2026-03-18.md`
 - `MORPH-INTEGRATION-PLAN-2026-03-18.md`
 
 ## Probe-01 Track Docs

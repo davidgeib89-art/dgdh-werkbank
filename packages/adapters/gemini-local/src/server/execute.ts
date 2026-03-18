@@ -82,11 +82,16 @@ function renderApiAccessNote(env: Record<string, string>): string {
     return "";
   return [
     "Paperclip API access note:",
-    "Use run_shell_command with curl to make Paperclip API requests.",
+    "This adapter runs in Windows PowerShell.",
+    "Do not use bare curl in PowerShell because it resolves to Invoke-WebRequest.",
+    "Do not send JSON bodies with curl.exe -d '{...}' from PowerShell; that can produce invalid JSON on the server.",
+    "Use run_shell_command with curl.exe or Invoke-RestMethod for Paperclip API requests.",
     "GET example:",
-    `  run_shell_command({ command: "curl -s -H \\"Authorization: Bearer $PAPERCLIP_API_KEY\\" \\"$PAPERCLIP_API_URL/api/agents/me\\"" })`,
+    `  run_shell_command({ command: "Invoke-RestMethod -Uri \"$env:PAPERCLIP_API_URL/api/agents/me\" -Headers @{ Authorization = \"Bearer $env:PAPERCLIP_API_KEY\" } | ConvertTo-Json -Depth 10" })`,
+    "Checkout example:",
+    `  run_shell_command({ command: "$body = @{ agentId = $env:PAPERCLIP_AGENT_ID; expectedStatuses = @('todo','backlog','blocked') } | ConvertTo-Json -Depth 4; Invoke-RestMethod -Method Post -Uri \"$env:PAPERCLIP_API_URL/api/issues/{id}/checkout\" -Headers @{ Authorization = \"Bearer $env:PAPERCLIP_API_KEY\"; \"X-Paperclip-Run-Id\" = $env:PAPERCLIP_RUN_ID } -ContentType \"application/json\" -Body $body | ConvertTo-Json -Depth 10" })`,
     "POST/PATCH example:",
-    `  run_shell_command({ command: "curl -s -X POST -H \\"Authorization: Bearer $PAPERCLIP_API_KEY\\" -H 'Content-Type: application/json' -H \\"X-Paperclip-Run-Id: $PAPERCLIP_RUN_ID\\" -d '{...}' \\"$PAPERCLIP_API_URL/api/issues/{id}/checkout\\"" })`,
+    `  run_shell_command({ command: "$body = @{ status = \"done\"; comment = \"...\" } | ConvertTo-Json -Depth 4; Invoke-RestMethod -Method Patch -Uri \"$env:PAPERCLIP_API_URL/api/issues/{id}\" -Headers @{ Authorization = \"Bearer $env:PAPERCLIP_API_KEY\"; \"X-Paperclip-Run-Id\" = $env:PAPERCLIP_RUN_ID } -ContentType \"application/json\" -Body $body | ConvertTo-Json -Depth 10" })`,
     "",
     "",
   ].join("\n");
@@ -520,7 +525,7 @@ export async function execute(
     const resolvedSessionId =
       attempt.parsed.sessionId ??
       (canFallbackToRuntimeSession
-        ? runtimeSessionId ?? runtime.sessionId ?? null
+        ? (runtimeSessionId ?? runtime.sessionId ?? null)
         : null);
     const resolvedSessionParams = resolvedSessionId
       ? ({
