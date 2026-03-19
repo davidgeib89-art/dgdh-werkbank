@@ -31,5 +31,18 @@ export function summarizeHeartbeatRunResultJson(
     }
   }
 
+  // Label routing-blocked runs clearly in the summary
+  if (resultJson["type"] === "routing_blocked") {
+    summary.result = "blocked";
+    const blockReason = resultJson["blockReason"];
+    if (typeof blockReason === "string" && blockReason.length > 0) {
+      summary.summary = `Routing blocked: ${blockReason}`;
+    }
+    const needsApproval = resultJson["needsApproval"];
+    if (needsApproval === true) {
+      summary.message = "Task requires operator approval before execution";
+    }
+  }
+
   return Object.keys(summary).length > 0 ? summary : null;
 }

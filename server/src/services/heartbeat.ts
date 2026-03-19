@@ -3066,6 +3066,43 @@ export function heartbeatService(db: Db) {
             },
           });
         }
+        const routingBlocked =
+          routingPreflight && routingPreflight.selected.blocked === true;
+        if (routingBlocked) {
+          const blockReason =
+            routingPreflight.selected.blockReason ?? "policy_gate";
+          const needsApproval = routingPreflight.selected.needsApproval;
+          const missingInputs = routingPreflight.selected.missingInputs;
+          const message = `Routing preflight blocked: ${blockReason}${
+            needsApproval ? " (needs operator approval)" : ""
+          }`;
+          await appendRunEvent(currentRun, seq++, {
+            eventType: "lifecycle",
+            stream: "system",
+            level: "error",
+            message,
+            payload: {
+              stage: "routing.blocked",
+              blockReason,
+              needsApproval,
+              missingInputs,
+              executionIntent: routingPreflight.selected.executionIntent,
+              riskLevel: routingPreflight.selected.riskLevel,
+              budgetClass: routingPreflight.selected.budgetClass,
+              taskType: routingPreflight.selected.taskType,
+              controlPlane: routingPreflight.controlPlane,
+            },
+          });
+          await setRunStatus(run.id, "failed", {
+            error: message,
+            errorCode: blockReason,
+            finishedAt: new Date(),
+          });
+          await setWakeupStatus(run.wakeupRequestId, "failed", {
+            finishedAt: new Date(),
+            error: message,
+          });
+        }
         const singleFileBenchmarkPreflight =
           await evaluateSingleFileBenchmarkPreflight({
             contextSnapshot: context,
@@ -3124,6 +3161,7 @@ export function heartbeatService(db: Db) {
         const runtimeServices: Awaited<
           ReturnType<typeof ensureRuntimeServicesForRun>
         > =
+          routingBlocked ||
           adapterExecutionSafety.blockAdapterExecute ||
           (singleFileBenchmarkPreflight.required &&
             !singleFileBenchmarkPreflight.ok)
@@ -3202,7 +3240,69 @@ export function heartbeatService(db: Db) {
         };
 
         let adapterResult: AdapterExecutionResult;
-        if (adapterExecutionSafety.blockAdapterExecute) {
+        if (routingBlocked) {
+          const blockReason =
+            routingPreflight!.selected.blockReason ?? "policy_gate";
+          const needsApproval = routingPreflight!.selected.needsApproval;
+          const missingInputs = routingPreflight!.selected.missingInputs;
+          await onLog(
+            "stderr",
+            `[paperclip] Routing preflight blocked (${blockReason}); adapter.execute suppressed.\n`,
+          );
+          await onAdapterMeta({
+            adapterType: agent.adapterType,
+            command: "adapter.execute suppressed",
+            invokeSuppressed: true,
+            adapterStarted: false,
+            suppressionReason: blockReason,
+            commandNotes: [
+              `Routing blocked: ${blockReason}`,
+              needsApproval
+                ? "Task requires operator approval before execution"
+                : "Task has unresolved missing inputs",
+              ...(missingInputs.length > 0
+                ? [`Missing inputs: ${missingInputs.join(", ")}`]
+                : []),
+            ],
+            context: {
+              routingBlocked: true,
+              blockReason,
+              needsApproval,
+              missingInputs,
+              executionIntent: routingPreflight!.selected.executionIntent,
+              riskLevel: routingPreflight!.selected.riskLevel,
+              taskType: routingPreflight!.selected.taskType,
+              budgetClass: routingPreflight!.selected.budgetClass,
+            },
+          });
+          adapterResult = {
+            exitCode: 1,
+            signal: null,
+            timedOut: false,
+            errorCode: blockReason,
+            errorMessage: `Routing preflight blocked: ${blockReason}${
+              needsApproval ? " (needs operator approval)" : ""
+            }${
+              missingInputs.length > 0
+                ? ` — missing inputs: ${missingInputs.join(", ")}`
+                : ""
+            }`,
+            resultJson: {
+              type: "routing_blocked",
+              status: "blocked",
+              blockReason,
+              needsApproval,
+              missingInputs,
+              executionIntent: routingPreflight!.selected.executionIntent,
+              riskLevel: routingPreflight!.selected.riskLevel,
+              taskType: routingPreflight!.selected.taskType,
+              budgetClass: routingPreflight!.selected.budgetClass,
+              doneWhen: routingPreflight!.selected.doneWhen,
+              targetFolder: routingPreflight!.selected.targetFolder,
+              controlPlane: routingPreflight!.controlPlane,
+            },
+          };
+        } else if (adapterExecutionSafety.blockAdapterExecute) {
           const safetyReason =
             adapterExecutionSafety.reason ?? "context_test_run";
           await onLog(

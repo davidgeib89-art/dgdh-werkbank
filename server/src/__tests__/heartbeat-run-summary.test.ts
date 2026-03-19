@@ -30,4 +30,58 @@ describe("summarizeHeartbeatRunResultJson", () => {
     expect(summarizeHeartbeatRunResultJson(["nope"] as unknown as Record<string, unknown>)).toBeNull();
     expect(summarizeHeartbeatRunResultJson({ nested: { only: "ignored" } })).toBeNull();
   });
+
+  it("labels routing_blocked resultJson as blocked with reason", () => {
+    const summary = summarizeHeartbeatRunResultJson({
+      type: "routing_blocked",
+      status: "blocked",
+      blockReason: "missing_inputs",
+      needsApproval: false,
+      missingInputs: ["repo path", "acceptance criteria"],
+      executionIntent: "implement",
+      riskLevel: "medium",
+      taskType: "bounded-implementation",
+      budgetClass: "medium",
+    });
+
+    expect(summary).toEqual({
+      result: "blocked",
+      summary: "Routing blocked: missing_inputs",
+    });
+  });
+
+  it("adds operator-approval message when needsApproval is true", () => {
+    const summary = summarizeHeartbeatRunResultJson({
+      type: "routing_blocked",
+      status: "blocked",
+      blockReason: "risk_high_large_implementation",
+      needsApproval: true,
+      missingInputs: [],
+      executionIntent: "implement",
+      riskLevel: "high",
+      taskType: "heavy-architecture",
+      budgetClass: "large",
+    });
+
+    expect(summary).toEqual({
+      result: "blocked",
+      summary: "Routing blocked: risk_high_large_implementation",
+      message: "Task requires operator approval before execution",
+    });
+  });
+
+  it("does not overwrite explicit summary with routing blocked label when summary is already set", () => {
+    const summary = summarizeHeartbeatRunResultJson({
+      type: "routing_blocked",
+      status: "blocked",
+      blockReason: "missing_inputs",
+      needsApproval: false,
+      summary: "already detailed summary",
+    });
+
+    expect(summary).toEqual({
+      result: "blocked",
+      summary: "Routing blocked: missing_inputs",
+    });
+  });
 });
