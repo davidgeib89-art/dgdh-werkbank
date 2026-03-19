@@ -233,7 +233,8 @@ export async function execute(
   const benchmarkFamily = asString(context.paperclipBenchmarkFamily, "").trim();
   const strictFloorMode =
     context.paperclipStrictFloorMode === true ||
-    benchmarkFamily.toLowerCase().startsWith("t1-floor-v");
+    benchmarkFamily.toLowerCase().startsWith("t1-floor-v") ||
+    benchmarkFamily.toLowerCase().startsWith("t1-floor-normalized-v");
 
   const promptTemplate = strictFloorMode
     ? asString(

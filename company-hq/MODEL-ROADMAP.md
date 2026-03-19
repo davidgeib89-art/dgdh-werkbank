@@ -53,3 +53,24 @@ Codex/Claude can move from Dormant to Controlled Pilot only if all are true:
 5. The first optimization cycle starts only after a trustworthy Gemini benchmark exists.
 6. Repeated firm work should move into tools or compact structured flows whenever that lowers token spend.
 7. New capability layers are justified only after the current inherited execution path has been made lean for one real task.
+
+## Observed Gemini CLI Quota Reality
+
+Observed on 2026-03-18 for operational routing only. This is not a permanent vendor guarantee.
+
+1. PRO bucket
+   - `gemini-2.5-pro`
+   - `gemini-3.1-pro-preview`
+2. FLASH bucket
+   - `gemini-2.5-flash`
+   - `gemini-3-flash-preview`
+3. FLASH-LITE bucket
+   - currently appears separate
+   - currently visible only on the 2.x flash-lite model line
+
+Operational implications:
+
+1. Gemini is not a single pool for routing or quota reasoning.
+2. Later routing should think in `account -> bucket -> model lane`, with explicit account switching.
+3. Benchmark series must still stay one-model-per-series.
+4. `Gemini CLI /stats` should later be treated as explicit quota telemetry, first advisory and later optionally decision-supporting.

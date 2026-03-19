@@ -977,7 +977,8 @@ export function applyIssuePromptContext(
 
   const strictFloorMode =
     typeof benchmarkFamily === "string" &&
-    benchmarkFamily.trim().toLowerCase().startsWith("t1-floor-v");
+    (benchmarkFamily.trim().toLowerCase().startsWith("t1-floor-v") ||
+      benchmarkFamily.trim().toLowerCase().startsWith("t1-floor-normalized-v"));
   if (strictFloorMode) {
     contextSnapshot.paperclipStrictFloorMode = true;
     contextSnapshot.paperclipAllowedTools = ["read_file"];

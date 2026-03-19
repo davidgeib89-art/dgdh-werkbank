@@ -477,14 +477,13 @@ function Get-RunFinalAssistantText {
       }
 
       if ($entryType -eq "result") {
-        $resultValue = if ($entry.result) {
-          $entry.result
-        } elseif ($entry.text) {
-          $entry.text
-        } elseif ($entry.response) {
-          $entry.response
-        } else {
-          ""
+        $resultValue = ""
+        if ($entry.PSObject.Properties.Name -contains "result") {
+          $resultValue = $entry.result
+        } elseif ($entry.PSObject.Properties.Name -contains "text") {
+          $resultValue = $entry.text
+        } elseif ($entry.PSObject.Properties.Name -contains "response") {
+          $resultValue = $entry.response
         }
         $resultText = [string]$resultValue
         if (-not [string]::IsNullOrWhiteSpace($resultText)) {
@@ -839,7 +838,9 @@ if ($DryRun) {
 
 $results = @()
 $seriesStartedAt = Get-Date
-$strictFloorMode = $BenchmarkFamily -like "T1-floor-v*"
+$strictFloorMode =
+  $BenchmarkFamily -like "T1-floor-v*" -or
+  $BenchmarkFamily -eq "T1-floor-normalized-v1"
 $normalizedAnalysisMode = ($BenchmarkFamily -eq "T1-floor-normalized-v1")
 $allowedToolsForFloor = @("read_file")
 
@@ -935,7 +936,7 @@ Hard constraints:
   } else {
     Get-LatestIssueCommentBody -IssueId ([string]$issue.id)
   }
-  $outputHash = Get-TextSha256 -Text $commentBody
+  $outputHash = ""
   $toolStats = Get-RunToolAndReadStats -LogContent $runLog
   $toolCounts = $toolStats.toolCounts
   $readPaths = @($toolStats.readPaths)

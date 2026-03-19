@@ -73,6 +73,16 @@ Verbindliche Regeln zur Matrix:
 - [confirmed] Kein Zugriff auf sensitive oder kostenkritische Kontexte ohne explizites Gate.
 - [open question] Welche konkreten Provider/Modelle die Utility-Lane zuerst belegen, wird separat entschieden.
 
+### 5.1 Gemini Quota Telemetry and Routing
+
+- [confirmed] Gemini quota should be treated as account-specific and bucket-specific, not as one global pool.
+- [confirmed] Current operational buckets are observed as `PRO`, `FLASH`, and `FLASH-LITE`; this is a routing input, not a vendor promise.
+- [confirmed] The routing chain should stay founder-readable: task class -> provider lane -> model lane -> account lane -> budget/quota profile.
+- [confirmed] `Gemini CLI /stats` can later feed internal quota telemetry for dashboard visibility.
+- [confirmed] Dashboard telemetry should show account, bucket name, mapped models, usage percent, and reset time.
+- [confirmed] Telemetry should start advisory, then may become decision-supporting once the routing policy is stable.
+- [confirmed] No blackbox autonomous account selection without an explicit policy the founder can read and override.
+
 ## 6. Minimaler Rollenpilot (Phase 1)
 
 - [confirmed] Pilotrollen: Strategy / Planner, Builder / Executor, Research / Review.
@@ -106,3 +116,4 @@ Verbindliche Regeln zur Matrix:
 
 - [confirmed] Gewuenschtes Zielbild fuer technische Umsetzung: Role -> Adapter -> Model -> Budget -> Approval als policy-gesteuerter Resolver.
 - [confirmed] Jede Ausfuehrung muss auf den Resolver, nicht auf implizite Prompt-Drift, zurueckfuehrbar sein.
+- [confirmed] For Gemini specifically, account and bucket selection must remain explicit and labelable in telemetry and policy logs.

@@ -70,6 +70,19 @@ Isolation:
 - fresh task session per run
 - explicit run labeling with benchmark version and baseline family
 
+## Frozen Old-Model References
+
+- `T1-floor-v1` and `T1-floor-v2` on `gemini-2.5-pro` stay frozen as old-model references.
+- `T1-floor-normalized-v1` on `gemini-2.5-pro` stays frozen as the 2.5-series analytical reference.
+- Do not mix any recorded 2.5-pro results into the new 3.1-pro-preview series.
+- One series remains one model.
+- One account lane remains explicit and labeled.
+
+## Next Benchmark Order on Gemini 3.1
+
+1. `T1-floor-normalized-v1` on `gemini-3.1-pro-preview` for 3 runs.
+2. `T1-paperclip-default-v1` on `gemini-3.1-pro-preview` for 3 runs.
+
 ## PASS/FAIL Rules
 
 A run is PASS only if all checks are true:
