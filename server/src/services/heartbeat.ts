@@ -2727,6 +2727,7 @@ export function heartbeatService(db: Db) {
         adapterType: agent.adapterType,
         adapterConfig: resolvedConfig,
         runtimeConfig: runtimeConfigForRouting,
+        runtimeState: runtimeStateForRouting,
         context,
         quotaSnapshot: {
           source: preflightQuotaRefresh.snapshot.source,
@@ -2748,6 +2749,21 @@ export function heartbeatService(db: Db) {
             : null,
       });
 
+      if (Object.keys(flashLiteProposal.runtimeStatePatch).length > 0) {
+        await persistRuntimeStatePatch(
+          agent.id,
+          flashLiteProposal.runtimeStatePatch,
+        );
+        runtimeStateForRouting = {
+          ...runtimeStateForRouting,
+          ...flashLiteProposal.runtimeStatePatch,
+          controlPlane: {
+            ...parseObject(runtimeStateForRouting.controlPlane),
+            ...parseObject(flashLiteProposal.runtimeStatePatch.controlPlane),
+          },
+        };
+      }
+
       if (flashLiteProposal.proposal) {
         context.paperclipRoutingProposal = {
           taskType: flashLiteProposal.proposal.taskClass,
@@ -2765,6 +2781,10 @@ export function heartbeatService(db: Db) {
         source: flashLiteProposal.source,
         parseStatus: flashLiteProposal.parseStatus,
         latencyMs: flashLiteProposal.latencyMs,
+        attempted: flashLiteProposal.attempted,
+        cacheHit: flashLiteProposal.cacheHit,
+        fallbackReason: flashLiteProposal.fallbackReason,
+        routerHealth: flashLiteProposal.routerHealth,
       };
 
       if (flashLiteProposal.warning) {

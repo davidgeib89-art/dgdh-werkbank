@@ -168,6 +168,30 @@ describe("agent stats route contract", () => {
             mode: "advisory",
             routingReason: "quota_state",
             policySource: "quota_snapshot",
+            controlPlane: {
+              router: {
+                enabled: true,
+                model: "gemini-2.5-flash-lite",
+                source: "flash_lite_call",
+                accepted: true,
+                parseStatus: "ok",
+                latencyMs: 27,
+                correctionReasons: [],
+                health: {
+                  successCount: 4,
+                  fallbackCount: 1,
+                  timeoutCount: 0,
+                  parseFailCount: 1,
+                  commandErrorCount: 0,
+                  cacheHitCount: 2,
+                  circuitOpenCount: 0,
+                  consecutiveFailures: 0,
+                  breakerOpenUntil: null,
+                  lastLatencyMs: 27,
+                  lastErrorReason: null,
+                },
+              },
+            },
             quotaState: {
               bucketState: "ok",
               snapshotAt: "2026-03-19T10:00:00.000Z",
@@ -253,6 +277,13 @@ describe("agent stats route contract", () => {
         policySource: "quota_snapshot",
         laneStrategy: "quota",
         modelLaneReason: "default",
+      },
+      controlPlane: {
+        router: {
+          source: "flash_lite_call",
+          parseStatus: "ok",
+          accepted: true,
+        },
       },
       routingHistory: {
         limit: 12,

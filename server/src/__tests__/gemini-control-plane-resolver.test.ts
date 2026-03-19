@@ -202,6 +202,19 @@ describe("resolveGeminiControlPlane", () => {
           source: "flash_lite_call",
           parseStatus: "ok",
           latencyMs: 42,
+          routerHealth: {
+            successCount: 7,
+            fallbackCount: 2,
+            timeoutCount: 1,
+            parseFailCount: 1,
+            commandErrorCount: 0,
+            cacheHitCount: 3,
+            circuitOpenCount: 1,
+            consecutiveFailures: 0,
+            breakerOpenUntil: null,
+            lastLatencyMs: 42,
+            lastErrorReason: null,
+          },
         },
       },
       runtimeConfig: {
@@ -226,6 +239,8 @@ describe("resolveGeminiControlPlane", () => {
     expect(result.controlPlane.router.latencyMs).toBe(42);
     expect(result.controlPlane.router.accepted).toBe(true);
     expect(result.controlPlane.router.correctionReasons).toHaveLength(0);
+    expect(result.controlPlane.router.health.successCount).toBe(7);
+    expect(result.controlPlane.router.health.cacheHitCount).toBe(3);
   });
 
   it("corrects invalid flash-lite proposal using server guardrails", () => {
@@ -308,5 +323,7 @@ describe("deriveGeminiControlPlaneState", () => {
     expect(derived.bucket.selectedState).toBe("ok");
     expect(derived.modelLane.effective).toBe("gemini-effective");
     expect(derived.quota.hardCapTokens).toBe(75000);
+    expect(derived.router.health.successCount).toBe(0);
+    expect(derived.router.health.lastErrorReason).toBeNull();
   });
 });

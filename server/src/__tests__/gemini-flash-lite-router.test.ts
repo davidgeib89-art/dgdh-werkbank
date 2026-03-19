@@ -21,6 +21,28 @@ describe("produceFlashLiteRoutingProposal", () => {
     hoisted.runChildProcessMock.mockReset();
   });
 
+  const baseInput = {
+    adapterType: "gemini_local",
+    adapterConfig: {
+      command: "node",
+      cwd: process.cwd(),
+      env: {},
+    },
+    context: {
+      paperclipTaskPrompt: "Implement endpoint",
+    },
+    quotaSnapshot: {
+      snapshotAt: "2026-03-19T19:30:00.000Z",
+    },
+    allowedBuckets: ["flash", "pro", "flash-lite"] as const,
+    allowedModelLanes: [
+      "gemini-3-flash-preview",
+      "gemini-3.1-pro-preview",
+      "gemini-2.5-flash-lite",
+    ],
+    manualOverride: null,
+  };
+
   it("accepts valid strict JSON proposal from flash-lite call", async () => {
     hoisted.runChildProcessMock.mockResolvedValue({
       exitCode: 0,
@@ -48,12 +70,7 @@ describe("produceFlashLiteRoutingProposal", () => {
     });
 
     const result = await produceFlashLiteRoutingProposal({
-      adapterType: "gemini_local",
-      adapterConfig: {
-        command: "node",
-        cwd: process.cwd(),
-        env: {},
-      },
+      ...baseInput,
       runtimeConfig: {
         routingPolicy: {
           llmRouter: {
@@ -62,24 +79,13 @@ describe("produceFlashLiteRoutingProposal", () => {
           },
         },
       },
-      context: {
-        paperclipTaskPrompt: "Implement endpoint",
-      },
-      quotaSnapshot: {
-        snapshotAt: "2026-03-19T19:30:00.000Z",
-      },
-      allowedBuckets: ["flash", "pro", "flash-lite"],
-      allowedModelLanes: [
-        "gemini-3-flash-preview",
-        "gemini-3.1-pro-preview",
-        "gemini-2.5-flash-lite",
-      ],
-      manualOverride: null,
     });
 
     expect(result.source).toBe("flash_lite_call");
     expect(result.parseStatus).toBe("ok");
     expect(result.proposal?.chosenBucket).toBe("pro");
+    expect(result.routerHealth.successCount).toBe(1);
+    expect(result.routerHealth.lastErrorReason).toBeNull();
   });
 
   it("falls back to heuristic policy on invalid json", async () => {
@@ -102,12 +108,7 @@ describe("produceFlashLiteRoutingProposal", () => {
     });
 
     const result = await produceFlashLiteRoutingProposal({
-      adapterType: "gemini_local",
-      adapterConfig: {
-        command: "node",
-        cwd: process.cwd(),
-        env: {},
-      },
+      ...baseInput,
       runtimeConfig: {
         routingPolicy: {
           llmRouter: {
@@ -118,16 +119,177 @@ describe("produceFlashLiteRoutingProposal", () => {
       context: {
         paperclipTaskPrompt: "Investigate issue",
       },
-      quotaSnapshot: {
-        snapshotAt: "2026-03-19T19:30:00.000Z",
-      },
-      allowedBuckets: ["flash", "pro", "flash-lite"],
       allowedModelLanes: ["gemini-3-flash-preview", "gemini-3.1-pro-preview"],
-      manualOverride: null,
     });
 
     expect(result.source).toBe("heuristic_policy");
     expect(result.parseStatus).toBe("invalid_json");
     expect(result.proposal).toBeNull();
+    expect(result.routerHealth.parseFailCount).toBe(1);
+    expect(result.routerHealth.fallbackCount).toBe(1);
+  });
+
+  it("supports kill-switch fallback_only mode", async () => {
+    const result = await produceFlashLiteRoutingProposal({
+      ...baseInput,
+      runtimeConfig: {
+        routingPolicy: {
+          llmRouter: {
+            enabled: true,
+            fallback_only: true,
+          },
+        },
+      },
+    });
+
+    expect(result.attempted).toBe(false);
+    expect(result.source).toBe("heuristic_policy");
+    expect(result.parseStatus).toBe("not_attempted");
+    expect(result.fallbackReason).toBe("router_fallback_only");
+    expect(hoisted.runChildProcessMock).not.toHaveBeenCalled();
+  });
+
+  it("opens circuit breaker after repeated failures", async () => {
+    hoisted.runChildProcessMock.mockResolvedValue({
+      exitCode: 0,
+      signal: null,
+      timedOut: false,
+      stdout: JSON.stringify({
+        type: "assistant",
+        message: {
+          content: [
+            {
+              type: "output_text",
+              text: "not-json",
+            },
+          ],
+        },
+      }),
+      stderr: "",
+    });
+
+    const first = await produceFlashLiteRoutingProposal({
+      ...baseInput,
+      runtimeConfig: {
+        routingPolicy: {
+          llmRouter: {
+            enabled: true,
+            circuitBreaker: {
+              threshold: 2,
+              cooldownSec: 120,
+            },
+          },
+        },
+      },
+    });
+
+    const second = await produceFlashLiteRoutingProposal({
+      ...baseInput,
+      runtimeConfig: {
+        routingPolicy: {
+          llmRouter: {
+            enabled: true,
+            circuitBreaker: {
+              threshold: 2,
+              cooldownSec: 120,
+            },
+          },
+        },
+      },
+      runtimeState: first.runtimeStatePatch,
+    });
+
+    expect(first.parseStatus).toBe("invalid_json");
+    expect(second.parseStatus).toBe("invalid_json");
+    expect(second.routerHealth.circuitOpenCount).toBe(1);
+    expect(second.routerHealth.breakerOpenUntil).not.toBeNull();
+
+    const third = await produceFlashLiteRoutingProposal({
+      ...baseInput,
+      runtimeConfig: {
+        routingPolicy: {
+          llmRouter: {
+            enabled: true,
+            circuitBreaker: {
+              threshold: 2,
+              cooldownSec: 120,
+            },
+          },
+        },
+      },
+      runtimeState: second.runtimeStatePatch,
+    });
+
+    expect(third.attempted).toBe(false);
+    expect(third.fallbackReason).toBe("circuit_open");
+    expect(third.parseStatus).toBe("not_attempted");
+  });
+
+  it("reuses cached proposal for similar intake and skips extra call", async () => {
+    hoisted.runChildProcessMock.mockResolvedValue({
+      exitCode: 0,
+      signal: null,
+      timedOut: false,
+      stdout: JSON.stringify({
+        type: "assistant",
+        message: {
+          content: [
+            {
+              type: "output_text",
+              text: JSON.stringify({
+                taskClass: "bounded-implementation",
+                budgetClass: "medium",
+                chosenBucket: "flash",
+                chosenModelLane: "gemini-3-flash-preview",
+                fallbackBucket: "pro",
+                rationale: "cached route",
+              }),
+            },
+          ],
+        },
+      }),
+      stderr: "",
+    });
+
+    const first = await produceFlashLiteRoutingProposal({
+      ...baseInput,
+      runtimeConfig: {
+        routingPolicy: {
+          llmRouter: {
+            enabled: true,
+            cache: {
+              enabled: true,
+              ttlSec: 300,
+            },
+          },
+        },
+      },
+    });
+
+    expect(first.source).toBe("flash_lite_call");
+    expect(first.cacheHit).toBe(false);
+
+    hoisted.runChildProcessMock.mockReset();
+
+    const second = await produceFlashLiteRoutingProposal({
+      ...baseInput,
+      runtimeConfig: {
+        routingPolicy: {
+          llmRouter: {
+            enabled: true,
+            cache: {
+              enabled: true,
+              ttlSec: 300,
+            },
+          },
+        },
+      },
+      runtimeState: first.runtimeStatePatch,
+    });
+
+    expect(second.parseStatus).toBe("ok");
+    expect(second.source).toBe("flash_lite_call");
+    expect(second.cacheHit).toBe(true);
+    expect(hoisted.runChildProcessMock).not.toHaveBeenCalled();
   });
 });

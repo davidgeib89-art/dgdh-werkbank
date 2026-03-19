@@ -143,6 +143,19 @@ export interface GeminiControlPlaneState {
     parseStatus: RouterParseStatus;
     latencyMs: number | null;
     proposal: GeminiRoutingStageOneProposal | null;
+    health: {
+      successCount: number;
+      fallbackCount: number;
+      timeoutCount: number;
+      parseFailCount: number;
+      commandErrorCount: number;
+      cacheHitCount: number;
+      circuitOpenCount: number;
+      consecutiveFailures: number;
+      breakerOpenUntil: string | null;
+      lastLatencyMs: number | null;
+      lastErrorReason: string | null;
+    };
   };
   warnings: string[];
   manualOverride: {
@@ -417,6 +430,10 @@ export function resolveGeminiControlPlane(
           "heuristic policy fallback proposal generated before execution",
       };
   const routerMeta = asObject(input.context.paperclipRoutingProposalMeta);
+  const routerMetaHealth = asObject(routerMeta.routerHealth);
+  const runtimeRouterRuntime = asObject(runtimeControlPlane.routerRuntime);
+  const runtimeRouterBreaker = asObject(runtimeRouterRuntime.breaker);
+  const runtimeRouterMetrics = asObject(runtimeRouterRuntime.metrics);
   const routerParseStatus = ((asString(
     routerMeta.parseStatus,
   ) as RouterParseStatus | null) ?? "not_attempted") as RouterParseStatus;
@@ -580,6 +597,84 @@ export function resolveGeminiControlPlane(
       parseStatus: routerParseStatus,
       latencyMs: routerLatencyMs,
       proposal: stageOneProposal,
+      health: {
+        successCount: Math.max(
+          0,
+          Math.floor(
+            asNumber(routerMetaHealth.successCount) ??
+              asNumber(runtimeRouterMetrics.successCount) ??
+              0,
+          ),
+        ),
+        fallbackCount: Math.max(
+          0,
+          Math.floor(
+            asNumber(routerMetaHealth.fallbackCount) ??
+              asNumber(runtimeRouterMetrics.fallbackCount) ??
+              0,
+          ),
+        ),
+        timeoutCount: Math.max(
+          0,
+          Math.floor(
+            asNumber(routerMetaHealth.timeoutCount) ??
+              asNumber(runtimeRouterMetrics.timeoutCount) ??
+              0,
+          ),
+        ),
+        parseFailCount: Math.max(
+          0,
+          Math.floor(
+            asNumber(routerMetaHealth.parseFailCount) ??
+              asNumber(runtimeRouterMetrics.parseFailCount) ??
+              0,
+          ),
+        ),
+        commandErrorCount: Math.max(
+          0,
+          Math.floor(
+            asNumber(routerMetaHealth.commandErrorCount) ??
+              asNumber(runtimeRouterMetrics.commandErrorCount) ??
+              0,
+          ),
+        ),
+        cacheHitCount: Math.max(
+          0,
+          Math.floor(
+            asNumber(routerMetaHealth.cacheHitCount) ??
+              asNumber(runtimeRouterMetrics.cacheHitCount) ??
+              0,
+          ),
+        ),
+        circuitOpenCount: Math.max(
+          0,
+          Math.floor(
+            asNumber(routerMetaHealth.circuitOpenCount) ??
+              asNumber(runtimeRouterMetrics.circuitOpenCount) ??
+              0,
+          ),
+        ),
+        consecutiveFailures: Math.max(
+          0,
+          Math.floor(
+            asNumber(routerMetaHealth.consecutiveFailures) ??
+              asNumber(runtimeRouterBreaker.consecutiveFailures) ??
+              0,
+          ),
+        ),
+        breakerOpenUntil:
+          asString(routerMetaHealth.breakerOpenUntil) ??
+          asString(runtimeRouterBreaker.openUntil) ??
+          null,
+        lastLatencyMs:
+          asNumber(routerMetaHealth.lastLatencyMs) ??
+          asNumber(runtimeRouterMetrics.lastLatencyMs) ??
+          null,
+        lastErrorReason:
+          asString(routerMetaHealth.lastErrorReason) ??
+          asString(runtimeRouterMetrics.lastErrorReason) ??
+          null,
+      },
     },
     warnings,
     manualOverride,
@@ -856,6 +951,95 @@ export function deriveGeminiControlPlaneState(
           rationale,
         };
       })(),
+      health: {
+        successCount: Math.max(
+          0,
+          Math.floor(
+            asNumber(
+              asObject(asObject(controlPlaneFromPreflight.router).health)
+                .successCount,
+            ) ?? 0,
+          ),
+        ),
+        fallbackCount: Math.max(
+          0,
+          Math.floor(
+            asNumber(
+              asObject(asObject(controlPlaneFromPreflight.router).health)
+                .fallbackCount,
+            ) ?? 0,
+          ),
+        ),
+        timeoutCount: Math.max(
+          0,
+          Math.floor(
+            asNumber(
+              asObject(asObject(controlPlaneFromPreflight.router).health)
+                .timeoutCount,
+            ) ?? 0,
+          ),
+        ),
+        parseFailCount: Math.max(
+          0,
+          Math.floor(
+            asNumber(
+              asObject(asObject(controlPlaneFromPreflight.router).health)
+                .parseFailCount,
+            ) ?? 0,
+          ),
+        ),
+        commandErrorCount: Math.max(
+          0,
+          Math.floor(
+            asNumber(
+              asObject(asObject(controlPlaneFromPreflight.router).health)
+                .commandErrorCount,
+            ) ?? 0,
+          ),
+        ),
+        cacheHitCount: Math.max(
+          0,
+          Math.floor(
+            asNumber(
+              asObject(asObject(controlPlaneFromPreflight.router).health)
+                .cacheHitCount,
+            ) ?? 0,
+          ),
+        ),
+        circuitOpenCount: Math.max(
+          0,
+          Math.floor(
+            asNumber(
+              asObject(asObject(controlPlaneFromPreflight.router).health)
+                .circuitOpenCount,
+            ) ?? 0,
+          ),
+        ),
+        consecutiveFailures: Math.max(
+          0,
+          Math.floor(
+            asNumber(
+              asObject(asObject(controlPlaneFromPreflight.router).health)
+                .consecutiveFailures,
+            ) ?? 0,
+          ),
+        ),
+        breakerOpenUntil:
+          asString(
+            asObject(asObject(controlPlaneFromPreflight.router).health)
+              .breakerOpenUntil,
+          ) ?? null,
+        lastLatencyMs:
+          asNumber(
+            asObject(asObject(controlPlaneFromPreflight.router).health)
+              .lastLatencyMs,
+          ) ?? null,
+        lastErrorReason:
+          asString(
+            asObject(asObject(controlPlaneFromPreflight.router).health)
+              .lastErrorReason,
+          ) ?? null,
+      },
     },
     warnings: Array.isArray(controlPlaneFromPreflight.warnings)
       ? controlPlaneFromPreflight.warnings
