@@ -40,6 +40,10 @@ import { assertBoard, assertCompanyAccess, getActorInfo } from "./authz.js";
 import { findServerAdapter, listAdapterModels } from "../adapters/index.js";
 import { redactEventPayload } from "../redaction.js";
 import { redactCurrentUserValue } from "../log-redaction.js";
+import {
+  buildCompanyHealthSummary,
+  evaluateAgentHealth,
+} from "../services/agent-health.js";
 import { runClaudeLogin } from "@paperclipai/adapter-claude-local/server";
 import {
   DEFAULT_CODEX_LOCAL_BYPASS_APPROVALS_AND_SANDBOX,
@@ -925,20 +929,17 @@ export function agentRoutes(db: Db) {
       asNonEmptyString(asRecord(quotaSnapshot)?.policySource) ??
       null;
 
-    // budgetSummary computed early so healthStatus can reference it
-    const budgetUsedTokens = runtimeState
-      ? runtimeState.totalInputTokens +
-        runtimeState.totalCachedInputTokens +
-        runtimeState.totalOutputTokens
-      : null;
-    const budgetSoftCap =
-      parseNumberLike(asRecord(runRoutingPreflight?.selected)?.softCapTokens) ??
-      parseNumberLike(asRecord(quotaSnapshot)?.softCapTokens) ??
-      null;
-    const budgetHardCap =
-      parseNumberLike(asRecord(runRoutingPreflight?.selected)?.hardCapTokens) ??
-      parseNumberLike(asRecord(quotaSnapshot)?.hardCapTokens) ??
-      null;
+    const healthEvaluation = evaluateAgentHealth({
+      runtimeState,
+      selectedRouting,
+      quotaSnapshot,
+      lastRunStatus: latestRun?.status ?? null,
+      lastRunErrorCode: latestRun?.errorCode ?? null,
+    });
+    // budgetSummary computed early so endpoint payload can expose percentages
+    const budgetUsedTokens = healthEvaluation.usedTokens;
+    const budgetSoftCap = healthEvaluation.softCapTokens;
+    const budgetHardCap = healthEvaluation.hardCapTokens;
     const budgetPctSoft =
       budgetUsedTokens !== null && budgetSoftCap !== null && budgetSoftCap > 0
         ? Math.round((budgetUsedTokens / budgetSoftCap) * 100)
@@ -947,21 +948,7 @@ export function agentRoutes(db: Db) {
       budgetUsedTokens !== null && budgetHardCap !== null && budgetHardCap > 0
         ? Math.round((budgetUsedTokens / budgetHardCap) * 100)
         : null;
-    const budgetStatus:
-      | "ok"
-      | "soft_cap_approaching"
-      | "soft_cap_exceeded"
-      | "hard_cap_exceeded"
-      | "unknown" =
-      budgetUsedTokens === null || budgetHardCap === null
-        ? "unknown"
-        : budgetUsedTokens >= budgetHardCap
-        ? "hard_cap_exceeded"
-        : budgetSoftCap !== null && budgetUsedTokens >= budgetSoftCap
-        ? "soft_cap_exceeded"
-        : budgetSoftCap !== null && budgetUsedTokens >= budgetSoftCap * 0.8
-        ? "soft_cap_approaching"
-        : "ok";
+    const budgetStatus = healthEvaluation.budgetStatus;
     const routingHistory = historyRuns.map((run) => {
       const context = asRecord(run.contextSnapshot);
       const preflight = asRecord(context?.paperclipRoutingPreflight);
@@ -1076,31 +1063,7 @@ export function agentRoutes(db: Db) {
       };
     });
 
-    const lastRunStatus = latestRun?.status ?? null;
-    const lastRunErrorCode = latestRun?.errorCode ?? null;
-    const healthStatus:
-      | "ok"
-      | "running"
-      | "warning"
-      | "degraded"
-      | "critical"
-      | "unknown" = !runtimeState
-      ? "unknown"
-      : budgetStatus === "hard_cap_exceeded"
-      ? "critical"
-      : lastRunStatus === "queued" || lastRunStatus === "running"
-      ? "running"
-      : budgetStatus === "soft_cap_exceeded" &&
-        lastRunErrorCode !== null &&
-        lastRunErrorCode !== "cancelled"
-      ? "critical"
-      : budgetStatus === "soft_cap_exceeded"
-      ? "warning"
-      : budgetStatus === "soft_cap_approaching"
-      ? "warning"
-      : lastRunErrorCode !== null && lastRunErrorCode !== "cancelled"
-      ? "degraded"
-      : "ok";
+    const healthStatus = healthEvaluation.healthStatus;
 
     res.json({
       agentId: agent.id,
@@ -1265,67 +1228,30 @@ export function agentRoutes(db: Db) {
     const preflight = asRecord(runCtx?.paperclipRoutingPreflight);
     const selected = asRecord(preflight?.selected);
 
-    const usedTokens = runtimeState
-      ? runtimeState.totalInputTokens +
-        runtimeState.totalCachedInputTokens +
-        runtimeState.totalOutputTokens
-      : null;
-    const softCap =
-      parseNumberLike(selected?.softCapTokens) ??
-      parseNumberLike(rsQuota?.softCapTokens) ??
-      null;
-    const hardCap =
-      parseNumberLike(selected?.hardCapTokens) ??
-      parseNumberLike(rsQuota?.hardCapTokens) ??
-      null;
-
-    const hBudgetStatus =
-      usedTokens === null || hardCap === null
-        ? "unknown"
-        : usedTokens >= hardCap
-        ? "hard_cap_exceeded"
-        : softCap !== null && usedTokens >= softCap
-        ? "soft_cap_exceeded"
-        : softCap !== null && usedTokens >= softCap * 0.8
-        ? "soft_cap_approaching"
-        : ("ok" as const);
-
-    const hLastStatus = latestRunRow?.status ?? null;
-    const hLastError = latestRunRow?.errorCode ?? null;
-    const hHealthStatus = !runtimeState
-      ? "unknown"
-      : hBudgetStatus === "hard_cap_exceeded"
-      ? "critical"
-      : hLastStatus === "queued" || hLastStatus === "running"
-      ? "running"
-      : hBudgetStatus === "soft_cap_exceeded" &&
-        hLastError !== null &&
-        hLastError !== "cancelled"
-      ? "critical"
-      : hBudgetStatus === "soft_cap_exceeded"
-      ? "warning"
-      : hBudgetStatus === "soft_cap_approaching"
-      ? "warning"
-      : hLastError !== null && hLastError !== "cancelled"
-      ? "degraded"
-      : ("ok" as const);
+    const healthEvaluation = evaluateAgentHealth({
+      runtimeState,
+      selectedRouting: selected,
+      quotaSnapshot: rsQuota,
+      lastRunStatus: latestRunRow?.status ?? null,
+      lastRunErrorCode: latestRunRow?.errorCode ?? null,
+    });
 
     res.json({
       agentId: agent.id,
       agentName: agent.name,
       adapterType: agent.adapterType,
-      healthStatus: hHealthStatus,
-      budgetStatus: hBudgetStatus,
-      usedTokens,
-      softCapTokens: softCap,
-      hardCapTokens: hardCap,
-      totalCostCents: runtimeState?.totalCostCents ?? null,
+      healthStatus: healthEvaluation.healthStatus,
+      budgetStatus: healthEvaluation.budgetStatus,
+      usedTokens: healthEvaluation.usedTokens,
+      softCapTokens: healthEvaluation.softCapTokens,
+      hardCapTokens: healthEvaluation.hardCapTokens,
+      totalCostCents: healthEvaluation.totalCostCents,
       lastRun: latestRunRow
         ? {
             id: latestRunRow.id,
             status: latestRunRow.status,
             stopReason:
-              hLastError ??
+              healthEvaluation.lastRunErrorCode ??
               (latestRunRow.status === "succeeded" ? "completed" : null),
             finishedAt: latestRunRow.finishedAt,
             createdAt: latestRunRow.createdAt,
@@ -1387,48 +1313,13 @@ export function agentRoutes(db: Db) {
       const lrPreflight = asRecord(lrCtx?.paperclipRoutingPreflight);
       const lrSelected = asRecord(lrPreflight?.selected);
 
-      const used = rt
-        ? rt.totalInputTokens + rt.totalCachedInputTokens + rt.totalOutputTokens
-        : null;
-      const soft =
-        parseNumberLike(lrSelected?.softCapTokens) ??
-        parseNumberLike(rtQuota?.softCapTokens) ??
-        null;
-      const hard =
-        parseNumberLike(lrSelected?.hardCapTokens) ??
-        parseNumberLike(rtQuota?.hardCapTokens) ??
-        null;
-
-      const bStatus =
-        used === null || hard === null
-          ? "unknown"
-          : used >= hard
-          ? "hard_cap_exceeded"
-          : soft !== null && used >= soft
-          ? "soft_cap_exceeded"
-          : soft !== null && used >= soft * 0.8
-          ? "soft_cap_approaching"
-          : ("ok" as const);
-
-      const lrStatus = lr?.status ?? null;
-      const lrError = lr?.errorCode ?? null;
-      const hStatus = !rt
-        ? "unknown"
-        : bStatus === "hard_cap_exceeded"
-        ? "critical"
-        : lrStatus === "queued" || lrStatus === "running"
-        ? "running"
-        : bStatus === "soft_cap_exceeded" &&
-          lrError !== null &&
-          lrError !== "cancelled"
-        ? "critical"
-        : bStatus === "soft_cap_exceeded"
-        ? "warning"
-        : bStatus === "soft_cap_approaching"
-        ? "warning"
-        : lrError !== null && lrError !== "cancelled"
-        ? "degraded"
-        : ("ok" as const);
+      const healthEvaluation = evaluateAgentHealth({
+        runtimeState: rt,
+        selectedRouting: lrSelected,
+        quotaSnapshot: rtQuota,
+        lastRunStatus: lr?.status ?? null,
+        lastRunErrorCode: lr?.errorCode ?? null,
+      });
 
       return {
         agentId: a.id,
@@ -1436,18 +1327,19 @@ export function agentRoutes(db: Db) {
         role: a.role,
         adapterType: a.adapterType,
         agentStatus: a.status,
-        healthStatus: hStatus,
-        budgetStatus: bStatus,
-        usedTokens: used,
-        softCapTokens: soft,
-        hardCapTokens: hard,
-        totalCostCents: rt?.totalCostCents ?? null,
+        healthStatus: healthEvaluation.healthStatus,
+        budgetStatus: healthEvaluation.budgetStatus,
+        usedTokens: healthEvaluation.usedTokens,
+        softCapTokens: healthEvaluation.softCapTokens,
+        hardCapTokens: healthEvaluation.hardCapTokens,
+        totalCostCents: healthEvaluation.totalCostCents,
         lastRun: lr
           ? {
               id: lr.id,
               status: lr.status,
               stopReason:
-                lrError ?? (lr.status === "succeeded" ? "completed" : null),
+                healthEvaluation.lastRunErrorCode ??
+                (lr.status === "succeeded" ? "completed" : null),
               finishedAt: lr.finishedAt,
               createdAt: lr.createdAt,
             }
@@ -1455,7 +1347,9 @@ export function agentRoutes(db: Db) {
       };
     });
 
-    res.json({ companyId, count: items.length, agents: items });
+    const summary = buildCompanyHealthSummary(items);
+
+    res.json({ companyId, count: items.length, summary, agents: items });
   });
 
   router.get("/agents/:id/task-sessions", async (req, res) => {
