@@ -57,8 +57,12 @@ import {
 } from "../log-redaction.js";
 import { runPromptResolverPreflight } from "./prompt-resolver-preflight.js";
 import type { PromptResolverInput } from "./prompt-resolver-schema.js";
-import { resolveGeminiRoutingPreflight } from "./gemini-routing.js";
+import {
+  getGeminiRoutingPolicy,
+  resolveGeminiRoutingPreflight,
+} from "./gemini-routing.js";
 import { refreshGeminiRuntimeQuotaSnapshot } from "./gemini-quota-producer.js";
+import { produceFlashLiteRoutingProposal } from "./gemini-flash-lite-router.js";
 
 const MAX_LIVE_LOG_CHUNK_BYTES = 8 * 1024;
 const HEARTBEAT_MAX_CONCURRENT_RUNS_DEFAULT = 1;
@@ -2713,6 +2717,59 @@ export function heartbeatService(db: Db) {
             preflightQuotaRefresh.refreshSource ?? "none"
           }) reported ${warning}`,
       );
+
+      const manualOverrideForRouter = parseObject(
+        parseObject(runtimeConfigForRouting.routingPolicy).manualOverride,
+      );
+
+      const { policy } = getGeminiRoutingPolicy();
+      const flashLiteProposal = await produceFlashLiteRoutingProposal({
+        adapterType: agent.adapterType,
+        adapterConfig: resolvedConfig,
+        runtimeConfig: runtimeConfigForRouting,
+        context,
+        quotaSnapshot: {
+          source: preflightQuotaRefresh.snapshot.source,
+          accountLabel: preflightQuotaRefresh.snapshot.accountLabel,
+          snapshotAt: preflightQuotaRefresh.snapshot.snapshotAt,
+          resetAt: preflightQuotaRefresh.snapshot.resetAt,
+          resetReason: preflightQuotaRefresh.snapshot.resetReason,
+          isStale: preflightQuotaRefresh.snapshot.isStale,
+          staleReason: preflightQuotaRefresh.snapshot.staleReason,
+          ageSec: preflightQuotaRefresh.snapshot.ageSec,
+          maxAgeSec: preflightQuotaRefresh.snapshot.maxAgeSec,
+          buckets: preflightQuotaRefresh.snapshot.buckets,
+        },
+        allowedBuckets: ["flash", "pro", "flash-lite"],
+        allowedModelLanes: Object.values(policy.bucketModels),
+        manualOverride:
+          Object.keys(manualOverrideForRouter).length > 0
+            ? manualOverrideForRouter
+            : null,
+      });
+
+      if (flashLiteProposal.proposal) {
+        context.paperclipRoutingProposal = {
+          taskType: flashLiteProposal.proposal.taskClass,
+          budgetClass: flashLiteProposal.proposal.budgetClass,
+          chosenBucket: flashLiteProposal.proposal.chosenBucket,
+          chosenModelLane: flashLiteProposal.proposal.chosenModelLane,
+          fallbackBucket: flashLiteProposal.proposal.fallbackBucket,
+          rationale: flashLiteProposal.proposal.rationale,
+        };
+      } else {
+        delete context.paperclipRoutingProposal;
+      }
+
+      context.paperclipRoutingProposalMeta = {
+        source: flashLiteProposal.source,
+        parseStatus: flashLiteProposal.parseStatus,
+        latencyMs: flashLiteProposal.latencyMs,
+      };
+
+      if (flashLiteProposal.warning) {
+        quotaRefreshWarnings.push(flashLiteProposal.warning);
+      }
 
       const routingPreflight = resolveGeminiRoutingPreflight({
         adapterType: agent.adapterType,

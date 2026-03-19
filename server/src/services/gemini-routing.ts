@@ -79,7 +79,10 @@ function isBucket(value: string | null): value is BucketName {
   return value === "flash" || value === "pro" || value === "flash-lite";
 }
 
-function readPolicyFromFile(): { policy: GeminiRoutingPolicy; source: string } {
+export function getGeminiRoutingPolicy(): {
+  policy: GeminiRoutingPolicy;
+  source: string;
+} {
   const serviceDir = path.dirname(fileURLToPath(import.meta.url));
   const policyPath = path.resolve(
     serviceDir,
@@ -184,7 +187,7 @@ export function resolveGeminiRoutingPreflight(
 ): GeminiRoutingPreflightResult | null {
   if (input.adapterType !== "gemini_local") return null;
 
-  const { policy, source } = readPolicyFromFile();
+  const { policy, source } = getGeminiRoutingPolicy();
   const resolver = resolveGeminiControlPlane({
     policy,
     policySource: source,

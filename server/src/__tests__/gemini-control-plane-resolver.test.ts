@@ -198,6 +198,11 @@ describe("resolveGeminiControlPlane", () => {
           fallbackBucket: "flash",
           rationale: "proposed by flash-lite router",
         },
+        paperclipRoutingProposalMeta: {
+          source: "flash_lite_call",
+          parseStatus: "ok",
+          latencyMs: 42,
+        },
       },
       runtimeConfig: {
         routingPolicy: {
@@ -216,7 +221,9 @@ describe("resolveGeminiControlPlane", () => {
     });
 
     expect(result.selected.selectedBucket).toBe("pro");
-    expect(result.controlPlane.router.source).toBe("context_flash_lite");
+    expect(result.controlPlane.router.source).toBe("flash_lite_call");
+    expect(result.controlPlane.router.parseStatus).toBe("ok");
+    expect(result.controlPlane.router.latencyMs).toBe(42);
     expect(result.controlPlane.router.accepted).toBe(true);
     expect(result.controlPlane.router.correctionReasons).toHaveLength(0);
   });

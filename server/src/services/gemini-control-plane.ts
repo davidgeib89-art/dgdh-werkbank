@@ -13,7 +13,17 @@ type RoutingMode = "advisory" | "soft_enforced";
 type BucketState = "ok" | "cooldown" | "exhausted" | "unknown";
 
 type BudgetClass = "small" | "medium" | "large";
-type RouterProposalSource = "context_flash_lite" | "heuristic_policy" | "none";
+type RouterProposalSource =
+  | "flash_lite_call"
+  | "heuristic_policy"
+  | "manual_override";
+type RouterParseStatus =
+  | "ok"
+  | "invalid_json"
+  | "schema_invalid"
+  | "timeout"
+  | "command_error"
+  | "not_attempted";
 
 export interface GeminiRoutingStageOneProposal {
   taskType: TaskType;
@@ -130,6 +140,8 @@ export interface GeminiControlPlaneState {
     source: RouterProposalSource;
     accepted: boolean;
     correctionReasons: string[];
+    parseStatus: RouterParseStatus;
+    latencyMs: number | null;
     proposal: GeminiRoutingStageOneProposal | null;
   };
   warnings: string[];
@@ -404,11 +416,15 @@ export function resolveGeminiControlPlane(
         rationale:
           "heuristic policy fallback proposal generated before execution",
       };
-  const routerSource: RouterProposalSource = !routerEnabled
-    ? "none"
-    : readRouterProposalFromContext(input.context)
-    ? "context_flash_lite"
-    : "heuristic_policy";
+  const routerMeta = asObject(input.context.paperclipRoutingProposalMeta);
+  const routerParseStatus = ((asString(
+    routerMeta.parseStatus,
+  ) as RouterParseStatus | null) ?? "not_attempted") as RouterParseStatus;
+  const routerLatencyMs = asNumber(routerMeta.latencyMs);
+  let routerSource: RouterProposalSource = !routerEnabled
+    ? "heuristic_policy"
+    : (asString(routerMeta.source) as RouterProposalSource | null) ??
+      "heuristic_policy";
 
   const taskType = stageOneProposal?.taskType ?? detectedTaskType;
   const budgetClass = stageOneProposal?.budgetClass ?? detectedBudgetClass;
@@ -452,6 +468,7 @@ export function resolveGeminiControlPlane(
       `manual override enforced bucket ${manualOverride.bucket}`,
     );
     selectedBucket = manualOverride.bucket;
+    routerSource = "manual_override";
   }
 
   const selectedBucketState = bucketStates[selectedBucket] ?? "unknown";
@@ -560,6 +577,8 @@ export function resolveGeminiControlPlane(
       source: routerSource,
       accepted: correctionReasons.length === 0,
       correctionReasons,
+      parseStatus: routerParseStatus,
+      latencyMs: routerLatencyMs,
       proposal: stageOneProposal,
     },
     warnings,
@@ -788,9 +807,15 @@ export function deriveGeminiControlPlaneState(
       model: asString(asObject(controlPlaneFromPreflight.router).model),
       source: ((asString(
         asObject(controlPlaneFromPreflight.router).source,
-      ) as RouterProposalSource | null) ?? "none") as RouterProposalSource,
+      ) as RouterProposalSource | null) ??
+        "heuristic_policy") as RouterProposalSource,
       accepted:
         asBoolean(asObject(controlPlaneFromPreflight.router).accepted) ?? false,
+      parseStatus: ((asString(
+        asObject(controlPlaneFromPreflight.router).parseStatus,
+      ) as RouterParseStatus | null) ?? "not_attempted") as RouterParseStatus,
+      latencyMs:
+        asNumber(asObject(controlPlaneFromPreflight.router).latencyMs) ?? null,
       correctionReasons: Array.isArray(
         asObject(controlPlaneFromPreflight.router).correctionReasons,
       )
