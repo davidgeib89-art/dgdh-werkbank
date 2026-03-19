@@ -930,6 +930,37 @@ export function agentRoutes(db: Db) {
       const usage = asRecord(run.usageJson);
       const result = asRecord(run.resultJson);
 
+      const preflightAvailable = preflight !== null;
+      const contextAvailable = context !== null;
+
+      const warnings: string[] = [];
+      if (!contextAvailable) {
+        warnings.push(
+          "no_context_snapshot: run has no contextSnapshot; routing fields unavailable",
+        );
+      } else if (!preflightAvailable) {
+        warnings.push(
+          "no_routing_preflight: contextSnapshot present but paperclipRoutingPreflight missing; run may predate routing instrumentation",
+        );
+      } else {
+        if (!asNonEmptyString(selected?.effectiveModelLane)) {
+          warnings.push(
+            "no_effective_model_lane: routing preflight present but effectiveModelLane is missing",
+          );
+        }
+        if (!asNonEmptyString(preflight?.routingReason)) {
+          warnings.push(
+            "no_routing_reason: routing preflight present but routingReason is missing",
+          );
+        }
+      }
+
+      if (run.status === "running" || run.status === "queued") {
+        warnings.push(
+          `run_not_finished: run is still ${run.status}; usage and stop reason may be incomplete`,
+        );
+      }
+
       const inputTokens = parseNumberLike(usage?.inputTokens);
       const cachedInputTokens = parseNumberLike(usage?.cachedInputTokens);
       const outputTokens = parseNumberLike(usage?.outputTokens);
@@ -938,12 +969,27 @@ export function agentRoutes(db: Db) {
         cachedInputTokens !== null ||
         outputTokens !== null;
 
+      if (!hasTokenSummary && run.status === "succeeded") {
+        warnings.push(
+          "no_token_summary: run succeeded but usageJson has no token data",
+        );
+      }
+
+      // dataSource describes where routing fields came from for this run entry
+      const dataSource: "preflight" | "context_fallback" | "none" =
+        preflightAvailable
+          ? "preflight"
+          : contextAvailable
+          ? "context_fallback"
+          : "none";
+
       return {
         id: run.id,
         createdAt: run.createdAt,
         startedAt: run.startedAt,
         finishedAt: run.finishedAt,
         status: run.status,
+        dataSource,
         taskType:
           asNonEmptyString(selected?.taskType) ??
           asNonEmptyString(context?.taskType) ??
@@ -987,6 +1033,7 @@ export function agentRoutes(db: Db) {
                 (outputTokens ?? 0),
             }
           : null,
+        warnings: warnings.length > 0 ? warnings : null,
       };
     });
 
