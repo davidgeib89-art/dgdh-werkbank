@@ -275,6 +275,17 @@ export function agentRoutes(db: Db) {
     return Number.isFinite(parsed) ? parsed : null;
   }
 
+  function parseClampedPositiveInt(
+    value: unknown,
+    fallback: number,
+    min: number,
+    max: number,
+  ): number {
+    const parsed = Math.floor(parseNumberLike(value) ?? fallback);
+    if (!Number.isFinite(parsed)) return fallback;
+    return Math.max(min, Math.min(max, parsed));
+  }
+
   function parseSchedulerHeartbeatPolicy(runtimeConfig: unknown) {
     const heartbeat = asRecord(asRecord(runtimeConfig)?.heartbeat) ?? {};
     return {
@@ -841,14 +852,25 @@ export function agentRoutes(db: Db) {
     }
     assertCompanyAccess(req, agent.companyId);
 
+    const historyLimit = parseClampedPositiveInt(
+      req.query.historyLimit,
+      8,
+      3,
+      12,
+    );
+
     const runtimeState = await heartbeat.getRuntimeState(id);
-    const latestRun = await db
+    const historyRuns = await db
       .select({
         id: heartbeatRuns.id,
         status: heartbeatRuns.status,
+        invocationSource: heartbeatRuns.invocationSource,
+        triggerDetail: heartbeatRuns.triggerDetail,
         errorCode: heartbeatRuns.errorCode,
         usageJson: heartbeatRuns.usageJson,
+        resultJson: heartbeatRuns.resultJson,
         contextSnapshot: heartbeatRuns.contextSnapshot,
+        startedAt: heartbeatRuns.startedAt,
         finishedAt: heartbeatRuns.finishedAt,
         createdAt: heartbeatRuns.createdAt,
       })
@@ -860,8 +882,9 @@ export function agentRoutes(db: Db) {
         ),
       )
       .orderBy(desc(heartbeatRuns.createdAt))
-      .limit(1)
-      .then((rows) => rows[0] ?? null);
+      .limit(historyLimit);
+
+    const latestRun = historyRuns[0] ?? null;
 
     const latestCostEvent = await db
       .select({
@@ -900,6 +923,72 @@ export function agentRoutes(db: Db) {
       asNonEmptyString(runRoutingPreflight?.policySource) ??
       asNonEmptyString(asRecord(quotaSnapshot)?.policySource) ??
       null;
+    const routingHistory = historyRuns.map((run) => {
+      const context = asRecord(run.contextSnapshot);
+      const preflight = asRecord(context?.paperclipRoutingPreflight);
+      const selected = asRecord(preflight?.selected);
+      const usage = asRecord(run.usageJson);
+      const result = asRecord(run.resultJson);
+
+      const inputTokens = parseNumberLike(usage?.inputTokens);
+      const cachedInputTokens = parseNumberLike(usage?.cachedInputTokens);
+      const outputTokens = parseNumberLike(usage?.outputTokens);
+      const hasTokenSummary =
+        inputTokens !== null ||
+        cachedInputTokens !== null ||
+        outputTokens !== null;
+
+      return {
+        id: run.id,
+        createdAt: run.createdAt,
+        startedAt: run.startedAt,
+        finishedAt: run.finishedAt,
+        status: run.status,
+        taskType:
+          asNonEmptyString(selected?.taskType) ??
+          asNonEmptyString(context?.taskType) ??
+          null,
+        budgetClass:
+          asNonEmptyString(selected?.budgetClass) ??
+          asNonEmptyString(context?.budgetClass) ??
+          null,
+        accountLabel:
+          asNonEmptyString(selected?.accountLabel) ??
+          asNonEmptyString(context?.accountLabel) ??
+          null,
+        bucket:
+          asNonEmptyString(selected?.effectiveBucket) ??
+          asNonEmptyString(selected?.selectedBucket) ??
+          asNonEmptyString(context?.bucket) ??
+          null,
+        configuredModelLane:
+          asNonEmptyString(selected?.configuredModelLane) ?? null,
+        recommendedModelLane:
+          asNonEmptyString(selected?.recommendedModelLane) ?? null,
+        effectiveModelLane:
+          asNonEmptyString(selected?.effectiveModelLane) ?? null,
+        laneStrategy: asNonEmptyString(selected?.laneStrategy) ?? null,
+        routingReason: asNonEmptyString(preflight?.routingReason) ?? null,
+        hardCapTokens: parseNumberLike(selected?.hardCapTokens),
+        softCapTokens: parseNumberLike(selected?.softCapTokens),
+        stopReason:
+          run.errorCode ??
+          asNonEmptyString(usage?.stopReason) ??
+          asNonEmptyString(result?.stopReason) ??
+          (run.status === "succeeded" ? "completed" : null),
+        tokens: hasTokenSummary
+          ? {
+              inputTokens,
+              cachedInputTokens,
+              outputTokens,
+              totalTokens:
+                (inputTokens ?? 0) +
+                (cachedInputTokens ?? 0) +
+                (outputTokens ?? 0),
+            }
+          : null,
+      };
+    });
 
     res.json({
       agentId: agent.id,
@@ -969,6 +1058,11 @@ export function agentRoutes(db: Db) {
           asNonEmptyString(selectedRouting?.modelLaneReason) ??
           asNonEmptyString(asRecord(quotaSnapshot)?.modelLaneReason) ??
           null,
+      },
+      routingHistory: {
+        limit: historyLimit,
+        count: routingHistory.length,
+        runs: routingHistory,
       },
       totals: runtimeState
         ? {
