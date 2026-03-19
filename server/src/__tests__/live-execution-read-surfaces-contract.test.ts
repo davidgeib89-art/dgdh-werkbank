@@ -32,6 +32,12 @@ type IssueRow = {
 const mockState: {
   agentById: Record<string, AgentRow>;
   listByCompany: Record<string, AgentRow[]>;
+  heartbeatRunList: Array<Record<string, unknown>>;
+  heartbeatListCalls: Array<{
+    companyId: string;
+    agentId: string | undefined;
+    limit: number | undefined;
+  }>;
   runById: Record<string, RunRow | null>;
   eventsByRun: Record<string, Array<Record<string, unknown>>>;
   logByRun: Record<string, Record<string, unknown>>;
@@ -42,6 +48,8 @@ const mockState: {
 } = {
   agentById: {},
   listByCompany: {},
+  heartbeatRunList: [],
+  heartbeatListCalls: [],
   runById: {},
   eventsByRun: {},
   logByRun: {},
@@ -85,6 +93,10 @@ vi.mock("../services/index.js", () => ({
   accessService: () => ({}),
   approvalService: () => ({}),
   heartbeatService: () => ({
+    list: async (companyId: string, agentId?: string, limit?: number) => {
+      mockState.heartbeatListCalls.push({ companyId, agentId, limit });
+      return mockState.heartbeatRunList;
+    },
     getRun: async (runId: string) => mockState.runById[runId] ?? null,
     listEvents: async (runId: string, _afterSeq: number, _limit: number) =>
       mockState.eventsByRun[runId] ?? [],
@@ -140,6 +152,8 @@ function createApp() {
 beforeEach(() => {
   mockState.agentById = {};
   mockState.listByCompany = {};
+  mockState.heartbeatRunList = [];
+  mockState.heartbeatListCalls = [];
   mockState.runById = {};
   mockState.eventsByRun = {};
   mockState.logByRun = {};
@@ -150,6 +164,65 @@ beforeEach(() => {
 });
 
 describe("live execution read surface contracts", () => {
+  it("keeps /companies/:companyId/heartbeat-runs empty-state contract", async () => {
+    mockState.heartbeatRunList = [];
+
+    const res = await request(createApp()).get(
+      "/api/companies/c1/heartbeat-runs",
+    );
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual([]);
+    expect(mockState.heartbeatListCalls).toHaveLength(1);
+    expect(mockState.heartbeatListCalls[0]).toEqual({
+      companyId: "c1",
+      agentId: undefined,
+      limit: undefined,
+    });
+  });
+
+  it("keeps /companies/:companyId/heartbeat-runs additive contract and query normalization", async () => {
+    mockState.heartbeatRunList = [
+      {
+        id: "run-list-1",
+        companyId: "c1",
+        agentId: "a1",
+        status: "succeeded",
+        invocationSource: "manual",
+        triggerDetail: "operator",
+        startedAt: "2026-03-19T09:00:00.000Z",
+        finishedAt: "2026-03-19T09:01:00.000Z",
+        createdAt: "2026-03-19T08:59:00.000Z",
+        extraDebugField: "keep-additive",
+      },
+    ];
+
+    const res = await request(createApp()).get(
+      "/api/companies/c1/heartbeat-runs?agentId=a1&limit=5000",
+    );
+
+    expect(res.status).toBe(200);
+    expect(Array.isArray(res.body)).toBe(true);
+    expect(res.body[0]).toMatchObject({
+      id: expect.any(String),
+      companyId: "c1",
+      agentId: "a1",
+      status: expect.any(String),
+      invocationSource: expect.any(String),
+      triggerDetail: expect.any(String),
+      startedAt: expect.anything(),
+      finishedAt: expect.anything(),
+      createdAt: expect.anything(),
+      extraDebugField: "keep-additive",
+    });
+    expect(mockState.heartbeatListCalls).toHaveLength(1);
+    expect(mockState.heartbeatListCalls[0]).toEqual({
+      companyId: "c1",
+      agentId: "a1",
+      limit: 1000,
+    });
+  });
+
   it("keeps /companies/:companyId/live-runs empty-state contract", async () => {
     mockState.dbSelectRowsQueue.push([]);
 
@@ -391,5 +464,73 @@ describe("live execution read surface contracts", () => {
       agentName: "Alpha",
       adapterType: "gemini_local",
     });
+  });
+
+  it("keeps /issues/:issueId/live-runs empty-state contract", async () => {
+    mockState.issueByIdentifier["DGD-101"] = {
+      id: "issue-101",
+      identifier: "DGD-101",
+      companyId: "c1",
+      assigneeAgentId: "a1",
+      executionRunId: null,
+      status: "in_progress",
+    };
+    mockState.dbSelectRowsQueue.push([]);
+
+    const res = await request(createApp()).get("/api/issues/DGD-101/live-runs");
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual([]);
+  });
+
+  it("keeps /issues/:issueId/live-runs additive payload contract", async () => {
+    mockState.issueByIdentifier["DGD-102"] = {
+      id: "issue-102",
+      identifier: "DGD-102",
+      companyId: "c1",
+      assigneeAgentId: "a1",
+      executionRunId: null,
+      status: "in_progress",
+    };
+    mockState.dbSelectRowsQueue.push([
+      {
+        id: "issue-run-1",
+        status: "running",
+        invocationSource: "assignment",
+        triggerDetail: "system",
+        startedAt: "2026-03-19T13:00:00.000Z",
+        finishedAt: null,
+        createdAt: "2026-03-19T12:59:00.000Z",
+        agentId: "a1",
+        agentName: "Alpha",
+        adapterType: "gemini_local",
+        extraDebugField: "keep-additive",
+      },
+    ]);
+
+    const res = await request(createApp()).get("/api/issues/DGD-102/live-runs");
+
+    expect(res.status).toBe(200);
+    expect(Array.isArray(res.body)).toBe(true);
+    expect(res.body).toHaveLength(1);
+    expect(res.body[0]).toMatchObject({
+      id: expect.any(String),
+      status: expect.any(String),
+      invocationSource: expect.any(String),
+      triggerDetail: expect.any(String),
+      startedAt: expect.anything(),
+      createdAt: expect.anything(),
+      agentId: expect.any(String),
+      agentName: expect.any(String),
+      adapterType: expect.any(String),
+      extraDebugField: "keep-additive",
+    });
+    expect(
+      Object.prototype.hasOwnProperty.call(res.body[0], "finishedAt"),
+    ).toBe(true);
+    expect(
+      res.body[0].finishedAt === null ||
+        typeof res.body[0].finishedAt === "string",
+    ).toBe(true);
   });
 });
