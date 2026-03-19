@@ -217,6 +217,8 @@ export interface GeminiRoutingPreflightResult {
     configuredModelLane: string;
     recommendedModelLane: string;
     effectiveModelLane: string;
+    laneStrategy: "advisory_keep_configured" | "soft_enforced_use_recommended";
+    modelLaneReason: string;
     budgetClass: "small" | "medium" | "large";
     hardCapTokens: number;
     softCapTokens: number;
@@ -289,6 +291,14 @@ export function resolveGeminiRoutingPreflight(
     : configuredModelLane;
   const configuredBucket = guessBucketFromModel(configuredModelLane);
   const effectiveBucket = guessBucketFromModel(effectiveModelLane);
+  const laneStrategy = applyModelLane
+    ? ("soft_enforced_use_recommended" as const)
+    : ("advisory_keep_configured" as const);
+  const modelLaneReason = applyModelLane
+    ? `soft_enforced selected recommended model lane ${recommendedModelLane}`
+    : configuredModel
+    ? `advisory mode kept configured model lane ${configuredModelLane}`
+    : `no configured model; using recommended model lane ${recommendedModelLane}`;
 
   const routingReason =
     selectedBucket === route.preferredBucket
@@ -304,6 +314,8 @@ export function resolveGeminiRoutingPreflight(
       configuredModelLane,
       recommendedModelLane,
       effectiveModelLane,
+      laneStrategy,
+      modelLaneReason,
       budgetClass,
       hardCapTokens,
       softCapTokens,

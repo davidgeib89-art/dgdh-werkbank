@@ -888,6 +888,18 @@ export function agentRoutes(db: Db) {
     const runContext = asRecord(latestRun?.contextSnapshot);
     const runRoutingPreflight = asRecord(runContext?.paperclipRoutingPreflight);
     const selectedRouting = asRecord(runRoutingPreflight?.selected);
+    const routingReason =
+      asNonEmptyString(runRoutingPreflight?.routingReason) ??
+      asNonEmptyString(asRecord(quotaSnapshot)?.routingReason) ??
+      null;
+    const routingMode =
+      asNonEmptyString(runRoutingPreflight?.mode) ??
+      asNonEmptyString(asRecord(quotaSnapshot)?.mode) ??
+      null;
+    const routingPolicySource =
+      asNonEmptyString(runRoutingPreflight?.policySource) ??
+      asNonEmptyString(asRecord(quotaSnapshot)?.policySource) ??
+      null;
 
     res.json({
       agentId: agent.id,
@@ -943,6 +955,19 @@ export function agentRoutes(db: Db) {
             asRecord(runRoutingPreflight?.quotaState)?.snapshotAt,
           ) ??
           asNonEmptyString(asRecord(quotaSnapshot)?.snapshotAt) ??
+          null,
+      },
+      routing: {
+        mode: routingMode,
+        reason: routingReason,
+        policySource: routingPolicySource,
+        laneStrategy:
+          asNonEmptyString(selectedRouting?.laneStrategy) ??
+          asNonEmptyString(asRecord(quotaSnapshot)?.laneStrategy) ??
+          null,
+        modelLaneReason:
+          asNonEmptyString(selectedRouting?.modelLaneReason) ??
+          asNonEmptyString(asRecord(quotaSnapshot)?.modelLaneReason) ??
           null,
       },
       totals: runtimeState
