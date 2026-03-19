@@ -4,11 +4,12 @@ import path from "node:path";
 import type { Db } from "@paperclipai/db";
 import {
   agents as agentsTable,
+  agentRuntimeState,
   companies,
   costEvents,
   heartbeatRuns,
 } from "@paperclipai/db";
-import { and, desc, eq, inArray, not, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, max, not, sql } from "drizzle-orm";
 import {
   createAgentKeySchema,
   createAgentHireSchema,
@@ -923,6 +924,44 @@ export function agentRoutes(db: Db) {
       asNonEmptyString(runRoutingPreflight?.policySource) ??
       asNonEmptyString(asRecord(quotaSnapshot)?.policySource) ??
       null;
+
+    // budgetSummary computed early so healthStatus can reference it
+    const budgetUsedTokens = runtimeState
+      ? runtimeState.totalInputTokens +
+        runtimeState.totalCachedInputTokens +
+        runtimeState.totalOutputTokens
+      : null;
+    const budgetSoftCap =
+      parseNumberLike(asRecord(runRoutingPreflight?.selected)?.softCapTokens) ??
+      parseNumberLike(asRecord(quotaSnapshot)?.softCapTokens) ??
+      null;
+    const budgetHardCap =
+      parseNumberLike(asRecord(runRoutingPreflight?.selected)?.hardCapTokens) ??
+      parseNumberLike(asRecord(quotaSnapshot)?.hardCapTokens) ??
+      null;
+    const budgetPctSoft =
+      budgetUsedTokens !== null && budgetSoftCap !== null && budgetSoftCap > 0
+        ? Math.round((budgetUsedTokens / budgetSoftCap) * 100)
+        : null;
+    const budgetPctHard =
+      budgetUsedTokens !== null && budgetHardCap !== null && budgetHardCap > 0
+        ? Math.round((budgetUsedTokens / budgetHardCap) * 100)
+        : null;
+    const budgetStatus:
+      | "ok"
+      | "soft_cap_approaching"
+      | "soft_cap_exceeded"
+      | "hard_cap_exceeded"
+      | "unknown" =
+      budgetUsedTokens === null || budgetHardCap === null
+        ? "unknown"
+        : budgetUsedTokens >= budgetHardCap
+        ? "hard_cap_exceeded"
+        : budgetSoftCap !== null && budgetUsedTokens >= budgetSoftCap
+        ? "soft_cap_exceeded"
+        : budgetSoftCap !== null && budgetUsedTokens >= budgetSoftCap * 0.8
+        ? "soft_cap_approaching"
+        : "ok";
     const routingHistory = historyRuns.map((run) => {
       const context = asRecord(run.contextSnapshot);
       const preflight = asRecord(context?.paperclipRoutingPreflight);
@@ -1037,10 +1076,37 @@ export function agentRoutes(db: Db) {
       };
     });
 
+    const lastRunStatus = latestRun?.status ?? null;
+    const lastRunErrorCode = latestRun?.errorCode ?? null;
+    const healthStatus:
+      | "ok"
+      | "running"
+      | "warning"
+      | "degraded"
+      | "critical"
+      | "unknown" = !runtimeState
+      ? "unknown"
+      : budgetStatus === "hard_cap_exceeded"
+      ? "critical"
+      : lastRunStatus === "queued" || lastRunStatus === "running"
+      ? "running"
+      : budgetStatus === "soft_cap_exceeded" &&
+        lastRunErrorCode !== null &&
+        lastRunErrorCode !== "cancelled"
+      ? "critical"
+      : budgetStatus === "soft_cap_exceeded"
+      ? "warning"
+      : budgetStatus === "soft_cap_approaching"
+      ? "warning"
+      : lastRunErrorCode !== null && lastRunErrorCode !== "cancelled"
+      ? "degraded"
+      : "ok";
+
     res.json({
       agentId: agent.id,
       companyId: agent.companyId,
       adapterType: agent.adapterType,
+      healthStatus,
       activeAccountLabel:
         asNonEmptyString(selectedRouting?.accountLabel) ??
         asNonEmptyString(asRecord(quotaSnapshot)?.accountLabel) ??
@@ -1111,53 +1177,15 @@ export function agentRoutes(db: Db) {
         count: routingHistory.length,
         runs: routingHistory,
       },
-      budgetSummary: (() => {
-        const usedTokens = runtimeState
-          ? runtimeState.totalInputTokens +
-            runtimeState.totalCachedInputTokens +
-            runtimeState.totalOutputTokens
-          : null;
-        const softCap =
-          parseNumberLike(selectedRouting?.softCapTokens) ??
-          parseNumberLike(asRecord(quotaSnapshot)?.softCapTokens) ??
-          null;
-        const hardCap =
-          parseNumberLike(selectedRouting?.hardCapTokens) ??
-          parseNumberLike(asRecord(quotaSnapshot)?.hardCapTokens) ??
-          null;
-        const pctSoft =
-          usedTokens !== null && softCap !== null && softCap > 0
-            ? Math.round((usedTokens / softCap) * 100)
-            : null;
-        const pctHard =
-          usedTokens !== null && hardCap !== null && hardCap > 0
-            ? Math.round((usedTokens / hardCap) * 100)
-            : null;
-        const budgetStatus:
-          | "ok"
-          | "soft_cap_approaching"
-          | "soft_cap_exceeded"
-          | "hard_cap_exceeded"
-          | "unknown" =
-          usedTokens === null || hardCap === null
-            ? "unknown"
-            : usedTokens >= hardCap
-            ? "hard_cap_exceeded"
-            : softCap !== null && usedTokens >= softCap
-            ? "soft_cap_exceeded"
-            : softCap !== null && usedTokens >= softCap * 0.8
-            ? "soft_cap_approaching"
-            : "ok";
-        return {
-          usedTokens,
-          softCapTokens: softCap,
-          hardCapTokens: hardCap,
-          percentOfSoftCap: pctSoft,
-          percentOfHardCap: pctHard,
-          totalCostCents: runtimeState?.totalCostCents ?? null,
-          status: budgetStatus,
-        };
-      })(),
+      budgetSummary: {
+        usedTokens: budgetUsedTokens,
+        softCapTokens: budgetSoftCap,
+        hardCapTokens: budgetHardCap,
+        percentOfSoftCap: budgetPctSoft,
+        percentOfHardCap: budgetPctHard,
+        totalCostCents: runtimeState?.totalCostCents ?? null,
+        status: budgetStatus,
+      },
       totals: runtimeState
         ? {
             inputTokens: runtimeState.totalInputTokens,
@@ -1195,6 +1223,239 @@ export function agentRoutes(db: Db) {
           }
         : null,
     });
+  });
+
+  // Lightweight compact health poll — no history, no full payload
+  router.get("/agents/:id/health", async (req, res) => {
+    assertBoard(req);
+    const id = req.params.id as string;
+    const agent = await svc.getById(id);
+    if (!agent) {
+      res.status(404).json({ error: "Agent not found" });
+      return;
+    }
+    assertCompanyAccess(req, agent.companyId);
+
+    const [runtimeState, latestRunRow] = await Promise.all([
+      heartbeat.getRuntimeState(id),
+      db
+        .select({
+          id: heartbeatRuns.id,
+          status: heartbeatRuns.status,
+          errorCode: heartbeatRuns.errorCode,
+          finishedAt: heartbeatRuns.finishedAt,
+          createdAt: heartbeatRuns.createdAt,
+          contextSnapshot: heartbeatRuns.contextSnapshot,
+        })
+        .from(heartbeatRuns)
+        .where(
+          and(
+            eq(heartbeatRuns.companyId, agent.companyId),
+            eq(heartbeatRuns.agentId, id),
+          ),
+        )
+        .orderBy(desc(heartbeatRuns.createdAt))
+        .limit(1)
+        .then((rows) => rows[0] ?? null),
+    ]);
+
+    const rsJson = asRecord(runtimeState?.stateJson) ?? {};
+    const rsQuota = asRecord(rsJson.quotaSnapshot);
+    const runCtx = asRecord(latestRunRow?.contextSnapshot);
+    const preflight = asRecord(runCtx?.paperclipRoutingPreflight);
+    const selected = asRecord(preflight?.selected);
+
+    const usedTokens = runtimeState
+      ? runtimeState.totalInputTokens +
+        runtimeState.totalCachedInputTokens +
+        runtimeState.totalOutputTokens
+      : null;
+    const softCap =
+      parseNumberLike(selected?.softCapTokens) ??
+      parseNumberLike(rsQuota?.softCapTokens) ??
+      null;
+    const hardCap =
+      parseNumberLike(selected?.hardCapTokens) ??
+      parseNumberLike(rsQuota?.hardCapTokens) ??
+      null;
+
+    const hBudgetStatus =
+      usedTokens === null || hardCap === null
+        ? "unknown"
+        : usedTokens >= hardCap
+        ? "hard_cap_exceeded"
+        : softCap !== null && usedTokens >= softCap
+        ? "soft_cap_exceeded"
+        : softCap !== null && usedTokens >= softCap * 0.8
+        ? "soft_cap_approaching"
+        : ("ok" as const);
+
+    const hLastStatus = latestRunRow?.status ?? null;
+    const hLastError = latestRunRow?.errorCode ?? null;
+    const hHealthStatus = !runtimeState
+      ? "unknown"
+      : hBudgetStatus === "hard_cap_exceeded"
+      ? "critical"
+      : hLastStatus === "queued" || hLastStatus === "running"
+      ? "running"
+      : hBudgetStatus === "soft_cap_exceeded" &&
+        hLastError !== null &&
+        hLastError !== "cancelled"
+      ? "critical"
+      : hBudgetStatus === "soft_cap_exceeded"
+      ? "warning"
+      : hBudgetStatus === "soft_cap_approaching"
+      ? "warning"
+      : hLastError !== null && hLastError !== "cancelled"
+      ? "degraded"
+      : ("ok" as const);
+
+    res.json({
+      agentId: agent.id,
+      agentName: agent.name,
+      adapterType: agent.adapterType,
+      healthStatus: hHealthStatus,
+      budgetStatus: hBudgetStatus,
+      usedTokens,
+      softCapTokens: softCap,
+      hardCapTokens: hardCap,
+      totalCostCents: runtimeState?.totalCostCents ?? null,
+      lastRun: latestRunRow
+        ? {
+            id: latestRunRow.id,
+            status: latestRunRow.status,
+            stopReason:
+              hLastError ??
+              (latestRunRow.status === "succeeded" ? "completed" : null),
+            finishedAt: latestRunRow.finishedAt,
+            createdAt: latestRunRow.createdAt,
+          }
+        : null,
+    });
+  });
+
+  // Company-wide health overview — all agents in one call, no N+1
+  router.get("/companies/:companyId/agents/health", async (req, res) => {
+    assertBoard(req);
+    const companyId = req.params.companyId as string;
+    assertCompanyAccess(req, companyId);
+
+    const [agentList, runtimeStates, latestRunRows] = await Promise.all([
+      svc.list(companyId),
+      db
+        .select()
+        .from(agentRuntimeState)
+        .where(eq(agentRuntimeState.companyId, companyId)),
+      db
+        .select({
+          agentId: heartbeatRuns.agentId,
+          id: heartbeatRuns.id,
+          status: heartbeatRuns.status,
+          errorCode: heartbeatRuns.errorCode,
+          finishedAt: heartbeatRuns.finishedAt,
+          createdAt: heartbeatRuns.createdAt,
+          contextSnapshot: heartbeatRuns.contextSnapshot,
+        })
+        .from(heartbeatRuns)
+        .innerJoin(
+          db
+            .select({
+              agentId: heartbeatRuns.agentId,
+              maxCreatedAt: max(heartbeatRuns.createdAt).as("max_created_at"),
+            })
+            .from(heartbeatRuns)
+            .where(eq(heartbeatRuns.companyId, companyId))
+            .groupBy(heartbeatRuns.agentId)
+            .as("latest"),
+          and(
+            eq(heartbeatRuns.agentId, sql`latest."agentId"`),
+            eq(heartbeatRuns.createdAt, sql`latest.max_created_at`),
+          ),
+        )
+        .where(eq(heartbeatRuns.companyId, companyId)),
+    ]);
+
+    const runtimeByAgent = new Map(runtimeStates.map((r) => [r.agentId, r]));
+    const latestRunByAgent = new Map(latestRunRows.map((r) => [r.agentId, r]));
+
+    const items = agentList.map((a) => {
+      const rt = runtimeByAgent.get(a.id) ?? null;
+      const lr = latestRunByAgent.get(a.id) ?? null;
+      const rtJson = asRecord(rt?.stateJson) ?? {};
+      const rtQuota = asRecord(rtJson.quotaSnapshot);
+      const lrCtx = asRecord(lr?.contextSnapshot);
+      const lrPreflight = asRecord(lrCtx?.paperclipRoutingPreflight);
+      const lrSelected = asRecord(lrPreflight?.selected);
+
+      const used = rt
+        ? rt.totalInputTokens + rt.totalCachedInputTokens + rt.totalOutputTokens
+        : null;
+      const soft =
+        parseNumberLike(lrSelected?.softCapTokens) ??
+        parseNumberLike(rtQuota?.softCapTokens) ??
+        null;
+      const hard =
+        parseNumberLike(lrSelected?.hardCapTokens) ??
+        parseNumberLike(rtQuota?.hardCapTokens) ??
+        null;
+
+      const bStatus =
+        used === null || hard === null
+          ? "unknown"
+          : used >= hard
+          ? "hard_cap_exceeded"
+          : soft !== null && used >= soft
+          ? "soft_cap_exceeded"
+          : soft !== null && used >= soft * 0.8
+          ? "soft_cap_approaching"
+          : ("ok" as const);
+
+      const lrStatus = lr?.status ?? null;
+      const lrError = lr?.errorCode ?? null;
+      const hStatus = !rt
+        ? "unknown"
+        : bStatus === "hard_cap_exceeded"
+        ? "critical"
+        : lrStatus === "queued" || lrStatus === "running"
+        ? "running"
+        : bStatus === "soft_cap_exceeded" &&
+          lrError !== null &&
+          lrError !== "cancelled"
+        ? "critical"
+        : bStatus === "soft_cap_exceeded"
+        ? "warning"
+        : bStatus === "soft_cap_approaching"
+        ? "warning"
+        : lrError !== null && lrError !== "cancelled"
+        ? "degraded"
+        : ("ok" as const);
+
+      return {
+        agentId: a.id,
+        agentName: a.name,
+        role: a.role,
+        adapterType: a.adapterType,
+        agentStatus: a.status,
+        healthStatus: hStatus,
+        budgetStatus: bStatus,
+        usedTokens: used,
+        softCapTokens: soft,
+        hardCapTokens: hard,
+        totalCostCents: rt?.totalCostCents ?? null,
+        lastRun: lr
+          ? {
+              id: lr.id,
+              status: lr.status,
+              stopReason:
+                lrError ?? (lr.status === "succeeded" ? "completed" : null),
+              finishedAt: lr.finishedAt,
+              createdAt: lr.createdAt,
+            }
+          : null,
+      };
+    });
+
+    res.json({ companyId, count: items.length, agents: items });
   });
 
   router.get("/agents/:id/task-sessions", async (req, res) => {
