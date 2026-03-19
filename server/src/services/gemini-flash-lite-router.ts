@@ -15,6 +15,13 @@ type TaskClass =
   | "heavy-architecture"
   | "benchmark-floor";
 type BudgetClass = "small" | "medium" | "large";
+type ExecutionIntent =
+  | "investigate"
+  | "implement"
+  | "review"
+  | "benchmark"
+  | "plan";
+type RiskLevel = "low" | "medium" | "high";
 
 export type GeminiFlashLiteParseStatus =
   | "ok"
@@ -27,6 +34,12 @@ export type GeminiFlashLiteParseStatus =
 export interface GeminiFlashLiteProposal {
   taskClass: TaskClass;
   budgetClass: BudgetClass;
+  executionIntent: ExecutionIntent;
+  targetFolder: string;
+  doneWhen: string;
+  riskLevel: RiskLevel;
+  missingInputs: string[];
+  needsApproval: boolean;
   chosenBucket: BucketName;
   chosenModelLane: string;
   fallbackBucket: BucketName;
@@ -161,6 +174,99 @@ function isBudgetClass(value: string | null): value is BudgetClass {
   return value === "small" || value === "medium" || value === "large";
 }
 
+function isExecutionIntent(value: string | null): value is ExecutionIntent {
+  return (
+    value === "investigate" ||
+    value === "implement" ||
+    value === "review" ||
+    value === "benchmark" ||
+    value === "plan"
+  );
+}
+
+function isRiskLevel(value: string | null): value is RiskLevel {
+  return value === "low" || value === "medium" || value === "high";
+}
+
+function normalizeMissingInputs(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .filter((entry): entry is string => typeof entry === "string")
+    .map((entry) => entry.trim())
+    .filter((entry) => entry.length > 0)
+    .slice(0, 8);
+}
+
+function defaultExecutionIntent(taskClass: TaskClass): ExecutionIntent {
+  if (taskClass === "research-light") return "investigate";
+  if (taskClass === "benchmark-floor") return "benchmark";
+  if (taskClass === "heavy-architecture") return "plan";
+  return "implement";
+}
+
+function defaultRiskLevel(input: {
+  taskClass: TaskClass;
+  budgetClass: BudgetClass;
+}): RiskLevel {
+  if (
+    input.taskClass === "heavy-architecture" ||
+    input.budgetClass === "large"
+  ) {
+    return "high";
+  }
+  if (input.taskClass === "research-light") return "low";
+  return "medium";
+}
+
+function normalizeProposalFromRaw(
+  raw: Record<string, unknown>,
+): GeminiFlashLiteProposal | null {
+  const taskClass = asString(raw.taskClass);
+  const budgetClass = asString(raw.budgetClass);
+  const chosenBucket = asString(raw.chosenBucket);
+  const chosenModelLane = asString(raw.chosenModelLane);
+  const fallbackBucket = asString(raw.fallbackBucket);
+  const rationale = asString(raw.rationale);
+
+  if (
+    !isTaskClass(taskClass) ||
+    !isBudgetClass(budgetClass) ||
+    !isBucket(chosenBucket) ||
+    !isBucket(fallbackBucket) ||
+    !chosenModelLane ||
+    !rationale
+  ) {
+    return null;
+  }
+
+  const executionIntentRaw = asString(raw.executionIntent);
+  const targetFolderRaw = asString(raw.targetFolder);
+  const doneWhenRaw = asString(raw.doneWhen);
+  const riskLevelRaw = asString(raw.riskLevel);
+  const needsApprovalRaw = asBoolean(raw.needsApproval);
+
+  return {
+    taskClass,
+    budgetClass,
+    executionIntent: isExecutionIntent(executionIntentRaw)
+      ? executionIntentRaw
+      : defaultExecutionIntent(taskClass),
+    targetFolder: targetFolderRaw ?? ".",
+    doneWhen:
+      doneWhenRaw ??
+      "Provide a concise completion summary and validation evidence.",
+    riskLevel: isRiskLevel(riskLevelRaw)
+      ? riskLevelRaw
+      : defaultRiskLevel({ taskClass, budgetClass }),
+    missingInputs: normalizeMissingInputs(raw.missingInputs),
+    needsApproval: needsApprovalRaw ?? false,
+    chosenBucket,
+    chosenModelLane,
+    fallbackBucket,
+    rationale,
+  };
+}
+
 function normalizeFreeTextTask(context: Record<string, unknown>): string {
   const prompt = asString(context.paperclipTaskPrompt) ?? "";
   const wakeReason = asString(context.wakeReason) ?? "";
@@ -235,36 +341,15 @@ function parseRuntimeState(
           const key = asString(raw.key);
           const createdAt = asString(raw.createdAt);
           const proposal = asObject(raw.proposal);
-          const taskClass = asString(proposal.taskClass);
-          const budgetClass = asString(proposal.budgetClass);
-          const chosenBucket = asString(proposal.chosenBucket);
-          const chosenModelLane = asString(proposal.chosenModelLane);
-          const fallbackBucket = asString(proposal.fallbackBucket);
-          const rationale = asString(proposal.rationale);
-          if (
-            !key ||
-            !createdAt ||
-            !isTaskClass(taskClass) ||
-            !isBudgetClass(budgetClass) ||
-            !isBucket(chosenBucket) ||
-            !isBucket(fallbackBucket) ||
-            !chosenModelLane ||
-            !rationale
-          ) {
+          const normalizedProposal = normalizeProposalFromRaw(proposal);
+          if (!key || !createdAt || !normalizedProposal) {
             return null;
           }
           return {
             key,
             createdAt,
             hitCount: Math.max(0, Math.floor(asNumber(raw.hitCount) ?? 0)),
-            proposal: {
-              taskClass,
-              budgetClass,
-              chosenBucket,
-              chosenModelLane,
-              fallbackBucket,
-              rationale,
-            },
+            proposal: normalizedProposal,
           } satisfies RouterCacheEntry;
         })
         .filter((entry): entry is RouterCacheEntry => entry !== null)
@@ -494,6 +579,18 @@ function buildStrictPrompt(input: {
         "benchmark-floor",
       ],
       budgetClass: ["small", "medium", "large"],
+      executionIntent: [
+        "investigate",
+        "implement",
+        "review",
+        "benchmark",
+        "plan",
+      ],
+      targetFolder: "string (relative folder path)",
+      doneWhen: "string (clear done-condition)",
+      riskLevel: ["low", "medium", "high"],
+      missingInputs: "string[]",
+      needsApproval: "boolean",
       chosenBucket: ["flash", "pro", "flash-lite"],
       chosenModelLane: "string (must be one of allowedModelLanes)",
       fallbackBucket: ["flash", "pro", "flash-lite"],
@@ -525,34 +622,14 @@ function tryParseProposal(summary: string): {
     return { proposal: null, parseStatus: "invalid_json" };
   }
 
-  const taskClass = asString(parsedRaw.taskClass);
-  const budgetClass = asString(parsedRaw.budgetClass);
-  const chosenBucket = asString(parsedRaw.chosenBucket);
-  const chosenModelLane = asString(parsedRaw.chosenModelLane);
-  const fallbackBucket = asString(parsedRaw.fallbackBucket);
-  const rationale = asString(parsedRaw.rationale);
-
-  if (
-    !isTaskClass(taskClass) ||
-    !isBudgetClass(budgetClass) ||
-    !isBucket(chosenBucket) ||
-    !isBucket(fallbackBucket) ||
-    !chosenModelLane ||
-    !rationale
-  ) {
+  const proposal = normalizeProposalFromRaw(parsedRaw);
+  if (!proposal) {
     return { proposal: null, parseStatus: "schema_invalid" };
   }
 
   return {
     parseStatus: "ok",
-    proposal: {
-      taskClass,
-      budgetClass,
-      chosenBucket,
-      chosenModelLane,
-      fallbackBucket,
-      rationale,
-    },
+    proposal,
   };
 }
 

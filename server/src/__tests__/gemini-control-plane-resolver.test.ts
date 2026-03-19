@@ -193,6 +193,12 @@ describe("resolveGeminiControlPlane", () => {
         paperclipRoutingProposal: {
           taskType: "bounded-implementation",
           budgetClass: "medium",
+          executionIntent: "implement",
+          targetFolder: "server/src",
+          doneWhen: "All acceptance criteria are met with passing tests.",
+          riskLevel: "medium",
+          missingInputs: [],
+          needsApproval: false,
           chosenBucket: "pro",
           chosenModelLane: "gemini-3.1-pro-preview",
           fallbackBucket: "flash",
@@ -282,6 +288,164 @@ describe("resolveGeminiControlPlane", () => {
     expect(result.controlPlane.router.correctionReasons.length).toBeGreaterThan(
       0,
     );
+  });
+
+  it("accepts valid work-packet proposal and keeps it enforced", () => {
+    const result = resolveGeminiControlPlane({
+      policy,
+      policySource: "test-policy",
+      defaultMode: "advisory",
+      defaultAccountLabel: "account-1",
+      context: {
+        paperclipRoutingProposal: {
+          taskClass: "bounded-implementation",
+          budgetClass: "medium",
+          executionIntent: "implement",
+          targetFolder: "server/src/services",
+          doneWhen: "All tests pass and route behavior is documented.",
+          riskLevel: "medium",
+          missingInputs: [],
+          needsApproval: false,
+          chosenBucket: "flash",
+          chosenModelLane: "gemini-3-flash-preview",
+          fallbackBucket: "pro",
+          rationale: "safe default route",
+        },
+      },
+      runtimeConfig: {
+        routingPolicy: {
+          llmRouter: {
+            enabled: true,
+          },
+        },
+      },
+      configuredModel: "gemini-configured",
+      snapshotAt: "2026-03-19T20:10:00.000Z",
+    });
+
+    expect(result.controlPlane.router.workPacket.enforced.targetFolder).toBe(
+      "server/src/services",
+    );
+    expect(result.controlPlane.router.workPacket.enforced.needsApproval).toBe(
+      false,
+    );
+    expect(result.controlPlane.router.workPacket.diff).toHaveLength(0);
+  });
+
+  it("falls back to safe defaults when work-packet fields are missing", () => {
+    const result = resolveGeminiControlPlane({
+      policy,
+      policySource: "test-policy",
+      defaultMode: "advisory",
+      defaultAccountLabel: "account-1",
+      context: {
+        paperclipRoutingProposal: {
+          taskClass: "bounded-implementation",
+          budgetClass: "medium",
+          chosenBucket: "flash",
+          chosenModelLane: "gemini-3-flash-preview",
+          fallbackBucket: "pro",
+          rationale: "sparse packet",
+        },
+      },
+      runtimeConfig: {
+        routingPolicy: {
+          llmRouter: {
+            enabled: true,
+          },
+        },
+      },
+      configuredModel: "gemini-configured",
+      snapshotAt: "2026-03-19T20:11:00.000Z",
+    });
+
+    expect(result.selected.executionIntent).toBe("implement");
+    expect(result.selected.targetFolder).toBe(".");
+    expect(result.selected.doneWhen.length).toBeGreaterThan(10);
+    expect(result.controlPlane.router.workPacket.diff.length).toBeGreaterThan(
+      0,
+    );
+  });
+
+  it("escalates and blocks risky large implementation work-packets", () => {
+    const result = resolveGeminiControlPlane({
+      policy,
+      policySource: "test-policy",
+      defaultMode: "advisory",
+      defaultAccountLabel: "account-1",
+      context: {
+        paperclipRoutingProposal: {
+          taskClass: "heavy-architecture",
+          budgetClass: "large",
+          executionIntent: "implement",
+          targetFolder: "../unsafe",
+          doneWhen: "done",
+          riskLevel: "low",
+          missingInputs: [],
+          needsApproval: false,
+          chosenBucket: "pro",
+          chosenModelLane: "gemini-3.1-pro-preview",
+          fallbackBucket: "flash",
+          rationale: "ship big migration now",
+        },
+      },
+      runtimeConfig: {
+        routingPolicy: {
+          llmRouter: {
+            enabled: true,
+          },
+        },
+      },
+      configuredModel: "gemini-configured",
+      snapshotAt: "2026-03-19T20:12:00.000Z",
+    });
+
+    expect(result.selected.riskLevel).toBe("high");
+    expect(result.selected.needsApproval).toBe(true);
+    expect(result.selected.blocked).toBe(true);
+    expect(result.selected.blockReason).toBe("risk_high_large_implementation");
+  });
+
+  it("propagates missingInputs and enforces approval/block when inputs are missing", () => {
+    const result = resolveGeminiControlPlane({
+      policy,
+      policySource: "test-policy",
+      defaultMode: "advisory",
+      defaultAccountLabel: "account-1",
+      context: {
+        paperclipRoutingProposal: {
+          taskClass: "bounded-implementation",
+          budgetClass: "medium",
+          executionIntent: "implement",
+          targetFolder: "server/src",
+          doneWhen: "Implement with tests and report.",
+          riskLevel: "medium",
+          missingInputs: ["repo path", "acceptance criteria"],
+          needsApproval: false,
+          chosenBucket: "flash",
+          chosenModelLane: "gemini-3-flash-preview",
+          fallbackBucket: "pro",
+          rationale: "needs clarifications",
+        },
+      },
+      runtimeConfig: {
+        routingPolicy: {
+          llmRouter: {
+            enabled: true,
+          },
+        },
+      },
+      configuredModel: "gemini-configured",
+      snapshotAt: "2026-03-19T20:13:00.000Z",
+    });
+
+    expect(result.selected.missingInputs).toEqual([
+      "repo path",
+      "acceptance criteria",
+    ]);
+    expect(result.selected.needsApproval).toBe(true);
+    expect(result.selected.blocked).toBe(true);
+    expect(result.selected.blockReason).toBe("missing_inputs");
   });
 });
 

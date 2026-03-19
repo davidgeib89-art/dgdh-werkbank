@@ -2767,7 +2767,14 @@ export function heartbeatService(db: Db) {
       if (flashLiteProposal.proposal) {
         context.paperclipRoutingProposal = {
           taskType: flashLiteProposal.proposal.taskClass,
+          taskClass: flashLiteProposal.proposal.taskClass,
           budgetClass: flashLiteProposal.proposal.budgetClass,
+          executionIntent: flashLiteProposal.proposal.executionIntent,
+          targetFolder: flashLiteProposal.proposal.targetFolder,
+          doneWhen: flashLiteProposal.proposal.doneWhen,
+          riskLevel: flashLiteProposal.proposal.riskLevel,
+          missingInputs: flashLiteProposal.proposal.missingInputs,
+          needsApproval: flashLiteProposal.proposal.needsApproval,
           chosenBucket: flashLiteProposal.proposal.chosenBucket,
           chosenModelLane: flashLiteProposal.proposal.chosenModelLane,
           fallbackBucket: flashLiteProposal.proposal.fallbackBucket,

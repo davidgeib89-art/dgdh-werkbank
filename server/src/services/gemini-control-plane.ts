@@ -13,6 +13,13 @@ type RoutingMode = "advisory" | "soft_enforced";
 type BucketState = "ok" | "cooldown" | "exhausted" | "unknown";
 
 type BudgetClass = "small" | "medium" | "large";
+type ExecutionIntent =
+  | "investigate"
+  | "implement"
+  | "review"
+  | "benchmark"
+  | "plan";
+type RiskLevel = "low" | "medium" | "high";
 type RouterProposalSource =
   | "flash_lite_call"
   | "heuristic_policy"
@@ -28,10 +35,29 @@ type RouterParseStatus =
 export interface GeminiRoutingStageOneProposal {
   taskType: TaskType;
   budgetClass: BudgetClass;
+  executionIntent: ExecutionIntent;
+  targetFolder: string;
+  doneWhen: string;
+  riskLevel: RiskLevel;
+  missingInputs: string[];
+  needsApproval: boolean;
   chosenBucket: BucketName;
   chosenModelLane: string;
   fallbackBucket: BucketName;
   rationale: string;
+}
+
+export interface GeminiRoutingWorkPacketDiff {
+  field:
+    | "executionIntent"
+    | "targetFolder"
+    | "doneWhen"
+    | "riskLevel"
+    | "missingInputs"
+    | "needsApproval";
+  proposed: string | boolean | string[] | null;
+  enforced: string | boolean | string[];
+  reason: string;
 }
 
 export interface GeminiTaskRoutePolicy {
@@ -80,6 +106,14 @@ export interface GeminiControlPlaneResolveResult {
     hardCapTokens: number;
     softCapTokens: number;
     taskType: TaskType;
+    executionIntent: ExecutionIntent;
+    targetFolder: string;
+    doneWhen: string;
+    riskLevel: RiskLevel;
+    missingInputs: string[];
+    needsApproval: boolean;
+    blocked: boolean;
+    blockReason: string | null;
   };
   quotaState: {
     bucketState: BucketState;
@@ -143,6 +177,22 @@ export interface GeminiControlPlaneState {
     parseStatus: RouterParseStatus;
     latencyMs: number | null;
     proposal: GeminiRoutingStageOneProposal | null;
+    workPacket: {
+      proposed: GeminiRoutingStageOneProposal | null;
+      enforced: {
+        taskType: TaskType;
+        budgetClass: BudgetClass;
+        executionIntent: ExecutionIntent;
+        targetFolder: string;
+        doneWhen: string;
+        riskLevel: RiskLevel;
+        missingInputs: string[];
+        needsApproval: boolean;
+        blocked: boolean;
+        blockReason: string | null;
+      };
+      diff: GeminiRoutingWorkPacketDiff[];
+    };
     health: {
       successCount: number;
       fallbackCount: number;
@@ -207,6 +257,20 @@ function isBudgetClass(value: string | null): value is BudgetClass {
   return value === "small" || value === "medium" || value === "large";
 }
 
+function isExecutionIntent(value: string | null): value is ExecutionIntent {
+  return (
+    value === "investigate" ||
+    value === "implement" ||
+    value === "review" ||
+    value === "benchmark" ||
+    value === "plan"
+  );
+}
+
+function isRiskLevel(value: string | null): value is RiskLevel {
+  return value === "low" || value === "medium" || value === "high";
+}
+
 function isBucket(value: string | null): value is BucketName {
   return value === "flash" || value === "pro" || value === "flash-lite";
 }
@@ -238,6 +302,278 @@ function hardCapForBudgetClass(budgetClass: "small" | "medium" | "large") {
   if (budgetClass === "small") return 35_000;
   if (budgetClass === "large") return 125_000;
   return 75_000;
+}
+
+function defaultExecutionIntent(taskType: TaskType): ExecutionIntent {
+  if (taskType === "research-light") return "investigate";
+  if (taskType === "benchmark-floor") return "benchmark";
+  if (taskType === "heavy-architecture") return "plan";
+  return "implement";
+}
+
+function defaultRiskLevel(input: {
+  taskType: TaskType;
+  budgetClass: BudgetClass;
+}): RiskLevel {
+  if (
+    input.taskType === "heavy-architecture" ||
+    input.budgetClass === "large"
+  ) {
+    return "high";
+  }
+  if (input.taskType === "research-light") return "low";
+  return "medium";
+}
+
+function normalizeRelativeFolder(value: string | null): string | null {
+  if (!value) return null;
+  const normalized = value.replace(/\\/g, "/").trim();
+  if (normalized.length === 0) return null;
+  if (normalized.startsWith("/") || /^[a-zA-Z]:\//.test(normalized)) {
+    return null;
+  }
+  const parts = normalized.split("/").filter((part) => part.length > 0);
+  if (parts.some((part) => part === "..")) return null;
+  return parts.length > 0 ? parts.join("/") : ".";
+}
+
+function normalizeMissingInputs(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .filter((entry): entry is string => typeof entry === "string")
+    .map((entry) => entry.trim())
+    .filter((entry) => entry.length > 0)
+    .slice(0, 8);
+}
+
+function readWorkPacketFromContext(
+  context: Record<string, unknown>,
+): Partial<GeminiRoutingStageOneProposal> | null {
+  const fromContext = asObject(context.paperclipRoutingProposal);
+  const fromJson = (() => {
+    const rawJson = asString(context.paperclipRoutingProposalJson);
+    if (!rawJson) return {};
+    try {
+      return asObject(JSON.parse(rawJson));
+    } catch {
+      return {};
+    }
+  })();
+  const raw = hasAnyKeys(fromContext) ? fromContext : fromJson;
+  if (!hasAnyKeys(raw)) return null;
+
+  const taskTypeRaw = asString(raw.taskType) ?? asString(raw.taskClass);
+  const budgetClassRaw = asString(raw.budgetClass);
+  const chosenBucketRaw = asString(raw.chosenBucket);
+  const chosenModelLane = asString(raw.chosenModelLane);
+  const fallbackBucketRaw = asString(raw.fallbackBucket);
+  const rationale = asString(raw.rationale);
+  const executionIntentRaw = asString(raw.executionIntent);
+  const targetFolderRaw = asString(raw.targetFolder);
+  const doneWhenRaw = asString(raw.doneWhen);
+  const riskLevelRaw = asString(raw.riskLevel);
+  const needsApproval = asBoolean(raw.needsApproval);
+  const missingInputs = normalizeMissingInputs(raw.missingInputs);
+
+  return {
+    taskType: isTaskType(taskTypeRaw) ? taskTypeRaw : undefined,
+    budgetClass: isBudgetClass(budgetClassRaw) ? budgetClassRaw : undefined,
+    executionIntent: isExecutionIntent(executionIntentRaw)
+      ? executionIntentRaw
+      : undefined,
+    targetFolder: targetFolderRaw ?? undefined,
+    doneWhen: doneWhenRaw ?? undefined,
+    riskLevel: isRiskLevel(riskLevelRaw) ? riskLevelRaw : undefined,
+    missingInputs,
+    needsApproval: needsApproval ?? undefined,
+    chosenBucket: isBucket(chosenBucketRaw) ? chosenBucketRaw : undefined,
+    chosenModelLane: chosenModelLane ?? undefined,
+    fallbackBucket: isBucket(fallbackBucketRaw) ? fallbackBucketRaw : undefined,
+    rationale: rationale ?? undefined,
+  };
+}
+
+function enforceWorkPacket(input: {
+  proposed: Partial<GeminiRoutingStageOneProposal> | null;
+  detectedTaskType: TaskType;
+  detectedBudgetClass: BudgetClass;
+}): {
+  proposed: GeminiRoutingStageOneProposal | null;
+  enforced: {
+    taskType: TaskType;
+    budgetClass: BudgetClass;
+    executionIntent: ExecutionIntent;
+    targetFolder: string;
+    doneWhen: string;
+    riskLevel: RiskLevel;
+    missingInputs: string[];
+    needsApproval: boolean;
+    blocked: boolean;
+    blockReason: string | null;
+  };
+  diff: GeminiRoutingWorkPacketDiff[];
+  correctionReasons: string[];
+} {
+  const proposedTaskType = input.proposed?.taskType ?? input.detectedTaskType;
+  const proposedBudgetClass =
+    input.proposed?.budgetClass ?? input.detectedBudgetClass;
+  const proposedExecutionIntent =
+    input.proposed?.executionIntent ?? defaultExecutionIntent(proposedTaskType);
+  const normalizedTargetFolder = normalizeRelativeFolder(
+    input.proposed?.targetFolder ?? null,
+  );
+  const proposedDoneWhen =
+    (input.proposed?.doneWhen ?? "").trim().length >= 12
+      ? (input.proposed?.doneWhen as string).trim()
+      : "Deliver validated changes and a concise completion summary.";
+  const proposedRiskLevel =
+    input.proposed?.riskLevel ??
+    defaultRiskLevel({
+      taskType: proposedTaskType,
+      budgetClass: proposedBudgetClass,
+    });
+  const proposedMissingInputs = input.proposed?.missingInputs ?? [];
+  const proposedNeedsApproval = input.proposed?.needsApproval ?? false;
+
+  let enforcedRiskLevel: RiskLevel = proposedRiskLevel;
+  if (
+    proposedBudgetClass === "large" ||
+    proposedTaskType === "heavy-architecture"
+  ) {
+    enforcedRiskLevel = "high";
+  }
+
+  const requiresApprovalByRisk =
+    enforcedRiskLevel === "high" || proposedBudgetClass === "large";
+  const hasMissingInputs = proposedMissingInputs.length > 0;
+  const enforcedNeedsApproval =
+    proposedNeedsApproval || requiresApprovalByRisk || hasMissingInputs;
+
+  let blocked = false;
+  let blockReason: string | null = null;
+  if (hasMissingInputs) {
+    blocked = true;
+    blockReason = "missing_inputs";
+  } else if (
+    enforcedRiskLevel === "high" &&
+    proposedBudgetClass === "large" &&
+    proposedExecutionIntent === "implement"
+  ) {
+    blocked = true;
+    blockReason = "risk_high_large_implementation";
+  }
+
+  const enforced = {
+    taskType: proposedTaskType,
+    budgetClass: proposedBudgetClass,
+    executionIntent: proposedExecutionIntent,
+    targetFolder: normalizedTargetFolder ?? ".",
+    doneWhen: proposedDoneWhen,
+    riskLevel: enforcedRiskLevel,
+    missingInputs: proposedMissingInputs,
+    needsApproval: enforcedNeedsApproval,
+    blocked,
+    blockReason,
+  };
+
+  const diff: GeminiRoutingWorkPacketDiff[] = [];
+  const correctionReasons: string[] = [];
+  const pushDiff = (
+    field: GeminiRoutingWorkPacketDiff["field"],
+    proposed: string | boolean | string[] | null,
+    next: string | boolean | string[],
+    reason: string,
+  ) => {
+    const same =
+      Array.isArray(proposed) && Array.isArray(next)
+        ? JSON.stringify(proposed) === JSON.stringify(next)
+        : proposed === next;
+    if (same) return;
+    diff.push({ field, proposed, enforced: next, reason });
+    correctionReasons.push(reason);
+  };
+
+  pushDiff(
+    "targetFolder",
+    input.proposed?.targetFolder ?? null,
+    enforced.targetFolder,
+    "invalid or missing targetFolder; defaulted to safe relative folder",
+  );
+  pushDiff(
+    "doneWhen",
+    input.proposed?.doneWhen ?? null,
+    enforced.doneWhen,
+    "missing or weak doneWhen; replaced with enforceable completion criterion",
+  );
+  pushDiff(
+    "riskLevel",
+    input.proposed?.riskLevel ?? null,
+    enforced.riskLevel,
+    "risk level escalated by server safety policy",
+  );
+  pushDiff(
+    "needsApproval",
+    input.proposed?.needsApproval ?? null,
+    enforced.needsApproval,
+    "needsApproval enforced due to risk/size/missing inputs",
+  );
+  pushDiff(
+    "missingInputs",
+    input.proposed?.missingInputs ?? null,
+    enforced.missingInputs,
+    "missingInputs normalized to bounded string list",
+  );
+
+  if (!isExecutionIntent(asString(input.proposed?.executionIntent))) {
+    pushDiff(
+      "executionIntent",
+      input.proposed?.executionIntent ?? null,
+      enforced.executionIntent,
+      "executionIntent defaulted by task class",
+    );
+  }
+
+  return {
+    proposed:
+      input.proposed &&
+      isTaskType(asString(input.proposed.taskType)) &&
+      isBudgetClass(asString(input.proposed.budgetClass)) &&
+      isBucket(asString(input.proposed.chosenBucket)) &&
+      isBucket(asString(input.proposed.fallbackBucket)) &&
+      asString(input.proposed.chosenModelLane) !== null &&
+      asString(input.proposed.rationale) !== null
+        ? {
+            taskType: input.proposed.taskType as TaskType,
+            budgetClass: input.proposed.budgetClass as BudgetClass,
+            executionIntent: (isExecutionIntent(
+              asString(input.proposed.executionIntent),
+            )
+              ? input.proposed.executionIntent
+              : defaultExecutionIntent(
+                  input.proposed.taskType as TaskType,
+                )) as ExecutionIntent,
+            targetFolder: input.proposed.targetFolder ?? ".",
+            doneWhen:
+              input.proposed.doneWhen ??
+              "Deliver validated changes and a concise completion summary.",
+            riskLevel: (isRiskLevel(asString(input.proposed.riskLevel))
+              ? input.proposed.riskLevel
+              : defaultRiskLevel({
+                  taskType: input.proposed.taskType as TaskType,
+                  budgetClass: input.proposed.budgetClass as BudgetClass,
+                })) as RiskLevel,
+            missingInputs: input.proposed.missingInputs ?? [],
+            needsApproval: input.proposed.needsApproval ?? false,
+            chosenBucket: input.proposed.chosenBucket as BucketName,
+            chosenModelLane: input.proposed.chosenModelLane as string,
+            fallbackBucket: input.proposed.fallbackBucket as BucketName,
+            rationale: input.proposed.rationale as string,
+          }
+        : null,
+    enforced,
+    diff,
+    correctionReasons,
+  };
 }
 
 function detectTaskType(context: Record<string, unknown>): TaskType {
@@ -311,48 +647,8 @@ function readManualOverride(runtimeRouting: Record<string, unknown>) {
 
 function readRouterProposalFromContext(
   context: Record<string, unknown>,
-): GeminiRoutingStageOneProposal | null {
-  const fromContext = asObject(context.paperclipRoutingProposal);
-  const fromJson = (() => {
-    const rawJson = asString(context.paperclipRoutingProposalJson);
-    if (!rawJson) return {};
-    try {
-      const parsed = JSON.parse(rawJson) as unknown;
-      return asObject(parsed);
-    } catch {
-      return {};
-    }
-  })();
-
-  const raw = hasAnyKeys(fromContext) ? fromContext : fromJson;
-  if (!hasAnyKeys(raw)) return null;
-
-  const taskTypeRaw = asString(raw.taskType);
-  const budgetClassRaw = asString(raw.budgetClass);
-  const chosenBucketRaw = asString(raw.chosenBucket);
-  const fallbackBucketRaw = asString(raw.fallbackBucket);
-  const chosenModelLane = asString(raw.chosenModelLane);
-  const rationale = asString(raw.rationale);
-
-  if (
-    !isTaskType(taskTypeRaw) ||
-    !isBudgetClass(budgetClassRaw) ||
-    !isBucket(chosenBucketRaw) ||
-    !isBucket(fallbackBucketRaw) ||
-    !chosenModelLane ||
-    !rationale
-  ) {
-    return null;
-  }
-
-  return {
-    taskType: taskTypeRaw,
-    budgetClass: budgetClassRaw,
-    chosenBucket: chosenBucketRaw,
-    chosenModelLane,
-    fallbackBucket: fallbackBucketRaw,
-    rationale,
-  };
+): Partial<GeminiRoutingStageOneProposal> | null {
+  return readWorkPacketFromContext(context);
 }
 
 export function resolveGeminiControlPlane(
@@ -418,17 +714,35 @@ export function resolveGeminiControlPlane(
       ? detectedRoute.fallbackBucket
       : detectedRoute.preferredBucket;
 
-  const stageOneProposal: GeminiRoutingStageOneProposal | null = !routerEnabled
+  const stageOneRaw = !routerEnabled
     ? null
-    : readRouterProposalFromContext(input.context) ?? {
-        taskType: detectedTaskType,
-        budgetClass: detectedBudgetClass,
-        chosenBucket: heuristicBucket,
-        chosenModelLane: input.policy.bucketModels[heuristicBucket],
-        fallbackBucket: detectedRoute.fallbackBucket,
-        rationale:
-          "heuristic policy fallback proposal generated before execution",
-      };
+    : readRouterProposalFromContext(input.context);
+  const enforcedWorkPacket = enforceWorkPacket({
+    proposed: stageOneRaw,
+    detectedTaskType,
+    detectedBudgetClass,
+  });
+  const stageOneProposalForRouting: GeminiRoutingStageOneProposal = {
+    taskType: enforcedWorkPacket.enforced.taskType,
+    budgetClass: enforcedWorkPacket.enforced.budgetClass,
+    executionIntent: enforcedWorkPacket.enforced.executionIntent,
+    targetFolder: enforcedWorkPacket.enforced.targetFolder,
+    doneWhen: enforcedWorkPacket.enforced.doneWhen,
+    riskLevel: enforcedWorkPacket.enforced.riskLevel,
+    missingInputs: enforcedWorkPacket.enforced.missingInputs,
+    needsApproval: enforcedWorkPacket.enforced.needsApproval,
+    chosenBucket: stageOneRaw?.chosenBucket ?? heuristicBucket,
+    chosenModelLane:
+      stageOneRaw?.chosenModelLane ??
+      input.policy.bucketModels[heuristicBucket],
+    fallbackBucket: stageOneRaw?.fallbackBucket ?? detectedRoute.fallbackBucket,
+    rationale:
+      stageOneRaw?.rationale ??
+      "heuristic policy fallback proposal generated before execution",
+  };
+  const stageOneProposal: GeminiRoutingStageOneProposal | null = routerEnabled
+    ? stageOneProposalForRouting
+    : null;
   const routerMeta = asObject(input.context.paperclipRoutingProposalMeta);
   const routerMetaHealth = asObject(routerMeta.routerHealth);
   const runtimeRouterRuntime = asObject(runtimeControlPlane.routerRuntime);
@@ -443,8 +757,8 @@ export function resolveGeminiControlPlane(
     : (asString(routerMeta.source) as RouterProposalSource | null) ??
       "heuristic_policy";
 
-  const taskType = stageOneProposal?.taskType ?? detectedTaskType;
-  const budgetClass = stageOneProposal?.budgetClass ?? detectedBudgetClass;
+  const taskType = enforcedWorkPacket.enforced.taskType;
+  const budgetClass = enforcedWorkPacket.enforced.budgetClass;
   const route =
     input.policy.taskRoutes[taskType] ??
     input.policy.taskRoutes["bounded-implementation"];
@@ -460,11 +774,12 @@ export function resolveGeminiControlPlane(
 
   const preferredState = bucketStates[route.preferredBucket] ?? "unknown";
   const correctionReasons: string[] = [];
+  correctionReasons.push(...enforcedWorkPacket.correctionReasons);
 
   const proposalBucket =
-    stageOneProposal?.chosenBucket ?? route.preferredBucket;
+    stageOneProposalForRouting.chosenBucket ?? route.preferredBucket;
   const proposalFallbackBucket =
-    stageOneProposal?.fallbackBucket ?? route.fallbackBucket;
+    stageOneProposalForRouting.fallbackBucket ?? route.fallbackBucket;
 
   let selectedBucket: BucketName = proposalBucket;
 
@@ -490,15 +805,15 @@ export function resolveGeminiControlPlane(
 
   const selectedBucketState = bucketStates[selectedBucket] ?? "unknown";
   let recommendedModelLane = input.policy.bucketModels[selectedBucket];
-  if (stageOneProposal?.chosenModelLane) {
+  if (stageOneProposalForRouting.chosenModelLane) {
     if (
-      stageOneProposal.chosenModelLane ===
+      stageOneProposalForRouting.chosenModelLane ===
       input.policy.bucketModels[selectedBucket]
     ) {
-      recommendedModelLane = stageOneProposal.chosenModelLane;
+      recommendedModelLane = stageOneProposalForRouting.chosenModelLane;
     } else {
       correctionReasons.push(
-        `proposed model lane ${stageOneProposal.chosenModelLane} is not allowed for bucket ${selectedBucket}; using ${recommendedModelLane}`,
+        `proposed model lane ${stageOneProposalForRouting.chosenModelLane} is not allowed for bucket ${selectedBucket}; using ${recommendedModelLane}`,
       );
     }
   }
@@ -549,6 +864,13 @@ export function resolveGeminiControlPlane(
       "quota_snapshot_stale_forced_advisory: soft_enforced disabled until quota snapshot is fresh",
     );
   }
+  if (enforcedWorkPacket.enforced.blocked) {
+    warnings.push(
+      `execution_blocked:${
+        enforcedWorkPacket.enforced.blockReason ?? "policy_gate"
+      }`,
+    );
+  }
 
   const controlPlane: GeminiControlPlaneState = {
     accountLabel,
@@ -597,6 +919,11 @@ export function resolveGeminiControlPlane(
       parseStatus: routerParseStatus,
       latencyMs: routerLatencyMs,
       proposal: stageOneProposal,
+      workPacket: {
+        proposed: enforcedWorkPacket.proposed,
+        enforced: enforcedWorkPacket.enforced,
+        diff: enforcedWorkPacket.diff,
+      },
       health: {
         successCount: Math.max(
           0,
@@ -706,6 +1033,14 @@ export function resolveGeminiControlPlane(
       hardCapTokens,
       softCapTokens,
       taskType,
+      executionIntent: enforcedWorkPacket.enforced.executionIntent,
+      targetFolder: enforcedWorkPacket.enforced.targetFolder,
+      doneWhen: enforcedWorkPacket.enforced.doneWhen,
+      riskLevel: enforcedWorkPacket.enforced.riskLevel,
+      missingInputs: enforcedWorkPacket.enforced.missingInputs,
+      needsApproval: enforcedWorkPacket.enforced.needsApproval,
+      blocked: enforcedWorkPacket.enforced.blocked,
+      blockReason: enforcedWorkPacket.enforced.blockReason,
     },
     quotaState: {
       bucketState: selectedBucketState,
@@ -926,8 +1261,14 @@ export function deriveGeminiControlPlaneState(
         const raw = asObject(
           asObject(controlPlaneFromPreflight.router).proposal,
         );
-        const taskType = asString(raw.taskType);
+        const taskType = asString(raw.taskType) ?? asString(raw.taskClass);
         const budgetClass = asString(raw.budgetClass);
+        const executionIntent = asString(raw.executionIntent);
+        const targetFolder = asString(raw.targetFolder);
+        const doneWhen = asString(raw.doneWhen);
+        const riskLevel = asString(raw.riskLevel);
+        const missingInputs = normalizeMissingInputs(raw.missingInputs);
+        const needsApproval = asBoolean(raw.needsApproval);
         const chosenBucket = asString(raw.chosenBucket);
         const chosenModelLane = asString(raw.chosenModelLane);
         const fallbackBucket = asString(raw.fallbackBucket);
@@ -945,10 +1286,155 @@ export function deriveGeminiControlPlaneState(
         return {
           taskType,
           budgetClass,
+          executionIntent: isExecutionIntent(executionIntent)
+            ? executionIntent
+            : defaultExecutionIntent(taskType),
+          targetFolder: normalizeRelativeFolder(targetFolder) ?? ".",
+          doneWhen:
+            doneWhen ??
+            "Deliver validated changes and a concise completion summary.",
+          riskLevel: isRiskLevel(riskLevel)
+            ? riskLevel
+            : defaultRiskLevel({ taskType, budgetClass }),
+          missingInputs,
+          needsApproval: needsApproval ?? false,
           chosenBucket,
           chosenModelLane,
           fallbackBucket,
           rationale,
+        };
+      })(),
+      workPacket: (() => {
+        const raw = asObject(
+          asObject(controlPlaneFromPreflight.router).workPacket,
+        );
+        const rawProposed = asObject(raw.proposed);
+        const rawEnforced = asObject(raw.enforced);
+        const selectedTaskType = isTaskType(asString(selected.taskType))
+          ? (asString(selected.taskType) as TaskType)
+          : "bounded-implementation";
+        const selectedBudgetClass = isBudgetClass(
+          asString(selected.budgetClass),
+        )
+          ? (asString(selected.budgetClass) as BudgetClass)
+          : "medium";
+        const proposed = (() => {
+          const proposal = asObject(rawProposed);
+          if (Object.keys(proposal).length === 0) return null;
+          const taskType =
+            asString(proposal.taskType) ?? asString(proposal.taskClass);
+          const budgetClass = asString(proposal.budgetClass);
+          const chosenBucket = asString(proposal.chosenBucket);
+          const chosenModelLane = asString(proposal.chosenModelLane);
+          const fallbackBucket = asString(proposal.fallbackBucket);
+          const rationale = asString(proposal.rationale);
+          if (
+            !isTaskType(taskType) ||
+            !isBudgetClass(budgetClass) ||
+            !isBucket(chosenBucket) ||
+            !isBucket(fallbackBucket) ||
+            !chosenModelLane ||
+            !rationale
+          ) {
+            return null;
+          }
+          return {
+            taskType,
+            budgetClass,
+            executionIntent: isExecutionIntent(
+              asString(proposal.executionIntent),
+            )
+              ? (asString(proposal.executionIntent) as ExecutionIntent)
+              : defaultExecutionIntent(taskType),
+            targetFolder:
+              normalizeRelativeFolder(asString(proposal.targetFolder)) ?? ".",
+            doneWhen:
+              asString(proposal.doneWhen) ??
+              "Deliver validated changes and a concise completion summary.",
+            riskLevel: isRiskLevel(asString(proposal.riskLevel))
+              ? (asString(proposal.riskLevel) as RiskLevel)
+              : defaultRiskLevel({ taskType, budgetClass }),
+            missingInputs: normalizeMissingInputs(proposal.missingInputs),
+            needsApproval: asBoolean(proposal.needsApproval) ?? false,
+            chosenBucket,
+            chosenModelLane,
+            fallbackBucket,
+            rationale,
+          };
+        })();
+
+        const enforcedTaskType = isTaskType(asString(rawEnforced.taskType))
+          ? (asString(rawEnforced.taskType) as TaskType)
+          : selectedTaskType;
+        const enforcedBudgetClass = isBudgetClass(
+          asString(rawEnforced.budgetClass),
+        )
+          ? (asString(rawEnforced.budgetClass) as BudgetClass)
+          : selectedBudgetClass;
+        const enforced = {
+          taskType: enforcedTaskType,
+          budgetClass: enforcedBudgetClass,
+          executionIntent: isExecutionIntent(
+            asString(rawEnforced.executionIntent),
+          )
+            ? (asString(rawEnforced.executionIntent) as ExecutionIntent)
+            : defaultExecutionIntent(enforcedTaskType),
+          targetFolder:
+            normalizeRelativeFolder(asString(rawEnforced.targetFolder)) ?? ".",
+          doneWhen:
+            asString(rawEnforced.doneWhen) ??
+            "Deliver validated changes and a concise completion summary.",
+          riskLevel: isRiskLevel(asString(rawEnforced.riskLevel))
+            ? (asString(rawEnforced.riskLevel) as RiskLevel)
+            : defaultRiskLevel({
+                taskType: enforcedTaskType,
+                budgetClass: enforcedBudgetClass,
+              }),
+          missingInputs: normalizeMissingInputs(rawEnforced.missingInputs),
+          needsApproval: asBoolean(rawEnforced.needsApproval) ?? false,
+          blocked: asBoolean(rawEnforced.blocked) ?? false,
+          blockReason: asString(rawEnforced.blockReason),
+        };
+        const diff: GeminiRoutingWorkPacketDiff[] = Array.isArray(raw.diff)
+          ? (raw.diff as unknown[])
+              .map((entry) => asObject(entry))
+              .map((entry) => {
+                const field = asString(entry.field) as
+                  | GeminiRoutingWorkPacketDiff["field"]
+                  | null;
+                const reason = asString(entry.reason);
+                if (
+                  !field ||
+                  ![
+                    "executionIntent",
+                    "targetFolder",
+                    "doneWhen",
+                    "riskLevel",
+                    "missingInputs",
+                    "needsApproval",
+                  ].includes(field) ||
+                  !reason
+                ) {
+                  return null;
+                }
+                return {
+                  field,
+                  proposed:
+                    (entry.proposed as string | boolean | string[] | null) ??
+                    null,
+                  enforced:
+                    (entry.enforced as string | boolean | string[]) ?? "",
+                  reason,
+                } as GeminiRoutingWorkPacketDiff;
+              })
+              .filter(
+                (entry): entry is GeminiRoutingWorkPacketDiff => entry !== null,
+              )
+          : [];
+        return {
+          proposed,
+          enforced,
+          diff,
         };
       })(),
       health: {

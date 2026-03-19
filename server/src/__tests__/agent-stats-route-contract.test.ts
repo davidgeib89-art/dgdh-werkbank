@@ -177,6 +177,44 @@ describe("agent stats route contract", () => {
                 parseStatus: "ok",
                 latencyMs: 27,
                 correctionReasons: [],
+                workPacket: {
+                  proposed: {
+                    taskType: "bounded-implementation",
+                    budgetClass: "medium",
+                    executionIntent: "implement",
+                    targetFolder: "../unsafe",
+                    doneWhen: "done",
+                    riskLevel: "low",
+                    missingInputs: [],
+                    needsApproval: false,
+                    chosenBucket: "flash",
+                    chosenModelLane: "stable",
+                    fallbackBucket: "pro",
+                    rationale: "proposal",
+                  },
+                  enforced: {
+                    taskType: "bounded-implementation",
+                    budgetClass: "medium",
+                    executionIntent: "implement",
+                    targetFolder: ".",
+                    doneWhen:
+                      "Deliver validated changes and a concise completion summary.",
+                    riskLevel: "medium",
+                    missingInputs: [],
+                    needsApproval: false,
+                    blocked: false,
+                    blockReason: null,
+                  },
+                  diff: [
+                    {
+                      field: "targetFolder",
+                      proposed: "../unsafe",
+                      enforced: ".",
+                      reason:
+                        "invalid or missing targetFolder; defaulted to safe relative folder",
+                    },
+                  ],
+                },
                 health: {
                   successCount: 4,
                   fallbackCount: 1,
@@ -283,6 +321,13 @@ describe("agent stats route contract", () => {
           source: "flash_lite_call",
           parseStatus: "ok",
           accepted: true,
+          workPacket: {
+            enforced: {
+              executionIntent: "implement",
+              targetFolder: ".",
+            },
+            diff: expect.any(Array),
+          },
         },
       },
       routingHistory: {

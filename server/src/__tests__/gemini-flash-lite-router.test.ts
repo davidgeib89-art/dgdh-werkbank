@@ -57,6 +57,12 @@ describe("produceFlashLiteRoutingProposal", () => {
               text: JSON.stringify({
                 taskClass: "bounded-implementation",
                 budgetClass: "medium",
+                executionIntent: "implement",
+                targetFolder: "server/src",
+                doneWhen: "Endpoint is implemented with passing tests.",
+                riskLevel: "medium",
+                missingInputs: [],
+                needsApproval: false,
                 chosenBucket: "pro",
                 chosenModelLane: "gemini-3.1-pro-preview",
                 fallbackBucket: "flash",
@@ -84,8 +90,54 @@ describe("produceFlashLiteRoutingProposal", () => {
     expect(result.source).toBe("flash_lite_call");
     expect(result.parseStatus).toBe("ok");
     expect(result.proposal?.chosenBucket).toBe("pro");
+    expect(result.proposal?.executionIntent).toBe("implement");
+    expect(result.proposal?.targetFolder).toBe("server/src");
     expect(result.routerHealth.successCount).toBe(1);
     expect(result.routerHealth.lastErrorReason).toBeNull();
+  });
+
+  it("fills safe defaults when work-packet optional fields are omitted", async () => {
+    hoisted.runChildProcessMock.mockResolvedValue({
+      exitCode: 0,
+      signal: null,
+      timedOut: false,
+      stdout: JSON.stringify({
+        type: "assistant",
+        message: {
+          content: [
+            {
+              type: "output_text",
+              text: JSON.stringify({
+                taskClass: "research-light",
+                budgetClass: "small",
+                chosenBucket: "flash",
+                chosenModelLane: "gemini-3-flash-preview",
+                fallbackBucket: "pro",
+                rationale: "minimal packet",
+              }),
+            },
+          ],
+        },
+      }),
+      stderr: "",
+    });
+
+    const result = await produceFlashLiteRoutingProposal({
+      ...baseInput,
+      runtimeConfig: {
+        routingPolicy: {
+          llmRouter: {
+            enabled: true,
+          },
+        },
+      },
+    });
+
+    expect(result.parseStatus).toBe("ok");
+    expect(result.proposal?.executionIntent).toBe("investigate");
+    expect(result.proposal?.targetFolder).toBe(".");
+    expect(result.proposal?.needsApproval).toBe(false);
+    expect(result.proposal?.missingInputs).toEqual([]);
   });
 
   it("falls back to heuristic policy on invalid json", async () => {

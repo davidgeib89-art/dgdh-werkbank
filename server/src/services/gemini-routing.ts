@@ -169,6 +169,19 @@ export interface GeminiRoutingPreflightResult {
     hardCapTokens: number;
     softCapTokens: number;
     taskType: TaskType;
+    executionIntent:
+      | "investigate"
+      | "implement"
+      | "review"
+      | "benchmark"
+      | "plan";
+    targetFolder: string;
+    doneWhen: string;
+    riskLevel: "low" | "medium" | "high";
+    missingInputs: string[];
+    needsApproval: boolean;
+    blocked: boolean;
+    blockReason: string | null;
   };
   quotaState: {
     bucketState: BucketState;
