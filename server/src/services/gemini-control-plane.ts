@@ -103,7 +103,17 @@ export interface GeminiControlPlaneState {
     resetAt: string | null;
     resetReason: string | null;
     source: "runtime_quota_snapshot" | "runtime_bucket_state" | "none" | null;
+    isStale: boolean | null;
+    staleReason:
+      | "missing_snapshot"
+      | "missing_snapshot_at"
+      | "snapshot_expired"
+      | "missing_bucket_states"
+      | null;
+    maxAgeSec: number | null;
+    ageSec: number | null;
   };
+  warnings: string[];
   manualOverride: {
     enabled: boolean;
     bucket: BucketName | null;
@@ -253,6 +263,9 @@ export function resolveGeminiControlPlane(
   );
   const mode =
     (asString(runtimeRouting.mode) as RoutingMode | null) ?? input.defaultMode;
+  const staleSnapshot = ingestedQuotaSnapshot.isStale === true;
+  const enforcedAdvisory = staleSnapshot && mode === "soft_enforced";
+  const effectiveMode = enforcedAdvisory ? "advisory" : mode;
   const accountLabel =
     ingestedQuotaSnapshot.accountLabel ??
     asString(runtimeRouting.accountLabel) ??
@@ -283,7 +296,7 @@ export function resolveGeminiControlPlane(
   const softCapTokens = Math.floor(hardCapTokens * 0.8);
 
   const applyModelLane =
-    mode === "soft_enforced" &&
+    effectiveMode === "soft_enforced" &&
     recommendedModelLane.length > 0 &&
     selectedBucketState !== "exhausted";
 
@@ -315,9 +328,19 @@ export function resolveGeminiControlPlane(
       ? route.reason
       : `${route.reason}; fallback to ${selectedBucket} because preferred bucket state is ${preferredState}`;
 
+  const warnings: string[] = [];
+  if (staleSnapshot && ingestedQuotaSnapshot.staleReason) {
+    warnings.push(`quota_snapshot_stale:${ingestedQuotaSnapshot.staleReason}`);
+  }
+  if (enforcedAdvisory) {
+    warnings.push(
+      "quota_snapshot_stale_forced_advisory: soft_enforced disabled until quota snapshot is fresh",
+    );
+  }
+
   const controlPlane: GeminiControlPlaneState = {
     accountLabel,
-    mode,
+    mode: effectiveMode,
     policySource: input.policySource,
     taskType,
     budgetClass,
@@ -358,7 +381,12 @@ export function resolveGeminiControlPlane(
       resetAt: ingestedQuotaSnapshot.resetAt,
       resetReason: ingestedQuotaSnapshot.resetReason,
       source: ingestedQuotaSnapshot.source,
+      isStale: ingestedQuotaSnapshot.isStale,
+      staleReason: ingestedQuotaSnapshot.staleReason,
+      maxAgeSec: ingestedQuotaSnapshot.maxAgeSec,
+      ageSec: ingestedQuotaSnapshot.ageSec,
     },
+    warnings,
     manualOverride,
   };
 
@@ -366,9 +394,12 @@ export function resolveGeminiControlPlane(
     taskType,
     budgetClass,
     accountLabel,
-    mode,
-    routingReason,
-    advisoryOnly: mode === "advisory",
+    mode: effectiveMode,
+    routingReason:
+      warnings.length > 0
+        ? `${routingReason}; ${warnings.join("; ")}`
+        : routingReason,
+    advisoryOnly: effectiveMode === "advisory",
     applyModelLane,
     policySource: input.policySource,
     selected: {
@@ -554,7 +585,33 @@ export function deriveGeminiControlPlaneState(
           | "runtime_bucket_state"
           | "none"
           | null) ?? null,
+      isStale:
+        asBoolean(asObject(controlPlaneFromPreflight.quota).isStale) ??
+        asBoolean(snapshot.isStale) ??
+        null,
+      staleReason:
+        ((asString(asObject(controlPlaneFromPreflight.quota).staleReason) ??
+          asString(snapshot.staleReason)) as
+          | "missing_snapshot"
+          | "missing_snapshot_at"
+          | "snapshot_expired"
+          | "missing_bucket_states"
+          | null) ?? null,
+      maxAgeSec:
+        asNumber(asObject(controlPlaneFromPreflight.quota).maxAgeSec) ??
+        asNumber(snapshot.maxAgeSec) ??
+        null,
+      ageSec:
+        asNumber(asObject(controlPlaneFromPreflight.quota).ageSec) ??
+        asNumber(snapshot.ageSec) ??
+        null,
     },
+    warnings: Array.isArray(controlPlaneFromPreflight.warnings)
+      ? controlPlaneFromPreflight.warnings
+          .filter((entry): entry is string => typeof entry === "string")
+          .map((entry) => entry.trim())
+          .filter((entry) => entry.length > 0)
+      : [],
     manualOverride: (() => {
       const manual = asObject(controlPlaneFromPreflight.manualOverride);
       const bucket = readBucket(manual.bucket);

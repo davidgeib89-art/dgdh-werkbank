@@ -16,6 +16,15 @@ export interface GeminiQuotaSnapshot {
   snapshotAt: string | null;
   resetAt: string | null;
   resetReason: string | null;
+  isStale: boolean;
+  staleReason:
+    | "missing_snapshot"
+    | "missing_snapshot_at"
+    | "snapshot_expired"
+    | "missing_bucket_states"
+    | null;
+  maxAgeSec: number | null;
+  ageSec: number | null;
   buckets: Partial<Record<BucketName, GeminiQuotaBucketSnapshot>>;
 }
 
@@ -49,6 +58,20 @@ function asNumber(value: unknown): number | null {
   if (typeof value === "number" && Number.isFinite(value)) return value;
   if (typeof value !== "string") return null;
   const parsed = Number(value.trim());
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function asFiniteInt(value: unknown): number | null {
+  const parsed = asNumber(value);
+  if (parsed === null) return null;
+  const floored = Math.floor(parsed);
+  if (!Number.isFinite(floored)) return null;
+  return floored;
+}
+
+function parseIsoMs(value: string | null): number | null {
+  if (!value) return null;
+  const parsed = Date.parse(value);
   return Number.isFinite(parsed) ? parsed : null;
 }
 
@@ -114,6 +137,7 @@ export function ingestGeminiQuotaSnapshot(
   const runtimeRouting = asObject(runtimeConfig.routingPolicy);
   const rawQuotaSnapshot = asObject(runtimeRouting.quotaSnapshot);
   const rawBucketStates = asObject(runtimeRouting.bucketState);
+  const quotaStaleness = asObject(runtimeRouting.quotaStaleness);
 
   const bucketsFromSnapshot = asObject(rawQuotaSnapshot.buckets);
 
@@ -161,6 +185,34 @@ export function ingestGeminiQuotaSnapshot(
     asString(rawQuotaSnapshot.resetReason) ??
     asString(runtimeRouting.resetReason);
 
+  const nowMs = parseIsoMs(nowIso) ?? Date.now();
+  const snapshotAtMs = parseIsoMs(snapshotAt);
+  const maxAgeSec = (() => {
+    const explicit =
+      asFiniteInt(quotaStaleness.maxAgeSec) ??
+      asFiniteInt(runtimeRouting.quotaMaxAgeSec);
+    if (explicit === null || explicit <= 0) return 900;
+    return explicit;
+  })();
+  const ageSec =
+    snapshotAtMs === null
+      ? null
+      : Math.max(0, Math.floor((nowMs - snapshotAtMs) / 1000));
+  const hasKnownBucketState = Object.values(buckets).some(
+    (snapshot) => snapshot.state !== "unknown",
+  );
+
+  let staleReason: GeminiQuotaSnapshot["staleReason"] = null;
+  if (source === "none") {
+    staleReason = "missing_snapshot";
+  } else if (snapshotAtMs === null) {
+    staleReason = "missing_snapshot_at";
+  } else if (ageSec !== null && ageSec > maxAgeSec) {
+    staleReason = "snapshot_expired";
+  } else if (!hasKnownBucketState) {
+    staleReason = "missing_bucket_states";
+  }
+
   // Backfill top-level legacy bucketStates from snapshot.buckets when present.
   for (const [bucket, snapshot] of Object.entries(buckets) as Array<
     [BucketName, GeminiQuotaBucketSnapshot]
@@ -177,6 +229,10 @@ export function ingestGeminiQuotaSnapshot(
     snapshotAt,
     resetAt,
     resetReason,
+    isStale: staleReason !== null,
+    staleReason,
+    maxAgeSec,
+    ageSec,
     buckets,
   };
 }

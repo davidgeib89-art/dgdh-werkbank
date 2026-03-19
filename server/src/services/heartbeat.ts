@@ -58,6 +58,7 @@ import {
 import { runPromptResolverPreflight } from "./prompt-resolver-preflight.js";
 import type { PromptResolverInput } from "./prompt-resolver-schema.js";
 import { resolveGeminiRoutingPreflight } from "./gemini-routing.js";
+import { refreshGeminiRuntimeQuotaSnapshot } from "./gemini-quota-producer.js";
 
 const MAX_LIVE_LOG_CHUNK_BYTES = 8 * 1024;
 const HEARTBEAT_MAX_CONCURRENT_RUNS_DEFAULT = 1;
@@ -1984,6 +1985,19 @@ export function heartbeatService(db: Db) {
       .then((rows) => rows[0]);
   }
 
+  async function persistAgentRuntimeConfig(
+    agentId: string,
+    runtimeConfig: Record<string, unknown>,
+  ) {
+    await db
+      .update(agents)
+      .set({
+        runtimeConfig,
+        updatedAt: new Date(),
+      })
+      .where(eq(agents.id, agentId));
+  }
+
   async function setRunStatus(
     runId: string,
     status: string,
@@ -2653,10 +2667,28 @@ export function heartbeatService(db: Db) {
             .then((rows) => rows[0] ?? null)
         : null;
       applyIssuePromptContext(context, issueRef);
+
+      let runtimeConfigForRouting = parseObject(agent.runtimeConfig);
+      const preflightQuotaRefresh = refreshGeminiRuntimeQuotaSnapshot({
+        runtimeConfig: runtimeConfigForRouting,
+        trigger: "before_preflight",
+      });
+      runtimeConfigForRouting = preflightQuotaRefresh.runtimeConfig;
+      if (preflightQuotaRefresh.runtimeConfigChanged) {
+        await persistAgentRuntimeConfig(agent.id, runtimeConfigForRouting);
+      }
+
+      const quotaRefreshWarnings = preflightQuotaRefresh.warnings.map(
+        (warning) =>
+          `Quota snapshot refresh (${
+            preflightQuotaRefresh.refreshSource ?? "none"
+          }) reported ${warning}`,
+      );
+
       const routingPreflight = resolveGeminiRoutingPreflight({
         adapterType: agent.adapterType,
         adapterConfig: resolvedConfig,
-        runtimeConfig: parseObject(agent.runtimeConfig),
+        runtimeConfig: runtimeConfigForRouting,
         context,
       });
       const executionWorkspace = await realizeExecutionWorkspace({
@@ -2686,6 +2718,7 @@ export function heartbeatService(db: Db) {
       });
       const runtimeSessionParams = runtimeSessionResolution.sessionParams;
       const runtimeWorkspaceWarnings = [
+        ...quotaRefreshWarnings,
         ...resolvedWorkspace.warnings,
         ...executionWorkspace.warnings,
         ...(runtimeSessionResolution.warning
@@ -3279,6 +3312,40 @@ export function heartbeatService(db: Db) {
             }
           }
         }
+        const postRunQuotaRefresh = refreshGeminiRuntimeQuotaSnapshot({
+          runtimeConfig: runtimeConfigForRouting,
+          trigger: "after_run",
+          adapterResultJson: adapterResult.resultJson,
+        });
+        if (postRunQuotaRefresh.runtimeConfigChanged) {
+          runtimeConfigForRouting = postRunQuotaRefresh.runtimeConfig;
+          await persistAgentRuntimeConfig(agent.id, runtimeConfigForRouting);
+        }
+        await appendRunEvent(currentRun, seq++, {
+          eventType: "routing.quota_refresh",
+          stream: "system",
+          level: postRunQuotaRefresh.snapshot.isStale ? "warn" : "info",
+          message: postRunQuotaRefresh.refreshed
+            ? "quota snapshot refreshed after run"
+            : "quota snapshot refresh checked after run",
+          payload: {
+            trigger: "after_run",
+            refreshSource: postRunQuotaRefresh.refreshSource,
+            refreshed: postRunQuotaRefresh.refreshed,
+            runtimeConfigChanged: postRunQuotaRefresh.runtimeConfigChanged,
+            warnings: postRunQuotaRefresh.warnings,
+            snapshot: {
+              source: postRunQuotaRefresh.snapshot.source,
+              snapshotAt: postRunQuotaRefresh.snapshot.snapshotAt,
+              resetAt: postRunQuotaRefresh.snapshot.resetAt,
+              staleReason: postRunQuotaRefresh.snapshot.staleReason,
+              isStale: postRunQuotaRefresh.snapshot.isStale,
+              ageSec: postRunQuotaRefresh.snapshot.ageSec,
+              maxAgeSec: postRunQuotaRefresh.snapshot.maxAgeSec,
+            },
+          },
+        });
+
         const nextSessionState = resolveNextSessionState({
           codec: sessionCodec,
           adapterResult,

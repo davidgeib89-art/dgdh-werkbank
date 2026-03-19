@@ -140,6 +140,48 @@ describe("resolveGeminiControlPlane", () => {
     expect(result.controlPlane.quota.source).toBe("runtime_quota_snapshot");
     expect(result.controlPlane.bucket.snapshots.flash?.usagePercent).toBe(100);
   });
+
+  it("forces advisory fallback and emits warning when snapshot is stale", () => {
+    const result = resolveGeminiControlPlane({
+      policy,
+      policySource: "test-policy",
+      defaultMode: "advisory",
+      defaultAccountLabel: "account-1",
+      context: {
+        taskType: "bounded-implementation",
+      },
+      runtimeConfig: {
+        routingPolicy: {
+          mode: "soft_enforced",
+          quotaStaleness: {
+            maxAgeSec: 60,
+          },
+          quotaSnapshot: {
+            accountLabel: "account-live",
+            snapshotAt: "2026-03-19T16:00:00.000Z",
+            buckets: {
+              flash: { state: "ok", usagePercent: 30 },
+              pro: { state: "ok", usagePercent: 20 },
+            },
+          },
+        },
+      },
+      configuredModel: "gemini-configured",
+      snapshotAt: "2026-03-19T16:10:00.000Z",
+    });
+
+    expect(result.mode).toBe("advisory");
+    expect(result.advisoryOnly).toBe(true);
+    expect(result.applyModelLane).toBe(false);
+    expect(result.controlPlane.quota.isStale).toBe(true);
+    expect(result.controlPlane.quota.staleReason).toBe("snapshot_expired");
+    expect(result.controlPlane.warnings).toContain(
+      "quota_snapshot_stale:snapshot_expired",
+    );
+    expect(result.controlPlane.warnings).toContain(
+      "quota_snapshot_stale_forced_advisory: soft_enforced disabled until quota snapshot is fresh",
+    );
+  });
 });
 
 describe("deriveGeminiControlPlaneState", () => {

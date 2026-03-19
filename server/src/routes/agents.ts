@@ -45,6 +45,7 @@ import {
   evaluateAgentHealth,
 } from "../services/agent-health.js";
 import { deriveGeminiControlPlaneState } from "../services/gemini-control-plane.js";
+import { refreshGeminiRuntimeQuotaSnapshot } from "../services/gemini-quota-producer.js";
 import { runClaudeLogin } from "@paperclipai/adapter-claude-local/server";
 import {
   DEFAULT_CODEX_LOCAL_BYPASS_APPROVALS_AND_SANDBOX,
@@ -846,6 +847,98 @@ export function agentRoutes(db: Db) {
 
     const state = await heartbeat.getRuntimeState(id);
     res.json(state);
+  });
+
+  router.post("/agents/:id/quota-snapshot/refresh", async (req, res) => {
+    const id = req.params.id as string;
+    const agent = await svc.getById(id);
+    if (!agent) {
+      res.status(404).json({ error: "Agent not found" });
+      return;
+    }
+    await assertCanUpdateAgent(req, agent);
+
+    const latestRun = await db
+      .select({
+        id: heartbeatRuns.id,
+        resultJson: heartbeatRuns.resultJson,
+      })
+      .from(heartbeatRuns)
+      .where(
+        and(
+          eq(heartbeatRuns.companyId, agent.companyId),
+          eq(heartbeatRuns.agentId, agent.id),
+        ),
+      )
+      .orderBy(desc(heartbeatRuns.createdAt))
+      .limit(1)
+      .then((rows) => rows[0] ?? null);
+
+    const refresh = refreshGeminiRuntimeQuotaSnapshot({
+      runtimeConfig: asRecord(agent.runtimeConfig) ?? {},
+      trigger: "manual",
+      adapterResultJson: latestRun?.resultJson ?? null,
+    });
+
+    let updatedAgent = agent;
+    if (refresh.runtimeConfigChanged) {
+      const actor = getActorInfo(req);
+      const updated = await svc.update(
+        id,
+        { runtimeConfig: refresh.runtimeConfig },
+        {
+          recordRevision: {
+            createdByAgentId: actor.agentId,
+            createdByUserId: actor.actorType === "user" ? actor.actorId : null,
+            source: "quota_snapshot_refresh",
+          },
+        },
+      );
+      if (updated) {
+        updatedAgent = updated;
+      }
+
+      await logActivity(db, {
+        companyId: agent.companyId,
+        actorType: actor.actorType,
+        actorId: actor.actorId,
+        agentId: actor.agentId,
+        runId: actor.runId,
+        action: "agent.quota_snapshot_refreshed",
+        entityType: "agent",
+        entityId: agent.id,
+        details: {
+          trigger: "manual",
+          refreshed: refresh.refreshed,
+          refreshSource: refresh.refreshSource,
+          staleReason: refresh.snapshot.staleReason,
+          isStale: refresh.snapshot.isStale,
+          latestRunId: latestRun?.id ?? null,
+        },
+      });
+    }
+
+    res.json({
+      agentId: updatedAgent.id,
+      trigger: "manual",
+      refreshed: refresh.refreshed,
+      refreshSource: refresh.refreshSource,
+      runtimeConfigChanged: refresh.runtimeConfigChanged,
+      latestRunId: latestRun?.id ?? null,
+      snapshot: {
+        source: refresh.snapshot.source,
+        accountLabel: refresh.snapshot.accountLabel,
+        snapshotAt: refresh.snapshot.snapshotAt,
+        resetAt: refresh.snapshot.resetAt,
+        resetReason: refresh.snapshot.resetReason,
+        isStale: refresh.snapshot.isStale,
+        staleReason: refresh.snapshot.staleReason,
+        ageSec: refresh.snapshot.ageSec,
+        maxAgeSec: refresh.snapshot.maxAgeSec,
+        buckets: refresh.snapshot.buckets,
+      },
+      warnings: refresh.warnings,
+    });
   });
 
   router.get("/agents/:id/stats", async (req, res) => {
