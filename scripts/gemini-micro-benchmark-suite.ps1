@@ -879,6 +879,32 @@ for ($iteration = 1; $iteration -le $Repeats; $iteration++) {
   }
   $description = New-TestDescription -TargetPath $selectedTest.targetPath -SchemaBlock $selectedTest.schema -Rules $selectedTest.rules
 
+  if (-not $strictFloorMode -and $BenchmarkFamily -eq "T1-paperclip-default-v1" -and $selectedTest.key -eq "T1") {
+    $description = @"
+Task:
+Extract model constants from the Gemini adapter model-file area and return one JSON object.
+
+Primary target:
+- packages/adapters/gemini-local/src/server/models.ts
+
+Bounded scope:
+- You may inspect related files under packages/adapters/gemini-local/src/server if needed.
+- Do not read outside packages/adapters/gemini-local/src.
+- Do not write or modify files.
+- Do not run shell commands.
+- Do not call Paperclip API/task workflow endpoints.
+
+Return exactly one JSON object and nothing else.
+Use exactly this schema:
+$($selectedTest.schema)
+
+Rules:
+- env_keys: keys from EXTRA_GEMINI_MODELS_ENV_KEYS in source order
+- model_sets: top-level exported const arrays only
+- fallback_rule: max 1 sentence
+"@
+  }
+
   if ($strictFloorMode) {
     $strictFloorVersionNote = if ($BenchmarkFamily -eq "T1-floor-v2") {
       "Benchmark family: T1-floor-v2 (strict)"

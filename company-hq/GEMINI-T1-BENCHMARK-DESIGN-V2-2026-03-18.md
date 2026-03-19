@@ -75,6 +75,8 @@ Isolation:
 - `T1-floor-v1` and `T1-floor-v2` on `gemini-2.5-pro` stay frozen as old-model references.
 - `T1-floor-normalized-v1` on `gemini-2.5-pro` stays frozen as the 2.5-series analytical reference.
 - Do not mix any recorded 2.5-pro results into the new 3.1-pro-preview series.
+- Completed `gemini-3.1-pro-preview` references are now frozen as prior-model references for future flash-series comparison.
+- Frozen 3.1 reference IDs: `DGD-18/c986c389-7e1f-4f97-83bb-787b96c433f6`, `DGD-20/5461a48f-6fb0-46de-8e8f-cc1d1acdd7d3`, `DGD-21/5b25864d-26ab-4148-818c-3d42d0c299d6`.
 - One series remains one model.
 - One account lane remains explicit and labeled.
 
@@ -82,6 +84,12 @@ Isolation:
 
 1. `T1-floor-normalized-v1` on `gemini-3.1-pro-preview` for 3 runs.
 2. `T1-paperclip-default-v1` on `gemini-3.1-pro-preview` for 3 runs.
+
+## Flash Lane Re-Start Gate
+
+1. Switch canonical benchmark lane to `gemini-3-flash-preview` on the same account label.
+2. Run exactly one `T1-paperclip-default-v1` diagnostic run first.
+3. Start full Flash `3 + 3` only if the diagnostic run proves broader default-path behavior versus floor.
 
 ## PASS/FAIL Rules
 
