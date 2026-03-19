@@ -2904,7 +2904,7 @@ export function heartbeatService(db: Db) {
             eventType: "routing.preflight",
             stream: "system",
             level: "info",
-            message: `Routing selected ${selected.accountLabel}/${selected.bucket}/${selected.modelLane} (${selected.budgetClass})`,
+            message: `Routing selected ${selected.accountLabel}/${selected.selectedBucket}/${selected.effectiveModelLane} (${selected.budgetClass})`,
             payload: {
               selected,
               quotaState: routingPreflight.quotaState,

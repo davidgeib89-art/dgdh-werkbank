@@ -897,13 +897,29 @@ export function agentRoutes(db: Db) {
         asNonEmptyString(selectedRouting?.accountLabel) ??
         asNonEmptyString(asRecord(quotaSnapshot)?.accountLabel) ??
         null,
+      configuredModelLane:
+        asNonEmptyString(selectedRouting?.configuredModelLane) ??
+        asNonEmptyString(asRecord(quotaSnapshot)?.configuredModelLane) ??
+        null,
+      recommendedModelLane:
+        asNonEmptyString(selectedRouting?.recommendedModelLane) ??
+        asNonEmptyString(asRecord(quotaSnapshot)?.recommendedModelLane) ??
+        null,
+      effectiveModelLane:
+        asNonEmptyString(selectedRouting?.effectiveModelLane) ??
+        asNonEmptyString(asRecord(quotaSnapshot)?.effectiveModelLane) ??
+        null,
       currentModelLane:
-        asNonEmptyString(selectedRouting?.modelLane) ??
+        asNonEmptyString(selectedRouting?.effectiveModelLane) ??
         asNonEmptyString(asRecord(quotaSnapshot)?.modelLane) ??
         null,
       bucket:
-        asNonEmptyString(selectedRouting?.bucket) ??
+        asNonEmptyString(selectedRouting?.effectiveBucket) ??
         asNonEmptyString(asRecord(quotaSnapshot)?.bucket) ??
+        null,
+      selectedBucket:
+        asNonEmptyString(selectedRouting?.selectedBucket) ??
+        asNonEmptyString(asRecord(quotaSnapshot)?.selectedBucket) ??
         null,
       budgetClass:
         asNonEmptyString(selectedRouting?.budgetClass) ??
@@ -1383,11 +1399,9 @@ export function agentRoutes(db: Db) {
     await assertCanUpdateAgent(req, existing);
 
     if (Object.prototype.hasOwnProperty.call(req.body, "permissions")) {
-      res
-        .status(422)
-        .json({
-          error: "Use /api/agents/:id/permissions for permission changes",
-        });
+      res.status(422).json({
+        error: "Use /api/agents/:id/permissions for permission changes",
+      });
       return;
     }
 

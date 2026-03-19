@@ -211,8 +211,12 @@ export interface GeminiRoutingPreflightInput {
 export interface GeminiRoutingPreflightResult {
   selected: {
     accountLabel: string;
-    bucket: BucketName;
-    modelLane: string;
+    selectedBucket: BucketName;
+    configuredBucket: BucketName;
+    effectiveBucket: BucketName;
+    configuredModelLane: string;
+    recommendedModelLane: string;
+    effectiveModelLane: string;
     budgetClass: "small" | "medium" | "large";
     hardCapTokens: number;
     softCapTokens: number;
@@ -269,16 +273,22 @@ export function resolveGeminiRoutingPreflight(
       : "unknown";
 
   const configuredModel = asString(input.adapterConfig.model);
-  const policyModel = policy.bucketModels[selectedBucket];
-  const modelLane = configuredModel ?? policyModel;
+  const recommendedModelLane = policy.bucketModels[selectedBucket];
+  const configuredModelLane = configuredModel ?? recommendedModelLane;
   const budgetClass = parseBudgetClass(input.context);
   const hardCapTokens = hardCapForBudgetClass(budgetClass);
   const softCapTokens = Math.floor(hardCapTokens * 0.8);
 
   const applyModelLane =
     mode === "soft_enforced" &&
-    modelLane.length > 0 &&
+    recommendedModelLane.length > 0 &&
     selectedBucketState !== "exhausted";
+
+  const effectiveModelLane = applyModelLane
+    ? recommendedModelLane
+    : configuredModelLane;
+  const configuredBucket = guessBucketFromModel(configuredModelLane);
+  const effectiveBucket = guessBucketFromModel(effectiveModelLane);
 
   const routingReason =
     selectedBucket === route.preferredBucket
@@ -288,8 +298,12 @@ export function resolveGeminiRoutingPreflight(
   const result: GeminiRoutingPreflightResult = {
     selected: {
       accountLabel,
-      bucket: selectedBucket,
-      modelLane,
+      selectedBucket,
+      configuredBucket,
+      effectiveBucket,
+      configuredModelLane,
+      recommendedModelLane,
+      effectiveModelLane,
       budgetClass,
       hardCapTokens,
       softCapTokens,
@@ -320,7 +334,7 @@ export function resolveGeminiRoutingPreflight(
   }
 
   if (!asString(input.context.bucket)) {
-    input.context.bucket = selectedBucket;
+    input.context.bucket = effectiveBucket;
   }
 
   if (!asString(input.context.budgetClass)) {
@@ -328,7 +342,7 @@ export function resolveGeminiRoutingPreflight(
   }
 
   if (applyModelLane) {
-    input.adapterConfig.model = modelLane;
+    input.adapterConfig.model = effectiveModelLane;
   }
 
   return result;
