@@ -19,14 +19,16 @@ describe("refreshGeminiRuntimeQuotaSnapshot", () => {
           },
         },
       },
+      runtimeState: {},
     });
 
     expect(result.refreshed).toBe(true);
     expect(result.refreshSource).toBe("runtime_quota_feed");
-    expect(result.runtimeConfigChanged).toBe(true);
+    expect(result.runtimeStateChanged).toBe(true);
     expect(result.snapshot.source).toBe("runtime_quota_snapshot");
     expect(result.snapshot.buckets.flash?.state).toBe("ok");
     expect(result.snapshot.isStale).toBe(false);
+    expect(result.runtimeStatePatch.controlPlane).toBeTruthy();
   });
 
   it("falls back to stale marker when no producer source is available", () => {
@@ -36,6 +38,7 @@ describe("refreshGeminiRuntimeQuotaSnapshot", () => {
       runtimeConfig: {
         routingPolicy: {},
       },
+      runtimeState: {},
     });
 
     expect(result.refreshed).toBe(false);
@@ -55,6 +58,7 @@ describe("refreshGeminiRuntimeQuotaSnapshot", () => {
           accountLabel: "account-fallback",
         },
       },
+      runtimeState: {},
       adapterResultJson: {
         stats: {
           quota: {

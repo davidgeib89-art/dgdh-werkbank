@@ -12,17 +12,18 @@ export type GeminiQuotaRefreshTrigger =
 
 export interface GeminiQuotaRefreshInput {
   runtimeConfig: Record<string, unknown>;
+  runtimeState: Record<string, unknown>;
   trigger: GeminiQuotaRefreshTrigger;
   nowIso?: string;
   adapterResultJson?: unknown;
 }
 
 export interface GeminiQuotaRefreshResult {
-  runtimeConfig: Record<string, unknown>;
   snapshot: GeminiQuotaSnapshot;
   refreshed: boolean;
   refreshSource: "runtime_quota_feed" | "adapter_result_feed" | null;
-  runtimeConfigChanged: boolean;
+  runtimeStatePatch: Record<string, unknown>;
+  runtimeStateChanged: boolean;
   warnings: string[];
 }
 
@@ -40,6 +41,27 @@ function asString(value: unknown): string | null {
 
 function hasAnyKeys(value: Record<string, unknown>): boolean {
   return Object.keys(value).length > 0;
+}
+
+function mergeRuntimeStateJson(
+  currentState: Record<string, unknown>,
+  patch: Record<string, unknown>,
+): Record<string, unknown> {
+  const currentControlPlane = asObject(currentState.controlPlane);
+  const patchControlPlane = asObject(patch.controlPlane);
+
+  return {
+    ...currentState,
+    ...patch,
+    ...(hasAnyKeys(patchControlPlane)
+      ? {
+          controlPlane: {
+            ...currentControlPlane,
+            ...patchControlPlane,
+          },
+        }
+      : {}),
+  };
 }
 
 function pickFirstObject(
@@ -164,9 +186,14 @@ export function refreshGeminiRuntimeQuotaSnapshot(
 ): GeminiQuotaRefreshResult {
   const nowIso = input.nowIso ?? new Date().toISOString();
   const runtimeConfig = asObject(input.runtimeConfig);
+  const runtimeState = asObject(input.runtimeState);
   const runtimeRouting = asObject(runtimeConfig.routingPolicy);
+  const controlPlaneState = asObject(runtimeState.controlPlane);
 
   const runtimeQuotaFeed = asObject(runtimeRouting.quotaFeed);
+  const existingQuotaSnapshot = asObject(controlPlaneState.quotaSnapshot);
+  const existingStaleness = asObject(controlPlaneState.staleness);
+  const existingRefreshMeta = asObject(controlPlaneState.refresh);
   const adapterQuotaFeed = extractQuotaFeedFromAdapterResult(
     input.adapterResultJson,
   );
@@ -180,26 +207,24 @@ export function refreshGeminiRuntimeQuotaSnapshot(
     ? "runtime_quota_feed"
     : null;
 
-  const nextRoutingPolicy: Record<string, unknown> = {
-    ...runtimeRouting,
-  };
-
   let refreshed = false;
+  let normalizedSnapshot: Record<string, unknown> | null = null;
   if (refreshFeed) {
-    const normalizedSnapshot = normalizeQuotaFeedToSnapshot({
+    normalizedSnapshot = normalizeQuotaFeedToSnapshot({
       quotaFeed: refreshFeed,
       fallbackAccountLabel: asString(runtimeRouting.accountLabel),
       nowIso,
     });
-    nextRoutingPolicy.quotaSnapshot = normalizedSnapshot;
     refreshed = true;
+  } else if (hasAnyKeys(existingQuotaSnapshot)) {
+    normalizedSnapshot = existingQuotaSnapshot;
   }
 
-  nextRoutingPolicy.quotaStaleness = {
-    ...asObject(runtimeRouting.quotaStaleness),
+  const refreshMeta = {
+    ...existingRefreshMeta,
     lastTrigger: input.trigger,
     lastCheckedAt: nowIso,
-    ...(refreshSource
+    ...(refreshed
       ? {
           lastRefreshAt: nowIso,
           lastRefreshSource: refreshSource,
@@ -207,14 +232,53 @@ export function refreshGeminiRuntimeQuotaSnapshot(
       : {}),
   };
 
-  const nextRuntimeConfig: Record<string, unknown> = {
+  const ingestionRuntimeConfig: Record<string, unknown> = {
     ...runtimeConfig,
-    routingPolicy: nextRoutingPolicy,
+    routingPolicy: {
+      ...runtimeRouting,
+      ...(normalizedSnapshot ? { quotaSnapshot: normalizedSnapshot } : {}),
+      quotaStaleness: {
+        ...asObject(runtimeRouting.quotaStaleness),
+        ...existingStaleness,
+        ...refreshMeta,
+      },
+    },
   };
 
-  const snapshot = ingestGeminiQuotaSnapshot(nextRuntimeConfig, nowIso);
-  const runtimeConfigChanged =
-    JSON.stringify(runtimeConfig) !== JSON.stringify(nextRuntimeConfig);
+  const snapshot = ingestGeminiQuotaSnapshot(ingestionRuntimeConfig, nowIso);
+  const runtimeStatePatch: Record<string, unknown> = {
+    controlPlane: {
+      ...controlPlaneState,
+      quotaSnapshot: normalizedSnapshot,
+      staleness: {
+        ...existingStaleness,
+        isStale: snapshot.isStale,
+        staleReason: snapshot.staleReason,
+        maxAgeSec: snapshot.maxAgeSec,
+        ageSec: snapshot.ageSec,
+        snapshotAt: snapshot.snapshotAt,
+        resetAt: snapshot.resetAt,
+      },
+      refresh: refreshMeta,
+      quota: {
+        ...asObject(controlPlaneState.quota),
+        source: snapshot.source,
+        accountLabel: snapshot.accountLabel,
+        snapshotAt: snapshot.snapshotAt,
+        resetAt: snapshot.resetAt,
+        resetReason: snapshot.resetReason,
+        isStale: snapshot.isStale,
+        staleReason: snapshot.staleReason,
+        maxAgeSec: snapshot.maxAgeSec,
+        ageSec: snapshot.ageSec,
+        buckets: snapshot.buckets,
+      },
+    },
+  };
+
+  const nextStateJson = mergeRuntimeStateJson(runtimeState, runtimeStatePatch);
+  const runtimeStateChanged =
+    JSON.stringify(runtimeState) !== JSON.stringify(nextStateJson);
 
   const warnings: string[] = [];
   if (snapshot.isStale && snapshot.staleReason) {
@@ -225,11 +289,11 @@ export function refreshGeminiRuntimeQuotaSnapshot(
   }
 
   return {
-    runtimeConfig: nextRuntimeConfig,
     snapshot,
     refreshed,
     refreshSource,
-    runtimeConfigChanged,
+    runtimeStatePatch,
+    runtimeStateChanged,
     warnings,
   };
 }

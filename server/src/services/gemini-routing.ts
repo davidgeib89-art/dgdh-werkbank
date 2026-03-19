@@ -147,6 +147,7 @@ export interface GeminiRoutingPreflightInput {
   adapterType: string;
   adapterConfig: Record<string, unknown>;
   runtimeConfig: Record<string, unknown>;
+  runtimeState?: Record<string, unknown>;
   context: Record<string, unknown>;
 }
 
@@ -191,6 +192,7 @@ export function resolveGeminiRoutingPreflight(
     defaultAccountLabel: policy.defaultAccountLabel,
     context: input.context,
     runtimeConfig: input.runtimeConfig,
+    runtimeState: input.runtimeState,
     configuredModel: asString(input.adapterConfig.model),
     snapshotAt: new Date().toISOString(),
   });

@@ -1985,17 +1985,32 @@ export function heartbeatService(db: Db) {
       .then((rows) => rows[0]);
   }
 
-  async function persistAgentRuntimeConfig(
+  async function persistRuntimeStatePatch(
     agentId: string,
-    runtimeConfig: Record<string, unknown>,
+    statePatch: Record<string, unknown>,
   ) {
+    const existing = await getRuntimeState(agentId);
+    const baseState = parseObject(existing?.stateJson);
+    const patchControlPlane = parseObject(statePatch.controlPlane);
+    const mergedState = {
+      ...baseState,
+      ...statePatch,
+      ...(Object.keys(patchControlPlane).length > 0
+        ? {
+            controlPlane: {
+              ...parseObject(baseState.controlPlane),
+              ...patchControlPlane,
+            },
+          }
+        : {}),
+    };
     await db
-      .update(agents)
+      .update(agentRuntimeState)
       .set({
-        runtimeConfig,
+        stateJson: mergedState,
         updatedAt: new Date(),
       })
-      .where(eq(agents.id, agentId));
+      .where(eq(agentRuntimeState.agentId, agentId));
   }
 
   async function setRunStatus(
@@ -2668,14 +2683,28 @@ export function heartbeatService(db: Db) {
         : null;
       applyIssuePromptContext(context, issueRef);
 
-      let runtimeConfigForRouting = parseObject(agent.runtimeConfig);
+      const runtimeConfigForRouting = parseObject(agent.runtimeConfig);
+      let runtimeStateForRouting = parseObject(runtime.stateJson);
       const preflightQuotaRefresh = refreshGeminiRuntimeQuotaSnapshot({
         runtimeConfig: runtimeConfigForRouting,
+        runtimeState: runtimeStateForRouting,
         trigger: "before_preflight",
       });
-      runtimeConfigForRouting = preflightQuotaRefresh.runtimeConfig;
-      if (preflightQuotaRefresh.runtimeConfigChanged) {
-        await persistAgentRuntimeConfig(agent.id, runtimeConfigForRouting);
+      if (preflightQuotaRefresh.runtimeStateChanged) {
+        await persistRuntimeStatePatch(
+          agent.id,
+          preflightQuotaRefresh.runtimeStatePatch,
+        );
+        runtimeStateForRouting = {
+          ...runtimeStateForRouting,
+          ...preflightQuotaRefresh.runtimeStatePatch,
+          controlPlane: {
+            ...parseObject(runtimeStateForRouting.controlPlane),
+            ...parseObject(
+              preflightQuotaRefresh.runtimeStatePatch.controlPlane,
+            ),
+          },
+        };
       }
 
       const quotaRefreshWarnings = preflightQuotaRefresh.warnings.map(
@@ -2689,6 +2718,7 @@ export function heartbeatService(db: Db) {
         adapterType: agent.adapterType,
         adapterConfig: resolvedConfig,
         runtimeConfig: runtimeConfigForRouting,
+        runtimeState: runtimeStateForRouting,
         context,
       });
       const executionWorkspace = await realizeExecutionWorkspace({
@@ -3314,12 +3344,25 @@ export function heartbeatService(db: Db) {
         }
         const postRunQuotaRefresh = refreshGeminiRuntimeQuotaSnapshot({
           runtimeConfig: runtimeConfigForRouting,
+          runtimeState: runtimeStateForRouting,
           trigger: "after_run",
           adapterResultJson: adapterResult.resultJson,
         });
-        if (postRunQuotaRefresh.runtimeConfigChanged) {
-          runtimeConfigForRouting = postRunQuotaRefresh.runtimeConfig;
-          await persistAgentRuntimeConfig(agent.id, runtimeConfigForRouting);
+        if (postRunQuotaRefresh.runtimeStateChanged) {
+          await persistRuntimeStatePatch(
+            agent.id,
+            postRunQuotaRefresh.runtimeStatePatch,
+          );
+          runtimeStateForRouting = {
+            ...runtimeStateForRouting,
+            ...postRunQuotaRefresh.runtimeStatePatch,
+            controlPlane: {
+              ...parseObject(runtimeStateForRouting.controlPlane),
+              ...parseObject(
+                postRunQuotaRefresh.runtimeStatePatch.controlPlane,
+              ),
+            },
+          };
         }
         await appendRunEvent(currentRun, seq++, {
           eventType: "routing.quota_refresh",
@@ -3332,7 +3375,7 @@ export function heartbeatService(db: Db) {
             trigger: "after_run",
             refreshSource: postRunQuotaRefresh.refreshSource,
             refreshed: postRunQuotaRefresh.refreshed,
-            runtimeConfigChanged: postRunQuotaRefresh.runtimeConfigChanged,
+            runtimeStateChanged: postRunQuotaRefresh.runtimeStateChanged,
             warnings: postRunQuotaRefresh.warnings,
             snapshot: {
               source: postRunQuotaRefresh.snapshot.source,
@@ -4448,6 +4491,51 @@ export function heartbeatService(db: Db) {
         sessionDisplayId:
           latestTaskSession?.sessionDisplayId ?? ensured.sessionId,
         sessionParamsJson: latestTaskSession?.sessionParamsJson ?? null,
+      };
+    },
+
+    refreshQuotaSnapshot: async (
+      agentId: string,
+      opts?: { trigger?: "manual"; adapterResultJson?: unknown },
+    ) => {
+      const agent = await getAgent(agentId);
+      if (!agent) throw notFound("Agent not found");
+
+      const runtime = await ensureRuntimeState(agent);
+      const runtimeState = parseObject(runtime.stateJson);
+      const latestRun =
+        opts?.adapterResultJson !== undefined
+          ? null
+          : await db
+              .select({
+                id: heartbeatRuns.id,
+                resultJson: heartbeatRuns.resultJson,
+              })
+              .from(heartbeatRuns)
+              .where(
+                and(
+                  eq(heartbeatRuns.companyId, agent.companyId),
+                  eq(heartbeatRuns.agentId, agent.id),
+                ),
+              )
+              .orderBy(desc(heartbeatRuns.createdAt))
+              .limit(1)
+              .then((rows) => rows[0] ?? null);
+
+      const refresh = refreshGeminiRuntimeQuotaSnapshot({
+        runtimeConfig: parseObject(agent.runtimeConfig),
+        runtimeState,
+        trigger: opts?.trigger ?? "manual",
+        adapterResultJson: opts?.adapterResultJson ?? latestRun?.resultJson,
+      });
+
+      if (refresh.runtimeStateChanged) {
+        await persistRuntimeStatePatch(agent.id, refresh.runtimeStatePatch);
+      }
+
+      return {
+        ...refresh,
+        latestRunId: latestRun?.id ?? null,
       };
     },
 

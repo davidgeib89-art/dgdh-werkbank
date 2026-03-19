@@ -32,6 +32,7 @@ export interface GeminiControlPlaneResolveInput {
   defaultAccountLabel: string;
   context: Record<string, unknown>;
   runtimeConfig: Record<string, unknown>;
+  runtimeState?: Record<string, unknown>;
   configuredModel: string | null;
   snapshotAt: string;
 }
@@ -146,6 +147,10 @@ function asNumber(value: unknown): number | null {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
+function hasAnyKeys(value: Record<string, unknown>): boolean {
+  return Object.keys(value).length > 0;
+}
+
 function isBucket(value: string | null): value is BucketName {
   return value === "flash" || value === "pro" || value === "flash-lite";
 }
@@ -257,8 +262,30 @@ export function resolveGeminiControlPlane(
     input.policy.taskRoutes["bounded-implementation"];
 
   const runtimeRouting = asObject(input.runtimeConfig.routingPolicy);
+  const runtimeState = asObject(input.runtimeState);
+  const runtimeControlPlane = asObject(runtimeState.controlPlane);
+  const operationalQuotaSnapshot = asObject(runtimeControlPlane.quotaSnapshot);
+  const operationalStaleness = asObject(runtimeControlPlane.staleness);
+
+  const runtimeConfigForQuotaIngestion: Record<string, unknown> = {
+    ...input.runtimeConfig,
+    routingPolicy: {
+      ...runtimeRouting,
+      ...(hasAnyKeys(operationalQuotaSnapshot)
+        ? { quotaSnapshot: operationalQuotaSnapshot }
+        : {}),
+      ...(hasAnyKeys(operationalStaleness)
+        ? {
+            quotaStaleness: {
+              ...asObject(runtimeRouting.quotaStaleness),
+              ...operationalStaleness,
+            },
+          }
+        : {}),
+    },
+  };
   const ingestedQuotaSnapshot = ingestGeminiQuotaSnapshot(
-    input.runtimeConfig,
+    runtimeConfigForQuotaIngestion,
     input.snapshotAt,
   );
   const mode =
