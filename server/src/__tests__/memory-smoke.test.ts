@@ -175,7 +175,12 @@ describe("Smoke 4+5: recordRunEpisode creates exactly one episode entry", () => 
       summary: `Heartbeat run ${runInput.outcome}`,
       detail: detailLines.join("\n"),
       tags: ["heartbeat", "run", runInput.outcome],
-      importance: runInput.outcome === "succeeded" ? 45 : 60,
+      importance:
+        runInput.outcome === "succeeded"
+          ? 45
+          : runInput.outcome === "blocked" || runInput.outcome === "awaiting_approval"
+            ? 50
+            : 60,
       confidence: 80,
       sourceRefs: [
         `heartbeat_run:${runInput.runId}`,

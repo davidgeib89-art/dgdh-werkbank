@@ -157,7 +157,7 @@ export interface RunEpisodeInput {
   companyId: string;
   agentId: string;
   runId: string;
-  outcome: "succeeded" | "failed" | "cancelled" | "timed_out";
+  outcome: "succeeded" | "failed" | "cancelled" | "timed_out" | "blocked" | "awaiting_approval";
   issueId?: string | null;
   projectId?: string | null;
   resultSummary?: Record<string, unknown> | null;
@@ -415,7 +415,12 @@ export function memoryService(db: Db) {
       summary: `Heartbeat run ${input.outcome}`,
       detail: detailLines.join("\n"),
       tags: ["heartbeat", "run", input.outcome],
-      importance: input.outcome === "succeeded" ? 45 : 60,
+      importance:
+        input.outcome === "succeeded"
+          ? 45
+          : input.outcome === "blocked" || input.outcome === "awaiting_approval"
+            ? 50
+            : 60,
       confidence: 80,
       sourceRefs: [
         `heartbeat_run:${input.runId}`,

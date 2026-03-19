@@ -2219,7 +2219,7 @@ export function heartbeatService(db: Db) {
 
   async function finalizeAgentStatus(
     agentId: string,
-    outcome: "succeeded" | "failed" | "cancelled" | "timed_out",
+    outcome: "succeeded" | "failed" | "cancelled" | "timed_out" | "blocked" | "awaiting_approval",
   ) {
     const existing = await getAgent(agentId);
     if (!existing) return;
@@ -3093,15 +3093,14 @@ export function heartbeatService(db: Db) {
               controlPlane: routingPreflight.controlPlane,
             },
           });
-          await setRunStatus(run.id, "failed", {
+          await setRunStatus(run.id, "blocked", {
             error: message,
             errorCode: blockReason,
             finishedAt: new Date(),
           });
-          await setWakeupStatus(run.wakeupRequestId, "failed", {
-            finishedAt: new Date(),
-            error: message,
-          });
+          // Do NOT set wakeupStatus to "failed" — keep it alive so the operator can act.
+          // Wakeup will remain in whatever state it was before this run.
+          return;
         }
         const singleFileBenchmarkPreflight =
           await evaluateSingleFileBenchmarkPreflight({
@@ -3590,10 +3589,14 @@ export function heartbeatService(db: Db) {
         });
         const normalizedUsage = sessionUsageResolution.normalizedUsage;
 
-        let outcome: "succeeded" | "failed" | "cancelled" | "timed_out";
+        let outcome: "succeeded" | "failed" | "cancelled" | "timed_out" | "blocked" | "awaiting_approval";
         const latestRun = await getRun(run.id);
         if (latestRun?.status === "cancelled") {
           outcome = "cancelled";
+        } else if (latestRun?.status === "blocked") {
+          outcome = "blocked";
+        } else if (latestRun?.status === "awaiting_approval") {
+          outcome = "awaiting_approval";
         } else if (adapterResult.timedOut) {
           outcome = "timed_out";
         } else if (

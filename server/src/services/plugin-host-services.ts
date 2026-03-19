@@ -996,7 +996,7 @@ export function buildHostServices(
         // Track the subscription so it can be cleaned up on dispose() if the run
         // never reaches a terminal status (hang, crash, network partition).
         if (notifyWorker) {
-          const TERMINAL_STATUSES = new Set(["succeeded", "failed", "cancelled", "timed_out"]);
+          const TERMINAL_STATUSES = new Set(["succeeded", "failed", "cancelled", "timed_out", "blocked", "awaiting_approval"]);
 
           const cleanup = () => {
             unsubscribe();
