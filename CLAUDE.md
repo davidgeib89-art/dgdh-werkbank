@@ -1,4 +1,6 @@
-# DGDH Werkbank — Claude Code Guide
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 @import doc/CLAUDE-ARCHITECTURE.md
 @import doc/CLAUDE-WORKFLOW.md
@@ -53,6 +55,37 @@ Account → Bucket (pro | flash | flash-lite) → Model Lane
 - Sprint-Reports: `company-hq/commit-reports/YYYY-MM-DD-name-sprint.md`
 - Report enthält: was gebaut, validiert, Invarianten erhalten, was NICHT angefasst und warum
 
+## Dev-Quickstart
+
+```bash
+# Full dev (API + UI, watch mode — can orphan agent processes)
+pnpm dev
+
+# Single-pass dev — use this for heartbeat/memory verification
+pnpm dev:once
+
+# Server only
+pnpm dev:server
+
+# Build & typecheck
+pnpm build
+pnpm typecheck
+
+# Tests
+pnpm test:run                   # all tests
+pnpm --filter @paperclipai/server exec vitest src/__tests__/heartbeat-governance.test.ts --run  # single test file
+
+# DB
+pnpm db:generate               # generate migrations
+pnpm db:migrate                # apply migrations
+```
+
+**Dev note:** Use `pnpm dev:once` for heartbeat/memory verification — watch mode can orphan running agent processes.
+
+**Embedded DB:** PostgreSQL auto-starts when `DATABASE_URL` is unset (data at `~/.paperclip/instances/default/db`). Worktree instances auto-load `.paperclip/.env`.
+
+**Testing note:** Governance/approval flows — set `process.env.GOVERNANCE_TEST_MODE = "true"` to enable dry-run validation helpers. Avoid real adapter/agent calls in tests unless explicitly required; prefer mocks and contract tests.
+
 ## Architecture-Docs (lesen wenn nötig)
 
 | Was | Wo |
@@ -72,13 +105,32 @@ Account → Bucket (pro | flash | flash-lite) → Model Lane
 | Agent Health | `server/src/services/agent-health.ts` |
 | Routing Policy | `server/src/services/gemini-routing.ts` |
 
-## Dev-Quickstart
+## MCP-Tools (MorphLLM)
 
-```bash
-pnpm dev              # API + UI, watch mode
-pnpm dev:once         # Single-pass (für heartbeat/memory verification)
-pnpm dev:server       # Server only
-pnpm build            # Build all packages
-pnpm typecheck        # Type-check all packages
-pnpm test:run         # Run all tests
+Use these instead of Bash sed/echo for file operations.
+
+**`edit_file`** — Primary file editing:
+```json
+{ "path": "server/src/services/heartbeat.ts", "code_edit": "  // ... existing code ...\n  newLine();", "instruction": "Add newLine() after existing code" }
 ```
+`// ... existing code ...` = unchanged block placeholder. Preserve exact indentation.
+
+**`codebase_search`** — Codebase exploration:
+```
+search_string: "Where does routing preflight block adapter execution?"
+repo_path: "C:/Users/holyd/DGDH/worktrees/dgdh-werkbank"
+```
+Best for: "Find the XYZ flow", "How does X work", "Trace the blocked→execution path"
+
+**`github_codebase_search`** — GitHub repo search:
+```
+search_string: "How does quota snapshot stale detection work?"
+github_url: "https://github.com/anthropic/claude-code"
+```
+
+| Goal | Tool |
+|------|------|
+| Explore unfamiliar code | `codebase_search` |
+| Edit files | `edit_file` |
+| Research external libs | `github_codebase_search` |
+| Read specific files | `Read` tool |
