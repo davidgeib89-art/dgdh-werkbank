@@ -1,0 +1,32 @@
+{
+  "version": "v1",
+  "defaultAccountLabel": "account-1",
+  "defaultMode": "advisory",
+  "taskRoutes": {
+    "research-light": {
+      "preferredBucket": "flash",
+      "fallbackBucket": "pro",
+      "reason": "light research should favor lower-cost flash models"
+    },
+    "bounded-implementation": {
+      "preferredBucket": "flash",
+      "fallbackBucket": "pro",
+      "reason": "bounded implementation defaults to flash and escalates to pro if needed"
+    },
+    "heavy-architecture": {
+      "preferredBucket": "pro",
+      "fallbackBucket": "flash",
+      "reason": "hard architecture tasks prioritize stronger pro models"
+    },
+    "benchmark-floor": {
+      "preferredBucket": "flash",
+      "fallbackBucket": "flash",
+      "reason": "floor benchmarks stay in the cheapest stable lane"
+    }
+  },
+  "bucketModels": {
+    "flash": "gemini-3-flash-preview",
+    "pro": "gemini-3.1-pro-preview",
+    "flash-lite": "gemini-2.5-flash-lite"
+  }
+}

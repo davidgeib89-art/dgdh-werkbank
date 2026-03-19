@@ -57,6 +57,7 @@ import {
 } from "../log-redaction.js";
 import { runPromptResolverPreflight } from "./prompt-resolver-preflight.js";
 import type { PromptResolverInput } from "./prompt-resolver-schema.js";
+import { resolveGeminiRoutingPreflight } from "./gemini-routing.js";
 
 const MAX_LIVE_LOG_CHUNK_BYTES = 8 * 1024;
 const HEARTBEAT_MAX_CONCURRENT_RUNS_DEFAULT = 1;
@@ -2345,8 +2346,9 @@ export function heartbeatService(db: Db) {
     result: AdapterExecutionResult,
     session: { legacySessionId: string | null },
     normalizedUsage?: UsageTotals | null,
+    runtimeStatePatch?: Record<string, unknown> | null,
   ) {
-    await ensureRuntimeState(agent);
+    const ensuredState = await ensureRuntimeState(agent);
     const usage = normalizedUsage ?? normalizeUsageTotals(result.usage);
     const inputTokens = usage?.inputTokens ?? 0;
     const outputTokens = usage?.outputTokens ?? 0;
@@ -2358,10 +2360,18 @@ export function heartbeatService(db: Db) {
     const hasTokenUsage =
       inputTokens > 0 || outputTokens > 0 || cachedInputTokens > 0;
 
+    const nextStateJson = runtimeStatePatch
+      ? {
+          ...parseObject(ensuredState.stateJson),
+          ...runtimeStatePatch,
+        }
+      : ensuredState.stateJson;
+
     await db
       .update(agentRuntimeState)
       .set({
         adapterType: agent.adapterType,
+        stateJson: nextStateJson,
         sessionId: session.legacySessionId,
         lastRunId: run.id,
         lastRunStatus: run.status,
@@ -2619,11 +2629,12 @@ export function heartbeatService(db: Db) {
       const mergedConfig = issueAssigneeOverrides?.adapterConfig
         ? { ...workspaceManagedConfig, ...issueAssigneeOverrides.adapterConfig }
         : workspaceManagedConfig;
-      const { config: resolvedConfig, secretKeys } =
+      const { config: configWithSecrets, secretKeys } =
         await secretsSvc.resolveAdapterConfigForRuntime(
           agent.companyId,
           mergedConfig,
         );
+      const resolvedConfig = { ...configWithSecrets };
       const issueRef = issueId
         ? await db
             .select({
@@ -2642,6 +2653,12 @@ export function heartbeatService(db: Db) {
             .then((rows) => rows[0] ?? null)
         : null;
       applyIssuePromptContext(context, issueRef);
+      const routingPreflight = resolveGeminiRoutingPreflight({
+        adapterType: agent.adapterType,
+        adapterConfig: resolvedConfig,
+        runtimeConfig: parseObject(agent.runtimeConfig),
+        context,
+      });
       const executionWorkspace = await realizeExecutionWorkspace({
         base: {
           baseCwd: resolvedWorkspace.cwd,
@@ -2763,6 +2780,20 @@ export function heartbeatService(db: Db) {
         taskKey,
       };
 
+      const runtimeStatePatch = routingPreflight
+        ? {
+            quotaSnapshot: {
+              ...routingPreflight.selected,
+              ...routingPreflight.quotaState,
+              routingReason: routingPreflight.routingReason,
+              mode: routingPreflight.mode,
+              advisoryOnly: routingPreflight.advisoryOnly,
+              policySource: routingPreflight.policySource,
+              capturedAt: new Date().toISOString(),
+            },
+          }
+        : null;
+
       let seq = 1;
       let handle: RunLogHandle | null = null;
       let stdoutExcerpt = "";
@@ -2866,6 +2897,24 @@ export function heartbeatService(db: Db) {
         };
         for (const warning of runtimeWorkspaceWarnings) {
           await onLog("stderr", `[paperclip] ${warning}\n`);
+        }
+        if (routingPreflight) {
+          const selected = routingPreflight.selected;
+          await appendRunEvent(currentRun, seq++, {
+            eventType: "routing.preflight",
+            stream: "system",
+            level: "info",
+            message: `Routing selected ${selected.accountLabel}/${selected.bucket}/${selected.modelLane} (${selected.budgetClass})`,
+            payload: {
+              selected,
+              quotaState: routingPreflight.quotaState,
+              routingReason: routingPreflight.routingReason,
+              advisoryOnly: routingPreflight.advisoryOnly,
+              mode: routingPreflight.mode,
+              policySource: routingPreflight.policySource,
+              applyModelLane: routingPreflight.applyModelLane,
+            },
+          });
         }
         const singleFileBenchmarkPreflight =
           await evaluateSingleFileBenchmarkPreflight({
@@ -3427,6 +3476,7 @@ export function heartbeatService(db: Db) {
               legacySessionId: nextSessionState.legacySessionId,
             },
             normalizedUsage,
+            runtimeStatePatch,
           );
           if (taskKey) {
             if (
@@ -3513,6 +3563,8 @@ export function heartbeatService(db: Db) {
             {
               legacySessionId: runtimeForAdapter.sessionId,
             },
+            undefined,
+            runtimeStatePatch,
           );
 
           if (

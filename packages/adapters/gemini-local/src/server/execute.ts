@@ -218,7 +218,9 @@ function isStrictFloorRawJsonObjectText(text: string): boolean {
   if (!(trimmed.startsWith("{") && trimmed.endsWith("}"))) return false;
   try {
     const parsed = JSON.parse(trimmed) as unknown;
-    return typeof parsed === "object" && parsed !== null && !Array.isArray(parsed);
+    return (
+      typeof parsed === "object" && parsed !== null && !Array.isArray(parsed)
+    );
   } catch {
     return false;
   }
@@ -476,8 +478,14 @@ export async function execute(
     ? ""
     : asString(context.paperclipSessionHandoffMarkdown, "").trim();
   const issueTaskNote = renderIssueTaskNote(context);
-  const paperclipEnvNote = strictFloorMode ? "" : renderPaperclipEnvNote(env);
-  const apiAccessNote = strictFloorMode ? "" : renderApiAccessNote(env);
+  const includePaperclipEnvNote =
+    !strictFloorMode && asBoolean(config.includePaperclipEnvNote, false);
+  const includeApiAccessNote =
+    !strictFloorMode && asBoolean(config.includeApiAccessNote, false);
+  const paperclipEnvNote = includePaperclipEnvNote
+    ? renderPaperclipEnvNote(env)
+    : "";
+  const apiAccessNote = includeApiAccessNote ? renderApiAccessNote(env) : "";
   const floorModeGateNote = strictFloorMode
     ? [
         "Strict floor gate:",
@@ -653,12 +661,11 @@ export async function execute(
         (attempt.proc.exitCode ?? 0) === 0 && !strictFloorOutputError
           ? null
           : fallbackErrorMessage,
-      errorCode:
-        strictFloorOutputError
-          ? "non_json_output"
-          : (attempt.proc.exitCode ?? 0) !== 0 && authMeta.requiresAuth
-          ? "gemini_auth_required"
-          : null,
+      errorCode: strictFloorOutputError
+        ? "non_json_output"
+        : (attempt.proc.exitCode ?? 0) !== 0 && authMeta.requiresAuth
+        ? "gemini_auth_required"
+        : null,
       usage: attempt.parsed.usage,
       sessionId: resolvedSessionId,
       sessionParams: resolvedSessionParams,
