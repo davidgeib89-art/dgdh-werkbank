@@ -1111,6 +1111,53 @@ export function agentRoutes(db: Db) {
         count: routingHistory.length,
         runs: routingHistory,
       },
+      budgetSummary: (() => {
+        const usedTokens = runtimeState
+          ? runtimeState.totalInputTokens +
+            runtimeState.totalCachedInputTokens +
+            runtimeState.totalOutputTokens
+          : null;
+        const softCap =
+          parseNumberLike(selectedRouting?.softCapTokens) ??
+          parseNumberLike(asRecord(quotaSnapshot)?.softCapTokens) ??
+          null;
+        const hardCap =
+          parseNumberLike(selectedRouting?.hardCapTokens) ??
+          parseNumberLike(asRecord(quotaSnapshot)?.hardCapTokens) ??
+          null;
+        const pctSoft =
+          usedTokens !== null && softCap !== null && softCap > 0
+            ? Math.round((usedTokens / softCap) * 100)
+            : null;
+        const pctHard =
+          usedTokens !== null && hardCap !== null && hardCap > 0
+            ? Math.round((usedTokens / hardCap) * 100)
+            : null;
+        const budgetStatus:
+          | "ok"
+          | "soft_cap_approaching"
+          | "soft_cap_exceeded"
+          | "hard_cap_exceeded"
+          | "unknown" =
+          usedTokens === null || hardCap === null
+            ? "unknown"
+            : usedTokens >= hardCap
+            ? "hard_cap_exceeded"
+            : softCap !== null && usedTokens >= softCap
+            ? "soft_cap_exceeded"
+            : softCap !== null && usedTokens >= softCap * 0.8
+            ? "soft_cap_approaching"
+            : "ok";
+        return {
+          usedTokens,
+          softCapTokens: softCap,
+          hardCapTokens: hardCap,
+          percentOfSoftCap: pctSoft,
+          percentOfHardCap: pctHard,
+          totalCostCents: runtimeState?.totalCostCents ?? null,
+          status: budgetStatus,
+        };
+      })(),
       totals: runtimeState
         ? {
             inputTokens: runtimeState.totalInputTokens,
