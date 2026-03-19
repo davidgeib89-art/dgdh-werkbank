@@ -2789,6 +2789,8 @@ export function heartbeatService(db: Db) {
               mode: routingPreflight.mode,
               advisoryOnly: routingPreflight.advisoryOnly,
               policySource: routingPreflight.policySource,
+              snapshotSource: routingPreflight.controlPlane.quota.source,
+              controlPlane: routingPreflight.controlPlane,
               capturedAt: new Date().toISOString(),
             },
           }
@@ -2913,6 +2915,7 @@ export function heartbeatService(db: Db) {
               mode: routingPreflight.mode,
               policySource: routingPreflight.policySource,
               applyModelLane: routingPreflight.applyModelLane,
+              controlPlane: routingPreflight.controlPlane,
             },
           });
         }

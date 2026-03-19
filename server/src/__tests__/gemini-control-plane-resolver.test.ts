@@ -102,6 +102,44 @@ describe("resolveGeminiControlPlane", () => {
     expect(result.controlPlane.manualOverride?.enabled).toBe(true);
     expect(result.controlPlane.modelLane.reason).toContain("manual override");
   });
+
+  it("uses ingested quota snapshot state as source of truth for bucket selection", () => {
+    const result = resolveGeminiControlPlane({
+      policy,
+      policySource: "test-policy",
+      defaultMode: "advisory",
+      defaultAccountLabel: "account-1",
+      context: {
+        taskType: "bounded-implementation",
+      },
+      runtimeConfig: {
+        routingPolicy: {
+          // Legacy state says flash is ok, but quota snapshot says flash exhausted.
+          bucketState: {
+            flash: "ok",
+            pro: "ok",
+          },
+          quotaSnapshot: {
+            accountLabel: "account-live",
+            snapshotAt: "2026-03-19T16:40:00.000Z",
+            buckets: {
+              flash: { state: "exhausted", usagePercent: 100 },
+              pro: { state: "ok", usagePercent: 40 },
+            },
+          },
+        },
+      },
+      configuredModel: "gemini-configured",
+      snapshotAt: "2026-03-19T16:41:00.000Z",
+    });
+
+    expect(result.accountLabel).toBe("account-live");
+    expect(result.selected.selectedBucket).toBe("pro");
+    expect(result.controlPlane.bucket.preferredState).toBe("exhausted");
+    expect(result.controlPlane.bucket.selectedState).toBe("ok");
+    expect(result.controlPlane.quota.source).toBe("runtime_quota_snapshot");
+    expect(result.controlPlane.bucket.snapshots.flash?.usagePercent).toBe(100);
+  });
 });
 
 describe("deriveGeminiControlPlaneState", () => {

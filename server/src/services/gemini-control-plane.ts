@@ -1,3 +1,8 @@
+import {
+  ingestGeminiQuotaSnapshot,
+  type GeminiQuotaBucketSnapshot,
+} from "./gemini-quota-snapshot.js";
+
 type BucketName = "flash" | "pro" | "flash-lite";
 type TaskType =
   | "research-light"
@@ -77,6 +82,7 @@ export interface GeminiControlPlaneState {
     preferredState: BucketState | null;
     selectedState: BucketState | null;
     states: Partial<Record<BucketName, BucketState>>;
+    snapshots: Partial<Record<BucketName, GeminiQuotaBucketSnapshot>>;
   };
   modelLane: {
     configured: string | null;
@@ -96,6 +102,7 @@ export interface GeminiControlPlaneState {
     capturedAt: string | null;
     resetAt: string | null;
     resetReason: string | null;
+    source: "runtime_quota_snapshot" | "runtime_bucket_state" | "none" | null;
   };
   manualOverride: {
     enabled: boolean;
@@ -240,15 +247,21 @@ export function resolveGeminiControlPlane(
     input.policy.taskRoutes["bounded-implementation"];
 
   const runtimeRouting = asObject(input.runtimeConfig.routingPolicy);
+  const ingestedQuotaSnapshot = ingestGeminiQuotaSnapshot(
+    input.runtimeConfig,
+    input.snapshotAt,
+  );
   const mode =
     (asString(runtimeRouting.mode) as RoutingMode | null) ?? input.defaultMode;
   const accountLabel =
-    asString(runtimeRouting.accountLabel) ?? input.defaultAccountLabel;
+    ingestedQuotaSnapshot.accountLabel ??
+    asString(runtimeRouting.accountLabel) ??
+    input.defaultAccountLabel;
 
   const bucketStateMap = asObject(runtimeRouting.bucketState);
-  const preferredState = normalizeBucketState(
-    bucketStateMap[route.preferredBucket],
-  );
+  const preferredState =
+    ingestedQuotaSnapshot.buckets[route.preferredBucket]?.state ??
+    normalizeBucketState(bucketStateMap[route.preferredBucket]);
 
   let selectedBucket: BucketName =
     preferredState === "exhausted" || preferredState === "cooldown"
@@ -260,9 +273,9 @@ export function resolveGeminiControlPlane(
     selectedBucket = manualOverride.bucket;
   }
 
-  const selectedBucketState = normalizeBucketState(
-    bucketStateMap[selectedBucket],
-  );
+  const selectedBucketState =
+    ingestedQuotaSnapshot.buckets[selectedBucket]?.state ??
+    normalizeBucketState(bucketStateMap[selectedBucket]);
   const recommendedModelLane = input.policy.bucketModels[selectedBucket];
   const configuredModelLane = input.configuredModel ?? recommendedModelLane;
   const budgetClass = parseBudgetClass(input.context);
@@ -317,10 +330,17 @@ export function resolveGeminiControlPlane(
       preferredState,
       selectedState: selectedBucketState,
       states: {
-        flash: normalizeBucketState(bucketStateMap.flash),
-        pro: normalizeBucketState(bucketStateMap.pro),
-        "flash-lite": normalizeBucketState(bucketStateMap["flash-lite"]),
+        flash:
+          ingestedQuotaSnapshot.buckets.flash?.state ??
+          normalizeBucketState(bucketStateMap.flash),
+        pro:
+          ingestedQuotaSnapshot.buckets.pro?.state ??
+          normalizeBucketState(bucketStateMap.pro),
+        "flash-lite":
+          ingestedQuotaSnapshot.buckets["flash-lite"]?.state ??
+          normalizeBucketState(bucketStateMap["flash-lite"]),
       },
+      snapshots: ingestedQuotaSnapshot.buckets,
     },
     modelLane: {
       configured: configuredModelLane,
@@ -333,10 +353,11 @@ export function resolveGeminiControlPlane(
     quota: {
       hardCapTokens,
       softCapTokens,
-      snapshotAt: input.snapshotAt,
+      snapshotAt: ingestedQuotaSnapshot.snapshotAt,
       capturedAt: input.snapshotAt,
-      resetAt: asString(runtimeRouting.resetAt),
-      resetReason: asString(runtimeRouting.resetReason),
+      resetAt: ingestedQuotaSnapshot.resetAt,
+      resetReason: ingestedQuotaSnapshot.resetReason,
+      source: ingestedQuotaSnapshot.source,
     },
     manualOverride,
   };
@@ -451,6 +472,18 @@ export function deriveGeminiControlPlaneState(
             ],
           ) ?? undefined,
       },
+      snapshots: {
+        flash:
+          (asObject(asObject(controlPlaneFromPreflight.bucket).snapshots)
+            .flash as GeminiQuotaBucketSnapshot | undefined) ?? undefined,
+        pro:
+          (asObject(asObject(controlPlaneFromPreflight.bucket).snapshots)
+            .pro as GeminiQuotaBucketSnapshot | undefined) ?? undefined,
+        "flash-lite":
+          (asObject(asObject(controlPlaneFromPreflight.bucket).snapshots)[
+            "flash-lite"
+          ] as GeminiQuotaBucketSnapshot | undefined) ?? undefined,
+      },
     },
     modelLane: {
       configured:
@@ -514,6 +547,13 @@ export function deriveGeminiControlPlaneState(
         asString(asObject(controlPlaneFromPreflight.quota).resetReason) ??
         asString(snapshot.resetReason) ??
         null,
+      source:
+        ((asString(asObject(controlPlaneFromPreflight.quota).source) ??
+          asString(snapshot.snapshotSource)) as
+          | "runtime_quota_snapshot"
+          | "runtime_bucket_state"
+          | "none"
+          | null) ?? null,
     },
     manualOverride: (() => {
       const manual = asObject(controlPlaneFromPreflight.manualOverride);

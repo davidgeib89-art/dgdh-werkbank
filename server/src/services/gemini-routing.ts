@@ -1,7 +1,10 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { resolveGeminiControlPlane } from "./gemini-control-plane.js";
+import {
+  resolveGeminiControlPlane,
+  type GeminiControlPlaneState,
+} from "./gemini-control-plane.js";
 
 type BucketName = "flash" | "pro" | "flash-lite";
 type TaskType =
@@ -172,48 +175,7 @@ export interface GeminiRoutingPreflightResult {
   advisoryOnly: boolean;
   policySource: string;
   applyModelLane: boolean;
-  controlPlane: {
-    accountLabel: string | null;
-    mode: RoutingMode | null;
-    policySource: string | null;
-    taskType: TaskType | null;
-    budgetClass: "small" | "medium" | "large" | null;
-    bucket: {
-      preferred: BucketName | null;
-      fallback: BucketName | null;
-      selected: BucketName | null;
-      configured: BucketName | null;
-      effective: BucketName | null;
-      preferredState: BucketState | null;
-      selectedState: BucketState | null;
-      states: Partial<Record<BucketName, BucketState>>;
-    };
-    modelLane: {
-      configured: string | null;
-      recommended: string | null;
-      effective: string | null;
-      strategy:
-        | "advisory_keep_configured"
-        | "soft_enforced_use_recommended"
-        | null;
-      reason: string | null;
-      apply: boolean | null;
-    };
-    quota: {
-      hardCapTokens: number | null;
-      softCapTokens: number | null;
-      snapshotAt: string | null;
-      capturedAt: string | null;
-      resetAt: string | null;
-      resetReason: string | null;
-    };
-    manualOverride: {
-      enabled: boolean;
-      bucket: BucketName | null;
-      modelLane: string | null;
-      reason: string | null;
-    } | null;
-  };
+  controlPlane: GeminiControlPlaneState;
 }
 
 export function resolveGeminiRoutingPreflight(
