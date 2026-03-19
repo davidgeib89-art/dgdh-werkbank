@@ -13,6 +13,16 @@ type RoutingMode = "advisory" | "soft_enforced";
 type BucketState = "ok" | "cooldown" | "exhausted" | "unknown";
 
 type BudgetClass = "small" | "medium" | "large";
+type RouterProposalSource = "context_flash_lite" | "heuristic_policy" | "none";
+
+export interface GeminiRoutingStageOneProposal {
+  taskType: TaskType;
+  budgetClass: BudgetClass;
+  chosenBucket: BucketName;
+  chosenModelLane: string;
+  fallbackBucket: BucketName;
+  rationale: string;
+}
 
 export interface GeminiTaskRoutePolicy {
   preferredBucket: BucketName;
@@ -114,6 +124,14 @@ export interface GeminiControlPlaneState {
     maxAgeSec: number | null;
     ageSec: number | null;
   };
+  router: {
+    enabled: boolean;
+    model: string | null;
+    source: RouterProposalSource;
+    accepted: boolean;
+    correctionReasons: string[];
+    proposal: GeminiRoutingStageOneProposal | null;
+  };
   warnings: string[];
   manualOverride: {
     enabled: boolean;
@@ -149,6 +167,19 @@ function asNumber(value: unknown): number | null {
 
 function hasAnyKeys(value: Record<string, unknown>): boolean {
   return Object.keys(value).length > 0;
+}
+
+function isTaskType(value: string | null): value is TaskType {
+  return (
+    value === "research-light" ||
+    value === "bounded-implementation" ||
+    value === "heavy-architecture" ||
+    value === "benchmark-floor"
+  );
+}
+
+function isBudgetClass(value: string | null): value is BudgetClass {
+  return value === "small" || value === "medium" || value === "large";
 }
 
 function isBucket(value: string | null): value is BucketName {
@@ -253,15 +284,60 @@ function readManualOverride(runtimeRouting: Record<string, unknown>) {
   return { enabled, bucket, modelLane, reason };
 }
 
+function readRouterProposalFromContext(
+  context: Record<string, unknown>,
+): GeminiRoutingStageOneProposal | null {
+  const fromContext = asObject(context.paperclipRoutingProposal);
+  const fromJson = (() => {
+    const rawJson = asString(context.paperclipRoutingProposalJson);
+    if (!rawJson) return {};
+    try {
+      const parsed = JSON.parse(rawJson) as unknown;
+      return asObject(parsed);
+    } catch {
+      return {};
+    }
+  })();
+
+  const raw = hasAnyKeys(fromContext) ? fromContext : fromJson;
+  if (!hasAnyKeys(raw)) return null;
+
+  const taskTypeRaw = asString(raw.taskType);
+  const budgetClassRaw = asString(raw.budgetClass);
+  const chosenBucketRaw = asString(raw.chosenBucket);
+  const fallbackBucketRaw = asString(raw.fallbackBucket);
+  const chosenModelLane = asString(raw.chosenModelLane);
+  const rationale = asString(raw.rationale);
+
+  if (
+    !isTaskType(taskTypeRaw) ||
+    !isBudgetClass(budgetClassRaw) ||
+    !isBucket(chosenBucketRaw) ||
+    !isBucket(fallbackBucketRaw) ||
+    !chosenModelLane ||
+    !rationale
+  ) {
+    return null;
+  }
+
+  return {
+    taskType: taskTypeRaw,
+    budgetClass: budgetClassRaw,
+    chosenBucket: chosenBucketRaw,
+    chosenModelLane,
+    fallbackBucket: fallbackBucketRaw,
+    rationale,
+  };
+}
+
 export function resolveGeminiControlPlane(
   input: GeminiControlPlaneResolveInput,
 ): GeminiControlPlaneResolveResult {
-  const taskType = detectTaskType(input.context);
-  const route =
-    input.policy.taskRoutes[taskType] ??
-    input.policy.taskRoutes["bounded-implementation"];
-
   const runtimeRouting = asObject(input.runtimeConfig.routingPolicy);
+  const routerConfig = asObject(runtimeRouting.llmRouter);
+  const routerEnabled = asBoolean(routerConfig.enabled) ?? true;
+  const routerModel = asString(routerConfig.model) ?? "gemini-2.5-flash-lite";
+
   const runtimeState = asObject(input.runtimeState);
   const runtimeControlPlane = asObject(runtimeState.controlPlane);
   const operationalQuotaSnapshot = asObject(runtimeControlPlane.quotaSnapshot);
@@ -288,6 +364,57 @@ export function resolveGeminiControlPlane(
     runtimeConfigForQuotaIngestion,
     input.snapshotAt,
   );
+
+  const detectedTaskType = detectTaskType(input.context);
+  const detectedBudgetClass = parseBudgetClass(input.context);
+
+  const detectedRoute =
+    input.policy.taskRoutes[detectedTaskType] ??
+    input.policy.taskRoutes["bounded-implementation"];
+
+  const bucketStateMap = asObject(runtimeRouting.bucketState);
+  const bucketStates: Partial<Record<BucketName, BucketState>> = {
+    flash:
+      ingestedQuotaSnapshot.buckets.flash?.state ??
+      normalizeBucketState(bucketStateMap.flash),
+    pro:
+      ingestedQuotaSnapshot.buckets.pro?.state ??
+      normalizeBucketState(bucketStateMap.pro),
+    "flash-lite":
+      ingestedQuotaSnapshot.buckets["flash-lite"]?.state ??
+      normalizeBucketState(bucketStateMap["flash-lite"]),
+  };
+
+  const heuristicPreferredState =
+    bucketStates[detectedRoute.preferredBucket] ?? "unknown";
+  const heuristicBucket: BucketName =
+    heuristicPreferredState === "exhausted" ||
+    heuristicPreferredState === "cooldown"
+      ? detectedRoute.fallbackBucket
+      : detectedRoute.preferredBucket;
+
+  const stageOneProposal: GeminiRoutingStageOneProposal | null = !routerEnabled
+    ? null
+    : readRouterProposalFromContext(input.context) ?? {
+        taskType: detectedTaskType,
+        budgetClass: detectedBudgetClass,
+        chosenBucket: heuristicBucket,
+        chosenModelLane: input.policy.bucketModels[heuristicBucket],
+        fallbackBucket: detectedRoute.fallbackBucket,
+        rationale:
+          "heuristic policy fallback proposal generated before execution",
+      };
+  const routerSource: RouterProposalSource = !routerEnabled
+    ? "none"
+    : readRouterProposalFromContext(input.context)
+    ? "context_flash_lite"
+    : "heuristic_policy";
+
+  const taskType = stageOneProposal?.taskType ?? detectedTaskType;
+  const budgetClass = stageOneProposal?.budgetClass ?? detectedBudgetClass;
+  const route =
+    input.policy.taskRoutes[taskType] ??
+    input.policy.taskRoutes["bounded-implementation"];
   const mode =
     (asString(runtimeRouting.mode) as RoutingMode | null) ?? input.defaultMode;
   const staleSnapshot = ingestedQuotaSnapshot.isStale === true;
@@ -298,27 +425,51 @@ export function resolveGeminiControlPlane(
     asString(runtimeRouting.accountLabel) ??
     input.defaultAccountLabel;
 
-  const bucketStateMap = asObject(runtimeRouting.bucketState);
-  const preferredState =
-    ingestedQuotaSnapshot.buckets[route.preferredBucket]?.state ??
-    normalizeBucketState(bucketStateMap[route.preferredBucket]);
+  const preferredState = bucketStates[route.preferredBucket] ?? "unknown";
+  const correctionReasons: string[] = [];
 
-  let selectedBucket: BucketName =
-    preferredState === "exhausted" || preferredState === "cooldown"
-      ? route.fallbackBucket
-      : route.preferredBucket;
+  const proposalBucket =
+    stageOneProposal?.chosenBucket ?? route.preferredBucket;
+  const proposalFallbackBucket =
+    stageOneProposal?.fallbackBucket ?? route.fallbackBucket;
+
+  let selectedBucket: BucketName = proposalBucket;
+
+  const selectedBucketInitialState = bucketStates[selectedBucket] ?? "unknown";
+  if (
+    selectedBucketInitialState === "exhausted" ||
+    selectedBucketInitialState === "cooldown"
+  ) {
+    correctionReasons.push(
+      `proposed bucket ${selectedBucket} is ${selectedBucketInitialState}; falling back to ${proposalFallbackBucket}`,
+    );
+    selectedBucket = proposalFallbackBucket;
+  }
 
   const manualOverride = readManualOverride(runtimeRouting);
   if (manualOverride?.enabled && manualOverride.bucket) {
+    correctionReasons.push(
+      `manual override enforced bucket ${manualOverride.bucket}`,
+    );
     selectedBucket = manualOverride.bucket;
   }
 
-  const selectedBucketState =
-    ingestedQuotaSnapshot.buckets[selectedBucket]?.state ??
-    normalizeBucketState(bucketStateMap[selectedBucket]);
-  const recommendedModelLane = input.policy.bucketModels[selectedBucket];
+  const selectedBucketState = bucketStates[selectedBucket] ?? "unknown";
+  let recommendedModelLane = input.policy.bucketModels[selectedBucket];
+  if (stageOneProposal?.chosenModelLane) {
+    if (
+      stageOneProposal.chosenModelLane ===
+      input.policy.bucketModels[selectedBucket]
+    ) {
+      recommendedModelLane = stageOneProposal.chosenModelLane;
+    } else {
+      correctionReasons.push(
+        `proposed model lane ${stageOneProposal.chosenModelLane} is not allowed for bucket ${selectedBucket}; using ${recommendedModelLane}`,
+      );
+    }
+  }
+
   const configuredModelLane = input.configuredModel ?? recommendedModelLane;
-  const budgetClass = parseBudgetClass(input.context);
   const hardCapTokens = hardCapForBudgetClass(budgetClass);
   const softCapTokens = Math.floor(hardCapTokens * 0.8);
 
@@ -379,17 +530,7 @@ export function resolveGeminiControlPlane(
       effective: effectiveBucket,
       preferredState,
       selectedState: selectedBucketState,
-      states: {
-        flash:
-          ingestedQuotaSnapshot.buckets.flash?.state ??
-          normalizeBucketState(bucketStateMap.flash),
-        pro:
-          ingestedQuotaSnapshot.buckets.pro?.state ??
-          normalizeBucketState(bucketStateMap.pro),
-        "flash-lite":
-          ingestedQuotaSnapshot.buckets["flash-lite"]?.state ??
-          normalizeBucketState(bucketStateMap["flash-lite"]),
-      },
+      states: bucketStates,
       snapshots: ingestedQuotaSnapshot.buckets,
     },
     modelLane: {
@@ -413,6 +554,14 @@ export function resolveGeminiControlPlane(
       maxAgeSec: ingestedQuotaSnapshot.maxAgeSec,
       ageSec: ingestedQuotaSnapshot.ageSec,
     },
+    router: {
+      enabled: routerEnabled,
+      model: routerModel,
+      source: routerSource,
+      accepted: correctionReasons.length === 0,
+      correctionReasons,
+      proposal: stageOneProposal,
+    },
     warnings,
     manualOverride,
   };
@@ -423,8 +572,8 @@ export function resolveGeminiControlPlane(
     accountLabel,
     mode: effectiveMode,
     routingReason:
-      warnings.length > 0
-        ? `${routingReason}; ${warnings.join("; ")}`
+      [...warnings, ...correctionReasons].length > 0
+        ? `${routingReason}; ${[...warnings, ...correctionReasons].join("; ")}`
         : routingReason,
     advisoryOnly: effectiveMode === "advisory",
     applyModelLane,
@@ -632,6 +781,56 @@ export function deriveGeminiControlPlaneState(
         asNumber(asObject(controlPlaneFromPreflight.quota).ageSec) ??
         asNumber(snapshot.ageSec) ??
         null,
+    },
+    router: {
+      enabled:
+        asBoolean(asObject(controlPlaneFromPreflight.router).enabled) ?? false,
+      model: asString(asObject(controlPlaneFromPreflight.router).model),
+      source: ((asString(
+        asObject(controlPlaneFromPreflight.router).source,
+      ) as RouterProposalSource | null) ?? "none") as RouterProposalSource,
+      accepted:
+        asBoolean(asObject(controlPlaneFromPreflight.router).accepted) ?? false,
+      correctionReasons: Array.isArray(
+        asObject(controlPlaneFromPreflight.router).correctionReasons,
+      )
+        ? (
+            asObject(controlPlaneFromPreflight.router)
+              .correctionReasons as unknown[]
+          )
+            .filter((entry): entry is string => typeof entry === "string")
+            .map((entry) => entry.trim())
+            .filter((entry) => entry.length > 0)
+        : [],
+      proposal: (() => {
+        const raw = asObject(
+          asObject(controlPlaneFromPreflight.router).proposal,
+        );
+        const taskType = asString(raw.taskType);
+        const budgetClass = asString(raw.budgetClass);
+        const chosenBucket = asString(raw.chosenBucket);
+        const chosenModelLane = asString(raw.chosenModelLane);
+        const fallbackBucket = asString(raw.fallbackBucket);
+        const rationale = asString(raw.rationale);
+        if (
+          !isTaskType(taskType) ||
+          !isBudgetClass(budgetClass) ||
+          !isBucket(chosenBucket) ||
+          !isBucket(fallbackBucket) ||
+          !chosenModelLane ||
+          !rationale
+        ) {
+          return null;
+        }
+        return {
+          taskType,
+          budgetClass,
+          chosenBucket,
+          chosenModelLane,
+          fallbackBucket,
+          rationale,
+        };
+      })(),
     },
     warnings: Array.isArray(controlPlaneFromPreflight.warnings)
       ? controlPlaneFromPreflight.warnings

@@ -182,6 +182,85 @@ describe("resolveGeminiControlPlane", () => {
       "quota_snapshot_stale_forced_advisory: soft_enforced disabled until quota snapshot is fresh",
     );
   });
+
+  it("accepts context flash-lite proposal when proposal matches server policy", () => {
+    const result = resolveGeminiControlPlane({
+      policy,
+      policySource: "test-policy",
+      defaultMode: "advisory",
+      defaultAccountLabel: "account-1",
+      context: {
+        paperclipRoutingProposal: {
+          taskType: "bounded-implementation",
+          budgetClass: "medium",
+          chosenBucket: "pro",
+          chosenModelLane: "gemini-3.1-pro-preview",
+          fallbackBucket: "flash",
+          rationale: "proposed by flash-lite router",
+        },
+      },
+      runtimeConfig: {
+        routingPolicy: {
+          llmRouter: {
+            enabled: true,
+            model: "gemini-2.5-flash-lite",
+          },
+          bucketState: {
+            flash: "ok",
+            pro: "ok",
+          },
+        },
+      },
+      configuredModel: "gemini-configured",
+      snapshotAt: "2026-03-19T18:30:00.000Z",
+    });
+
+    expect(result.selected.selectedBucket).toBe("pro");
+    expect(result.controlPlane.router.source).toBe("context_flash_lite");
+    expect(result.controlPlane.router.accepted).toBe(true);
+    expect(result.controlPlane.router.correctionReasons).toHaveLength(0);
+  });
+
+  it("corrects invalid flash-lite proposal using server guardrails", () => {
+    const result = resolveGeminiControlPlane({
+      policy,
+      policySource: "test-policy",
+      defaultMode: "advisory",
+      defaultAccountLabel: "account-1",
+      context: {
+        paperclipRoutingProposal: {
+          taskType: "bounded-implementation",
+          budgetClass: "medium",
+          chosenBucket: "flash",
+          chosenModelLane: "gemini-3.1-pro-preview",
+          fallbackBucket: "pro",
+          rationale: "prefer flash but lane mismatched",
+        },
+      },
+      runtimeConfig: {
+        routingPolicy: {
+          llmRouter: {
+            enabled: true,
+          },
+          quotaSnapshot: {
+            snapshotAt: "2026-03-19T18:30:00.000Z",
+            buckets: {
+              flash: { state: "exhausted", usagePercent: 100 },
+              pro: { state: "ok", usagePercent: 20 },
+            },
+          },
+        },
+      },
+      configuredModel: "gemini-configured",
+      snapshotAt: "2026-03-19T18:30:30.000Z",
+    });
+
+    expect(result.selected.selectedBucket).toBe("pro");
+    expect(result.controlPlane.router.accepted).toBe(false);
+    expect(result.controlPlane.router.correctionReasons.length).toBeGreaterThan(
+      0,
+    );
+  });
 });
 
 describe("deriveGeminiControlPlaneState", () => {
