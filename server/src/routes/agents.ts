@@ -44,6 +44,7 @@ import {
   buildCompanyHealthSummary,
   evaluateAgentHealth,
 } from "../services/agent-health.js";
+import { deriveGeminiControlPlaneState } from "../services/gemini-control-plane.js";
 import { runClaudeLogin } from "@paperclipai/adapter-claude-local/server";
 import {
   DEFAULT_CODEX_LOCAL_BYPASS_APPROVALS_AND_SANDBOX,
@@ -1064,12 +1065,17 @@ export function agentRoutes(db: Db) {
     });
 
     const healthStatus = healthEvaluation.healthStatus;
+    const controlPlane = deriveGeminiControlPlaneState(
+      runRoutingPreflight,
+      quotaSnapshot,
+    );
 
     res.json({
       agentId: agent.id,
       companyId: agent.companyId,
       adapterType: agent.adapterType,
       healthStatus,
+      controlPlane,
       activeAccountLabel:
         asNonEmptyString(selectedRouting?.accountLabel) ??
         asNonEmptyString(asRecord(quotaSnapshot)?.accountLabel) ??
@@ -1235,11 +1241,13 @@ export function agentRoutes(db: Db) {
       lastRunStatus: latestRunRow?.status ?? null,
       lastRunErrorCode: latestRunRow?.errorCode ?? null,
     });
+    const controlPlane = deriveGeminiControlPlaneState(preflight, rsQuota);
 
     res.json({
       agentId: agent.id,
       agentName: agent.name,
       adapterType: agent.adapterType,
+      controlPlane,
       healthStatus: healthEvaluation.healthStatus,
       budgetStatus: healthEvaluation.budgetStatus,
       usedTokens: healthEvaluation.usedTokens,
@@ -1320,6 +1328,7 @@ export function agentRoutes(db: Db) {
         lastRunStatus: lr?.status ?? null,
         lastRunErrorCode: lr?.errorCode ?? null,
       });
+      const controlPlane = deriveGeminiControlPlaneState(lrPreflight, rtQuota);
 
       return {
         agentId: a.id,
@@ -1327,6 +1336,7 @@ export function agentRoutes(db: Db) {
         role: a.role,
         adapterType: a.adapterType,
         agentStatus: a.status,
+        controlPlane,
         healthStatus: healthEvaluation.healthStatus,
         budgetStatus: healthEvaluation.budgetStatus,
         usedTokens: healthEvaluation.usedTokens,
