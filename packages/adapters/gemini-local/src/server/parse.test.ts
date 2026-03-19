@@ -34,6 +34,27 @@ describe("parseGeminiJsonl", () => {
     });
   });
 
+  it("reconstructs assistant delta output from message events", () => {
+    const stdout = [
+      JSON.stringify({
+        type: "message",
+        role: "assistant",
+        content: '{\n  "ok":',
+        delta: true,
+      }),
+      JSON.stringify({
+        type: "message",
+        role: "assistant",
+        content: " true\n}",
+        delta: true,
+      }),
+    ].join("\n");
+
+    const parsed = parseGeminiJsonl(stdout);
+
+    expect(parsed.summary).toBe('{\n  "ok": true\n}');
+  });
+
   it("detects unknown session errors", () => {
     expect(isGeminiUnknownSessionError("unknown session id", "")).toBe(true);
     expect(isGeminiUnknownSessionError("all good", "")).toBe(false);

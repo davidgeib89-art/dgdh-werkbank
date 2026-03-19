@@ -71,8 +71,8 @@ function accumulateUsage(
     Object.keys(usageMetadata).length > 0
       ? usageMetadata
       : Object.keys(stats).length > 0
-        ? stats
-        : usage;
+      ? stats
+      : usage;
 
   target.inputTokens += asNumber(
     source.input_tokens,
@@ -106,6 +106,7 @@ function accumulateUsage(
 export function parseGeminiJsonl(stdout: string) {
   let sessionId: string | null = null;
   const messages: string[] = [];
+  let assistantDeltaBuffer = "";
   let errorMessage: string | null = null;
   let costUsd: number | null = null;
   let resultEvent: Record<string, unknown> | null = null;
@@ -130,8 +131,31 @@ export function parseGeminiJsonl(stdout: string) {
     if (foundSessionId) sessionId = foundSessionId;
 
     const type = asString(event.type, "").trim();
+    const role = asString(event.role, "").trim();
+
+    if (type === "message" && role === "assistant") {
+      const content = asString(event.content, "");
+      if (content) {
+        const isDelta = event.delta === true;
+        if (isDelta) {
+          assistantDeltaBuffer += content;
+        } else {
+          assistantDeltaBuffer = content;
+        }
+        const normalized = assistantDeltaBuffer.trim();
+        if (normalized) {
+          if (messages.length === 0) {
+            messages.push(normalized);
+          } else {
+            messages[messages.length - 1] = normalized;
+          }
+        }
+      }
+      continue;
+    }
 
     if (type === "assistant") {
+      assistantDeltaBuffer = "";
       messages.push(...collectMessageText(event.message));
       const messageObj = parseObject(event.message);
       const content = Array.isArray(messageObj.content)

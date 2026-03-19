@@ -413,6 +413,7 @@ function Get-RunFinalAssistantText {
   param([Parameter(Mandatory = $true)][string]$LogContent)
 
   $latestText = ""
+  $deltaBuilder = New-Object System.Text.StringBuilder
   if ([string]::IsNullOrWhiteSpace($LogContent)) {
     return $latestText
   }
@@ -437,15 +438,19 @@ function Get-RunFinalAssistantText {
       if ($null -eq $entry) { continue }
 
       $entryType = [string]$entry.type
-      if ($entryType -eq "assistant") {
+      $isAssistantMessage = (
+        $entryType -eq "assistant" -or
+        ($entryType -eq "message" -and [string]$entry.role -eq "assistant")
+      )
+      if ($isAssistantMessage) {
         $parts = New-Object System.Collections.Generic.List[string]
-        if ($entry.message -and $entry.message.text) {
+        if (($entry.PSObject.Properties.Name -contains "message") -and $entry.message -and $entry.message.text) {
           $text = [string]$entry.message.text
           if (-not [string]::IsNullOrWhiteSpace($text)) {
             [void]$parts.Add($text.Trim())
           }
         }
-        if ($entry.message -and $entry.message.content) {
+        if (($entry.PSObject.Properties.Name -contains "message") -and $entry.message -and $entry.message.content) {
           foreach ($partRaw in @($entry.message.content)) {
             $part = $partRaw
             if ($null -eq $part) { continue }
@@ -458,8 +463,22 @@ function Get-RunFinalAssistantText {
             }
           }
         }
+        if ($parts.Count -eq 0 -and $entry.PSObject.Properties.Name -contains "content") {
+          $contentText = [string]$entry.content
+          if (-not [string]::IsNullOrWhiteSpace($contentText)) {
+            [void]$parts.Add($contentText)
+          }
+        }
         if ($parts.Count -gt 0) {
-          $latestText = ($parts -join "`n").Trim()
+          $entryText = ($parts -join "`n")
+          $isDelta = ($entry.PSObject.Properties.Name -contains "delta" -and [bool]$entry.delta)
+          if ($isDelta) {
+            [void]$deltaBuilder.Append($entryText)
+            $latestText = [string]$deltaBuilder.ToString()
+          } else {
+            $latestText = $entryText.Trim()
+            $null = $deltaBuilder.Clear()
+          }
         }
         continue
       }
@@ -471,7 +490,14 @@ function Get-RunFinalAssistantText {
         }
         $partText = if ($part -and $part.text) { [string]$part.text } else { "" }
         if (-not [string]::IsNullOrWhiteSpace($partText)) {
-          $latestText = $partText.Trim()
+          $isDelta = ($entry.PSObject.Properties.Name -contains "delta" -and [bool]$entry.delta)
+          if ($isDelta) {
+            [void]$deltaBuilder.Append($partText)
+            $latestText = [string]$deltaBuilder.ToString()
+          } else {
+            $latestText = $partText.Trim()
+            $null = $deltaBuilder.Clear()
+          }
         }
         continue
       }
@@ -673,7 +699,7 @@ function Test-IsRawJson {
 
 function Get-StrictFloorOutputAnalysis {
   param(
-    [Parameter(Mandatory = $true)][string]$Text,
+    [Parameter(Mandatory = $true)][AllowEmptyString()][string]$Text,
     [Parameter(Mandatory = $true)][bool]$AllowFenceNormalization
   )
 
@@ -885,8 +911,6 @@ Hard constraints:
   $issue = New-IssueForTest -Title $issueTitle -Description $description -AssigneeAgentId $agentId -ProjectId $ProjectId
 
   [void](Start-IssueRun -IssueId ([string]$issue.id) -AgentId $agentId)
-
-  [void](Invoke-AgentHeartbeatBestEffort -AgentId $agentId)
   $runId = Wait-IssueRunId -IssueId ([string]$issue.id) -TimeoutSeconds 45
   $runOutcome = Wait-RunFinishedWithPolicy -RunId $runId -TimeoutSeconds $RunTimeoutSeconds -StrictFloorMode:$strictFloorMode
   $run = $runOutcome.run
