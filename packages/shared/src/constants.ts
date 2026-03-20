@@ -216,6 +216,8 @@ export const HEARTBEAT_RUN_STATUSES = [
   "failed",
   "cancelled",
   "timed_out",
+  "blocked",
+  "awaiting_approval",
 ] as const;
 export type HeartbeatRunStatus = (typeof HEARTBEAT_RUN_STATUSES)[number];
 
@@ -224,6 +226,7 @@ export const LIVE_EVENT_TYPES = [
   "heartbeat.run.status",
   "heartbeat.run.event",
   "heartbeat.run.log",
+  "heartbeat.run.budget_warning",
   "agent.status",
   "activity.logged",
   "plugin.ui.updated",

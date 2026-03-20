@@ -1106,6 +1106,7 @@ export function agentRoutes(db: Db) {
           asNonEmptyString(usage?.stopReason) ??
           asNonEmptyString(result?.stopReason) ??
           (run.status === "succeeded" ? "completed" : null),
+        resultType: asNonEmptyString(result?.type) ?? null,
         tokens: hasTokenSummary
           ? {
               inputTokens,

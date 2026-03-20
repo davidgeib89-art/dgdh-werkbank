@@ -119,6 +119,8 @@ export function evaluateAgentHealth(
     ? "critical"
     : input.lastRunStatus === "queued" || input.lastRunStatus === "running"
     ? "running"
+    : input.lastRunStatus === "awaiting_approval"
+    ? "warning"
     : budgetStatus === "soft_cap_exceeded" &&
       input.lastRunErrorCode !== null &&
       input.lastRunErrorCode !== "cancelled"

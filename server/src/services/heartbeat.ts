@@ -2233,7 +2233,9 @@ export function heartbeatService(db: Db) {
     const nextStatus =
       runningCount > 0
         ? "running"
-        : outcome === "succeeded" || outcome === "cancelled"
+        : outcome === "succeeded" ||
+          outcome === "cancelled" ||
+          outcome === "awaiting_approval"
         ? "idle"
         : "error";
 
@@ -3110,6 +3112,7 @@ export function heartbeatService(db: Db) {
               budgetClass: routingPreflight.selected.budgetClass,
             },
           });
+          await finalizeAgentStatus(agent.id, "blocked");
           return;
         }
 
@@ -3188,6 +3191,7 @@ export function heartbeatService(db: Db) {
               "failed to create routing_gate approval record for awaiting_approval run",
             );
           }
+          await finalizeAgentStatus(agent.id, "awaiting_approval");
           return;
         }
         const singleFileBenchmarkPreflight =
@@ -3650,6 +3654,31 @@ export function heartbeatService(db: Db) {
             stream: "system",
             level: "error",
             message: budgetExceededMessage ?? undefined,
+          });
+        } else if (
+          totalTokensUsed !== null &&
+          totalTokensUsed >= hardTokenCap * 0.8
+        ) {
+          // Soft-cap threshold warning: 80% of hard cap consumed.
+          // Emitted once at run finalization — no keepalive spam.
+          const pct = Math.round((totalTokensUsed / hardTokenCap) * 100);
+          await appendRunEvent(currentRun, seq++, {
+            eventType: "lifecycle",
+            stream: "system",
+            level: "warn",
+            message: `Budget warning: used ${formatCount(totalTokensUsed)} tokens (${pct}% of ${formatCount(hardTokenCap)} cap)`,
+          });
+          publishLiveEvent({
+            companyId: agent.companyId,
+            type: "heartbeat.run.budget_warning",
+            payload: {
+              runId: run.id,
+              agentId: agent.id,
+              totalTokensUsed,
+              hardTokenCap,
+              softCapThreshold: Math.round(hardTokenCap * 0.8),
+              percentOfCap: pct,
+            },
           });
         }
 
