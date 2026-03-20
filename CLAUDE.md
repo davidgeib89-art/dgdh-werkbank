@@ -18,28 +18,33 @@ Ziel: reale Aufgaben günstig und kontrolliert erledigen.
 - **Nutzen > Meta** — Jeder Sprint advancing ein praktisches Ziel.
 - **Token-sicher** — Erst messen, dann optimieren. Keine Multi-Agent-Drift.
 
-## Routing: So funktioniert Stage 1 → Stage 2
+## Monorepo-Struktur
 
-```
-Account → Bucket (pro | flash | flash-lite) → Model Lane
-```
+pnpm workspace with composite TypeScript project references.
 
-**Stage 1 — Flash-Lite Router** (LLM-assisted Proposal):
-- Freitext rein → strukturiertes Work-Packet raus
-- advisory only — kein Ausführungsplan
+| Package | Name | Rolle |
+|---------|------|-------|
+| `server/` | `@paperclipai/server` | Express API (Node/TypeScript, runs via `tsx`) |
+| `ui/` | `@paperclipai/ui` | React frontend |
+| `cli/` | `@paperclipai/cli` | Paperclip CLI |
+| `packages/db` | `@paperclipai/db` | Kysely DB schema + migrations |
+| `packages/shared` | `@paperclipai/shared` | Shared types and utilities |
+| `packages/adapter-utils` | `@paperclipai/adapter-utils` | Shared adapter utilities |
+| `packages/plugins/sdk` | `@paperclipai/plugin-sdk` | Plugin SDK |
+| `packages/adapters/*` | 7 adapters | claude-local, codex-local, cursor-local, gemini-local, openclaw-gateway, opencode-local, pi-local |
 
-**Stage 2 — Server Enforcement** (Final Authority):
-- Validiert, korrigiert oder blockiert Stage-1 Proposal
-- Hard Gates: Routing blocked → `blocked` status (NICHT `failed`)
-- Policy Stop = `blocked` oder `awaiting_approval`
+Build order: shared packages → plugin-sdk → server → cli → ui.
 
-**Semantik merken:**
+## Status-Semantik (Kurzreferenz)
+
 | Status | Bedeutung |
 |--------|-----------|
 | `succeeded` | Adapter ran, exit 0 |
 | `failed` | Technisches Problem |
 | `blocked` | Policy gate hat gestoppt |
 | `awaiting_approval` | Braucht Operator-Sign-off |
+
+**Regel**: Policy stops sind `blocked` oder `awaiting_approval`, niemals `failed`.
 
 ## No-Go-Zonen
 
@@ -55,46 +60,6 @@ Account → Bucket (pro | flash | flash-lite) → Model Lane
 - Sprint-Reports: `company-hq/commit-reports/YYYY-MM-DD-name-sprint.md`
 - Report enthält: was gebaut, validiert, Invarianten erhalten, was NICHT angefasst und warum
 
-## Dev-Quickstart
-
-```bash
-# Full dev (API + UI, watch mode — can orphan agent processes)
-pnpm dev
-
-# Single-pass dev — use this for heartbeat/memory verification
-pnpm dev:once
-
-# Server only
-pnpm dev:server
-
-# Build & typecheck
-pnpm build
-pnpm typecheck
-
-# Tests
-pnpm test:run                   # all tests
-pnpm --filter @paperclipai/server exec vitest src/__tests__/heartbeat-governance.test.ts --run  # single test file
-
-# DB
-pnpm db:generate               # generate migrations
-pnpm db:migrate                # apply migrations
-```
-
-**Dev note:** Use `pnpm dev:once` for heartbeat/memory verification — watch mode can orphan running agent processes.
-
-**Embedded DB:** PostgreSQL auto-starts when `DATABASE_URL` is unset (data at `~/.paperclip/instances/default/db`). Worktree instances auto-load `.paperclip/.env`.
-
-**Testing note:** Governance/approval flows — set `process.env.GOVERNANCE_TEST_MODE = "true"` to enable dry-run validation helpers. Avoid real adapter/agent calls in tests unless explicitly required; prefer mocks and contract tests.
-
-## Architecture-Docs (lesen wenn nötig)
-
-| Was | Wo |
-|-----|-----|
-| Gemini Engine V1 Spec | `company-hq/DGDH-GEMINI-ENGINE-V1-2026-03-19.md` |
-| Model Roadmap | `company-hq/MODEL-ROADMAP.md` |
-| Vision/Mission | `company-hq/VISION.md` |
-| Routing Policy Config | `server/config/gemini-routing-policy.v1.json` |
-
 ## Wichtige Source-Pfade
 
 | Komponente | Pfad |
@@ -104,33 +69,14 @@ pnpm db:migrate                # apply migrations
 | Stage-2 Control Plane | `server/src/services/gemini-control-plane.ts` |
 | Agent Health | `server/src/services/agent-health.ts` |
 | Routing Policy | `server/src/services/gemini-routing.ts` |
+| Run Summary | `server/src/services/heartbeat-run-summary.ts` |
+| Routing Policy Config | `server/config/gemini-routing-policy.v1.json` |
+| Tests | `server/src/__tests__/*.test.ts` |
 
-## MCP-Tools (MorphLLM)
+## Architecture-Docs (lesen wenn nötig)
 
-Use these instead of Bash sed/echo for file operations.
-
-**`edit_file`** — Primary file editing:
-```json
-{ "path": "server/src/services/heartbeat.ts", "code_edit": "  // ... existing code ...\n  newLine();", "instruction": "Add newLine() after existing code" }
-```
-`// ... existing code ...` = unchanged block placeholder. Preserve exact indentation.
-
-**`codebase_search`** — Codebase exploration:
-```
-search_string: "Where does routing preflight block adapter execution?"
-repo_path: "C:/Users/holyd/DGDH/worktrees/dgdh-werkbank"
-```
-Best for: "Find the XYZ flow", "How does X work", "Trace the blocked→execution path"
-
-**`github_codebase_search`** — GitHub repo search:
-```
-search_string: "How does quota snapshot stale detection work?"
-github_url: "https://github.com/anthropic/claude-code"
-```
-
-| Goal | Tool |
-|------|------|
-| Explore unfamiliar code | `codebase_search` |
-| Edit files | `edit_file` |
-| Research external libs | `github_codebase_search` |
-| Read specific files | `Read` tool |
+| Was | Wo |
+|-----|-----|
+| Gemini Engine V1 Spec | `company-hq/DGDH-GEMINI-ENGINE-V1-2026-03-19.md` |
+| Model Roadmap | `company-hq/MODEL-ROADMAP.md` |
+| Vision/Mission | `company-hq/VISION.md` |
