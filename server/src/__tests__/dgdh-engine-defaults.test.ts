@@ -93,4 +93,39 @@ describe("DGDH Approval Loop V1 — gate wiring", () => {
     expect(heartbeatSource).toContain('"routing_gate"');
     expect(heartbeatSource).toContain("approvalService(db).create");
   });
+
+  it("approval payload includes doneWhen and targetFolder (continuity fields)", () => {
+    expect(heartbeatSource).toContain("doneWhen: routingPreflight.selected.doneWhen");
+    expect(heartbeatSource).toContain("targetFolder: routingPreflight.selected.targetFolder");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Continuity: approval-approved follow-up run bypasses Gate 2
+// ---------------------------------------------------------------------------
+
+const approvalsSource = readFileSync(
+  path.join(serverRoot, "server/src/routes/approvals.ts"),
+  "utf8",
+);
+
+describe("DGDH Continuity V1 — approval follow-up run", () => {
+  it("Gate 2 bypasses when wakeReason=approval_approved (no infinite loop)", () => {
+    expect(heartbeatSource).toContain('approvalGranted');
+    expect(heartbeatSource).toContain('"approval_approved"');
+    expect(heartbeatSource).toContain('!approvalGranted');
+  });
+
+  it("approvals.ts forwards work packet fields in contextSnapshot for routing_gate", () => {
+    expect(approvalsSource).toContain("approvedWorkPacket");
+    expect(approvalsSource).toContain("approvedTaskType");
+    expect(approvalsSource).toContain("approvedBudgetClass");
+    expect(approvalsSource).toContain("approvedExecutionIntent");
+    expect(approvalsSource).toContain("approvedDoneWhen");
+    expect(approvalsSource).toContain("approvedTargetFolder");
+  });
+
+  it("approvals.ts spreads approvedWorkPacket into contextSnapshot", () => {
+    expect(approvalsSource).toContain("...approvedWorkPacket");
+  });
 });

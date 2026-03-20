@@ -3119,10 +3119,14 @@ export function heartbeatService(db: Db) {
         // Gate 2: Approval required — task is valid but needs operator sign-off.
         // Run is parked. An approval record is created so the operator can act.
         // On approval, heartbeat.wakeup() queues a follow-up run that re-enters routing.
+        // Bypass: if this run was already approved, skip Gate 2 to avoid infinite loop.
+        const approvalGranted =
+          readNonEmptyString(context.wakeReason) === "approval_approved";
         const routingNeedsApproval =
           routingPreflight &&
           !routingPreflight.selected.blocked &&
-          routingPreflight.selected.needsApproval === true;
+          routingPreflight.selected.needsApproval === true &&
+          !approvalGranted;
         if (routingNeedsApproval) {
           const blockReason = "needs_operator_approval";
           const missingInputs = routingPreflight.selected.missingInputs;
@@ -3178,6 +3182,8 @@ export function heartbeatService(db: Db) {
                 riskLevel: routingPreflight.selected.riskLevel,
                 taskType: routingPreflight.selected.taskType,
                 budgetClass: routingPreflight.selected.budgetClass,
+                doneWhen: routingPreflight.selected.doneWhen,
+                targetFolder: routingPreflight.selected.targetFolder,
                 missingInputs,
               },
               decisionNote: null,

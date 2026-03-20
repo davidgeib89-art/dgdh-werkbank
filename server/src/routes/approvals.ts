@@ -149,6 +149,18 @@ export function approvalRoutes(db: Db) {
       if (approval.requestedByAgentId) {
         try {
           const approvalWorkPacketId = primaryIssueId ?? `approval:${approval.id}`;
+          // For routing_gate approvals, forward original work packet fields so the
+          // follow-up run does not re-trigger Gate 2 (infinite approval loop).
+          const approvedWorkPacket =
+            approval.type === "routing_gate"
+              ? {
+                  approvedTaskType: (approval.payload as Record<string, unknown>)?.taskType ?? null,
+                  approvedBudgetClass: (approval.payload as Record<string, unknown>)?.budgetClass ?? null,
+                  approvedExecutionIntent: (approval.payload as Record<string, unknown>)?.executionIntent ?? null,
+                  approvedDoneWhen: (approval.payload as Record<string, unknown>)?.doneWhen ?? null,
+                  approvedTargetFolder: (approval.payload as Record<string, unknown>)?.targetFolder ?? null,
+                }
+              : {};
           const wakeRun = await heartbeat.wakeup(approval.requestedByAgentId, {
             source: "automation",
             triggerDetail: "system",
@@ -171,6 +183,7 @@ export function approvalRoutes(db: Db) {
               taskId: primaryIssueId,
               workPacketId: approvalWorkPacketId,
               wakeReason: "approval_approved",
+              ...approvedWorkPacket,
             },
           });
 
