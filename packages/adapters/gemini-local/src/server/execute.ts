@@ -138,9 +138,16 @@ function geminiSkillsHome(): string {
  */
 async function ensureGeminiSkillsInjected(
   onLog: AdapterExecutionContext["onLog"],
+  includeSkills?: string[],
 ): Promise<void> {
-  const skillsEntries = await listPaperclipSkillEntries(__moduleDir);
+  let skillsEntries = await listPaperclipSkillEntries(__moduleDir);
   if (skillsEntries.length === 0) return;
+
+  if (includeSkills && includeSkills.length > 0) {
+    const allowed = new Set(includeSkills);
+    skillsEntries = skillsEntries.filter((entry) => allowed.has(entry.name));
+    if (skillsEntries.length === 0) return;
+  }
 
   const skillsHome = geminiSkillsHome();
   try {
@@ -252,7 +259,7 @@ export async function execute(
       )
     : asString(
         config.promptTemplate,
-        "You are agent {{agent.id}} ({{agent.name}}). Continue your Paperclip work.",
+        "Du bist Agent {{agent.id}} ({{agent.name}}) in der DGDH Werkbank. Arbeite die zugewiesene Aufgabe strukturiert ab. Melde Ergebnis oder Blocker.",
       );
   const command = asString(config.command, "gemini");
   const model = asString(config.model, DEFAULT_GEMINI_LOCAL_MODEL).trim();
@@ -298,7 +305,8 @@ export async function execute(
       "[paperclip] Strict floor mode active: Gemini skill injection disabled.\n",
     );
   } else {
-    await ensureGeminiSkillsInjected(onLog);
+    const includeSkills = asStringArray(config.includeSkills);
+    await ensureGeminiSkillsInjected(onLog, includeSkills.length > 0 ? includeSkills : undefined);
   }
 
   const envConfig = parseObject(config.env);
