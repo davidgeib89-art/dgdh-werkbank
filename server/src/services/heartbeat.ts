@@ -3066,11 +3066,18 @@ export function heartbeatService(db: Db) {
             },
           });
         }
+        // INTERIM: needsApproval=true collapses to blocked until a real approval loop exists.
+        // When awaiting_approval gate is built, split this into two conditions.
         const routingBlocked =
-          routingPreflight && routingPreflight.selected.blocked === true;
+          routingPreflight &&
+          (routingPreflight.selected.blocked === true ||
+            routingPreflight.selected.needsApproval === true);
         if (routingBlocked) {
           const blockReason =
-            routingPreflight.selected.blockReason ?? "policy_gate";
+            routingPreflight.selected.blockReason ??
+            (routingPreflight.selected.needsApproval
+              ? "needs_operator_approval"
+              : "policy_gate");
           const needsApproval = routingPreflight.selected.needsApproval;
           const missingInputs = routingPreflight.selected.missingInputs;
           const message = `Routing preflight blocked: ${blockReason}${
@@ -3097,6 +3104,17 @@ export function heartbeatService(db: Db) {
             error: message,
             errorCode: blockReason,
             finishedAt: new Date(),
+            resultJson: {
+              type: "routing_blocked",
+              status: "blocked",
+              blockReason,
+              needsApproval,
+              missingInputs,
+              executionIntent: routingPreflight.selected.executionIntent,
+              riskLevel: routingPreflight.selected.riskLevel,
+              taskType: routingPreflight.selected.taskType,
+              budgetClass: routingPreflight.selected.budgetClass,
+            },
           });
           // Do NOT set wakeupStatus to "failed" — keep it alive so the operator can act.
           // Wakeup will remain in whatever state it was before this run.
@@ -3239,6 +3257,8 @@ export function heartbeatService(db: Db) {
         };
 
         let adapterResult: AdapterExecutionResult;
+        // TODO: dead code — routingBlocked early-return above makes this branch unreachable for blocked runs.
+        // The early gate (above) now writes resultJson directly. This block can be removed in a follow-up cleanup.
         if (routingBlocked) {
           const blockReason =
             routingPreflight!.selected.blockReason ?? "policy_gate";

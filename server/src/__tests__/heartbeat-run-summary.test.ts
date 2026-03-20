@@ -70,6 +70,28 @@ describe("summarizeHeartbeatRunResultJson", () => {
     });
   });
 
+  it("handles needs_operator_approval blockReason from needsApproval-only gate", () => {
+    // Verifies the exact resultJson shape written by the early heartbeat gate
+    // when needsApproval=true and blocked=false (interim gate via blocked).
+    const summary = summarizeHeartbeatRunResultJson({
+      type: "routing_blocked",
+      status: "blocked",
+      blockReason: "needs_operator_approval",
+      needsApproval: true,
+      missingInputs: [],
+      executionIntent: "implement",
+      riskLevel: "high",
+      taskType: "heavy-architecture",
+      budgetClass: "medium",
+    });
+
+    expect(summary).toEqual({
+      result: "blocked",
+      summary: "Routing blocked: needs_operator_approval",
+      message: "Task requires operator approval before execution",
+    });
+  });
+
   it("does not overwrite explicit summary with routing blocked label when summary is already set", () => {
     const summary = summarizeHeartbeatRunResultJson({
       type: "routing_blocked",

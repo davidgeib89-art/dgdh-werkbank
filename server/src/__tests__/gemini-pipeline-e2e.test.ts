@@ -463,38 +463,103 @@ describe('Case 2: Stage-1 clean proposal → Stage-2 allows → continues to ada
 });
 
 // ---------------------------------------------------------------------------
-// Case 3: needsApproval — SEMANTIC BOUNDARY GAP
+// Case 3: needsApproval — INTERIM gate via blocked (closed boundary gap)
 // ---------------------------------------------------------------------------
 /**
- * STRUCTURAL GAP — NOT a missing test.
+ * INTERIM IMPLEMENTATION — needsApproval=true collapses to blocked.
  *
- * Evidence:
- *   - enforceWorkPacket sets needsApproval=true correctly (triggered by risk/budget/inputs)
- *   - heartbeat.ts:3070 gate only checks blocked, NOT needsApproval
- *   - NO code path calls setRunStatus(..., "awaiting_approval")
- *   - heartbeat.ts:3598 READS awaiting_approval from run.status, but no code ever WRITES it
- *   - The flag lives in context.selected.needsApproval but has zero enforcement wiring
+ * The DGDH canon keeps blocked and awaiting_approval semantically distinct:
+ *   blocked          = hard policy stop
+ *   awaiting_approval = operator wait/signoff (future: real approval loop)
  *
- * Result: a run with needsApproval=true (blocked=false) will:
- *   - Continue to adapter.execute()
- *   - Execute without operator sign-off
- *   - Never emit awaiting_approval status
+ * Until a real approval loop (API route + re-queue mechanism) exists,
+ * needsApproval=true is intercepted by the heartbeat gate as blocked.
  *
- * This is a semantic boundary gap: the intended state exists in the type system
- * but has no runtime path. It is not a technical failure; it is a missing feature.
+ * What this proves:
+ *   - enforceWorkPacket produces needsApproval=true, blocked=false for the trigger cases
+ *   - selected.blockReason is null (gate derives "needs_operator_approval")
+ *   - the gate condition (blocked || needsApproval) is true — heartbeat stops here
+ *   - stats surface correctly labels needs_operator_approval as blocked with approval message
  *
- * To close: heartbeat needs a second gate — OR — needsApproval must be wired into
- * the blocked gate OR a separate approval-awaits status must be set.
- * This is David's decision, not an implementation detail.
+ * Trigger used: heavy-architecture + medium budget + implement intent
+ *   → riskLevel forced to high (by enforcer)
+ *   → requiresApprovalByRisk = true
+ *   → blocked=false (high+medium, not high+large+implement)
+ *   → needsApproval=true, blocked=false
  */
-describe("Case 3: needsApproval — structural boundary gap (not tested)", () => {
-  it.todo(
-    "needsApproval=true with blocked=false: no enforcement wiring exists. " +
-    "enforceWorkPacket sets the flag; heartbeat gate ignores it; " +
-    "setRunStatus('awaiting_approval') is never called anywhere in the codebase. " +
-    "Flag lives in context but has zero runtime effect. " +
-    "Decision required: gate it, merge into blocked, or accept as non-blocking advisory.",
-  );
+describe("Case 3: needsApproval=true, blocked=false — interim gate via blocked", () => {
+  it("control plane produces needsApproval=true, blocked=false for heavy-architecture + medium budget", () => {
+    const context = buildContextFromStage1Proposal({
+      taskClass: "heavy-architecture",
+      budgetClass: "medium",
+      executionIntent: "implement",
+      targetFolder: "server/src",
+      doneWhen: "Architecture redesign is documented and reviewed.",
+      riskLevel: "medium", // enforcer escalates this to high
+      missingInputs: [],
+      needsApproval: false,
+      chosenBucket: "pro",
+      chosenModelLane: "gemini-3.1-pro-preview",
+      fallbackBucket: "flash",
+      rationale: "architecture task, no missing inputs",
+    });
+
+    const result = resolveGeminiRoutingPreflight({
+      adapterType: "gemini_local",
+      adapterConfig: { model: "gemini-3.1-pro-preview" },
+      runtimeConfig: {
+        routingPolicy: {
+          mode: "soft_enforced",
+          llmRouter: { enabled: true },
+        },
+      },
+      runtimeState: {},
+      context,
+    });
+
+    // enforceWorkPacket escalates riskLevel to high (heavy-architecture)
+    expect(result.selected.riskLevel).toBe("high");
+    // blocked=false: not (high + large + implement) — budgetClass is medium
+    expect(result.selected.blocked).toBe(false);
+    expect(result.selected.blockReason).toBeNull();
+    // needsApproval=true: requiresApprovalByRisk = (high === "high") = true
+    expect(result.selected.needsApproval).toBe(true);
+
+    // The heartbeat gate condition after the patch:
+    //   (blocked === true || needsApproval === true) = (false || true) = true
+    // Gate fires → setRunStatus("blocked", { blockReason: "needs_operator_approval", ... })
+    const gateWouldFire =
+      result.selected.blocked === true || result.selected.needsApproval === true;
+    expect(gateWouldFire).toBe(true);
+
+    // blockReason derived by gate: selected.blockReason ?? (needsApproval ? "needs_operator_approval" : "policy_gate")
+    const derivedBlockReason =
+      result.selected.blockReason ??
+      (result.selected.needsApproval ? "needs_operator_approval" : "policy_gate");
+    expect(derivedBlockReason).toBe("needs_operator_approval");
+  });
+
+  it("stats surface correctly handles needs_operator_approval resultJson from early gate", () => {
+    // This is the exact resultJson the early gate now writes to the DB
+    const resultJson = {
+      type: "routing_blocked",
+      status: "blocked",
+      blockReason: "needs_operator_approval",
+      needsApproval: true,
+      missingInputs: [],
+      executionIntent: "implement",
+      riskLevel: "high",
+      taskType: "heavy-architecture",
+      budgetClass: "medium",
+    };
+
+    const summary = summarizeHeartbeatRunResultJson(resultJson);
+
+    expect(summary).not.toBeNull();
+    expect(summary!.result).toBe("blocked");
+    expect(summary!.summary).toBe("Routing blocked: needs_operator_approval");
+    expect(summary!.message).toBe("Task requires operator approval before execution");
+  });
 });
 
 // ---------------------------------------------------------------------------
