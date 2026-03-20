@@ -9,7 +9,7 @@ import {
   costEvents,
   heartbeatRuns,
 } from "@paperclipai/db";
-import { and, desc, eq, inArray, max, not, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, max, not, sql } from "drizzle-orm";
 import {
   createAgentKeySchema,
   createAgentHireSchema,
@@ -936,6 +936,7 @@ export function agentRoutes(db: Db) {
         startedAt: heartbeatRuns.startedAt,
         finishedAt: heartbeatRuns.finishedAt,
         createdAt: heartbeatRuns.createdAt,
+        sessionIdAfter: heartbeatRuns.sessionIdAfter,
       })
       .from(heartbeatRuns)
       .where(
@@ -948,6 +949,8 @@ export function agentRoutes(db: Db) {
       .limit(historyLimit);
 
     const latestRun = historyRuns[0] ?? null;
+    const currentSessionId =
+      asNonEmptyString(latestRun?.sessionIdAfter) ?? null;
 
     const latestCostEvent = await db
       .select({
@@ -967,6 +970,33 @@ export function agentRoutes(db: Db) {
       .orderBy(desc(costEvents.occurredAt))
       .limit(1)
       .then((rows) => rows[0] ?? null);
+
+    const [sessionRunCount, sessionStartedAt] = currentSessionId
+      ? await Promise.all([
+          db
+            .select({ count: sql<number>`cast(count(*) as int)` })
+            .from(heartbeatRuns)
+            .where(
+              and(
+                eq(heartbeatRuns.agentId, id),
+                eq(heartbeatRuns.sessionIdAfter, currentSessionId),
+              ),
+            )
+            .then((rows) => rows[0]?.count ?? 0),
+          db
+            .select({ createdAt: heartbeatRuns.createdAt })
+            .from(heartbeatRuns)
+            .where(
+              and(
+                eq(heartbeatRuns.agentId, id),
+                eq(heartbeatRuns.sessionIdAfter, currentSessionId),
+              ),
+            )
+            .orderBy(asc(heartbeatRuns.createdAt))
+            .limit(1)
+            .then((rows) => rows[0]?.createdAt ?? null),
+        ])
+      : ([0, null] as const);
 
     const runtimeStateJson = asRecord(runtimeState?.stateJson) ?? {};
     const quotaSnapshot = asRecord(runtimeStateJson.quotaSnapshot);
@@ -1128,6 +1158,23 @@ export function agentRoutes(db: Db) {
       quotaSnapshot,
     );
 
+    // Adapter config — skill filter and compaction policy (gemini_local only)
+    const adapterCfg = asRecord(agent.adapterConfig) ?? {};
+    const compactionCfg = asRecord(adapterCfg.compaction) ?? {};
+    const compactionEnabled =
+      agent.adapterType === "gemini_local"
+        ? parseBooleanLike(compactionCfg.enabled) !== false
+        : false;
+    const maxSessionRunsConfig = Math.max(
+      1,
+      Math.floor(parseNumberLike(compactionCfg.maxSessionRuns) ?? 20),
+    );
+    const includeSkillsConfig: string[] = Array.isArray(adapterCfg.includeSkills)
+      ? (adapterCfg.includeSkills as unknown[]).filter(
+          (s): s is string => typeof s === "string" && s.trim().length > 0,
+        )
+      : [];
+
     res.json({
       agentId: agent.id,
       companyId: agent.companyId,
@@ -1247,6 +1294,26 @@ export function agentRoutes(db: Db) {
             model: latestCostEvent.model,
             costCents: latestCostEvent.costCents,
             occurredAt: latestCostEvent.occurredAt,
+          }
+        : null,
+      adapterSummary:
+        agent.adapterType === "gemini_local"
+          ? {
+              includeSkills:
+                includeSkillsConfig.length > 0 ? includeSkillsConfig : null,
+              skillFilterActive: includeSkillsConfig.length > 0,
+            }
+          : null,
+      sessionSummary: currentSessionId
+        ? {
+            sessionId: currentSessionId,
+            runsInSession: sessionRunCount,
+            maxSessionRuns: compactionEnabled ? maxSessionRunsConfig : null,
+            runsRemaining: compactionEnabled
+              ? Math.max(0, maxSessionRunsConfig - sessionRunCount)
+              : null,
+            sessionStartedAt,
+            compactionEnabled,
           }
         : null,
     });

@@ -3,7 +3,7 @@
 > **Leitfrage:** *Entlastet das David real oder verschönert es nur die Maschine?*
 
 Zuletzt aktualisiert: 2026-03-20
-Version: 1.1
+Version: 1.2 – Gemini Engine Vision integriert
 
 ---
 
@@ -14,6 +14,18 @@ Version: 1.1
 - Token-Ökonomie ist Kern – wir optimieren auf echte Entlastung, nicht auf "autonomous theater"
 - Governance first – keine Arbeit ohne klare Zustände, Budgets und Freigaberegeln
 - Gemini zuerst – bis diese Lane stabil und nützlich ist, bleiben andere Lanes dormant
+
+---
+
+### Rollenverteilung (wichtig!)
+
+| Wer | Was | Was NICHT
+|-----|-----|----------
+| **David (Aufsichtsrat)** | Richtung vorgeben, kritische Entscheidungen absegnen, Policy festlegen | Pro-Agent-Skills manuell einstellen, Model-Entscheidungen pro Run
+| **Flash-Light Layer** | Autonom entscheiden: Modellwahl, Tools, Skills basierend auf Task + Quota | David um Erlaubnis fragen für Routine-Entscheidungen
+| **Approval Gate** | Wenn Flash-Light "needsApproval" sagt → David bekommt Signal → entscheidet | Routine-Routing
+
+**Warum?** Flash-Light ist so günstig, dass es als "Denker" die teuren Modelle nur dann ranholt wenn nötig. Das ist der eigentliche Hebel – nicht menschliches Micro-Management.
 
 ---
 
@@ -33,29 +45,38 @@ Version: 1.1
 
 ## 3. Current Bet
 
-> **LLM-assisted intake + server-enforced execution + klare Operator-Signale** erzeugen mehr Nutzen pro Quota als blind stärkere Modelle.
+> **Flash-Light Layer entscheidet autonom Model + Bucket + Skills basierend auf Task + aktueller Quota – David sieht das Ergebnis im Dashboard**
 
 **Was das bedeutet:**
-- Flash-Lite ist das Mittel, nicht die Wette
-- Intake/Proposal durch günstiges Modell
-- Server-seitige Enforcement erzwingt Policy
-- Klare Operator-Signale ermöglichen schnelle Entscheidung
+- Flash-Lite ist der "Denker" – günstig, schnell, entscheidet was gemacht wird
+- Quota-Snapshot kommt rein → Flash-Lite entscheidet welcher Pool (pro/flash/flash-lite)
+- Skills werden auch entschieden – NICHT David's Job
+- Dashboard zeigt: aktuelle Quotas, letzte Entscheidung, warum
+
+**Quotas die wir ausnutzen (dein Google AI Pro Account):**
+- **Pro Pool:** gemini-2.5-pro, gemini-3.1-pro-preview
+- **Flash Pool:** gemini-2.5-flash, gemini-3-flash-preview  
+- **Flash-Lite Pool:** gemini-2.5-flash-lite
+
+**Ziel:** Nicht stärkstes Modell nehmen, sondern smartest basierend auf was die Aufgabe braucht + welcher Pool gerade Luft hat
 
 ---
 
 ## 4. Now / Next / Later
 
 ### NOW (Diese Woche/Monat)
+- **Quota-Fresh + Dashboard** – David sieht aktuelle Quotas im Dashboard
 - Work-Packet-Kontinuität
-- Approval/Resume verständlich im Hauptpfad
-- Founder-readable trace vom Auftrag bis Ergebnis
+- Flash-Light entscheidet autonom Model/Bucket/Skills basierend auf Quota
 - Klare Status-Semantik (blocked vs awaiting_approval)
 
-### NEXT (Nach State Truth)
-- Approval UX / Operator Signals
-- Wakeup/Fortsetzen verständlich
-- Weniger mentale Last für David
+**Sprint-Ziel:** Dashboard zeigt Pools mit Usage %, letztem Run mit Modell+Bucket+Rationale
+
+### NEXT (Nach Quota-Dashboard)
+- Run-Trace im Dashboard: Quota → Entscheidung → Ergebnis
+- Skills-Entscheidung im Router (welche Skills für welche Task)
 - Flash-Lite Intake schärfen
+- Approval UX / Operator Signals
 
 ### LATER (Nach Nutzenbeweis)
 - Wiederholbare Standardarbeit stabilisieren
@@ -75,12 +96,13 @@ Version: 1.1
 | Was | Warum wichtig |
 |-----|----------------|
 | Approval Loop Backend | Endlich saubere Trennung: Policy-Block vs. Mensch-freigabe nötig |
-| Skill Filtering | Nur relevante Skills injecten, weniger Prompt-Müll |
+| Skill Filtering (Backend) | Flash-Light entscheidet welche Skills – NICHT David manuell ✓ |
 | Session Compaction Tuning | 20 runs, 500k tokens, 48h – weniger Halluzination |
 | Agent Health / State Truth | awaiting_approval korrekt behandelt, klare Status |
 | Pipeline / Golden Path Tests | E2E-Tests für Routing-Logik und Approval-Flow |
+| Session Visibility (gerade) | David sieht Session-Status, muss NICHT manuell steuern |
 
-**Letzter Commit:** `120930d` – feat(agent-health): add handling for awaiting_approval status
+**Letzter Commit:** Flash-Lite Router + Session Summary Endpoint
 
 ---
 
@@ -241,6 +263,7 @@ Phase E: EXPANSION BY PROOF
 | **Phase** | Aktuelle Phase (z.B. Golden Path / Work-Packet Continuity) |
 | **Größter Engpass** | Was aktuell das größte Hindernis ist |
 | **Welcher Auftragstyp liefert heute realen Nutzen?** | Konkrete Antwort, nicht Theorie |
+| **Flash-Light autonomía level** | Wie viel entscheidet Flash-Light autonom vs. braucht David-Input? |
 
 ---
 
