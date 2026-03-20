@@ -32,6 +32,7 @@ import {
   appendWithCap,
   MAX_EXCERPT_BYTES,
 } from "../adapters/utils.js";
+import { approvalService } from "./approvals.js";
 import { costService } from "./costs.js";
 import { secretService } from "./secrets.js";
 import { resolveDefaultAgentWorkspaceDir } from "../home-paths.js";
@@ -3066,23 +3067,16 @@ export function heartbeatService(db: Db) {
             },
           });
         }
-        // INTERIM: needsApproval=true collapses to blocked until a real approval loop exists.
-        // When awaiting_approval gate is built, split this into two conditions.
-        const routingBlocked =
-          routingPreflight &&
-          (routingPreflight.selected.blocked === true ||
-            routingPreflight.selected.needsApproval === true);
-        if (routingBlocked) {
+        // Gate 1: Hard routing block — missing inputs or enforced policy stop.
+        // Run is terminal. Operator must fix the task spec and re-submit.
+        const routingHardBlocked =
+          routingPreflight && routingPreflight.selected.blocked === true;
+        if (routingHardBlocked) {
           const blockReason =
-            routingPreflight.selected.blockReason ??
-            (routingPreflight.selected.needsApproval
-              ? "needs_operator_approval"
-              : "policy_gate");
+            routingPreflight.selected.blockReason ?? "policy_gate";
           const needsApproval = routingPreflight.selected.needsApproval;
           const missingInputs = routingPreflight.selected.missingInputs;
-          const message = `Routing preflight blocked: ${blockReason}${
-            needsApproval ? " (needs operator approval)" : ""
-          }`;
+          const message = `Routing preflight blocked: ${blockReason}`;
           await appendRunEvent(currentRun, seq++, {
             eventType: "lifecycle",
             stream: "system",
@@ -3116,8 +3110,84 @@ export function heartbeatService(db: Db) {
               budgetClass: routingPreflight.selected.budgetClass,
             },
           });
-          // Do NOT set wakeupStatus to "failed" — keep it alive so the operator can act.
-          // Wakeup will remain in whatever state it was before this run.
+          return;
+        }
+
+        // Gate 2: Approval required — task is valid but needs operator sign-off.
+        // Run is parked. An approval record is created so the operator can act.
+        // On approval, heartbeat.wakeup() queues a follow-up run that re-enters routing.
+        const routingNeedsApproval =
+          routingPreflight &&
+          !routingPreflight.selected.blocked &&
+          routingPreflight.selected.needsApproval === true;
+        if (routingNeedsApproval) {
+          const blockReason = "needs_operator_approval";
+          const missingInputs = routingPreflight.selected.missingInputs;
+          const message =
+            "Routing preflight: task requires operator approval before execution";
+          await appendRunEvent(currentRun, seq++, {
+            eventType: "lifecycle",
+            stream: "system",
+            level: "warn",
+            message,
+            payload: {
+              stage: "routing.awaiting_approval",
+              blockReason,
+              needsApproval: true,
+              missingInputs,
+              executionIntent: routingPreflight.selected.executionIntent,
+              riskLevel: routingPreflight.selected.riskLevel,
+              budgetClass: routingPreflight.selected.budgetClass,
+              taskType: routingPreflight.selected.taskType,
+              controlPlane: routingPreflight.controlPlane,
+            },
+          });
+          await setRunStatus(run.id, "awaiting_approval", {
+            error: message,
+            errorCode: blockReason,
+            finishedAt: new Date(),
+            resultJson: {
+              type: "routing_awaiting_approval",
+              status: "awaiting_approval",
+              blockReason,
+              needsApproval: true,
+              missingInputs,
+              executionIntent: routingPreflight.selected.executionIntent,
+              riskLevel: routingPreflight.selected.riskLevel,
+              taskType: routingPreflight.selected.taskType,
+              budgetClass: routingPreflight.selected.budgetClass,
+            },
+          });
+          // Auto-create an approval record so the operator can act immediately.
+          // Approving via POST /approvals/:id/approve triggers heartbeat.wakeup()
+          // which queues a follow-up run that re-enters routing.
+          try {
+            await approvalService(db).create(agent.companyId, {
+              type: "routing_gate",
+              requestedByAgentId: agent.id,
+              requestedByUserId: null,
+              status: "pending",
+              payload: {
+                runId: run.id,
+                agentId: agent.id,
+                blockReason,
+                executionIntent: routingPreflight.selected.executionIntent,
+                riskLevel: routingPreflight.selected.riskLevel,
+                taskType: routingPreflight.selected.taskType,
+                budgetClass: routingPreflight.selected.budgetClass,
+                missingInputs,
+              },
+              decisionNote: null,
+              decidedByUserId: null,
+              decidedAt: null,
+              updatedAt: new Date(),
+            });
+          } catch (err) {
+            logger.warn(
+              { err, runId: run.id, agentId: agent.id },
+              "failed to create routing_gate approval record for awaiting_approval run",
+            );
+          }
           return;
         }
         const singleFileBenchmarkPreflight =
@@ -3178,7 +3248,6 @@ export function heartbeatService(db: Db) {
         const runtimeServices: Awaited<
           ReturnType<typeof ensureRuntimeServicesForRun>
         > =
-          routingBlocked ||
           adapterExecutionSafety.blockAdapterExecute ||
           (singleFileBenchmarkPreflight.required &&
             !singleFileBenchmarkPreflight.ok)
@@ -3257,71 +3326,7 @@ export function heartbeatService(db: Db) {
         };
 
         let adapterResult: AdapterExecutionResult;
-        // TODO: dead code — routingBlocked early-return above makes this branch unreachable for blocked runs.
-        // The early gate (above) now writes resultJson directly. This block can be removed in a follow-up cleanup.
-        if (routingBlocked) {
-          const blockReason =
-            routingPreflight!.selected.blockReason ?? "policy_gate";
-          const needsApproval = routingPreflight!.selected.needsApproval;
-          const missingInputs = routingPreflight!.selected.missingInputs;
-          await onLog(
-            "stderr",
-            `[paperclip] Routing preflight blocked (${blockReason}); adapter.execute suppressed.\n`,
-          );
-          await onAdapterMeta({
-            adapterType: agent.adapterType,
-            command: "adapter.execute suppressed",
-            invokeSuppressed: true,
-            adapterStarted: false,
-            suppressionReason: blockReason,
-            commandNotes: [
-              `Routing blocked: ${blockReason}`,
-              needsApproval
-                ? "Task requires operator approval before execution"
-                : "Task has unresolved missing inputs",
-              ...(missingInputs.length > 0
-                ? [`Missing inputs: ${missingInputs.join(", ")}`]
-                : []),
-            ],
-            context: {
-              routingBlocked: true,
-              blockReason,
-              needsApproval,
-              missingInputs,
-              executionIntent: routingPreflight!.selected.executionIntent,
-              riskLevel: routingPreflight!.selected.riskLevel,
-              taskType: routingPreflight!.selected.taskType,
-              budgetClass: routingPreflight!.selected.budgetClass,
-            },
-          });
-          adapterResult = {
-            exitCode: 1,
-            signal: null,
-            timedOut: false,
-            errorCode: blockReason,
-            errorMessage: `Routing preflight blocked: ${blockReason}${
-              needsApproval ? " (needs operator approval)" : ""
-            }${
-              missingInputs.length > 0
-                ? ` — missing inputs: ${missingInputs.join(", ")}`
-                : ""
-            }`,
-            resultJson: {
-              type: "routing_blocked",
-              status: "blocked",
-              blockReason,
-              needsApproval,
-              missingInputs,
-              executionIntent: routingPreflight!.selected.executionIntent,
-              riskLevel: routingPreflight!.selected.riskLevel,
-              taskType: routingPreflight!.selected.taskType,
-              budgetClass: routingPreflight!.selected.budgetClass,
-              doneWhen: routingPreflight!.selected.doneWhen,
-              targetFolder: routingPreflight!.selected.targetFolder,
-              controlPlane: routingPreflight!.controlPlane,
-            },
-          };
-        } else if (adapterExecutionSafety.blockAdapterExecute) {
+        if (adapterExecutionSafety.blockAdapterExecute) {
           const safetyReason =
             adapterExecutionSafety.reason ?? "context_test_run";
           await onLog(

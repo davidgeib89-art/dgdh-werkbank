@@ -61,20 +61,24 @@ cli/                      Paperclip CLI
 
 ## Execution Gates (in heartbeat.ts)
 
-Three hard gates block `adapter.execute()`:
+Four gates block `adapter.execute()`:
 
 | Gate | Trigger | Status set |
 |------|---------|------------|
 | Phase-B checkpoint | Phase-B task, no checkpoint approval | `failed` |
-| **Routing blocked** | `routingPreflight.selected.blocked === true` | `blocked` |
+| **Routing hard-blocked** | `routingPreflight.selected.blocked === true` | `blocked` |
+| **Routing awaiting approval** | `needsApproval === true && !blocked` | `awaiting_approval` |
 | Single-file benchmark preflight | Benchmark mode, workspace check fails | `failed` |
 
-**Routing blocked** sets `status = "blocked"` (not `"failed"`). Wakeup stays alive for operator action.
+**Routing hard-blocked** (`blocked`): hard policy stop — missing inputs or high-risk policy. Run is terminal.
+
+**Routing awaiting approval** (`awaiting_approval`): valid task, needs operator sign-off. An approval record (`type: "routing_gate"`) is auto-created. On approve, `heartbeat.wakeup()` queues a follow-up run.
 
 ## Block Reasons (from enforceWorkPacket)
 
 - `missing_inputs` — unresolved inputs in `missingInputs[]`
 - `risk_high_large_implementation` — high risk + large budget + implement intent
+- `needs_operator_approval` — needsApproval-only gate (no blocked, just approval needed)
 
 ## Run Outcomes (semantically distinct)
 

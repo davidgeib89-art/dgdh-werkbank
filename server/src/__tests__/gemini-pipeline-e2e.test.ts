@@ -9,17 +9,9 @@
  * Scope: control-plane boundary chain — routing decision → enforcement → gate output.
  *
  * Test matrix:
- *   Case 1: blocked path — missingInputs or risk triggers blocked=true
- *   Case 2: success path — clean proposal flows through
- *   Case 3: needsApproval — SEMANTIC BOUNDARY GAP (see below)
- *
- * Case 3 — Semantic Boundary Gap:
- *   enforceWorkPacket sets needsApproval=true correctly.
- *   But NO code path exists that sets run.status="awaiting_approval".
- *   The heartbeat gate (heartbeat.ts:3070) only checks blocked, not needsApproval.
- *   Result: the semantically intended awaiting_approval outcome is NEVER emitted.
- *   The flag lives in context but has no enforcement wiring.
- *   → Documented as structural gap, not tested.
+ *   Case 1: blocked path — missingInputs or risk triggers blocked=true → status "blocked"
+ *   Case 2: success path — clean proposal flows through → adapter.execute() runs
+ *   Case 3: needsApproval — blocked=false, needsApproval=true → status "awaiting_approval"
  */
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -463,31 +455,24 @@ describe('Case 2: Stage-1 clean proposal → Stage-2 allows → continues to ada
 });
 
 // ---------------------------------------------------------------------------
-// Case 3: needsApproval — INTERIM gate via blocked (closed boundary gap)
+// Case 3: needsApproval=true, blocked=false → awaiting_approval
 // ---------------------------------------------------------------------------
 /**
- * INTERIM IMPLEMENTATION — needsApproval=true collapses to blocked.
+ * The real awaiting_approval gate.
  *
- * The DGDH canon keeps blocked and awaiting_approval semantically distinct:
- *   blocked          = hard policy stop
- *   awaiting_approval = operator wait/signoff (future: real approval loop)
- *
- * Until a real approval loop (API route + re-queue mechanism) exists,
- * needsApproval=true is intercepted by the heartbeat gate as blocked.
- *
- * What this proves:
- *   - enforceWorkPacket produces needsApproval=true, blocked=false for the trigger cases
- *   - selected.blockReason is null (gate derives "needs_operator_approval")
- *   - the gate condition (blocked || needsApproval) is true — heartbeat stops here
- *   - stats surface correctly labels needs_operator_approval as blocked with approval message
- *
- * Trigger used: heavy-architecture + medium budget + implement intent
- *   → riskLevel forced to high (by enforcer)
- *   → requiresApprovalByRisk = true
- *   → blocked=false (high+medium, not high+large+implement)
+ * Trigger: heavy-architecture + medium budget + implement intent
+ *   → riskLevel escalated to high by enforceWorkPacket
+ *   → requiresApprovalByRisk = true (high risk)
+ *   → blocked=false (not high+large+implement)
  *   → needsApproval=true, blocked=false
+ *
+ * Heartbeat gate 2 fires: routingNeedsApproval = !blocked && needsApproval
+ *   → run.status = "awaiting_approval"
+ *   → resultJson type = "routing_awaiting_approval"
+ *   → approval record created (type: "routing_gate")
+ *   → on approve: heartbeat.wakeup() queues follow-up run
  */
-describe("Case 3: needsApproval=true, blocked=false — interim gate via blocked", () => {
+describe("Case 3: needsApproval=true, blocked=false — awaiting_approval gate", () => {
   it("control plane produces needsApproval=true, blocked=false for heavy-architecture + medium budget", () => {
     const context = buildContextFromStage1Proposal({
       taskClass: "heavy-architecture",
@@ -522,28 +507,23 @@ describe("Case 3: needsApproval=true, blocked=false — interim gate via blocked
     // blocked=false: not (high + large + implement) — budgetClass is medium
     expect(result.selected.blocked).toBe(false);
     expect(result.selected.blockReason).toBeNull();
-    // needsApproval=true: requiresApprovalByRisk = (high === "high") = true
+    // needsApproval=true: requiresApprovalByRisk = (riskLevel === "high") = true
     expect(result.selected.needsApproval).toBe(true);
 
-    // The heartbeat gate condition after the patch:
-    //   (blocked === true || needsApproval === true) = (false || true) = true
-    // Gate fires → setRunStatus("blocked", { blockReason: "needs_operator_approval", ... })
-    const gateWouldFire =
-      result.selected.blocked === true || result.selected.needsApproval === true;
-    expect(gateWouldFire).toBe(true);
+    // Gate 2 fires: routingNeedsApproval = !blocked && needsApproval
+    const gate2WouldFire =
+      !result.selected.blocked && result.selected.needsApproval === true;
+    expect(gate2WouldFire).toBe(true);
 
-    // blockReason derived by gate: selected.blockReason ?? (needsApproval ? "needs_operator_approval" : "policy_gate")
-    const derivedBlockReason =
-      result.selected.blockReason ??
-      (result.selected.needsApproval ? "needs_operator_approval" : "policy_gate");
-    expect(derivedBlockReason).toBe("needs_operator_approval");
+    // Gate 1 does NOT fire
+    expect(result.selected.blocked).toBe(false);
   });
 
-  it("stats surface correctly handles needs_operator_approval resultJson from early gate", () => {
-    // This is the exact resultJson the early gate now writes to the DB
+  it("stats surface labels routing_awaiting_approval as awaiting_approval", () => {
+    // The exact resultJson written by gate 2 to the DB
     const resultJson = {
-      type: "routing_blocked",
-      status: "blocked",
+      type: "routing_awaiting_approval",
+      status: "awaiting_approval",
       blockReason: "needs_operator_approval",
       needsApproval: true,
       missingInputs: [],
@@ -556,9 +536,31 @@ describe("Case 3: needsApproval=true, blocked=false — interim gate via blocked
     const summary = summarizeHeartbeatRunResultJson(resultJson);
 
     expect(summary).not.toBeNull();
-    expect(summary!.result).toBe("blocked");
-    expect(summary!.summary).toBe("Routing blocked: needs_operator_approval");
+    expect(summary!.result).toBe("awaiting_approval");
+    expect(summary!.summary).toBe("Awaiting operator approval");
     expect(summary!.message).toBe("Task requires operator approval before execution");
+  });
+
+  it("blocked path still produces blocked, not awaiting_approval", () => {
+    // Gate 1 fires when blocked=true — must NOT produce awaiting_approval
+    const resultJson = {
+      type: "routing_blocked",
+      status: "blocked",
+      blockReason: "missing_inputs",
+      needsApproval: true,
+      missingInputs: ["repo path"],
+      executionIntent: "implement",
+      riskLevel: "high",
+      taskType: "heavy-architecture",
+      budgetClass: "large",
+    };
+
+    const summary = summarizeHeartbeatRunResultJson(resultJson);
+
+    expect(summary).not.toBeNull();
+    expect(summary!.result).toBe("blocked");
+    expect(summary!.summary).toBe("Routing blocked: missing_inputs");
+    expect(summary!.result).not.toBe("awaiting_approval");
   });
 });
 

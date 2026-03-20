@@ -75,3 +75,22 @@ describe("DGDH Engine V1 — prompt diet guards", () => {
     );
   });
 });
+
+describe("DGDH Approval Loop V1 — gate wiring", () => {
+  it("awaiting_approval gate is present (gate 2)", () => {
+    expect(heartbeatSource).toContain("routingNeedsApproval");
+    expect(heartbeatSource).toContain('"awaiting_approval"');
+  });
+
+  it("hard-blocked gate is separate from awaiting_approval gate (gate 1)", () => {
+    expect(heartbeatSource).toContain("routingHardBlocked");
+    // Both gates have early returns — they're independent
+    expect(heartbeatSource).toContain("routing_awaiting_approval");
+    expect(heartbeatSource).toContain("routing_blocked");
+  });
+
+  it("approval record is auto-created on awaiting_approval", () => {
+    expect(heartbeatSource).toContain('"routing_gate"');
+    expect(heartbeatSource).toContain("approvalService(db).create");
+  });
+});

@@ -44,5 +44,12 @@ export function summarizeHeartbeatRunResultJson(
     }
   }
 
+  // Label awaiting-approval runs — parked, not failed
+  if (resultJson["type"] === "routing_awaiting_approval") {
+    summary.result = "awaiting_approval";
+    summary.summary = "Awaiting operator approval";
+    summary.message = "Task requires operator approval before execution";
+  }
+
   return Object.keys(summary).length > 0 ? summary : null;
 }
