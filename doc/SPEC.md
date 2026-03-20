@@ -194,7 +194,6 @@ Agent configuration includes an **adapter** that defines how Paperclip invokes t
 | `http`               | Send an HTTP request    | `POST https://openclaw.example.com/hook/{id}` |
 | `openclaw_gateway`   | OpenClaw gateway API    | Managed OpenClaw agent via gateway             |
 | `gemini_local`       | Gemini CLI process      | Local Gemini CLI with sandbox and approval     |
-| `hermes_local`       | Hermes agent process    | Local Hermes agent                             |
 
 The `process` and `http` adapters ship as defaults. Additional adapters have been added for specific agent runtimes (see list above), and new adapter types can be registered via the plugin system (see Plugin / Extension Architecture).
 
