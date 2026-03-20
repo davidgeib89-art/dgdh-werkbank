@@ -1,21 +1,25 @@
 /**
- * Gemini Control Plane E2E — Pipeline Chain Tests
+ * Gemini Control Plane — Pipeline Chain Tests
  *
- * Tests the full Stage-1 → Stage-2 → Block-Gate chain WITHOUT real Gemini calls.
+ * Tests Stage-1 → Stage-2 → Gate chain WITHOUT real Gemini calls or adapter execution.
+ * Stage-1 output is simulated (context injection). Stage-2 resolver, enforceWorkPacket,
+ * gate logic, and stats surface run for real.
  *
- * What is mocked: Stage-1 (gemini-flash-lite call via runChildProcess mock)
- * What runs for real: Stage-2 resolver, enforceWorkPacket, blocked-gate logic, stats summary
+ * NOT full E2E: no real adapter.execute(), no actual run DB records.
+ * Scope: control-plane boundary chain — routing decision → enforcement → gate output.
  *
  * Test matrix:
- *   Case 1: Stage-1 with missingInputs → Stage-2 enforces blocked=true → no adapter.execute
- *   Case 2: Stage-1 clean proposal → Stage-2 allows through → continues to adapter stage
- *   Case 3: needsApproval path — KNOWN GAP: blocked gate does NOT check needsApproval flag
+ *   Case 1: blocked path — missingInputs or risk triggers blocked=true
+ *   Case 2: success path — clean proposal flows through
+ *   Case 3: needsApproval — SEMANTIC BOUNDARY GAP (see below)
  *
- * Note on Case 3:
- *   enforceWorkPacket sets needsApproval=true when risk=high OR budget=large OR missingInputs.
- *   But the heartbeat blocked-gate (heartbeat.ts ~line 3069) only checks routingPreflight.selected.blocked,
- *   NOT routingPreflight.selected.needsApproval. So needsApproval flows through but is not gated.
- *   → NOT tested; marked as gap. See: enforceWorkPacket() and heartbeat.ts:3070.
+ * Case 3 — Semantic Boundary Gap:
+ *   enforceWorkPacket sets needsApproval=true correctly.
+ *   But NO code path exists that sets run.status="awaiting_approval".
+ *   The heartbeat gate (heartbeat.ts:3070) only checks blocked, not needsApproval.
+ *   Result: the semantically intended awaiting_approval outcome is NEVER emitted.
+ *   The flag lives in context but has no enforcement wiring.
+ *   → Documented as structural gap, not tested.
  */
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -118,10 +122,22 @@ function buildContextFromStage1Proposal(proposal: {
 }
 
 // ---------------------------------------------------------------------------
-// Case 1: missingInputs → blocked gate
+// Case 1: blocked path
 // ---------------------------------------------------------------------------
-describe('Case 1: Stage-1 missingInputs → Stage-2 blocked → no adapter.execute', () => {
-  it("sets blocked=true and blockReason=missing_inputs when Stage-1 reports missing inputs", () => {
+/**
+ * WHAT THIS PROVES:
+ * - Stage-2 enforceWorkPacket sets blocked=true and blockReason when conditions met
+ * - Stats surface correctly labels routing_blocked → result=blocked
+ * - needsApproval is correctly triggered by missingInputs
+ *
+ * WHAT THIS DOES NOT PROVE (boundary limit):
+ * - Actual no-adapter-execute behavior requires heartbeat-level test
+ *   (heartbeat.ts:3069 returns early when blocked=true — confirmed in code, not this test)
+ * - No explicit model-lane assertion for blocked path — lane application runs
+ *   before the blocked gate in heartbeat, so blocked=true does not affect lane state
+ */
+describe("Case 1: blocked path — Stage-2 enforces blocked=true", () => {
+  it("blocked=true + blockReason=missing_inputs when missingInputs present", () => {
     const context = buildContextFromStage1Proposal({
       taskClass: "bounded-implementation",
       budgetClass: "medium",
@@ -150,7 +166,7 @@ describe('Case 1: Stage-1 missingInputs → Stage-2 blocked → no adapter.execu
       context,
     });
 
-    // Stage-2 enforcement must block
+    // Stage-2 enforcement sets blocked=true
     expect(result).not.toBeNull();
     expect(result.selected.blocked).toBe(true);
     expect(result.selected.blockReason).toBe("missing_inputs");
@@ -159,13 +175,11 @@ describe('Case 1: Stage-1 missingInputs → Stage-2 blocked → no adapter.execu
       "API spec document",
     ]);
 
-    // needsApproval should also be enforced (missing inputs trigger it)
+    // needsApproval correctly triggered by missing inputs
     expect(result.selected.needsApproval).toBe(true);
 
-    // blocked gate in heartbeat should stop before adapter.execute
-    // This is verified by checking: if blocked=true, heartbeat returns early
-    // (see heartbeat.ts:3069-3103)
-    expect(result.selected.blocked).toBe(true); // gate condition met
+    // heartbeat gate condition is met (blocked=true → early return before adapter.execute)
+    expect(result.selected.blocked).toBe(true);
   });
 
   it("sets blocked=true and blockReason=risk_high_large_implementation for heavy task + large budget + implement", () => {
@@ -254,8 +268,21 @@ describe('Case 1: Stage-1 missingInputs → Stage-2 blocked → no adapter.execu
 });
 
 // ---------------------------------------------------------------------------
-// Case 2: clean proposal → Stage-2 allows through
+// Case 2: success path — clean proposal flows through
 // ---------------------------------------------------------------------------
+/**
+ * WHAT THIS PROVES:
+ * - Stage-2 enforceWorkPacket does NOT block clean proposals
+ * - Bucket and model lane are correctly resolved in soft_enforced mode
+ * - Advisory mode is correctly preserved when quota snapshot is stale
+ * - Safe defaults are applied when Stage-1 omits optional fields
+ * - Stats surface correctly labels success (result=ok)
+ *
+ * WHAT THIS DOES NOT PROVE:
+ * - Actual adapter.execute() call (requires full heartbeat + adapter mock)
+ * - Run record creation in DB
+ * - Real model invocation
+ */
 describe('Case 2: Stage-1 clean proposal → Stage-2 allows → continues to adapter', () => {
   it("does NOT block when Stage-1 proposal has no missing inputs and low/medium risk", () => {
     const context = buildContextFromStage1Proposal({
@@ -436,35 +463,37 @@ describe('Case 2: Stage-1 clean proposal → Stage-2 allows → continues to ada
 });
 
 // ---------------------------------------------------------------------------
-// Case 3: needsApproval path — KNOWN GAP
+// Case 3: needsApproval — SEMANTIC BOUNDARY GAP
 // ---------------------------------------------------------------------------
 /**
- * KNOWN GAP — NOT TESTED
+ * STRUCTURAL GAP — NOT a missing test.
  *
- * enforceWorkPacket() sets needsApproval=true when:
- *   - riskLevel=high OR budgetClass=large OR missingInputs.length > 0
+ * Evidence:
+ *   - enforceWorkPacket sets needsApproval=true correctly (triggered by risk/budget/inputs)
+ *   - heartbeat.ts:3070 gate only checks blocked, NOT needsApproval
+ *   - NO code path calls setRunStatus(..., "awaiting_approval")
+ *   - heartbeat.ts:3598 READS awaiting_approval from run.status, but no code ever WRITES it
+ *   - The flag lives in context.selected.needsApproval but has zero enforcement wiring
  *
- * HOWEVER: heartbeat.ts:3070 only checks `routingPreflight.selected.blocked`,
- * NOT `routingPreflight.selected.needsApproval`.
- *
- * This means a task with needsApproval=true but blocked=false will:
- *   - NOT be stopped by the blocked-gate
+ * Result: a run with needsApproval=true (blocked=false) will:
  *   - Continue to adapter.execute()
- *   - The needsApproval flag is available in context but not enforced as a gate
+ *   - Execute without operator sign-off
+ *   - Never emit awaiting_approval status
  *
- * To close this gap:
- *   1. Add needsApproval check to the blocked-gate in heartbeat.ts (line ~3070)
- *      OR
- *   2. Introduce a separate "awaiting_approval" gate before adapter.execute
+ * This is a semantic boundary gap: the intended state exists in the type system
+ * but has no runtime path. It is not a technical failure; it is a missing feature.
  *
- * This is a policy decision — not doing this automatically.
+ * To close: heartbeat needs a second gate — OR — needsApproval must be wired into
+ * the blocked gate OR a separate approval-awaits status must be set.
+ * This is David's decision, not an implementation detail.
  */
-describe("Case 3: needsApproval — KNOWN GAP (not tested)", () => {
+describe("Case 3: needsApproval — structural boundary gap (not tested)", () => {
   it.todo(
-    "GAP: needsApproval=true without blocked=true is NOT currently gated " +
-    "(heartbeat.ts:3070 only checks blocked, not needsApproval). " +
-    "Policy decision required: should needsApproval create a separate gate " +
-    "that pauses execution and awaits operator sign-off before adapter.execute?",
+    "needsApproval=true with blocked=false: no enforcement wiring exists. " +
+    "enforceWorkPacket sets the flag; heartbeat gate ignores it; " +
+    "setRunStatus('awaiting_approval') is never called anywhere in the codebase. " +
+    "Flag lives in context but has zero runtime effect. " +
+    "Decision required: gate it, merge into blocked, or accept as non-blocking advisory.",
   );
 });
 
