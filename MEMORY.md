@@ -78,7 +78,7 @@ Gemini kennt das Schema (keystatic.config.ts + content.config.ts) und weiss exak
 
 ## Aktueller Stand (2026-03-21)
 
-**Phase:** Engine bewiesen + Rollen-Smoke-Test-Bruecke im Dashboard fertig. Naechster Schritt: echter Gemini-Run mit gesetzter Rolle.
+**Phase:** Engine bewiesen + Worker und Reviewer in echten Runs bewiesen. Naechster Schritt: CEO auf diesem bewiesenen Firmen-Unterbau bauen.
 
 ### Was funktioniert (bewiesen in echten Runs)
 - **Live Quota:** Echte Google-Quota-Daten fliessen ins Routing
@@ -95,17 +95,29 @@ Gemini kennt das Schema (keystatic.config.ts + content.config.ts) und weiss exak
 - **Role Template Registry:** `GET /api/role-templates` listet kanonische Templates fuer das Dashboard
 - **Agent PATCH support:** `adapterConfig.roleTemplateId` + `roleAppendPrompt` koennen ueber `PATCH /api/agents/:id` gesetzt werden
 - **Dashboard-Bruecke:** Agent-Edit-UI hat Rollen-Dropdown + Operator-Prompt und speichert ueber den bestehenden Save-Flow
+- **Create-Flow gefixt:** Rollen-Dropdown + Operator-Prompt persistieren jetzt auch beim Neuanlegen eines Agents
+- **Neue Agents erlauben On-Demand-Wakeups standardmaessig:** `wakeOnDemand=true`, damit Issue-Zuweisungen sofort Runs ausloesen koennen
 - **Erste 3 Templates vorhanden:** `worker.json`, `ceo.json`, `reviewer.json`
+- **Erster echter Worker-Beweis geschafft:** Run `720183d5-38f4-4407-a6c9-f09e5b6b9522` lief mit injiziertem `worker`-Template, Operator-Prompt, Quota-aware Routing und erfolgreicher Dateierstellung in sicherem Test-Repo
+- **Routing/Quota im Worker-Beweis sinnvoll:** Thinking via Flash-Lite/Router, Execution auf `gemini-3-flash-preview` (`flash`-Bucket), Quota-Snapshot frisch und genutzt
+- **Sandbox-Learning:** Gemini-Sandbox blockierte zunaechst lokal; fuer den Worker-Smoke-Test wurde `sandbox=false` genutzt. Sicherheit kam ueber sicheres Repo + Test-Branch, nicht ueber CLI-Sandbox
+- **Minimaler Reviewer-Pfad gebaut:** Wenn ein `reviewer`-Agent ein Issue uebernimmt, bekommt er im Prompt automatisch den letzten non-reviewer Run desselben Issues als Review-Ziel (Run-ID, Worker-Agent, Summary, read-file evidence paths)
+- **Reviewer blockt sauber ohne Ziel:** Wenn noch kein Worker-Run fuer das Issue existiert, wird der Reviewer-Prompt explizit auf `blocked` statt auf Ausfuehrung des Pakets gelenkt
+- **Reviewer gehaertet:** `accepted` soll nur noch bei erfuelltem `doneWhen`, sauberem Scope und ohne unsupported claims/source drift vergeben werden; bei materiellen Zweifeln lieber `needs_revision`
+- **Reviewer in echten Runs bewiesen:** Erstlauf war zu weich, nach Haertung ist ein `accepted`-Urteil auf dem echten Test-Artefakt vertretbar; Review passiert wirklich statt Re-Implementation
+- **Issue-Lifecycle jetzt automatisch:** Erfolgreicher `worker`-Run zieht ein Issue von `in_progress` auf `in_review`; erfolgreicher `reviewer`-Run mit `Verdict: accepted` zieht auf `done`
+- **Geschlossene Issues promoten keine alten deferred Runs mehr:** Nach `done`/`cancelled` werden deferred issue-execution wakes nicht mehr neu gestartet
 
 ### Was noch fehlt
-- **Kein Review-Layer:** doneWhen landet im Prompt aber niemand prueft ob Gemini es erfuellt hat
 - **Keine CEO-Agent-Rolle in Runtime:** Design steht (Packet 2), aber noch nicht im System aktiv
-- **Kein echter Rollen-Run bewiesen:** UI + API + Prompt-Injektion stehen, aber der erste echte Gemini-Run mit gesetzter Rolle muss noch gefahren und bewertet werden
+- **Kein automatischer Worker -> Reviewer Chain:** Der minimale Reviewer ist nutzbar, aber noch nicht automatisch nach Worker-Abschluss verdrahtet
+- **Rollen noch nicht voll ausgereift:** Reviewer urteilt jetzt brauchbar, aber operative Effizienz ist noch nicht ideal (z. B. PowerShell-`&&`-Fehlversuche)
+- **Quota-Observability weiter schaerfen:** Snapshot wird gespeichert + wiederverwendet, aber fruehere `0%`-Drift zeigt, dass Refresh-/Darstellungslogik noch weiter verifiziert werden sollte
 
 ### Naechste Schritte (Prioritaet)
-1. **Echter Rollen-Smoke-Test:** Agent im Dashboard auf `worker` setzen, Operator-Prompt optional, echte Aufgabe ausfuehren
-2. Run pruefen: War der Rollenprompt im Prompt sichtbar und war das Verhalten besser/klarer?
-3. Wenn positiv: naechster Ausbau Richtung CEO/Reviewer-Live-Nutzung statt weiterer Meta-Architektur
+1. **CEO bauen:** Parent-Mission rein -> 3-5 Work-Packet-Issues raus, sichtbar im Dashboard
+2. **Kleinen Shell-/Tooling-Fix fuer Gemini ziehen:** PowerShell-`&&` vermeiden, damit Worker/Reviewer weniger Tokens verbrennen
+3. **Quota-Observability schaerfen:** CLI-`/stats session` und internen Refresh-Pfad wieder voll deckungsgleich machen
 
 ---
 

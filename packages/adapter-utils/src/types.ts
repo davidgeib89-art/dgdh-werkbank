@@ -286,6 +286,8 @@ export interface CLIAdapterModule {
 
 export interface CreateConfigValues {
   adapterType: string;
+  roleTemplateId?: string;
+  roleAppendPrompt?: string;
   cwd: string;
   instructionsFilePath?: string;
   promptTemplate: string;

@@ -66,6 +66,7 @@ import { refreshGeminiRuntimeQuotaSnapshot } from "./gemini-quota-producer.js";
 import { produceFlashLiteRoutingProposal } from "./gemini-flash-lite-router.js";
 import { fetchLiveGeminiQuota } from "./gemini-quota-api.js";
 import { resolveAssignedRoleTemplate } from "./role-templates.js";
+import { logActivity } from "./activity-log.js";
 
 const MAX_LIVE_LOG_CHUNK_BYTES = 8 * 1024;
 const HEARTBEAT_MAX_CONCURRENT_RUNS_DEFAULT = 1;
@@ -74,6 +75,7 @@ const RUN_KEEPALIVE_INTERVAL_MS = 25_000;
 const RUN_KEEPALIVE_MIN_TOUCH_AGE_MS = 60_000;
 const ABSOLUTE_RUN_TOKEN_HARD_CAP = 150_000;
 const DEFERRED_WAKE_CONTEXT_KEY = "_paperclipWakeContext";
+const CLOSED_ISSUE_STATUSES = new Set(["done", "cancelled"]);
 const startLocksByAgent = new Map<string, Promise<void>>();
 const REPO_ONLY_CWD_SENTINEL = "/__paperclip_repo_only__";
 const SESSIONED_LOCAL_ADAPTERS = new Set([
@@ -865,6 +867,17 @@ type IssuePromptContext = {
   description: string | null;
 };
 
+type ReviewTargetPromptContext = {
+  runId: string;
+  agentId: string;
+  agentName: string | null;
+  status: string;
+  finishedAt: string | null;
+  model: string | null;
+  resultSummary: string | null;
+  readEvidencePaths: string[];
+};
+
 function trimIssueText(value: unknown) {
   if (typeof value !== "string" || value.trim().length === 0) return null;
 
@@ -910,6 +923,174 @@ function buildIssueTaskPrompt(issue: IssuePromptContext) {
     summary,
     ...(description ? ["", description] : []),
   ].join("\n");
+}
+
+function buildReviewerTaskPrompt(input: {
+  issue: IssuePromptContext;
+  reviewTarget: ReviewTargetPromptContext | null;
+}) {
+  const { issue, reviewTarget } = input;
+  const ref = issue.identifier ?? issue.id;
+  const title = trimIssueText(issue.title);
+  const summary = title ? `${ref} - ${title}` : ref;
+  const originalPacket = buildIssueTaskPrompt(issue);
+
+  const lines = [
+    "Paperclip review assignment:",
+    summary,
+    "",
+    "You are reviewing the latest worker result for this issue.",
+    "Do not implement the original task yourself.",
+    "",
+    "Original packet:",
+    originalPacket,
+  ];
+
+  if (!reviewTarget) {
+    lines.push(
+      "",
+      "Review target status:",
+      "- No prior non-reviewer run was found for this issue.",
+      "",
+      "Your task:",
+      "1. Do not execute the packet yourself.",
+      "2. Return Verdict: blocked.",
+      "3. Explain that no worker result exists yet to review.",
+      "4. Recommend that a worker run the issue first.",
+    );
+    return lines.join("\n");
+  }
+
+  lines.push(
+    "",
+    "Review target run:",
+    `- Run ID: ${reviewTarget.runId}`,
+    `- Worker agent: ${reviewTarget.agentName ?? reviewTarget.agentId}`,
+    `- Status: ${reviewTarget.status}`,
+  );
+  if (reviewTarget.finishedAt) {
+    lines.push(`- Finished at: ${reviewTarget.finishedAt}`);
+  }
+  if (reviewTarget.model) {
+    lines.push(`- Model lane: ${reviewTarget.model}`);
+  }
+  if (reviewTarget.resultSummary) {
+    lines.push(`- Result summary: ${reviewTarget.resultSummary}`);
+  }
+  if (reviewTarget.readEvidencePaths.length > 0) {
+    lines.push("- Worker read evidence:");
+    for (const readPath of reviewTarget.readEvidencePaths) {
+      lines.push(`  - ${readPath}`);
+    }
+  } else {
+    lines.push("- Worker read evidence: none recorded");
+  }
+
+  lines.push(
+    "",
+    "Your task:",
+    "1. Inspect the actual produced result in the workspace.",
+    "2. Check whether the result satisfies doneWhen and stays inside the issue scope.",
+    "3. Flag unsupported claims or references to sources not named in the issue.",
+    "4. Do not redo the worker task unless the review explicitly requires a tiny corrective verification step.",
+    "",
+    "Acceptance rules:",
+    "- Use accepted only if doneWhen is satisfied, scope was respected, and no unsupported claim or source drift remains.",
+    "- If the result references information that cannot be justified from the issue-listed sources, the produced artifact, or recorded evidence, return needs_revision.",
+    "- If there is no worker result to inspect, return blocked.",
+    "",
+    "Return exactly these sections:",
+    "1. Verdict: accepted | needs_revision | blocked",
+    "2. Findings",
+    "3. Evidence Checked",
+    "4. Recommended Next Step",
+  );
+
+  return lines.join("\n");
+}
+
+export type ReviewerVerdict = "accepted" | "needs_revision" | "blocked";
+
+export function extractReviewerVerdict(
+  output: string | null | undefined,
+): ReviewerVerdict | null {
+  if (!output) return null;
+  const verdictPattern =
+    /^\s*(?:\d+\.\s*)?(?:[*_]{0,2})Verdict(?:[*_]{0,2})\s*:\s*(accepted|needs_revision|blocked)\s*$/gim;
+  const matches = [...output.matchAll(verdictPattern)];
+  if (matches.length === 0) return null;
+  const lastMatch = matches[matches.length - 1]?.[1]?.toLowerCase();
+  if (
+    lastMatch === "accepted" ||
+    lastMatch === "needs_revision" ||
+    lastMatch === "blocked"
+  ) {
+    return lastMatch;
+  }
+  return null;
+}
+
+export function readAssignedRoleTemplateId(
+  contextSnapshot: Record<string, unknown> | null | undefined,
+) {
+  const roleTemplate = parseObject(contextSnapshot?.paperclipRoleTemplate);
+  return readNonEmptyString(roleTemplate.id)?.toLowerCase() ?? null;
+}
+
+export function determineIssueStatusAfterRun(input: {
+  runStatus: string;
+  issueStatus: string | null | undefined;
+  roleTemplateId: string | null | undefined;
+  stdoutExcerpt?: string | null | undefined;
+}): {
+  nextStatus: "in_review" | "done" | null;
+  reason:
+    | "worker_completed_waiting_for_review"
+    | "reviewer_accepted"
+    | null;
+  reviewerVerdict: ReviewerVerdict | null;
+} {
+  if (input.runStatus !== "succeeded") {
+    return { nextStatus: null, reason: null, reviewerVerdict: null };
+  }
+
+  const issueStatus = readNonEmptyString(input.issueStatus)?.toLowerCase();
+  if (!issueStatus || CLOSED_ISSUE_STATUSES.has(issueStatus)) {
+    return { nextStatus: null, reason: null, reviewerVerdict: null };
+  }
+
+  const roleTemplateId =
+    readNonEmptyString(input.roleTemplateId)?.toLowerCase() ?? null;
+  if (roleTemplateId === "reviewer") {
+    const reviewerVerdict = extractReviewerVerdict(input.stdoutExcerpt);
+    if (reviewerVerdict === "accepted") {
+      return {
+        nextStatus: "done",
+        reason: "reviewer_accepted",
+        reviewerVerdict,
+      };
+    }
+    return { nextStatus: null, reason: null, reviewerVerdict };
+  }
+
+  const workerLikeRole =
+    roleTemplateId === "worker" || roleTemplateId == null;
+  if (workerLikeRole && issueStatus === "in_progress") {
+    return {
+      nextStatus: "in_review",
+      reason: "worker_completed_waiting_for_review",
+      reviewerVerdict: null,
+    };
+  }
+
+  return { nextStatus: null, reason: null, reviewerVerdict: null };
+}
+
+export function shouldPromoteDeferredIssueExecution(
+  issueStatus: string | null | undefined,
+) {
+  const normalized = readNonEmptyString(issueStatus)?.toLowerCase();
+  return normalized == null || !CLOSED_ISSUE_STATUSES.has(normalized);
 }
 
 function buildPromptResolverDryRunInput(
@@ -1066,6 +1247,41 @@ export function applyIssuePromptContext(
       "grep_search",
       "activate_skill",
     ];
+  }
+
+  return contextSnapshot;
+}
+
+export function applyReviewerPromptContext(
+  contextSnapshot: Record<string, unknown>,
+  issue: IssuePromptContext | null,
+  reviewTarget: ReviewTargetPromptContext | null,
+) {
+  if (!issue) return contextSnapshot;
+
+  const issueTaskPrompt = buildIssueTaskPrompt(issue);
+  contextSnapshot.paperclipOriginalTaskPrompt = issueTaskPrompt;
+  contextSnapshot.paperclipTaskPrompt = buildReviewerTaskPrompt({
+    issue,
+    reviewTarget,
+  });
+
+  if (reviewTarget) {
+    contextSnapshot.paperclipReviewTarget = {
+      runId: reviewTarget.runId,
+      agentId: reviewTarget.agentId,
+      agentName: reviewTarget.agentName,
+      status: reviewTarget.status,
+      finishedAt: reviewTarget.finishedAt,
+      model: reviewTarget.model,
+      resultSummary: reviewTarget.resultSummary,
+      readEvidencePaths: reviewTarget.readEvidencePaths,
+    };
+    delete contextSnapshot.paperclipReviewTargetError;
+  } else {
+    delete contextSnapshot.paperclipReviewTarget;
+    contextSnapshot.paperclipReviewTargetError =
+      "No prior non-reviewer run found for this issue.";
   }
 
   return contextSnapshot;
@@ -1567,6 +1783,170 @@ export function heartbeatService(db: Db) {
   const issuesSvc = issueService(db);
   const memorySvc = memoryService(db);
   const activeRunExecutions = new Set<string>();
+
+  async function loadReviewTargetForIssue(input: {
+    companyId: string;
+    issueId: string;
+    currentRunId: string;
+  }): Promise<ReviewTargetPromptContext | null> {
+    const candidates = await db
+      .select({
+        id: heartbeatRuns.id,
+        agentId: heartbeatRuns.agentId,
+        status: heartbeatRuns.status,
+        finishedAt: heartbeatRuns.finishedAt,
+        resultJson: heartbeatRuns.resultJson,
+        contextSnapshot: heartbeatRuns.contextSnapshot,
+        agentName: agents.name,
+      })
+      .from(heartbeatRuns)
+      .innerJoin(agents, eq(agents.id, heartbeatRuns.agentId))
+      .where(
+        and(
+          eq(heartbeatRuns.companyId, input.companyId),
+          sql`${heartbeatRuns.contextSnapshot} ->> 'issueId' = ${input.issueId}`,
+          inArray(heartbeatRuns.status, [
+            "succeeded",
+            "failed",
+            "timed_out",
+            "cancelled",
+            "blocked",
+          ]),
+        ),
+      )
+      .orderBy(desc(heartbeatRuns.finishedAt), desc(heartbeatRuns.updatedAt))
+      .limit(12);
+
+    const target =
+      candidates.find((candidate) => {
+        if (candidate.id === input.currentRunId) return false;
+        const roleTemplate = parseObject(
+          parseObject(candidate.contextSnapshot).paperclipRoleTemplate,
+        );
+        return (
+          readNonEmptyString(roleTemplate.id)?.toLowerCase() !== "reviewer" &&
+          candidate.status === "succeeded"
+        );
+      }) ??
+      candidates.find((candidate) => {
+        if (candidate.id === input.currentRunId) return false;
+        const roleTemplate = parseObject(
+          parseObject(candidate.contextSnapshot).paperclipRoleTemplate,
+        );
+        return readNonEmptyString(roleTemplate.id)?.toLowerCase() !== "reviewer";
+      });
+
+    if (!target) return null;
+
+    const resultSummaryRecord = summarizeHeartbeatRunResultJson(
+      parseObject(target.resultJson),
+    );
+    const targetContext = parseObject(target.contextSnapshot);
+    const targetPreflight = parseObject(targetContext.paperclipRoutingPreflight);
+    const targetSelected = parseObject(targetPreflight.selected);
+
+    const evidenceRows = await db
+      .select({
+        payload: heartbeatRunEvents.payload,
+      })
+      .from(heartbeatRunEvents)
+      .where(
+        and(
+          eq(heartbeatRunEvents.runId, target.id),
+          eq(heartbeatRunEvents.eventType, "tool.evidence"),
+        ),
+      )
+      .orderBy(asc(heartbeatRunEvents.seq));
+
+    const readEvidencePaths = [
+      ...new Set(
+        evidenceRows
+          .map((row) => {
+            const payload = parseObject(row.payload);
+            if (readNonEmptyString(payload.toolName) !== "read_file") {
+              return null;
+            }
+            return readNonEmptyString(payload.path);
+          })
+          .filter((value): value is string => Boolean(value)),
+      ),
+    ];
+
+    return {
+      runId: target.id,
+      agentId: target.agentId,
+      agentName: target.agentName,
+      status: target.status,
+      finishedAt: target.finishedAt
+        ? new Date(target.finishedAt).toISOString()
+        : null,
+      model:
+        readNonEmptyString(targetSelected.effectiveModelLane) ??
+        readNonEmptyString(parseObject(target.resultJson).model),
+      resultSummary:
+        readNonEmptyString(resultSummaryRecord?.summary) ??
+        readNonEmptyString(resultSummaryRecord?.result) ??
+        readNonEmptyString(resultSummaryRecord?.message),
+      readEvidencePaths,
+    };
+  }
+
+  async function maybeAdvanceIssueStatusAfterRun(
+    run: typeof heartbeatRuns.$inferSelect,
+  ) {
+    const context = parseObject(run.contextSnapshot);
+    const issueId = readNonEmptyString(context.issueId);
+    if (!issueId) return null;
+
+    const issue = await issuesSvc.getById(issueId);
+    if (!issue || issue.companyId !== run.companyId) return null;
+
+    const roleTemplateId = readAssignedRoleTemplateId(context);
+    const transition = determineIssueStatusAfterRun({
+      runStatus: run.status,
+      issueStatus: issue.status,
+      roleTemplateId,
+      stdoutExcerpt: run.stdoutExcerpt,
+    });
+    if (!transition.nextStatus || transition.nextStatus === issue.status) {
+      return null;
+    }
+
+    const updatedIssue = await issuesSvc.update(issue.id, {
+      status: transition.nextStatus,
+    });
+    if (!updatedIssue) return null;
+
+    await logActivity(db, {
+      companyId: updatedIssue.companyId,
+      actorType: "agent",
+      actorId: run.agentId,
+      agentId: run.agentId,
+      runId: run.id,
+      action: "issue.updated",
+      entityType: "issue",
+      entityId: updatedIssue.id,
+      details: {
+        identifier: updatedIssue.identifier,
+        status: updatedIssue.status,
+        autoTransition: true,
+        transitionReason: transition.reason,
+        roleTemplateId,
+        reviewerVerdict: transition.reviewerVerdict,
+        _previous: {
+          status: issue.status,
+        },
+      },
+    });
+
+    return {
+      issue: updatedIssue,
+      previousStatus: issue.status,
+      roleTemplateId,
+      reviewerVerdict: transition.reviewerVerdict,
+      reason: transition.reason,
+    };
+  }
 
   async function getAgent(agentId: string) {
     return db
@@ -2835,6 +3215,14 @@ export function heartbeatService(db: Db) {
             .then((rows) => rows[0] ?? null)
         : null;
       applyIssuePromptContext(context, issueRef);
+      if (roleTemplateResolution.assigned?.template.id === "reviewer" && issueRef) {
+        const reviewTarget = await loadReviewTargetForIssue({
+          companyId: agent.companyId,
+          issueId: issueRef.id,
+          currentRunId: run.id,
+        });
+        applyReviewerPromptContext(context, issueRef, reviewTarget);
+      }
 
       let runtimeConfigForRouting = parseObject(agent.runtimeConfig);
       let runtimeStateForRouting = parseObject(runtime.stateJson);
@@ -4026,6 +4414,31 @@ export function heartbeatService(db: Db) {
               exitCode: adapterResult.exitCode,
             },
           });
+          try {
+            const issueTransition =
+              await maybeAdvanceIssueStatusAfterRun(finalizedRun);
+            if (issueTransition) {
+              await appendRunEvent(finalizedRun, seq++, {
+                eventType: "lifecycle",
+                stream: "system",
+                level: "info",
+                message: `issue auto-transitioned to ${issueTransition.issue.status}`,
+                payload: {
+                  issueId: issueTransition.issue.id,
+                  previousStatus: issueTransition.previousStatus,
+                  status: issueTransition.issue.status,
+                  roleTemplateId: issueTransition.roleTemplateId,
+                  reviewerVerdict: issueTransition.reviewerVerdict,
+                  reason: issueTransition.reason,
+                },
+              });
+            }
+          } catch (err) {
+            logger.warn(
+              { err, runId: finalizedRun.id },
+              "Failed to auto-transition issue after run completion",
+            );
+          }
           await releaseIssueExecutionAndPromote(finalizedRun);
         }
 
@@ -4225,6 +4638,7 @@ export function heartbeatService(db: Db) {
         .select({
           id: issues.id,
           companyId: issues.companyId,
+          status: issues.status,
         })
         .from(issues)
         .where(
@@ -4246,6 +4660,25 @@ export function heartbeatService(db: Db) {
           updatedAt: new Date(),
         })
         .where(eq(issues.id, issue.id));
+
+      if (!shouldPromoteDeferredIssueExecution(issue.status)) {
+        await tx
+          .update(agentWakeupRequests)
+          .set({
+            status: "failed",
+            finishedAt: new Date(),
+            error: `Deferred wake skipped: issue is ${issue.status}`,
+            updatedAt: new Date(),
+          })
+          .where(
+            and(
+              eq(agentWakeupRequests.companyId, issue.companyId),
+              eq(agentWakeupRequests.status, "deferred_issue_execution"),
+              sql`${agentWakeupRequests.payload} ->> 'issueId' = ${issue.id}`,
+            ),
+          );
+        return null;
+      }
 
       while (true) {
         const deferred = await tx

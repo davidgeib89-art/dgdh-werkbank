@@ -23,6 +23,115 @@ It is the concrete bridge between:
 - and
 - "DGDH now needs its first real digital employees"
 
+Update later the same day:
+
+- the first real Worker-role run has now been executed successfully end-to-end
+- the role-template path is no longer just architecture; it has operational proof
+- the next constraint is no longer "can roles be injected?" but "how do we review and tighten worker behavior?"
+
+## 1.1 Outcome reached after this report was started
+
+The originally planned next step in this report was "start Packet 3."
+
+That is no longer the correct live state.
+
+Since then, the team completed the first real Worker-role proof in production-like conditions:
+
+- a new Gemini worker agent was created from the dashboard
+- the canonical `worker` role template was assigned in the UI
+- an operator append prompt was added
+- an issue was assigned through the normal issue flow
+- the role prompt was injected automatically into the Gemini run
+- the run executed in a safe non-customer repo/worktree
+- the agent completed the task and created the requested file
+
+The successful proof run was:
+
+- `720183d5-38f4-4407-a6c9-f09e5b6b9522`
+
+This changes the interpretation of the whole role-template effort:
+
+- before: "promising architecture and smoke-test path"
+- now: "end-to-end worker role behavior proven in a real run"
+
+## 1.2 What the successful Worker proof actually showed
+
+The successful run proved more than one thing at once.
+
+### What was proven
+
+- Dashboard -> API -> adapterConfig -> heartbeat role resolution -> Gemini execute path works as one chain
+- `roleTemplateId = "worker"` is actually resolved and injected at runtime
+- `roleAppendPrompt` is appended and visible in the effective run prompt
+- issue assignment can trigger a real worker run when `wakeOnDemand` is enabled
+- quota-aware routing still works with role injection enabled
+- the worker produced the requested artifact in the target repo
+- `read_file` evidence fallback still works inside the role-based flow
+
+### What was chosen by the engine
+
+For the successful worker proof, the engine behavior was sensible:
+
+- thinking/routing model: Flash-Lite router path
+- execution bucket: `flash`
+- execution model: `gemini-3-flash-preview`
+- task type: `bounded-implementation`
+- risk: `low`
+- approval: not required
+
+This was aligned with the actual task shape: a short bounded documentation task with limited scope and low risk.
+
+### What still needs tightening
+
+The worker was good, but not yet perfect.
+
+The generated result showed slight scope drift:
+
+- in the last section it referenced `GEMINI.md`, even though that file was not in the explicitly allowed source list
+
+That matters because it confirms the next real need:
+
+- not more role-template theory first
+- but a reviewer/checking layer that can verify whether the worker stayed inside allowed evidence and packet scope
+
+## 1.3 Important implementation learnings from the successful proof
+
+The successful role run also clarified some practical operational truths.
+
+### Sandbox learning
+
+The first attempt to run the worker role did not fail because of the role system.
+It failed because Gemini sandbox execution on the local machine required a sandbox command that was not available.
+
+For the successful proof run, the practical decision was:
+
+- use `sandbox=false` for this test agent
+- keep safety through the safe repo/worktree and dedicated test branch
+
+This was the right short-term move.
+It avoided blocking the proof on local sandbox infrastructure while still protecting customer code.
+
+### Wake-on-demand learning
+
+Issue assignment only becomes a real "employee workflow" if the assigned agent can actually wake on assignment.
+
+That led to a direct product improvement:
+
+- new agents now default to `wakeOnDemand=true`
+
+Without that change, assignment could silently save while no run actually started.
+
+### Workspace safety learning
+
+During setup, it became clear that the issue's project workspace was accidentally pointing at a live customer repo rather than the intended safe test repo.
+
+That was corrected before the successful run.
+
+This was an important reminder:
+
+- a good worker role is not enough
+- project/workspace resolution must also be trustworthy, or agent success becomes dangerous
+
 ## 2. Starting Point
 
 At the start of this phase, the most important engine foundations were already in place and proven.

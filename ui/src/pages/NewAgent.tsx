@@ -5,6 +5,7 @@ import { useCompany } from "../context/CompanyContext";
 import { useBreadcrumbs } from "../context/BreadcrumbContext";
 import { agentsApi } from "../api/agents";
 import { queryKeys } from "../lib/queryKeys";
+import { withRoleTemplateAdapterConfig } from "../lib/role-template-config";
 import { AGENT_ROLES } from "@paperclipai/shared";
 import { Button } from "@/components/ui/button";
 import {
@@ -157,7 +158,10 @@ export function NewAgent() {
 
   function buildAdapterConfig() {
     const adapter = getUIAdapter(configValues.adapterType);
-    return adapter.buildAdapterConfig(configValues);
+    return withRoleTemplateAdapterConfig(
+      adapter.buildAdapterConfig(configValues),
+      configValues,
+    );
   }
 
   function handleSubmit() {
@@ -206,7 +210,7 @@ export function NewAgent() {
         heartbeat: {
           enabled: configValues.heartbeatEnabled,
           intervalSec: configValues.intervalSec,
-          wakeOnDemand: false,
+          wakeOnDemand: true,
           cooldownSec: 10,
           maxConcurrentRuns: 1,
         },

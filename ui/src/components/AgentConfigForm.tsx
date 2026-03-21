@@ -27,6 +27,7 @@ import { FolderOpen, Heart, ChevronDown, X } from "lucide-react";
 import { cn } from "../lib/utils";
 import { extractModelName, extractProviderId } from "../lib/model-utils";
 import { queryKeys } from "../lib/queryKeys";
+import { withRoleTemplateAdapterConfig } from "../lib/role-template-config";
 import { useCompany } from "../context/CompanyContext";
 import {
   Field,
@@ -348,7 +349,7 @@ export function AgentConfigForm(props: AgentConfigFormProps) {
   } = useQuery({
     queryKey: queryKeys.agents.roleTemplates,
     queryFn: () => agentsApi.roleTemplates(),
-    enabled: !isCreate,
+    enabled: true,
   });
 
   /** Props passed to adapter-specific config field components */
@@ -384,7 +385,10 @@ export function AgentConfigForm(props: AgentConfigFormProps) {
 
   function buildAdapterConfigForTest(): Record<string, unknown> {
     if (isCreate) {
-      return uiAdapter.buildAdapterConfig(val!);
+      return withRoleTemplateAdapterConfig(
+        uiAdapter.buildAdapterConfig(val!),
+        val!,
+      );
     }
     const base = config as Record<string, unknown>;
     return { ...base, ...overlay.adapterConfig };
@@ -406,13 +410,13 @@ export function AgentConfigForm(props: AgentConfigFormProps) {
     ? val!.model
     : eff("adapterConfig", "model", String(config.model ?? ""));
   const currentRoleTemplateId = isCreate
-    ? ""
+    ? String(val!.roleTemplateId ?? "")
     : eff("adapterConfig", "roleTemplateId", String(config.roleTemplateId ?? ""));
   const selectedRoleTemplate = roleTemplates.find(
     (template) => template.id === currentRoleTemplateId,
   );
   const currentRoleAppendPrompt = isCreate
-    ? ""
+    ? String(val!.roleAppendPrompt ?? "")
     : eff(
         "adapterConfig",
         "roleAppendPrompt",
@@ -530,58 +534,6 @@ export function AgentConfigForm(props: AgentConfigFormProps) {
                 }}
               />
             </Field>
-            <Field label="Rolle" hint={help.roleTemplateId}>
-              <select
-                className={inputClass}
-                value={currentRoleTemplateId}
-                onChange={(e) =>
-                  mark(
-                    "adapterConfig",
-                    "roleTemplateId",
-                    e.target.value || undefined,
-                  )
-                }
-              >
-                <option value="">Keine Rolle</option>
-                {roleTemplates.map((template: RoleTemplateSummary) => (
-                  <option key={`${template.id}:${template.version}`} value={template.id}>
-                    {template.label} ({template.version})
-                  </option>
-                ))}
-              </select>
-              {selectedRoleTemplate ? (
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {selectedRoleTemplate.description}
-                </p>
-              ) : (
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Keine kanonische Laufzeitrolle fuer diesen Agenten gesetzt.
-                </p>
-              )}
-              {roleTemplatesError && (
-                <p className="mt-1 text-xs text-destructive">
-                  {roleTemplatesError instanceof Error
-                    ? roleTemplatesError.message
-                    : "Role templates konnten nicht geladen werden."}
-                </p>
-              )}
-            </Field>
-            <Field label="Operator Prompt" hint={help.roleAppendPrompt}>
-              <DraftTextarea
-                value={currentRoleAppendPrompt}
-                onCommit={(v) =>
-                  mark("adapterConfig", "roleAppendPrompt", v || undefined)
-                }
-                immediate
-                minRows={4}
-                maxLength={4000}
-                placeholder="Optional additive instruction from David..."
-              />
-              <div className="mt-1 flex items-center justify-between text-xs text-muted-foreground">
-                <span>Erweitert die Rolle, ersetzt sie nicht.</span>
-                <span>{currentRoleAppendPrompt.length}/4000</span>
-              </div>
-            </Field>
             {isLocal && (
               <>
                 <Field label="Prompt Template" hint={help.promptTemplate}>
@@ -656,6 +608,69 @@ export function AgentConfigForm(props: AgentConfigFormProps) {
               : "px-4 pb-3 space-y-3",
           )}
         >
+          <Field label="Rolle" hint={help.roleTemplateId}>
+            <select
+              className={inputClass}
+              value={currentRoleTemplateId}
+              onChange={(e) => {
+                const nextValue = e.target.value;
+                if (isCreate) {
+                  set!({ roleTemplateId: nextValue });
+                } else {
+                  mark(
+                    "adapterConfig",
+                    "roleTemplateId",
+                    nextValue || undefined,
+                  );
+                }
+              }}
+            >
+              <option value="">Keine Rolle</option>
+              {roleTemplates.map((template: RoleTemplateSummary) => (
+                <option key={`${template.id}:${template.version}`} value={template.id}>
+                  {template.label} ({template.version})
+                </option>
+              ))}
+            </select>
+            {selectedRoleTemplate ? (
+              <p className="mt-1 text-xs text-muted-foreground">
+                {selectedRoleTemplate.description}
+              </p>
+            ) : (
+              <p className="mt-1 text-xs text-muted-foreground">
+                Keine kanonische Laufzeitrolle fuer diesen Agenten gesetzt.
+              </p>
+            )}
+            {roleTemplatesError && (
+              <p className="mt-1 text-xs text-destructive">
+                {roleTemplatesError instanceof Error
+                  ? roleTemplatesError.message
+                  : "Role templates konnten nicht geladen werden."}
+              </p>
+            )}
+          </Field>
+
+          <Field label="Operator Prompt" hint={help.roleAppendPrompt}>
+            <DraftTextarea
+              value={currentRoleAppendPrompt}
+              onCommit={(v) => {
+                if (isCreate) {
+                  set!({ roleAppendPrompt: v ?? "" });
+                } else {
+                  mark("adapterConfig", "roleAppendPrompt", v || undefined);
+                }
+              }}
+              immediate
+              minRows={4}
+              maxLength={4000}
+              placeholder="Optional additive instruction from David..."
+            />
+            <div className="mt-1 flex items-center justify-between text-xs text-muted-foreground">
+              <span>Erweitert die Rolle, ersetzt sie nicht.</span>
+              <span>{currentRoleAppendPrompt.length}/4000</span>
+            </div>
+          </Field>
+
           <Field label="Adapter type" hint={help.adapterType}>
             <AdapterTypeDropdown
               value={adapterType}
@@ -666,6 +681,8 @@ export function AgentConfigForm(props: AgentConfigFormProps) {
                   const nextValues: CreateConfigValues = {
                     ...defaults,
                     adapterType: t,
+                    roleTemplateId: val!.roleTemplateId ?? "",
+                    roleAppendPrompt: val!.roleAppendPrompt ?? "",
                   };
                   if (t === "codex_local") {
                     nextValues.model = DEFAULT_CODEX_LOCAL_MODEL;

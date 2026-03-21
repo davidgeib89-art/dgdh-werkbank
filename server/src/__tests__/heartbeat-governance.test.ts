@@ -4,22 +4,26 @@ import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import {
   applyIssuePromptContext,
+  applyReviewerPromptContext,
   buildDryRunAdapterResult,
   deriveWorkPacketId,
   evaluateSingleFileBenchmarkPreflight,
   evaluateGovernanceDryRunValidation,
   estimateTotalTokens,
+  extractReviewerVerdict,
   extractSingleFileBenchmarkTarget,
   hasPhaseBCheckpointApproval,
   isDryRunExecutionMode,
   isGovernanceTestModeEnabled,
   isPhaseBExecution,
   isTestRunContext,
+  determineIssueStatusAfterRun,
   readExecutionMode,
   resolveAdapterCwdForRun,
   requiresGovernedWorkPacket,
   resolveDryRunUsageTotals,
   resolveHardTokenCapTokens,
+  shouldPromoteDeferredIssueExecution,
 } from "../services/heartbeat.ts";
 
 const ORIGINAL_GOVERNANCE_TEST_MODE = process.env.GOVERNANCE_TEST_MODE;
@@ -128,6 +132,144 @@ describe("heartbeat governance helpers", () => {
         ruleSetVersion: "stage1-draft",
       },
     });
+  });
+
+  it("rewrites reviewer prompts to inspect the latest worker result instead of executing the packet", () => {
+    const issue = {
+      id: "issue-review-1",
+      identifier: "DGD-31",
+      title: "Content-Struktur kurz dokumentieren",
+      description:
+        "Erstelle danach genau eine neue Datei:\n- doc/content-structure-summary.md",
+    };
+
+    const context = applyReviewerPromptContext({}, issue, {
+      runId: "run-worker-1",
+      agentId: "agent-worker-1",
+      agentName: "Gemini Arbeiterbiene",
+      status: "succeeded",
+      finishedAt: "2026-03-21T20:30:00.000Z",
+      model: "gemini-3-flash-preview",
+      resultSummary: "Created doc/content-structure-summary.md",
+      readEvidencePaths: [
+        "src/content/settings/site.json",
+        "src/content/settings/profile.json",
+      ],
+    });
+
+    expect(context.paperclipOriginalTaskPrompt).toContain(
+      "Paperclip issue assignment:",
+    );
+    expect(context.paperclipTaskPrompt).toContain(
+      "Paperclip review assignment:",
+    );
+    expect(context.paperclipTaskPrompt).toContain(
+      "Do not implement the original task yourself.",
+    );
+    expect(context.paperclipTaskPrompt).toContain("Run ID: run-worker-1");
+    expect(context.paperclipTaskPrompt).toContain(
+      "src/content/settings/site.json",
+    );
+    expect(context.paperclipTaskPrompt).toContain(
+      "Verdict: accepted | needs_revision | blocked",
+    );
+    expect(context.paperclipTaskPrompt).toContain(
+      "Use accepted only if doneWhen is satisfied, scope was respected, and no unsupported claim or source drift remains.",
+    );
+    expect(context.paperclipReviewTarget).toMatchObject({
+      runId: "run-worker-1",
+      agentName: "Gemini Arbeiterbiene",
+    });
+  });
+
+  it("blocks reviewer prompts cleanly when no prior worker result exists", () => {
+    const issue = {
+      id: "issue-review-2",
+      identifier: "DGD-32",
+      title: "Review target missing",
+      description: "Pruefe den letzten Worker-Run.",
+    };
+
+    const context = applyReviewerPromptContext({}, issue, null);
+
+    expect(context.paperclipTaskPrompt).toContain(
+      "No prior non-reviewer run was found for this issue.",
+    );
+    expect(context.paperclipTaskPrompt).toContain(
+      "Return Verdict: blocked.",
+    );
+    expect(context.paperclipReviewTargetError).toBe(
+      "No prior non-reviewer run found for this issue.",
+    );
+  });
+
+  it("extracts the final reviewer verdict instead of the prompt instruction line", () => {
+    const output = [
+      "Return exactly these sections:",
+      "1. Verdict: accepted | needs_revision | blocked",
+      "2. Findings",
+      "",
+      "1. Verdict: needs_revision",
+      "2. Findings",
+      "- Source drift detected",
+    ].join("\n");
+
+    expect(extractReviewerVerdict(output)).toBe("needs_revision");
+  });
+
+  it("moves succeeded worker runs into in_review", () => {
+    expect(
+      determineIssueStatusAfterRun({
+        runStatus: "succeeded",
+        issueStatus: "in_progress",
+        roleTemplateId: "worker",
+        stdoutExcerpt: "done",
+      }),
+    ).toMatchObject({
+      nextStatus: "in_review",
+      reason: "worker_completed_waiting_for_review",
+      reviewerVerdict: null,
+    });
+  });
+
+  it("moves accepted reviewer runs to done", () => {
+    expect(
+      determineIssueStatusAfterRun({
+        runStatus: "succeeded",
+        issueStatus: "in_review",
+        roleTemplateId: "reviewer",
+        stdoutExcerpt: [
+          "1. Verdict: accepted",
+          "2. Findings",
+          "- doneWhen satisfied",
+        ].join("\n"),
+      }),
+    ).toMatchObject({
+      nextStatus: "done",
+      reason: "reviewer_accepted",
+      reviewerVerdict: "accepted",
+    });
+  });
+
+  it("does not close issues when reviewer requests revision", () => {
+    expect(
+      determineIssueStatusAfterRun({
+        runStatus: "succeeded",
+        issueStatus: "in_review",
+        roleTemplateId: "reviewer",
+        stdoutExcerpt: "1. Verdict: needs_revision",
+      }),
+    ).toMatchObject({
+      nextStatus: null,
+      reason: null,
+      reviewerVerdict: "needs_revision",
+    });
+  });
+
+  it("does not promote deferred issue execution for closed issues", () => {
+    expect(shouldPromoteDeferredIssueExecution("done")).toBe(false);
+    expect(shouldPromoteDeferredIssueExecution("cancelled")).toBe(false);
+    expect(shouldPromoteDeferredIssueExecution("in_review")).toBe(true);
   });
 
   it("emits reliable dry-run preflight telemetry and keeps it deterministic", () => {

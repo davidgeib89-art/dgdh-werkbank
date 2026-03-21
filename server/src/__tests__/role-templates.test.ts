@@ -56,6 +56,21 @@ describe("resolveAssignedRoleTemplate", () => {
     );
   });
 
+  it("loads the canonical reviewer template with strict acceptance rules", () => {
+    const result = resolveAssignedRoleTemplate({
+      roleTemplateId: "reviewer",
+    });
+
+    expect(result.error).toBeNull();
+    expect(result.assigned?.template.id).toBe("reviewer");
+    expect(result.assigned?.prompt).toContain(
+      "Accepted is only allowed when the result satisfies doneWhen",
+    );
+    expect(result.assigned?.template.constraints).toContain(
+      "Do not accept results with unsupported claims, source drift, or scope drift.",
+    );
+  });
+
   it("returns a clear error for unknown templates", () => {
     const result = resolveAssignedRoleTemplate({
       roleTemplateId: "does-not-exist",

@@ -426,7 +426,7 @@ export function OnboardingWizard() {
           heartbeat: {
             enabled: true,
             intervalSec: 3600,
-            wakeOnDemand: false,
+            wakeOnDemand: true,
             cooldownSec: 10,
             maxConcurrentRuns: 1,
           },
