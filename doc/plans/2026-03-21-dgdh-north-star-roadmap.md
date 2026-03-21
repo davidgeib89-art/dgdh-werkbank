@@ -85,6 +85,20 @@ Die richtige Definition ist:
 
 > Heartbeat = Ausfuehrungspuls fuer ein autorisiertes Work Packet, nicht Autonomie-Loop
 
+Wichtig fuer die Governance-Interpretation:
+
+- ein Heartbeat ist **nicht** der Moment, in dem David fuer jedes kleine Packet erneut gefragt wird
+- kleine, klar begrenzte, normale Work-Packet-Runs sollen standardmaessig einfach laufen
+- David soll nur bei echten Grenzfaellen bewusst eingebunden werden
+
+Das Gegenbild waere:
+
+- Mikro-Approvals fuer kleine bounded Tasks
+- Operator klickt sich durch Routine-Ausfuehrung
+- die AI delegiert nicht wirklich, sondern reicht Kleinstentscheidungen nach oben durch
+
+Das widerspricht dem DGDH-Zielbild. David ist CEO, nicht Klick-Dispatcher fuer Routinearbeit.
+
 ## 5. Work Packets statt generischer Tickets
 
 Paperclip hat schon gute Bausteine:
@@ -110,6 +124,12 @@ Das bedeutet:
 - jede echte Arbeit braucht einen klaren Packet-Rahmen
 - jedes Packet braucht Scope, Ziel, Done-Kriterium, Budget, Review-Bedarf
 - spaeter muessen parent/child Packet-Beziehungen sauber modelliert werden
+
+Fuer die operative Default-Richtung gilt:
+
+- ein sauber begrenztes Packet soll standardmaessig ohne manuelles Approval laufen
+- Approval darf nicht der Default fuer normale bounded Implementation-, Research- oder Review-Pakete sein
+- wenn ein Packet klar, klein und innerhalb des erwarteten Arbeitsrahmens ist, soll die AI selbst ausfuehren
 
 ## 6. Ausbaustufe 1: Nur Gemini
 
@@ -263,6 +283,18 @@ Die richtige Meta-Policy fuer die Thinking Layer ist:
 Wichtig: Die Thinking Layer entscheidet **ueber den Run**, nicht ueber die Aufgabe.
 Ob plan/implement/review angesagt ist, entscheidet der CEO-Agent. Die Engine sorgt nur dafuer
 dass der CEO-Agent das richtige Modell und den richtigen Kontext bekommt.
+
+Wichtig ist auch, was diese Ebene **nicht** tun soll:
+
+- keine Mikro-Governance fuer normale Kleinaufgaben
+- kein staendiges Nachfragen bei bounded Tasks mit niedrigem Risiko
+- keine Uebersetzung von "implementiere eine kleine klar definierte Sache" in Operator-Buerokratie
+
+Die spaetere richtige Governance-Richtung ist stattdessen:
+
+- ein eigener Reflexions-/Governance-Layer fuer wirklich kritische Faelle
+- nur eskalieren bei gefaehrlichen Mutationen, Scope-Explosion, unklaren Inputs, sehr grossen Kosten oder sonstigen Ausnahmesituationen
+- Governance soll David vor Schaden schuetzen, nicht ihn in Routinearbeit hineinziehen
 
 ## 10. Shared Memory: Nicht mehr, sondern besser
 
@@ -438,7 +470,20 @@ Bis dahin bleibt die Haltung:
 - technisch vorhandene Paperclip-Altlasten tolerieren
 - Rebranding bewusst verschieben, statt es als Ablenkung vor die produktive Agentenarbeit zu ziehen
 
-## 15. Praktische Zielarchitektur
+## 15.1 Governance-Richtung fuer die naechste Phase
+
+Kurzfristige Arbeitsregel:
+
+- normale bounded Tasks laufen ohne Routine-Approval
+- Approval ist **nicht** das Standard-Gegenstueck zu jedem `implement`-Run
+- wenn das aktuelle System kleine Tasks staendig stoppt, ist das ein Zeichen fuer zu grobe Policy, nicht fuer richtige Governance
+
+Spaeteres Zielbild:
+
+- separater AI-Reflexionsschritt gegen ein klares Regelwerk
+- Eskalation nur bei wirklich grossen, riskanten oder teuren Vorhaben
+- David trifft CEO-Entscheidungen auf Missions- und Ausnahmeebene, nicht fuer winzige operative Schritte
+## 16. Praktische Zielarchitektur
 
 ### Infrastruktur-Ebene (Engine)
 
@@ -461,11 +506,11 @@ Bis dahin bleibt die Haltung:
 > Shared Memory verbindet die Rollen ueber kompakte Handoffs.
 > Die Engine denkt ueber den Run nach. Die Agents denken ueber die Aufgabe nach.
 
-## 16. Der wichtigste Satz in diesem Dokument
+## 17. Der wichtigste Satz in diesem Dokument
 
 > Erst Gemini sauber. Dann Firmenbetrieb sauber. Dann MiniMax als bevorzugte naechste Worker-Lane. Alles auf einer gemeinsamen Engine Thinking Layer, nicht auf drei Sonderwelten. Die Engine denkt ueber den Run nach. Die Agents denken ueber die Aufgabe nach.
 
-## 17. Verweise
+## 18. Verweise
 
 - Fruehere Detailanalyse: `doc/plans/2026-03-21-heartbeat-ceo-worker-review-architecture-report.md`
 - Bestehende Firmenrichtung: `company-hq/ROADMAP.md`

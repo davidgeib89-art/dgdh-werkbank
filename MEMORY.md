@@ -41,7 +41,9 @@
 - **Token Caps = Warnings, kein hard stop** - timeoutSec ist der echte Guard
 - **Gemini zuerst, aber Engine-Core provider-agnostisch.** Phase 1 optimiert auf Gemini; spaeter Claude/Codex mit gleichem Smart-Core, nur Quota/Model-Layer provider-spezifisch.
 - **Heartbeats = Ausfuehrungspuls, nicht Autonomie-Loop.** DGDH-Zielbild: Heartbeat fuehrt genau ein bereits autorisiertes Work Packet aus.
+- **Keine Mikro-Approvals fuer normale bounded Tasks.** Das widerspricht dem DGDH-/North-Star-Zielbild. David soll nur bei echten Ausnahme-, Risiko- oder Grosslagen eingebunden werden.
 - **Shared Memory spaeter neu denken.** Vorhandene Memory/Reflection-Basis ist nur Rohbau; Zielbild ist missions-/packet-/review-orientierte Handoff-Memory statt generischer Vollkontext.
+- **Spaetere Governance != heutiges Stop-and-Ask.** Gewuenscht ist spaeter ein separater Reflexions-/Governance-Layer gegen Regeln fuer wirklich kritische/grosse Aufgaben, nicht Routine-Approval fuer kleine Runs.
 - **North Star Pflichtdoku:** `doc/plans/2026-03-21-dgdh-north-star-roadmap.md` ist die aktuelle Leitlinie und soll nach `INIT.md` + `MEMORY.md` immer gelesen werden.
 - **MiniMax spaeter als bevorzugte Worker-Lane pruefen.** Heute keine erkennbare MiniMax-Spur im Repo; erst nach stabiler Gemini-Lane und stabilisiertem Firmenbetrieb integrieren.
 
