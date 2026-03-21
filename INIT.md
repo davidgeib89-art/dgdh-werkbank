@@ -1,4 +1,4 @@
-# INIT — Universal AI Onboarding
+# INIT - Universal AI Onboarding
 
 > Du bist ein AI-Agent der in diesem Repository arbeitet.
 > Lies diese Datei ZUERST. Sie macht dich zum Experten.
@@ -25,14 +25,18 @@ Lies **sofort** `MEMORY.md` im Repo-Root. Das ist der geteilte Zustand aller AIs
 
 Lies diese Docs in dieser Reihenfolge:
 
-1. `company-hq/ROADMAP.md` — Wo wir stehen, wo wir hinwollen, warum
-2. `company-hq/DGDH-CEO-CONTEXT.md` — Davids Prioritaeten und Entscheidungsregeln
-3. `company-hq/VISION.md` — Mission, Werte, Organisationsstruktur
+1. `doc/plans/2026-03-21-dgdh-north-star-roadmap.md` - aktueller North Star; IMMER lesen
+2. `company-hq/ROADMAP.md` - Wo wir stehen, wo wir hinwollen, warum
+3. `company-hq/DGDH-CEO-CONTEXT.md` - Davids Prioritaeten und Entscheidungsregeln
+4. `company-hq/VISION.md` - Mission, Werte, Organisationsstruktur
+
+Wenn Dokumente sich widersprechen, gilt fuer die aktuelle operative Richtung zuerst:
+- `doc/plans/2026-03-21-dgdh-north-star-roadmap.md`
 
 Nur bei Bedarf (wenn deine Aufgabe es erfordert):
-- `company-hq/AI-CONTEXT-START-HERE.md` — vollstaendiger Doc-Index
-- `company-hq/DGDH-GEMINI-ENGINE-V1-2026-03-19.md` — Gemini Engine Spec
-- `CLAUDE.md` — Claude-spezifische Architektur-Details und Workflow
+- `company-hq/AI-CONTEXT-START-HERE.md` - vollstaendiger Doc-Index
+- `company-hq/DGDH-GEMINI-ENGINE-V1-2026-03-19.md` - Gemini Engine Spec
+- `CLAUDE.md` - Claude-spezifische Architektur-Details und Workflow
 
 ---
 
@@ -71,7 +75,7 @@ Monorepo mit pnpm workspaces + TypeScript project references.
 - David ist der CEO. Er gibt Richtung vor, du fuehrst aus.
 - Deutsch bevorzugt, Tech-Terms Englisch ok.
 - Kurz und direkt. Results > Plaene. Keine Textwaende.
-- David committet und pusht selbst — NIE danach fragen.
+- David committet und pusht selbst - NIE danach fragen.
 - Wenn du unsicher bist, frag. Lieber einmal fragen als falsch bauen.
 
 ### Leitfrage
@@ -85,16 +89,16 @@ Monorepo mit pnpm workspaces + TypeScript project references.
 - Keine unautorisierten Commits oder Aenderungen ausserhalb der Aufgabe
 
 ### MEMORY.md Pflege
-- **Lies MEMORY.md am Anfang** — versteh wo wir stehen
-- **Update MEMORY.md am Ende** — wenn sich etwas geaendert hat
-- **Korrigiere MEMORY.md sofort** — wenn etwas darin falsch ist
-- **Halte es kurz** — max ~150 Zeilen, Fakten statt Prosa
-- **Keine Session-Details** — nur stabile Fakten die ueber Sessions hinweg gelten
-- **Architektur-Entscheidungen festhalten** — die naechste AI muss wissen WARUM
+- **Lies MEMORY.md am Anfang** - versteh wo wir stehen
+- **Update MEMORY.md am Ende** - wenn sich etwas geaendert hat
+- **Korrigiere MEMORY.md sofort** - wenn etwas darin falsch ist
+- **Halte es kurz** - max ~150 Zeilen, Fakten statt Prosa
+- **Keine Session-Details** - nur stabile Fakten die ueber Sessions hinweg gelten
+- **Architektur-Entscheidungen festhalten** - die naechste AI muss wissen WARUM
 
 ### Issue Runs (Gemini-Agent steuern)
 - Issue Run starten: `PATCH /api/issues/{id}` mit `{"assigneeAgentId": "..."}`
-- NICHT `POST /api/agents/{id}/wakeup` — das ist ein Heartbeat ohne Kontext
+- NICHT `POST /api/agents/{id}/wakeup` - das ist ein Heartbeat ohne Kontext
 - Unassign + Reassign zum erneuten Triggern
 
 ### Env Vars (muessen gesetzt sein fuer Quota)
@@ -107,9 +111,10 @@ Monorepo mit pnpm workspaces + TypeScript project references.
 
 1. Lies diese INIT.md
 2. Lies MEMORY.md
-3. Du bist wieder auf Stand
-4. Arbeite weiter wo die letzte Session aufgehoert hat
+3. Lies `doc/plans/2026-03-21-dgdh-north-star-roadmap.md`
+4. Du bist wieder auf Stand
+5. Arbeite weiter wo die letzte Session aufgehoert hat
 
 ---
 
-> *Diese Datei ist der Schluessel zu nahtlosem Kontext ueber beliebig viele AI-Sessions und -Modelle hinweg. Halte MEMORY.md aktuell und die naechste AI dankt es dir.*
+> *Diese Datei ist der Schluessel zu nahtlosem Kontext ueber beliebig viele AI-Sessions und -Modelle hinweg. Halte MEMORY.md aktuell und lies den North Star, damit die Richtung stabil bleibt.*

@@ -1,7 +1,7 @@
 {
   "version": "v1",
   "defaultAccountLabel": "account-1",
-  "defaultMode": "advisory",
+  "defaultMode": "soft_enforced",
   "taskRoutes": {
     "research-light": {
       "preferredBucket": "flash",
