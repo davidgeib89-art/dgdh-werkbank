@@ -118,9 +118,17 @@ You're the board. Approve hires, override strategy, pause or terminate any agent
 <h3>📊 Org Chart</h3>
 Hierarchies, roles, reporting lines. Your agents have a boss, a title, and a job description.
 </td>
-<td align="center">
-<h3>📱 Mobile Ready</h3>
-Monitor and manage your autonomous businesses from anywhere.
+<td align="center" width="33%">
+<h3>⚙️ Advanced Routing & Quota Control</h3>
+Enhanced Gemini Routing Engine with skill selection and quota management ensures efficient agent operation and budget adherence.
+</td>
+<td align="center" width="33%">
+<h3>✅ Streamlined Approvals & Health</h3>
+Introduces an 'awaiting_approval' gate for critical tasks and improved agent health monitoring, refining governance and oversight.
+</td>
+<td align="center" width="33%">
+<h3>💰 Cost Optimization</h3>
+Advanced quota management and budget enforcement prevent runaway costs and optimize resource allocation.
 </td>
 </tr>
 </table>
@@ -134,8 +142,8 @@ Monitor and manage your autonomous businesses from anywhere.
 | ❌ You have 20 Claude Code tabs open and can't track which one does what. On reboot you lose everything.                              | ✅ Tasks are ticket-based, conversations are threaded, sessions persist across reboots.                                                |
 | ❌ You manually gather context from several places to remind your bot what you're actually doing.                                     | ✅ Context flows from the task up through the project and company goals — your agent always knows what to do and why.                  |
 | ❌ Folders of agent configs are disorganized and you're re-inventing task management, communication, and coordination between agents. | ✅ Paperclip gives you org charts, ticketing, delegation, and governance out of the box — so you run a company, not a pile of scripts. |
-| ❌ Runaway loops waste hundreds of dollars of tokens and max your quota before you even know what happened.                           | ✅ Cost tracking surfaces token budgets and throttles agents when they're out. Management prioritizes with budgets.                    |
-| ❌ You have recurring jobs (customer support, social, reports) and have to remember to manually kick them off.                        | ✅ Heartbeats handle regular work on a schedule. Management supervises.                                                                |
+| ❌ Runaway loops waste hundreds of dollars of tokens and max your quota before you even know what happened.                           | ✅ Enhanced cost tracking, budget enforcement via quota management, and 'awaiting_approval' gates prevent runaway costs and wasteful cycles. |
+| ❌ You have to manually approve each step or track agent status closely to prevent errors.                                            | ✅ Streamlined approval flows and proactive agent health monitoring provide better governance and reduce manual oversight needs. |
 | ❌ You have an idea, you have to find your repo, fire up Claude Code, keep a tab open, and babysit it.                                | ✅ Add a task in Paperclip. Your coding agent works on it until it's done. Management reviews their work.                              |
 
 <br/>
