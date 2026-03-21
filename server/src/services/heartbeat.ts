@@ -1,4 +1,5 @@
 import fs from "node:fs/promises";
+import { createHash } from "node:crypto";
 import path from "node:path";
 import { and, asc, desc, eq, gt, inArray, sql } from "drizzle-orm";
 import type { Db } from "@paperclipai/db";
@@ -32,7 +33,6 @@ import {
   appendWithCap,
   MAX_EXCERPT_BYTES,
 } from "../adapters/utils.js";
-import { approvalService } from "./approvals.js";
 import { costService } from "./costs.js";
 import { secretService } from "./secrets.js";
 import { resolveDefaultAgentWorkspaceDir } from "../home-paths.js";
@@ -211,6 +211,61 @@ function readNonEmptyStringArray(value: unknown): string[] {
     .filter((entry): entry is string => typeof entry === "string")
     .map((entry) => entry.trim())
     .filter((entry) => entry.length > 0);
+}
+
+function safeParseJsonLine(line: string): Record<string, unknown> | null {
+  try {
+    const parsed = JSON.parse(line);
+    return typeof parsed === "object" && parsed !== null && !Array.isArray(parsed)
+      ? (parsed as Record<string, unknown>)
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+function normalizeRelativeReadPath(value: unknown): string | null {
+  const raw = readNonEmptyString(value);
+  if (!raw) return null;
+  const normalized = raw.replace(/\\/g, "/").trim();
+  if (
+    normalized.length === 0 ||
+    normalized.startsWith("/") ||
+    /^[a-zA-Z]:\//.test(normalized)
+  ) {
+    return null;
+  }
+  const parts = normalized.split("/").filter((part) => part.length > 0);
+  if (parts.some((part) => part === "..")) return null;
+  return parts.length > 0 ? parts.join("/") : null;
+}
+
+function buildReadFileEvidencePreview(content: string, maxChars = 220): string {
+  const normalized = content.replace(/\r\n/g, "\n").trim();
+  if (normalized.length <= maxChars) return normalized;
+  return `${normalized.slice(0, maxChars)}...`;
+}
+
+async function collectReadFileEvidence(input: {
+  workspaceCwd: string;
+  relativePath: string;
+}) {
+  const absolutePath = path.resolve(input.workspaceCwd, input.relativePath);
+  const normalizedWorkspace = path.resolve(input.workspaceCwd);
+  if (!absolutePath.startsWith(normalizedWorkspace)) return null;
+
+  const stat = await fs.stat(absolutePath);
+  if (!stat.isFile()) return null;
+
+  const content = await fs.readFile(absolutePath, "utf8");
+  const sha256 = createHash("sha256").update(content, "utf8").digest("hex");
+
+  return {
+    relativePath: input.relativePath,
+    byteCount: Buffer.byteLength(content, "utf8"),
+    sha256,
+    preview: buildReadFileEvidencePreview(content),
+  };
 }
 
 function normalizeUsageTotals(
@@ -810,9 +865,22 @@ type IssuePromptContext = {
 };
 
 function trimIssueText(value: unknown) {
-  return typeof value === "string" && value.trim().length > 0
-    ? value.trim()
-    : null;
+  if (typeof value !== "string" || value.trim().length === 0) return null;
+
+  const normalized = value
+    .replace(/&#x20;/gi, " ")
+    .replace(/&#32;/gi, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'")
+    // undo common markdown escapes that break file paths in prompts
+    .replace(/\\([_`*[\]()#+\-.!\\])/g, "$1")
+    .trim();
+
+  return normalized.length > 0 ? normalized : null;
 }
 
 export function extractSingleFileBenchmarkTarget(
@@ -3057,6 +3125,8 @@ export function heartbeatService(db: Db) {
       let handle: RunLogHandle | null = null;
       let stdoutExcerpt = "";
       let stderrExcerpt = "";
+      let stdoutJsonLineBuffer = "";
+      const pendingReadFileToolUses = new Map<string, string>();
 
       try {
         const startedAt = run.startedAt ?? new Date();
@@ -3153,6 +3223,98 @@ export function heartbeatService(db: Db) {
               truncated: payloadChunk.length !== sanitizedChunk.length,
             },
           });
+
+          if (stream !== "stdout") return;
+
+          stdoutJsonLineBuffer += sanitizedChunk;
+          const completeLines = stdoutJsonLineBuffer.split(/\r?\n/);
+          stdoutJsonLineBuffer = completeLines.pop() ?? "";
+
+          for (const line of completeLines) {
+            const parsed = safeParseJsonLine(line.trim());
+            if (!parsed) continue;
+
+            if (readNonEmptyString(parsed.type) === "tool_use") {
+              const toolName =
+                readNonEmptyString(parsed.tool_name) ??
+                readNonEmptyString(parsed.name) ??
+                readNonEmptyString(parsed.tool);
+              const toolUseId =
+                readNonEmptyString(parsed.tool_use_id) ??
+                readNonEmptyString(parsed.tool_id) ??
+                readNonEmptyString(parsed.toolUseId) ??
+                readNonEmptyString(parsed.call_id) ??
+                readNonEmptyString(parsed.id);
+              const parameters =
+                typeof parsed.parameters === "object" &&
+                parsed.parameters !== null
+                  ? (parsed.parameters as Record<string, unknown>)
+                  : {};
+              const filePath =
+                normalizeRelativeReadPath(parameters.file_path) ??
+                normalizeRelativeReadPath(parameters.path);
+              if (
+                toolName?.trim().toLowerCase() === "read_file" &&
+                toolUseId &&
+                filePath
+              ) {
+                pendingReadFileToolUses.set(toolUseId, filePath);
+              }
+              continue;
+            }
+
+            if (readNonEmptyString(parsed.type) !== "tool_result") continue;
+
+            const toolUseId =
+              readNonEmptyString(parsed.tool_use_id) ??
+              readNonEmptyString(parsed.tool_id) ??
+              readNonEmptyString(parsed.toolUseId) ??
+              readNonEmptyString(parsed.call_id) ??
+              readNonEmptyString(parsed.id);
+            if (!toolUseId) continue;
+
+            const readPath = pendingReadFileToolUses.get(toolUseId);
+            if (!readPath) continue;
+            pendingReadFileToolUses.delete(toolUseId);
+
+            if (readNonEmptyString(parsed.output)) continue;
+
+            try {
+              const evidence = await collectReadFileEvidence({
+                workspaceCwd: executionWorkspace.cwd,
+                relativePath: readPath,
+              });
+              if (!evidence) continue;
+
+              await appendRunEvent(currentRun, seq++, {
+                eventType: "tool.evidence",
+                stream: "system",
+                level: "info",
+                message: `Captured read_file evidence for ${evidence.relativePath}`,
+                payload: {
+                  toolName: "read_file",
+                  toolUseId,
+                  path: evidence.relativePath,
+                  byteCount: evidence.byteCount,
+                  sha256: evidence.sha256,
+                  preview: evidence.preview,
+                },
+              });
+            } catch (err) {
+              await appendRunEvent(currentRun, seq++, {
+                eventType: "tool.evidence",
+                stream: "system",
+                level: "warn",
+                message: `Failed to capture read_file evidence for ${readPath}`,
+                payload: {
+                  toolName: "read_file",
+                  toolUseId,
+                  path: readPath,
+                  error: err instanceof Error ? err.message : String(err),
+                },
+              });
+            }
+          }
         };
         for (const warning of runtimeWorkspaceWarnings) {
           await onLog("stderr", `[paperclip] ${warning}\n`);
@@ -3227,92 +3389,8 @@ export function heartbeatService(db: Db) {
         // Run is parked. An approval record is created so the operator can act.
         // On approval, heartbeat.wakeup() queues a follow-up run that re-enters routing.
         // Bypass: if this run was already approved, skip Gate 2 to avoid infinite loop.
-        const approvalGranted =
-          readNonEmptyString(context.wakeReason) === "approval_approved";
-        const routingNeedsApproval =
-          routingPreflight &&
-          !routingPreflight.selected.blocked &&
-          routingPreflight.selected.needsApproval === true &&
-          !approvalGranted;
-        if (routingNeedsApproval) {
-          const blockReason = "needs_operator_approval";
-          const missingInputs = routingPreflight.selected.missingInputs;
-          const message =
-            "Routing preflight: task requires operator approval before execution";
-          await appendRunEvent(currentRun, seq++, {
-            eventType: "lifecycle",
-            stream: "system",
-            level: "warn",
-            message,
-            payload: {
-              stage: "routing.awaiting_approval",
-              blockReason,
-              needsApproval: true,
-              missingInputs,
-              executionIntent: routingPreflight.selected.executionIntent,
-              riskLevel: routingPreflight.selected.riskLevel,
-              budgetClass: routingPreflight.selected.budgetClass,
-              taskType: routingPreflight.selected.taskType,
-              controlPlane: routingPreflight.controlPlane,
-            },
-          });
-          await setRunStatus(run.id, "awaiting_approval", {
-            error: message,
-            errorCode: blockReason,
-            finishedAt: new Date(),
-            resultJson: {
-              type: "routing_awaiting_approval",
-              status: "awaiting_approval",
-              blockReason,
-              needsApproval: true,
-              missingInputs,
-              executionIntent: routingPreflight.selected.executionIntent,
-              riskLevel: routingPreflight.selected.riskLevel,
-              taskType: routingPreflight.selected.taskType,
-              budgetClass: routingPreflight.selected.budgetClass,
-            },
-          });
-          // Auto-create an approval record so the operator can act immediately.
-          // Approving via POST /approvals/:id/approve triggers heartbeat.wakeup()
-          // which queues a follow-up run that re-enters routing.
-          try {
-            const approvalQuestion =
-              `Soll ich die Aufgabe jetzt ausfuehren? ` +
-              `Ziel: ${routingPreflight.selected.doneWhen} ` +
-              `Arbeitsordner: ${routingPreflight.selected.targetFolder}.`;
-            await approvalService(db).create(agent.companyId, {
-              type: "routing_gate",
-              requestedByAgentId: agent.id,
-              requestedByUserId: null,
-              status: "pending",
-              payload: {
-                question: approvalQuestion,
-                summary: "Die Aufgabe ist bereit, braucht aber noch dein Okay.",
-                runId: run.id,
-                agentId: agent.id,
-                blockReason,
-                executionIntent: routingPreflight.selected.executionIntent,
-                riskLevel: routingPreflight.selected.riskLevel,
-                taskType: routingPreflight.selected.taskType,
-                budgetClass: routingPreflight.selected.budgetClass,
-                doneWhen: routingPreflight.selected.doneWhen,
-                targetFolder: routingPreflight.selected.targetFolder,
-                missingInputs,
-              },
-              decisionNote: null,
-              decidedByUserId: null,
-              decidedAt: null,
-              updatedAt: new Date(),
-            });
-          } catch (err) {
-            logger.warn(
-              { err, runId: run.id, agentId: agent.id },
-              "failed to create routing_gate approval record for awaiting_approval run",
-            );
-          }
-          await finalizeAgentStatus(agent.id, "awaiting_approval");
-          return;
-        }
+        // Gate 2 (routine operator approval) is intentionally disabled for now.
+        // Valid runs should continue unless they hit the hard block above.
         // Apply model lane override from routing preflight.
         // Analogous to how resolvedConfig.includeSkills is set from flashLiteProposal above.
         if (routingPreflight?.applyModelLane) {

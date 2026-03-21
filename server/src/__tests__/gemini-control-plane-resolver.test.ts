@@ -401,12 +401,12 @@ describe("resolveGeminiControlPlane", () => {
     });
 
     expect(result.selected.riskLevel).toBe("high");
-    expect(result.selected.needsApproval).toBe(true);
+    expect(result.selected.needsApproval).toBe(false);
     expect(result.selected.blocked).toBe(true);
     expect(result.selected.blockReason).toBe("risk_high_large_implementation");
   });
 
-  it("propagates missingInputs and enforces approval/block when inputs are missing", () => {
+  it("propagates missingInputs and blocks when inputs are missing", () => {
     const result = resolveGeminiControlPlane({
       policy,
       policySource: "test-policy",
@@ -443,7 +443,7 @@ describe("resolveGeminiControlPlane", () => {
       "repo path",
       "acceptance criteria",
     ]);
-    expect(result.selected.needsApproval).toBe(true);
+    expect(result.selected.needsApproval).toBe(false);
     expect(result.selected.blocked).toBe(true);
     expect(result.selected.blockReason).toBe("missing_inputs");
   });

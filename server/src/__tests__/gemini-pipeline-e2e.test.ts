@@ -11,7 +11,7 @@
  * Test matrix:
  *   Case 1: blocked path — missingInputs or risk triggers blocked=true → status "blocked"
  *   Case 2: success path — clean proposal flows through → adapter.execute() runs
- *   Case 3: needsApproval — blocked=false, needsApproval=true → status "awaiting_approval"
+ *   Case 3: high-risk but valid packet — blocked=false, needsApproval=false → continues
  */
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -120,7 +120,7 @@ function buildContextFromStage1Proposal(proposal: {
  * WHAT THIS PROVES:
  * - Stage-2 enforceWorkPacket sets blocked=true and blockReason when conditions met
  * - Stats surface correctly labels routing_blocked → result=blocked
- * - needsApproval is correctly triggered by missingInputs
+ * - missingInputs still hard-block execution even with routine approvals disabled
  *
  * WHAT THIS DOES NOT PROVE (boundary limit):
  * - Actual no-adapter-execute behavior requires heartbeat-level test
@@ -167,8 +167,8 @@ describe("Case 1: blocked path — Stage-2 enforces blocked=true", () => {
       "API spec document",
     ]);
 
-    // needsApproval correctly triggered by missing inputs
-    expect(result.selected.needsApproval).toBe(true);
+    // routine approval gate stays disabled even when missing inputs block the run
+    expect(result.selected.needsApproval).toBe(false);
 
     // heartbeat gate condition is met (blocked=true → early return before adapter.execute)
     expect(result.selected.blocked).toBe(true);

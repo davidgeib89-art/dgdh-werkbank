@@ -4,7 +4,7 @@ import path from "node:path";
 
 /**
  * Validates that DGDH Engine V1 defaults are correctly wired into the codebase.
- * These are contract tests — they read source files and verify the defaults match
+ * These are contract tests - they read source files and verify the defaults match
  * the Engine V1 spec (company-hq/DGDH-GEMINI-ENGINE-V1-2026-03-19.md).
  */
 
@@ -21,7 +21,7 @@ const executeSource = readFileSync(
   "utf8",
 );
 
-describe("DGDH Engine V1 — session compaction defaults", () => {
+describe("DGDH Engine V1 - session compaction defaults", () => {
   it("maxSessionRuns default is 20", () => {
     expect(heartbeatSource).toContain(
       'asNumber(compaction.maxSessionRuns, 20)',
@@ -41,7 +41,7 @@ describe("DGDH Engine V1 — session compaction defaults", () => {
   });
 });
 
-describe("DGDH Engine V1 — prompt template", () => {
+describe("DGDH Engine V1 - prompt template", () => {
   it("default prompt is DGDH-fit, not generic Paperclip", () => {
     expect(executeSource).toContain("DGDH Werkbank");
     expect(executeSource).not.toContain(
@@ -50,7 +50,7 @@ describe("DGDH Engine V1 — prompt template", () => {
   });
 });
 
-describe("DGDH Engine V1 — skill filtering", () => {
+describe("DGDH Engine V1 - skill filtering", () => {
   it("ensureGeminiSkillsInjected accepts includeSkills parameter", () => {
     expect(executeSource).toContain(
       "ensureGeminiSkillsInjected(onLog, includeSkills",
@@ -62,7 +62,7 @@ describe("DGDH Engine V1 — skill filtering", () => {
   });
 });
 
-describe("DGDH Engine V1 — prompt diet guards", () => {
+describe("DGDH Engine V1 - prompt diet guards", () => {
   it("includePaperclipEnvNote defaults to false", () => {
     expect(executeSource).toContain(
       'asBoolean(config.includePaperclipEnvNote, false)',
@@ -76,56 +76,15 @@ describe("DGDH Engine V1 — prompt diet guards", () => {
   });
 });
 
-describe("DGDH Approval Loop V1 — gate wiring", () => {
-  it("awaiting_approval gate is present (gate 2)", () => {
-    expect(heartbeatSource).toContain("routingNeedsApproval");
-    expect(heartbeatSource).toContain('"awaiting_approval"');
-  });
-
-  it("hard-blocked gate is separate from awaiting_approval gate (gate 1)", () => {
+describe("DGDH Routing Gates V1 - gate wiring", () => {
+  it("hard-blocked gate remains present (gate 1)", () => {
     expect(heartbeatSource).toContain("routingHardBlocked");
-    // Both gates have early returns — they're independent
-    expect(heartbeatSource).toContain("routing_awaiting_approval");
     expect(heartbeatSource).toContain("routing_blocked");
   });
 
-  it("approval record is auto-created on awaiting_approval", () => {
-    expect(heartbeatSource).toContain('"routing_gate"');
-    expect(heartbeatSource).toContain("approvalService(db).create");
-  });
-
-  it("approval payload includes doneWhen and targetFolder (continuity fields)", () => {
-    expect(heartbeatSource).toContain("doneWhen: routingPreflight.selected.doneWhen");
-    expect(heartbeatSource).toContain("targetFolder: routingPreflight.selected.targetFolder");
-  });
-});
-
-// ---------------------------------------------------------------------------
-// Continuity: approval-approved follow-up run bypasses Gate 2
-// ---------------------------------------------------------------------------
-
-const approvalsSource = readFileSync(
-  path.join(serverRoot, "server/src/routes/approvals.ts"),
-  "utf8",
-);
-
-describe("DGDH Continuity V1 — approval follow-up run", () => {
-  it("Gate 2 bypasses when wakeReason=approval_approved (no infinite loop)", () => {
-    expect(heartbeatSource).toContain('approvalGranted');
-    expect(heartbeatSource).toContain('"approval_approved"');
-    expect(heartbeatSource).toContain('!approvalGranted');
-  });
-
-  it("approvals.ts forwards work packet fields in contextSnapshot for routing_gate", () => {
-    expect(approvalsSource).toContain("approvedWorkPacket");
-    expect(approvalsSource).toContain("approvedTaskType");
-    expect(approvalsSource).toContain("approvedBudgetClass");
-    expect(approvalsSource).toContain("approvedExecutionIntent");
-    expect(approvalsSource).toContain("approvedDoneWhen");
-    expect(approvalsSource).toContain("approvedTargetFolder");
-  });
-
-  it("approvals.ts spreads approvedWorkPacket into contextSnapshot", () => {
-    expect(approvalsSource).toContain("...approvedWorkPacket");
+  it("routine approval gate is documented as disabled", () => {
+    expect(heartbeatSource).toContain(
+      "Gate 2 (routine operator approval) is intentionally disabled for now.",
+    );
   });
 });

@@ -443,11 +443,8 @@ function enforceWorkPacket(input: {
     enforcedRiskLevel = "high";
   }
 
-  const requiresApprovalByRisk =
-    enforcedRiskLevel === "high" || proposedBudgetClass === "large";
   const hasMissingInputs = proposedMissingInputs.length > 0;
-  const enforcedNeedsApproval =
-    proposedNeedsApproval || requiresApprovalByRisk || hasMissingInputs;
+  const enforcedNeedsApproval = false;
 
   let blocked = false;
   let blockReason: string | null = null;
@@ -515,7 +512,7 @@ function enforceWorkPacket(input: {
     "needsApproval",
     input.proposed?.needsApproval ?? null,
     enforced.needsApproval,
-    "needsApproval enforced due to risk/size/missing inputs",
+    "needsApproval routing gate is currently disabled by policy",
   );
   pushDiff(
     "missingInputs",

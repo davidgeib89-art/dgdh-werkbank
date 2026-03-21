@@ -117,12 +117,10 @@ describe("DGDH State Truth — gate finalization wiring", () => {
     expect(gate1Block).toBeGreaterThan(-1);
   });
 
-  it("Gate 2 calls finalizeAgentStatus after awaiting_approval setRunStatus", () => {
-    // Verifies finalizeAgentStatus is called in the awaiting_approval path
-    const gate2Block = heartbeatSource.indexOf(
-      'await finalizeAgentStatus(agent.id, "awaiting_approval")',
+  it("Gate 2 is disabled in the live path", () => {
+    expect(heartbeatSource).toContain(
+      "Gate 2 (routine operator approval) is intentionally disabled for now.",
     );
-    expect(gate2Block).toBeGreaterThan(-1);
   });
 
   it("budget warning publishLiveEvent is wired at 80% threshold", () => {
