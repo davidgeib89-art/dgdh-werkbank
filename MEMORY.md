@@ -8,30 +8,27 @@
 
 ## Aktueller Stand (2026-03-21)
 
-**Phase:** Echte Aufgaben - Enforced Routing aktiv, naechster Schritt: reale Arbeit
+**Phase:** Engine Thinking Layer + Heartbeat Gate vollstaendig. Naechster Schritt: erste echte DGDH-Aufgabe + CEO-Agent-Rolle
 
-### Was funktioniert
-- **Live Quota:** Echte Google-Quota-Daten fliessen via `gemini-quota-api.ts` ins Routing (flash=10%, pro=11%, flash-lite=9%)
-- **Engine Thinking Layer:** Flash (nicht Flash-Lite) als Router/Thinking-Modell; liefert Proposals (Modell, Bucket, Skills, Risk)
+### Was funktioniert (bewiesen in Run 97d945f8)
+- **Live Quota:** Echte Google-Quota-Daten fliessen ins Routing
+- **Engine Thinking Layer:** Flash als Thinking-Modell; Modellwahl, Skills, Budget, Risk, doneWhen
+- **Model Override:** `resolvedConfig.model = effectiveModelLane` wenn `applyModelLane=true` (heartbeat.ts ~3261)
+- **Context Injection:** `doneWhen`, `executionIntent`, `targetFolder` als "Engine directive" im Gemini-Prompt (execute.ts `renderEngineDirectiveNote`)
+- **Enforced Routing:** `soft_enforced` -> Thinking-Layer steuert tatsaechlich welches Modell laeuft
+- **Token Cap = Warning only:** Kein Run-Kill bei Ueberschreitung, nur warn-Log
 - **Issue Runs:** Starten sauber via `PATCH /api/issues/{id}` mit `assigneeAgentId`
-- **Quota-Injection:** Automatisch vor jedem Run in die Routing-Pipeline
 - **OAuth:** Credentials via Env Vars (`GEMINI_OAUTH_CLIENT_ID`, `GEMINI_OAUTH_CLIENT_SECRET`)
-- **Enforced Routing:** `defaultMode: soft_enforced` -> Flash-Lite-Entscheidung steuert tatsaechlich welches Modell laeuft (`laneStrategy: soft_enforced_use_recommended`)
-- **Model Override Fix:** `resolvedConfig.model` wird jetzt mit `effectiveModelLane` ueberschrieben wenn `applyModelLane=true` (heartbeat.ts ~3261)
-- **Context Injection:** `doneWhen`, `executionIntent`, `targetFolder` landen als "Engine directive" im Gemini-Prompt (execute.ts `renderEngineDirectiveNote`)
-- **Token Cap = Warning only:** `outcome = "failed"` bei Budget-Ueberschreitung entfernt, nur noch warn-Log
-- **missingInputs Prompt:** Flash-Lite traegt keine Skills mehr faelschlich als fehlende Inputs ein
+- **Heartbeat-Gate:** Kein Run ohne zugewiesenes Issue. Timer ohne Issue -> cancelled (agent=idle). Non-Timer ohne Issue -> blocked (policy stop). Ausnahme: `wakeReason=approval_approved`.
 
-### Was NICHT funktioniert
-- **Heartbeats broken:** Kein Issue-Kontext -> Gemini geht ohne Aufgabe rogue
-- **Keine echte Entlastung:** Noch keine reale Aufgabe erledigt die David abnimmt
-- **Token Caps = nur Orientierung:** Google-Quota ist der echte Hard Cap. hardCapTokens/softCapTokens nur als Warn-Logging, nie als Task-Kill-Gate (gefixt)
-- **doneWhen ungeprüft:** Router erzeugt Done-Kriterien und injiziert sie in den Prompt, aber kein Review-Layer prüft ob Gemini sie wirklich erfüllte
+### Was noch fehlt
+- **Kein Review-Layer:** doneWhen landet im Prompt aber niemand prueft ob Gemini es erfuellt hat
+- **Keine CEO-Agent-Rolle:** Noch kein Agent der Missionen zerlegt und Work Packets erstellt
 
 ### Naechste Schritte (Prioritaet)
-1. Erstes echtes Issue-Run: Gemini erledigt reale Aufgabe via PATCH /api/issues/{id}
-2. Routing-Kontext in den Gemini-Prompt injizieren (doneWhen, executionIntent, targetFolder)
-3. Heartbeat-Konzept ueberdenken: Was sollen Heartbeats im DGDH-Kontext tun?
+1. Erste echte DGDH-Aufgabe die David real entlastet
+2. CEO-Agent-Rolle: Gemini Pro als Missions-Planer/Delegator (Agent-Rolle, NICHT Engine-Layer)
+3. Review-Layer: Worker-done -> Reviewer-Agent -> CEO entscheidet
 
 ---
 
@@ -40,7 +37,7 @@
 - **Engine Thinking Layer entscheidet, NICHT der Server.** Keine Heuristiken. Thinking-Layer (Flash) bekommt Task + Quota + Skills und entscheidet alles.
 - **Thinking Layer ≠ CEO.** Engine-Layer ist Infrastruktur (Modellwahl, Budget, Kontext-Selektion). CEO ist eine Agent-Rolle die plant/delegiert/reviewed. Zwei getrennte Ebenen.
 - **Issues IMMER mit projectId erstellen** - sonst kein Workspace-Lookup, Gemini faellt in agent-home
-- **Skill-Matrix geloescht** - war deterministisch, David will das Flash-Lite autonom entscheidet
+- **Skill-Matrix geloescht** - war deterministisch, David will das Flash autonom entscheidet
 - **Token Caps = Warnings, kein hard stop** - timeoutSec ist der echte Guard
 - **Gemini zuerst, aber Engine-Core provider-agnostisch.** Phase 1 optimiert auf Gemini; spaeter Claude/Codex mit gleichem Smart-Core, nur Quota/Model-Layer provider-spezifisch.
 - **Heartbeats = Ausfuehrungspuls, nicht Autonomie-Loop.** DGDH-Zielbild: Heartbeat fuehrt genau ein bereits autorisiertes Work Packet aus.
@@ -62,22 +59,23 @@
 
 ## Git-Status
 
-- Branch: `docs/maintenance-20260321`
-- Sauberer Commit `b4698dd`: Live Quota API + Flash-Lite Router Improvements
-- Noch nicht gepusht (vorher: GitHub blockierte wegen hardcoded OAuth Secrets -> jetzt gefixt via Env Vars)
-- 16 veraltete Docs archiviert nach `company-hq/archive/2026-03-21-pre-live-quota/`
+- Branch: `main` (aktuell)
+- Letzter Commit `0d7698c`: Universal AI Init System + Roadmap + archivierte Docs
+- Uncommitted Changes: heartbeat.ts (Gate), MEMORY.md, INIT.md, gemini-routing-policy.v1.json, North-Star-Roadmap
+- Noch nicht gepusht
 
 ---
 
-## Letzter bewiesener Run (e05ffd57)
+## Letzter bewiesener Run (97d945f8)
 
 ```txt
-Quota:       flash=10%, pro=11%, flash-lite=9% (live, alle ok)
-Router:      source=flash_lite_call, parseStatus=ok, accepted=true
+Router:      flash_lite_call, parseStatus=ok, cacheHit=false
 Proposal:    research-light, small, flash, gemini-3-flash-preview
-Latenz:      12.9s (Router) + 2.8s (Gemini-Ausfuehrung)
+Intent:      review | doneWhen injiziert in Prompt
+missingInputs: [] (kein fehlerhafter Skill-Eintrag mehr)
+Token:       29,098 (83% von 35k cap) -> nur warn, kein fail
 Ergebnis:    succeeded - README gelesen und zusammengefasst
-Problem:     advisory only - Router-Empfehlung wurde nicht enforced
+Engine:      Modell, Kontext und Skills alle korrekt enforced
 ```
 
 ---
@@ -99,4 +97,4 @@ PATCH /api/issues/{id}  Body: {"assigneeAgentId": "9e721036-..."}
 
 ---
 
-> Zuletzt aktualisiert: 2026-03-21 von Claude Code (Model Override Fix)
+> Zuletzt aktualisiert: 2026-03-21 von Claude Code (Heartbeat Gate implementiert)

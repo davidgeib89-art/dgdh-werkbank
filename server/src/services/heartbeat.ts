@@ -2559,6 +2559,55 @@ export function heartbeatService(db: Db) {
         await finalizeAgentStatus(agent.id, "failed");
         return;
       }
+      // Heartbeat Gate: no run without an assigned issue.
+      // Per DGDH operating model: a heartbeat is an execution slice for one
+      // authorized work packet — not a generic autonomy loop.
+      // Exception: approval follow-ups (wakeReason="approval_approved") carry
+      // their own packet context via the approval record and are allowed through.
+      const gateIssueId = readNonEmptyString(context.issueId);
+      const gateWakeReason = readNonEmptyString(context.wakeReason);
+      if (!gateIssueId && gateWakeReason !== "approval_approved") {
+        const isTimerSource = run.invocationSource === "timer";
+        const gateMessage = isTimerSource
+          ? "Heartbeat gate: timer wake with no assigned issue — agent is idle."
+          : "Heartbeat gate: no issue assigned. Assign an issue before waking the agent.";
+        const gatedRun = await getRun(run.id);
+        if (gatedRun) {
+          await appendRunEvent(gatedRun, 1, {
+            eventType: "lifecycle",
+            stream: "system",
+            level: isTimerSource ? "info" : "warn",
+            message: gateMessage,
+          });
+        }
+        if (isTimerSource) {
+          // Timer with no work: quietly cancel, agent stays idle.
+          await setRunStatus(run.id, "cancelled", {
+            error: gateMessage,
+            errorCode: "no_assigned_issue",
+            finishedAt: new Date(),
+          });
+          await setWakeupStatus(run.wakeupRequestId, "cancelled", {
+            finishedAt: new Date(),
+            error: gateMessage,
+          });
+          await finalizeAgentStatus(agent.id, "cancelled");
+        } else {
+          // Non-timer wake without issue: policy stop — operator must assign an issue first.
+          await setRunStatus(run.id, "blocked", {
+            error: gateMessage,
+            errorCode: "no_assigned_issue",
+            finishedAt: new Date(),
+          });
+          await setWakeupStatus(run.wakeupRequestId, "blocked", {
+            finishedAt: new Date(),
+            error: gateMessage,
+          });
+          await finalizeAgentStatus(agent.id, "blocked");
+        }
+        return;
+      }
+
       const sessionCodec = getAdapterSessionCodec(agent.adapterType);
       const issueId = readNonEmptyString(context.issueId);
       const issueAssigneeConfig = issueId
