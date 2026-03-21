@@ -96,7 +96,7 @@ Role/provider mapping may evolve with evidence. The current priority is practica
 
 ## Key Principles
 
-1. **No autonomous CEO agent**: David is the human CEO.
+1. **No replacement CEO agent**: David is the human CEO and final authority. A bounded AI CEO / mission-manager role is allowed as an internal planning and delegation layer, as long as it stays inside governed packets and does not replace David's authority.
 2. **Humans control workflow**: no significant task starts without explicit human intent.
 3. **Paperclip as substrate**: Paperclip is foundation, not final identity.
 4. **Cut before adding**: first simplify what already exists before adding memory, tools, or new capability layers.
