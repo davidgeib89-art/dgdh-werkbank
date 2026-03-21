@@ -18,13 +18,15 @@
 - **OAuth:** Credentials via Env Vars (`GEMINI_OAUTH_CLIENT_ID`, `GEMINI_OAUTH_CLIENT_SECRET`)
 - **Enforced Routing:** `defaultMode: soft_enforced` -> Flash-Lite-Entscheidung steuert tatsaechlich welches Modell laeuft (`laneStrategy: soft_enforced_use_recommended`)
 - **Model Override Fix:** `resolvedConfig.model` wird jetzt mit `effectiveModelLane` ueberschrieben wenn `applyModelLane=true` (heartbeat.ts ~3261)
+- **Context Injection:** `doneWhen`, `executionIntent`, `targetFolder` landen als "Engine directive" im Gemini-Prompt (execute.ts `renderEngineDirectiveNote`)
+- **Token Cap = Warning only:** `outcome = "failed"` bei Budget-Ueberschreitung entfernt, nur noch warn-Log
+- **missingInputs Prompt:** Flash-Lite traegt keine Skills mehr faelschlich als fehlende Inputs ein
 
 ### Was NICHT funktioniert
 - **Heartbeats broken:** Kein Issue-Kontext -> Gemini geht ohne Aufgabe rogue
 - **Keine echte Entlastung:** Noch keine reale Aufgabe erledigt die David abnimmt
-- **Token Caps = nur Orientierung:** Google-Quota ist der echte Hard Cap. hardCapTokens/softCapTokens nur als Warn-Logging, nie als Task-Kill-Gate
-- **doneWhen ungeprüft:** Router erzeugt Done-Kriterien, aber kein Review-Layer prüft ob Gemini sie erfüllte
-- **Routing-Kontext nicht im Prompt:** doneWhen/executionIntent/targetFolder landen nicht explizit im Gemini-Prompt
+- **Token Caps = nur Orientierung:** Google-Quota ist der echte Hard Cap. hardCapTokens/softCapTokens nur als Warn-Logging, nie als Task-Kill-Gate (gefixt)
+- **doneWhen ungeprüft:** Router erzeugt Done-Kriterien und injiziert sie in den Prompt, aber kein Review-Layer prüft ob Gemini sie wirklich erfüllte
 
 ### Naechste Schritte (Prioritaet)
 1. Erstes echtes Issue-Run: Gemini erledigt reale Aufgabe via PATCH /api/issues/{id}

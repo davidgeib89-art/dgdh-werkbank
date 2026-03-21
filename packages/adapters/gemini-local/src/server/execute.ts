@@ -123,6 +123,25 @@ function renderIssueTaskNote(context: Record<string, unknown>): string {
   return lines.join("\n");
 }
 
+function renderEngineDirectiveNote(context: Record<string, unknown>): string {
+  const proposal = context.paperclipRoutingProposal;
+  if (typeof proposal !== "object" || proposal === null) return "";
+
+  const p = proposal as Record<string, unknown>;
+  const intent = asString(p.executionIntent, "").trim();
+  const doneWhen = asString(p.doneWhen, "").trim();
+  const targetFolder = asString(p.targetFolder, "").trim();
+
+  if (!intent && !doneWhen) return "";
+
+  const lines = ["Engine directive:"];
+  if (intent) lines.push(`- Intent: ${intent}`);
+  if (targetFolder && targetFolder !== ".") lines.push(`- Scope: ${targetFolder}`);
+  if (doneWhen) lines.push(`- Done when: ${doneWhen}`);
+  lines.push("", "");
+  return lines.join("\n");
+}
+
 function buildPromptHeader(prompt: string, maxLines = 18): string {
   return prompt.split(/\r?\n/).slice(0, maxLines).join("\n").trim();
 }
@@ -486,6 +505,7 @@ export async function execute(
     ? ""
     : asString(context.paperclipSessionHandoffMarkdown, "").trim();
   const issueTaskNote = renderIssueTaskNote(context);
+  const engineDirectiveNote = strictFloorMode ? "" : renderEngineDirectiveNote(context);
   const includePaperclipEnvNote =
     !strictFloorMode && asBoolean(config.includePaperclipEnvNote, false);
   const includeApiAccessNote =
@@ -510,6 +530,7 @@ export async function execute(
     renderedBootstrapPrompt,
     sessionHandoffNote,
     issueTaskNote,
+    engineDirectiveNote,
     floorModeGateNote,
     paperclipEnvNote,
     apiAccessNote,

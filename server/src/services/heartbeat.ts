@@ -3718,11 +3718,12 @@ export function heartbeatService(db: Db) {
             )} > cap ${formatCount(hardTokenCap)}`
           : null;
         if (exceededHardTokenCap) {
-          outcome = "failed";
+          // Token cap is orientation only — Google quota is the real hard cap.
+          // Log a warning but do not override a successful run outcome.
           await appendRunEvent(currentRun, seq++, {
             eventType: "lifecycle",
             stream: "system",
-            level: "error",
+            level: "warn",
             message: budgetExceededMessage ?? undefined,
           });
         } else if (

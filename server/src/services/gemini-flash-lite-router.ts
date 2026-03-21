@@ -346,7 +346,7 @@ function readRouterPolicy(
   return {
     enabled,
     fallbackOnly,
-    model: asString(routerConfig.model) ?? "gemini-2.5-flash",
+    model: asString(routerConfig.model) ?? "gemini-2.5-flash-lite",
     timeoutSec: clampInt(routerConfig.timeoutSec, 30, 2, 90),
     breakerThreshold: clampInt(breakerConfig.threshold, 3, 1, 10),
     breakerCooldownSec: clampInt(breakerConfig.cooldownSec, 90, 10, 900),
@@ -622,7 +622,7 @@ function buildStrictPrompt(input: {
       targetFolder: "string (relative folder path)",
       doneWhen: "string (clear done-condition)",
       riskLevel: ["low", "medium", "high"],
-      missingInputs: "string[]",
+      missingInputs: "string[] — only list genuinely ABSENT required inputs from the task description (e.g. 'target_file_not_specified', 'no_repository_url'). Do NOT list skills here. Leave empty [] if the task has all needed inputs.",
       needsApproval: "boolean",
       chosenBucket: ["flash", "pro", "flash-lite"],
       chosenModelLane: "string (must be one of allowedModelLanes)",
