@@ -657,7 +657,7 @@ export function resolveGeminiControlPlane(
   const runtimeRouting = asObject(input.runtimeConfig.routingPolicy);
   const routerConfig = asObject(runtimeRouting.llmRouter);
   const routerEnabled = asBoolean(routerConfig.enabled) ?? true;
-  const routerModel = asString(routerConfig.model) ?? "gemini-2.5-flash-lite";
+  const routerModel = asString(routerConfig.model) ?? "gemini-2.5-flash";
 
   const runtimeState = asObject(input.runtimeState);
   const runtimeControlPlane = asObject(runtimeState.controlPlane);

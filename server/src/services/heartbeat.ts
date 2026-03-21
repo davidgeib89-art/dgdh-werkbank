@@ -3258,6 +3258,12 @@ export function heartbeatService(db: Db) {
           await finalizeAgentStatus(agent.id, "awaiting_approval");
           return;
         }
+        // Apply model lane override from routing preflight.
+        // Analogous to how resolvedConfig.includeSkills is set from flashLiteProposal above.
+        if (routingPreflight?.applyModelLane) {
+          resolvedConfig.model = routingPreflight.selected.effectiveModelLane;
+        }
+
         const singleFileBenchmarkPreflight =
           await evaluateSingleFileBenchmarkPreflight({
             contextSnapshot: context,

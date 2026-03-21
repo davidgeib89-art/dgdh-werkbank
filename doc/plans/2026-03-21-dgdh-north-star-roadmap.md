@@ -100,9 +100,10 @@ Aber die Intelligenz liegt heute noch zu sehr im Run und zu wenig in der Arbeits
 
 Darum soll die Richtung sein:
 
-- Heartbeats dummer machen
-- Work Packets smarter machen
-- den CEO smarter machen
+- Heartbeats dummer machen (reiner Ausfuehrungspuls, keine eigene Intelligenz)
+- Engine Thinking Layer smarter machen (Modellwahl, Kontext-Selektion, Governance)
+- Work Packets smarter machen (klarere Scope/Done-Kriterien/Dependencies)
+- den CEO-Agent smarter machen (Packet-Zerlegung, Review-Auswertung, naechster Schritt)
 
 Das bedeutet:
 
@@ -136,26 +137,55 @@ Empfohlene Verteilung:
 - Worker: standardmaessig guenstiger und schneller, nur bei Bedarf teurer
 - Review: je nach Stakes guenstig oder stark
 
-## 7. Smart Engine Core statt Provider-Sonderwelten
+## 7. Zwei getrennte Ebenen: Engine Layer vs Agent Layer
+
+Es gibt zwei fundamental verschiedene Ebenen, die nicht verwechselt werden duerfen:
+
+### Engine Thinking Layer (Infrastruktur)
+
+Die Engine ist **Infrastruktur die vor und um jeden Agent-Run herum laeuft**.
+Sie macht den Run smart, aber sie IST NICHT der Agent.
+
+Die Engine bekommt: Task-Prompt, Quota-Zustand, Shared Memory, Agent-Config.
+Die Engine entscheidet: welches Modell, welches Budget, welcher Kontext, welches Risk-Level.
+Die Engine injiziert: doneWhen, executionIntent, targetFolder, Memory-Slices in den Run.
+
+Jeder Agent-Run — egal ob CEO, Worker oder Reviewer — geht durch diese Engine.
+
+### Agent Layer (Rollen)
+
+CEO, Worker und Reviewer sind **Agent-Rollen mit eigenen Prompts und Configs**.
+Sie planen, fuehren aus und reviewen. Die Intelligenz dieser Rollen kommt aus ihrem Prompt,
+ihrem Kontext und dem Modell das die Engine fuer sie gewaehlt hat.
+
+Der CEO-Agent zerlegt Missionen in Work Packets. Das ist Agent-Arbeit, nicht Engine-Arbeit.
+Der Worker-Agent fuehrt ein Packet aus. Die Engine hat vorher entschieden mit welchem Modell.
+Der Reviewer-Agent prueft das Ergebnis. Die Engine hat vorher entschieden wie stark das Modell sein muss.
+
+### Warum die Trennung wichtig ist
+
+Wenn AIs den Engine Core lesen und dort "Work Packet Zerlegung" oder "plant vs implementiert"
+sehen, bauen sie das in die Engine-Infrastruktur ein statt als Agent-Rolle.
+Das fuehrt zu Over-Engineering der Engine und Unterentwicklung der Agent-Rollen.
+
+Die klare Regel ist:
+
+> Die Engine denkt ueber den Run nach. Der Agent denkt ueber die Aufgabe nach.
+
+### Smart Engine Core statt Provider-Sonderwelten
 
 Langfristig soll es **nicht** drei komplett getrennte Engines geben.
 
 Es soll geben:
 
-- einen gemeinsamen `Smart Agent Engine Core`
+- einen gemeinsamen `Smart Engine Core` (die Thinking Layer)
 - plus provider-spezifische Module fuer:
   - Quota-Erfassung
   - Modellkatalog
   - Provider-Limits
   - Adapter-spezifische Ausfuehrungsdetails
 
-Das heisst:
-
-- `Gemini Engine`
-- `Claude Engine`
-- `Codex Engine`
-
-sollen **denselben Kern** teilen.
+Das heisst: `Gemini Engine`, `Claude Engine`, `Codex Engine` sollen **denselben Kern** teilen.
 
 Nur diese Schicht soll unterschiedlich sein:
 
@@ -164,86 +194,75 @@ Nur diese Schicht soll unterschiedlich sein:
 - Cooldown-/Rate-Limit-Semantik
 - provider-spezifische Adapter-Anbindung
 
-Alles andere soll gleich gedacht werden:
+## 8. Was in welche Ebene gehoert
 
-- Task Understanding
-- Packet-Zerlegung
-- Budget-Klassen
-- Risk/Approval-Entscheidungen
-- Execution Intent
-- Review Routing
-- Memory Retrieval
-- Reflection / Self-Check
-
-## 8. Was im Smart Engine Core stecken soll
-
-Der gemeinsame Core soll ausdruecken, **wie DGDH ueber Arbeit denkt**.
-
-Er soll mindestens diese Layer haben:
+### 8.1 Engine Thinking Layer (Infrastruktur — laeuft vor jedem Run)
 
 1. `Task Understanding`
-   - versteht den Auftrag
-   - erkennt Ambiguitaet
+   - analysiert den Task-Prompt
    - erkennt Task-Typ, Risiko, benoetigte Inputs
+   - erkennt Ambiguitaet und fehlende Informationen
 
-2. `Work Packet Layer`
-   - erzeugt begrenzte Pakete
-   - formuliert Done-Kriterien
-   - definiert Evidence und Review-Bedarf
+2. `Budget & Quota Layer`
+   - waehlt Budget-Klasse (small/medium/large) als Orientierung
+   - prueft Quota-Zustand aller verfuegbaren Modelle
+   - Google-Quota ist der echte Hard Cap, nicht die Engine
 
-3. `Decision Layer`
-   - plant vs implementiert vs reviewed
-   - entscheidet, ob Parallelisierung sicher ist
-   - entscheidet, ob Freigabe noetig ist
+3. `Provider Routing Layer`
+   - waehlt das optimale Modell fuer diesen Run
+   - mappt Task-Bedarf auf verfuegbare Modell-Lanes und Quotas
+   - waehlt das billigste Modell das die Aufgabe gut genug loesen kann
 
-4. `Budget Layer`
-   - waehlt Budget-Klasse
-   - erzwingt Hard Caps
-   - entscheidet, wann starke Reasoning-Kosten gerechtfertigt sind
+4. `Context Injection Layer`
+   - injiziert doneWhen, executionIntent, targetFolder in den Agent-Prompt
+   - holt den kleinsten sinnvollen Memory-Slice
+   - packt Governance-Constraints in den Kontext
 
-5. `Provider Routing Layer`
-   - mappt Packet-Bedarf auf Provider-Quotas und Modell-Lanes
+5. `Governance Gates`
+   - blockiert Runs bei fehlenden Inputs oder zu hohem Risiko
+   - erzwingt Approval bei High-Risk-Operationen
+   - deterministisch, kein LLM noetig
 
-6. `Memory Layer`
-   - holt nur den kleinsten sinnvollen Kontext
-   - schreibt kompakte wiederverwendbare Handoffs
-   - vermeidet Vollkontext-Muell
+### 8.2 Agent-Rollen (CEO, Worker, Reviewer — sind KEINE Engine-Komponenten)
 
-## 9. Routing: Nicht dogmatisch billig, sondern smart billig
+Diese Aufgaben gehoeren in die **Agent-Rollen**, nicht in die Engine:
 
-Die aktuelle Frage ist richtig:
+- `Missionen in Work Packets zerlegen` → CEO-Agent
+- `Entscheiden ob plan/implement/review` → CEO-Agent
+- `Parallelisierung planen` → CEO-Agent
+- `Review-Ergebnisse einsammeln und bewerten` → CEO-Agent
+- `Klar abgegrenzte Pakete ausfuehren` → Worker-Agent
+- `Ergebnis gegen Done-Kriterium pruefen` → Reviewer-Agent
 
-> Sollte fuer Routing und Modellwahl wirklich immer das billigste Modell entscheiden?
+Die Engine stellt sicher dass jeder Agent-Run mit dem richtigen Modell,
+dem richtigen Kontext und den richtigen Guardrails laeuft.
+Was der Agent dann TUT ist seine Sache — gesteuert durch seine Rolle und seinen Prompt.
 
-Meine klare Antwort:
+## 9. Engine Thinking Layer: Nicht dogmatisch billig, sondern smart
 
-- nein, nicht immer
+Die Engine Thinking Layer ist die erste Denkebene bevor ein Agent-Run startet.
 
-Die richtige Meta-Policy ist:
+Aktueller Stand: Flash (nicht Flash-Lite) als Thinking-Modell.
+Der Quota-Verbrauch dieser Ebene ist vernachlaessigbar (~1000 Tokens pro Routing-Call vs 5000-50000+ im eigentlichen Run).
+
+Die richtige Meta-Policy fuer die Thinking Layer ist:
 
 1. `Deterministische Guardrails zuerst`
-   - manches darf gar kein LLM entscheiden
-   - z.B. fehlende Pflichtinputs, verbotene Zielbereiche, klare High-Risk-Mutationen
+   - fehlende Pflichtinputs, verbotene Zielbereiche, High-Risk-Mutationen
+   - kein LLM noetig, rein regelbasiert
 
-2. `Billiges Routing fuer Routine`
-   - einfache begrenzte Pakete duerfen billig geroutet werden
+2. `Thinking Layer fuer alles was Kontext-Verstaendnis braucht`
+   - Modellwahl, Budget-Einschaetzung, Skill-Selektion
+   - Memory-Slice-Auswahl, Context-Zusammenstellung
+   - Confidence-Assessment: ist genug Kontext da fuer einen guten Run?
 
-3. `Staerkeres Routing fuer teure Fehlentscheidungen`
-   - wenn die Entscheidung selbst grossen Downstream-Schaden ausloesen kann, muss die Entscheidungsinstanz besser werden
+3. `Staerkeres Thinking-Modell wenn die Entscheidung teuer ist`
+   - wenn die Engine-Entscheidung selbst grossen Downstream-Schaden ausloesen kann
+   - spaeter koennte die Engine selbst entscheiden ob sie Flash oder Pro fuer ihre eigene Analyse braucht
 
-Das bedeutet praktisch:
-
-- einfache Worker-Pakete koennen billig geroutet werden
-- CEO-/Planungs-Pakete sollten **nicht** standardmaessig vom billigsten Modell entschieden werden
-- Review-Pakete brauchen je nach Stakes unterschiedlich starke Urteilsqualitaet
-
-Die richtige Formel ist also nicht:
-
-- `Flash-Lite entscheidet immer`
-
-sondern:
-
-- `die Engine waehlt das billigste Modell, das die Routing-Entscheidung mit genug Qualitaet und Confidence treffen kann`
+Wichtig: Die Thinking Layer entscheidet **ueber den Run**, nicht ueber die Aufgabe.
+Ob plan/implement/review angesagt ist, entscheidet der CEO-Agent. Die Engine sorgt nur dafuer
+dass der CEO-Agent das richtige Modell und den richtigen Kontext bekommt.
 
 ## 10. Shared Memory: Nicht mehr, sondern besser
 
@@ -421,28 +440,30 @@ Bis dahin bleibt die Haltung:
 
 ## 15. Praktische Zielarchitektur
 
-Das angestrebte Bild ist:
+### Infrastruktur-Ebene (Engine)
 
-- `David`
-- `AI CEO / Mission Manager`
-- `Worker Lanes`
-- `Reviewer Lanes`
-- `Smart Engine Core`
-- `Provider Modules`
-- `Governed Shared Handoff Memory`
-- `Packet Graph / Orchestration Layer`
+- `Engine Thinking Layer` — erste Denkebene vor jedem Run (Modellwahl, Budget, Kontext, Governance)
+- `Provider Modules` — Gemini/Claude/Codex-spezifische Quota-APIs und Adapter
+- `Governed Shared Handoff Memory` — kompakte, querybare Memory-Slices statt Vollkontext
+- `Heartbeat Runtime` — transportiert autorisierte Work Packets zur Ausfuehrung
 
-Kurz:
+### Agent-Ebene (Rollen)
 
-> Heartbeats transportieren Arbeit.
-> Work Packets strukturieren Arbeit.
-> Der Engine Core denkt ueber Arbeit nach.
-> Provider Module liefern Modelle und Quotas.
+- `David` — menschlicher CEO, gibt Missionen und Freigaben
+- `AI CEO / Mission Manager` — Agent-Rolle: plant, zerlegt, delegiert, sammelt Reviews
+- `Worker Agents` — Agent-Rolle: fuehren klar abgegrenzte Pakete aus
+- `Reviewer Agents` — Agent-Rolle: pruefen Ergebnisse gegen Done-Kriterien
+
+### Zusammenspiel
+
+> Die Engine macht jeden Agent-Run smart (richtiges Modell, richtiger Kontext, richtige Guardrails).
+> Die Agents machen die eigentliche Arbeit (planen, ausfuehren, pruefen).
 > Shared Memory verbindet die Rollen ueber kompakte Handoffs.
+> Die Engine denkt ueber den Run nach. Die Agents denken ueber die Aufgabe nach.
 
 ## 16. Der wichtigste Satz in diesem Dokument
 
-> Erst Gemini sauber. Dann Firmenbetrieb sauber. Dann MiniMax als bevorzugte naechste Worker-Lane. Alles auf einem gemeinsamen Smart Engine Core, nicht auf drei Sonderwelten.
+> Erst Gemini sauber. Dann Firmenbetrieb sauber. Dann MiniMax als bevorzugte naechste Worker-Lane. Alles auf einer gemeinsamen Engine Thinking Layer, nicht auf drei Sonderwelten. Die Engine denkt ueber den Run nach. Die Agents denken ueber die Aufgabe nach.
 
 ## 17. Verweise
 

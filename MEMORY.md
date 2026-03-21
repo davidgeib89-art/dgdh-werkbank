@@ -12,25 +12,31 @@
 
 ### Was funktioniert
 - **Live Quota:** Echte Google-Quota-Daten fliessen via `gemini-quota-api.ts` ins Routing (flash=10%, pro=11%, flash-lite=9%)
-- **Flash-Lite Router:** Liefert korrekte autonome Proposals (Modell, Bucket, Skills, Risk)
+- **Engine Thinking Layer:** Flash (nicht Flash-Lite) als Router/Thinking-Modell; liefert Proposals (Modell, Bucket, Skills, Risk)
 - **Issue Runs:** Starten sauber via `PATCH /api/issues/{id}` mit `assigneeAgentId`
 - **Quota-Injection:** Automatisch vor jedem Run in die Routing-Pipeline
 - **OAuth:** Credentials via Env Vars (`GEMINI_OAUTH_CLIENT_ID`, `GEMINI_OAUTH_CLIENT_SECRET`)
 - **Enforced Routing:** `defaultMode: soft_enforced` -> Flash-Lite-Entscheidung steuert tatsaechlich welches Modell laeuft (`laneStrategy: soft_enforced_use_recommended`)
+- **Model Override Fix:** `resolvedConfig.model` wird jetzt mit `effectiveModelLane` ueberschrieben wenn `applyModelLane=true` (heartbeat.ts ~3261)
 
 ### Was NICHT funktioniert
 - **Heartbeats broken:** Kein Issue-Kontext -> Gemini geht ohne Aufgabe rogue
 - **Keine echte Entlastung:** Noch keine reale Aufgabe erledigt die David abnimmt
+- **Token Caps = nur Orientierung:** Google-Quota ist der echte Hard Cap. hardCapTokens/softCapTokens nur als Warn-Logging, nie als Task-Kill-Gate
+- **doneWhen ungeprüft:** Router erzeugt Done-Kriterien, aber kein Review-Layer prüft ob Gemini sie erfüllte
+- **Routing-Kontext nicht im Prompt:** doneWhen/executionIntent/targetFolder landen nicht explizit im Gemini-Prompt
 
 ### Naechste Schritte (Prioritaet)
-1. Erstes echtes Mini-Projekt: Gemini erledigt reale Aufgabe
-2. Heartbeat-Konzept ueberdenken: Was sollen Heartbeats im DGDH-Kontext tun?
+1. Erstes echtes Issue-Run: Gemini erledigt reale Aufgabe via PATCH /api/issues/{id}
+2. Routing-Kontext in den Gemini-Prompt injizieren (doneWhen, executionIntent, targetFolder)
+3. Heartbeat-Konzept ueberdenken: Was sollen Heartbeats im DGDH-Kontext tun?
 
 ---
 
 ## Architektur-Entscheidungen (gefestigt)
 
-- **Flash-Lite entscheidet, NICHT der Server.** Keine Heuristiken. Flash-Lite bekommt Task + Quota + Skills und entscheidet alles.
+- **Engine Thinking Layer entscheidet, NICHT der Server.** Keine Heuristiken. Thinking-Layer (Flash) bekommt Task + Quota + Skills und entscheidet alles.
+- **Thinking Layer ≠ CEO.** Engine-Layer ist Infrastruktur (Modellwahl, Budget, Kontext-Selektion). CEO ist eine Agent-Rolle die plant/delegiert/reviewed. Zwei getrennte Ebenen.
 - **Issues IMMER mit projectId erstellen** - sonst kein Workspace-Lookup, Gemini faellt in agent-home
 - **Skill-Matrix geloescht** - war deterministisch, David will das Flash-Lite autonom entscheidet
 - **Token Caps = Warnings, kein hard stop** - timeoutSec ist der echte Guard
@@ -91,4 +97,4 @@ PATCH /api/issues/{id}  Body: {"assigneeAgentId": "9e721036-..."}
 
 ---
 
-> Zuletzt aktualisiert: 2026-03-21 von Codex + Claude Code
+> Zuletzt aktualisiert: 2026-03-21 von Claude Code (Model Override Fix)

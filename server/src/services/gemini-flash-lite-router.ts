@@ -346,7 +346,7 @@ function readRouterPolicy(
   return {
     enabled,
     fallbackOnly,
-    model: asString(routerConfig.model) ?? "gemini-2.5-flash-lite",
+    model: asString(routerConfig.model) ?? "gemini-2.5-flash",
     timeoutSec: clampInt(routerConfig.timeoutSec, 30, 2, 90),
     breakerThreshold: clampInt(breakerConfig.threshold, 3, 1, 10),
     breakerCooldownSec: clampInt(breakerConfig.cooldownSec, 90, 10, 900),
