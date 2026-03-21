@@ -3,11 +3,13 @@ import { UserPlus, Lightbulb, ShieldCheck } from "lucide-react";
 export const typeLabel: Record<string, string> = {
   hire_agent: "Hire Agent",
   approve_ceo_strategy: "CEO Strategy",
+  routing_gate: "Routing Approval",
 };
 
 export const typeIcon: Record<string, typeof UserPlus> = {
   hire_agent: UserPlus,
   approve_ceo_strategy: Lightbulb,
+  routing_gate: ShieldCheck,
 };
 
 export const defaultTypeIcon = ShieldCheck;
@@ -54,6 +56,21 @@ export function CeoStrategyPayload({ payload }: { payload: Record<string, unknow
   const plan = payload.plan ?? payload.description ?? payload.strategy ?? payload.text;
   return (
     <div className="mt-3 space-y-1.5 text-sm">
+      {"question" in payload && (
+        <div className="rounded-md border border-amber-500/20 bg-amber-500/[0.08] px-3 py-2 text-sm text-amber-950 dark:text-amber-50">
+          <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-amber-700 dark:text-amber-300">
+            AI asks
+          </div>
+          <div className="mt-1 whitespace-pre-wrap font-medium">
+            {String(payload.question)}
+          </div>
+          {"summary" in payload && (
+            <div className="mt-2 text-xs text-amber-800/90 dark:text-amber-200/90">
+              {String(payload.summary)}
+            </div>
+          )}
+        </div>
+      )}
       <PayloadField label="Title" value={payload.title} />
       {!!plan && (
         <div className="mt-2 rounded-md bg-muted/40 px-3 py-2 text-sm text-muted-foreground whitespace-pre-wrap font-mono text-xs max-h-48 overflow-y-auto">

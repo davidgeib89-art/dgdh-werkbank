@@ -149,6 +149,8 @@ export function ApprovalDetail() {
   const isActionable = approval.status === "pending" || approval.status === "revision_requested";
   const TypeIcon = typeIcon[approval.type] ?? defaultTypeIcon;
   const showApprovedBanner = searchParams.get("resolved") === "approved" && approval.status === "approved";
+  const approvalQuestion = typeof payload.question === "string" ? payload.question : null;
+  const approvalSummary = typeof payload.summary === "string" ? payload.summary : null;
   const primaryLinkedIssue = linkedIssues?.[0] ?? null;
   const resolvedCta =
     primaryLinkedIssue
@@ -216,6 +218,19 @@ export function ApprovalDetail() {
                 name={agentNameById.get(approval.requestedByAgentId) ?? approval.requestedByAgentId.slice(0, 8)}
                 size="sm"
               />
+            </div>
+          )}
+          {approvalQuestion && (
+            <div className="rounded-md border border-amber-500/20 bg-amber-500/[0.08] px-3 py-2 text-sm text-amber-950 dark:text-amber-50">
+              <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-amber-700 dark:text-amber-300">
+                AI asks
+              </div>
+              <div className="mt-1 whitespace-pre-wrap font-medium">{approvalQuestion}</div>
+              {approvalSummary && (
+                <div className="mt-2 text-xs text-amber-800/90 dark:text-amber-200/90">
+                  {approvalSummary}
+                </div>
+              )}
             </div>
           )}
           <ApprovalPayloadRenderer type={approval.type} payload={payload} />

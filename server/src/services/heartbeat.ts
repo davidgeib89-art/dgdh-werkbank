@@ -3276,12 +3276,18 @@ export function heartbeatService(db: Db) {
           // Approving via POST /approvals/:id/approve triggers heartbeat.wakeup()
           // which queues a follow-up run that re-enters routing.
           try {
+            const approvalQuestion =
+              `Soll ich die Aufgabe jetzt ausfuehren? ` +
+              `Ziel: ${routingPreflight.selected.doneWhen} ` +
+              `Arbeitsordner: ${routingPreflight.selected.targetFolder}.`;
             await approvalService(db).create(agent.companyId, {
               type: "routing_gate",
               requestedByAgentId: agent.id,
               requestedByUserId: null,
               status: "pending",
               payload: {
+                question: approvalQuestion,
+                summary: "Die Aufgabe ist bereit, braucht aber noch dein Okay.",
                 runId: run.id,
                 agentId: agent.id,
                 blockReason,

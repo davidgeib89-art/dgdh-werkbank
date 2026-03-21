@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState, useRef } from "react";
 import { useParams, useNavigate, Link, Navigate, useBeforeUnload } from "@/lib/router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { agentsApi, type AgentKey, type ClaudeLoginResult } from "../api/agents";
+import { approvalsApi } from "../api/approvals";
 import { heartbeatsApi } from "../api/heartbeats";
 import { ApiError } from "../api/client";
 import { ChartCard, RunActivityChart, PriorityChart, IssueStatusChart, SuccessRateChart } from "../components/ActivityCharts";
@@ -1263,6 +1264,11 @@ function RunDetail({ run: initialRun, agentRouteId, adapterType }: { run: Heartb
     queryFn: () => heartbeatsApi.get(initialRun.id),
     enabled: Boolean(initialRun.id),
   });
+  const { data: approvals } = useQuery({
+    queryKey: queryKeys.approvals.list(initialRun.companyId),
+    queryFn: () => approvalsApi.list(initialRun.companyId),
+    enabled: !!initialRun.companyId,
+  });
   const run = hydratedRun ?? initialRun;
   const metrics = runMetrics(run);
   const [sessionOpen, setSessionOpen] = useState(false);
@@ -1403,6 +1409,22 @@ function RunDetail({ run: initialRun, agentRouteId, adapterType }: { run: Heartb
   const sessionChanged = run.sessionIdBefore && run.sessionIdAfter && run.sessionIdBefore !== run.sessionIdAfter;
   const sessionId = run.sessionIdAfter || run.sessionIdBefore;
   const hasNonZeroExit = run.exitCode !== null && run.exitCode !== 0;
+  const runContext = asRecord(run.contextSnapshot);
+  const awaitingApproval =
+    run.status === "awaiting_approval" ||
+    (run.resultJson as Record<string, unknown> | null)?.type === "routing_awaiting_approval";
+  const linkedApproval = useMemo(() => {
+    if (!awaitingApproval || !approvals) return null;
+    return (
+      approvals.find((approval) => {
+        const payload = asRecord(approval.payload);
+        const approvalRunId = typeof payload?.runId === "string" ? payload.runId : null;
+        const approvalWorkPacketId = typeof payload?.workPacketId === "string" ? payload.workPacketId : null;
+        return approvalRunId === run.id || approvalWorkPacketId === run.id;
+      }) ?? null
+    );
+  }, [approvals, awaitingApproval, run.id]);
+  const approvalLink = linkedApproval ? `/approvals/${linkedApproval.id}` : "/approvals";
 
   return (
     <div className="space-y-4 min-w-0">
@@ -1481,6 +1503,35 @@ function RunDetail({ run: initialRun, agentRouteId, adapterType }: { run: Heartb
               <div className="text-xs">
                 <span className="text-red-600 dark:text-red-400">{run.error}</span>
                 {run.errorCode && <span className="text-muted-foreground ml-1">({run.errorCode})</span>}
+              </div>
+            )}
+            {awaitingApproval && (
+              <div className="rounded-lg border border-amber-500/20 bg-amber-500/[0.08] px-3 py-2 text-xs">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="space-y-0.5">
+                    <p className="font-medium text-amber-900 dark:text-amber-100">
+                      Waiting for operator approval
+                    </p>
+                    <p className="text-amber-800/90 dark:text-amber-200/90">
+                      This run is parked until the routing gate is approved in the frontend.
+                    </p>
+                  </div>
+                  <Button size="sm" variant="outline" asChild>
+                    <Link to={approvalLink}>
+                      {linkedApproval ? "Open approval" : "Open approvals"}
+                    </Link>
+                  </Button>
+                </div>
+                {linkedApproval && (
+                  <div className="mt-2 text-[11px] text-amber-800/80 dark:text-amber-200/80">
+                    Linked approval {linkedApproval.id.slice(0, 8)}.
+                  </div>
+                )}
+                {!linkedApproval && runContext && typeof runContext.approvalId === "string" && (
+                  <div className="mt-2 text-[11px] text-amber-800/80 dark:text-amber-200/80">
+                    Approval {runContext.approvalId.slice(0, 8)} is referenced by the run context.
+                  </div>
+                )}
               </div>
             )}
             {run.errorCode === "claude_auth_required" && adapterType === "claude_local" && (
