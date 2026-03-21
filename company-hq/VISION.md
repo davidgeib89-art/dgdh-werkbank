@@ -74,7 +74,7 @@ Kurzfristig bedeutet das:
   - Helps clarify direction, structure, reflection, and roadmap coherence
   - Supports synthesis, review, and strategic reframing
 
-- **Copilot in Repo** (Builder / Execution Partner)
+- **Claude Code in Repo** (Builder / Execution Partner)
   - Fast implementation, refactoring, and repository work
   - Helps turn architectural decisions into concrete code and docs
 
@@ -106,4 +106,4 @@ Role/provider mapping may evolve with evidence. The current priority is practica
 
 ---
 
-Last updated: 2026-03-17
+Last updated: 2026-03-21
