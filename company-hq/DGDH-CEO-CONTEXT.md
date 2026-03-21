@@ -3,7 +3,7 @@
 > **Leitfrage:** *Entlastet das David real oder verschoenert es nur die Maschine?*
 
 Zuletzt aktualisiert: 2026-03-21
-Version: 2.0 – Live Quota bewiesen, Enforced Routing als naechster Schritt
+Version: 2.1 – Worker + Reviewer bewiesen
 
 ---
 
@@ -23,28 +23,31 @@ Version: 2.0 – Live Quota bewiesen, Enforced Routing als naechster Schritt
 |-----|-----|----------|
 | **David (CEO)** | Richtung, Entscheidungen, Freigaben | Pro-Agent-Skills einstellen, Modell pro Run waehlen |
 | **ChatGPT** (Architekt) | Plant, reflektiert, strukturiert | Code schreiben |
-| **Claude Code** (Builder) | Baut was geplant wird, liefert Code | Planen, Richtung vorgeben |
+| **Claude Code** (Chief of Staff) | Baut was geplant wird, liefert Code, strenger Architekt | Planen, Richtung vorgeben |
 | **Flash-Lite Layer** | Entscheidet autonom: Modell/Bucket/Skills pro Run | David fragen fuer Routine |
-| **Gemini Agent** | Fuehrt die echte Arbeit aus | Eigene Richtung vorgeben |
+| **Gemini Agent** | Fuehrt die echte Arbeit aus (Rollen: Worker, Reviewer, CEO) | Eigene Richtung vorgeben |
 
 ---
 
 ## 2. Aktuelle Phase
 
-**Phase:** Enforced Routing — Router-Entscheidung soll das Modell tatsaechlich steuern
+**Phase:** Worker + Reviewer bewiesen, naechster Schritt: Worker-Loop schaerfen + Reviewer-Matrix + CEO V1
 
 **Was funktioniert (bewiesen am 2026-03-21):**
-- Live Quota aus Google API: flash=10%, pro=11%, flash-lite=9% (identisch mit `gemini /stats session`)
-- Flash-Lite Router liefert korrekte Proposals: `research-light`, `small`, `flash` fuer README-Task
-- Issue Runs starten sauber via Dashboard (assign → wakeup → run → succeeded)
-- Quota-Injection ins Routing-System vor jedem Run
+- Enforced Routing (`soft_enforced` aktiv, Modellwahl greift)
+- Heartbeat-Gate (Kein Run ohne zugewiesenes Issue)
+- Role Templates (`worker.json`, `reviewer.json`, `ceo.json` integriert)
+- Worker-Beweis in echten Runs erbracht
+- Reviewer-Beweis (Urteilt nach Criteria statt neu zu bauen)
+- Issue-Lifecycle Automatik (`todo` → `in_review` → `done`)
+- Dashboard-Bruecke (Rollen-Dropdown in Agent-Edit UI)
 
 **Was NICHT funktioniert:**
-- Router ist `advisory only` — empfiehlt Modell, aber das konfigurierte laeuft trotzdem
-- Heartbeats sind broken (kein Kontext → Gemini geht rogue)
-- Noch keine echte Aufgabe erledigt die David entlastet
+- Kein aktiver CEO-Agent im System
+- Kein automatischer Worker → Reviewer Chain
+- PowerShell-`&&`-Problem bei Gemini fuehrt zu Token-Verschwendung
 
-**Naechster Schritt:** `advisory` → `enforced` Mode, damit Flash-Lite's Modellwahl durchgesetzt wird
+**Naechster Schritt:** Worker-Loop explizit schaerfen, Reviewer-Matrix verfeinern, dann den CEO V1 aufbauen.
 
 ---
 
@@ -57,7 +60,7 @@ Version: 2.0 – Live Quota bewiesen, Enforced Routing als naechster Schritt
 - Live Quota kommt rein → Flash-Lite entscheidet welcher Pool
 - Skills werden auch entschieden – NICHT David's Job
 - Dashboard zeigt: aktuelle Quotas, letzte Entscheidung, warum
-- **NEU:** Die Entscheidung muss enforced werden, nicht nur empfohlen
+- Die Entscheidung muss enforced werden, nicht nur empfohlen
 
 **Quotas die wir ausnutzen (Google AI Pro Account):**
 - **Pro Pool:** gemini-2.5-pro, gemini-3.1-pro-preview
@@ -67,7 +70,7 @@ Version: 2.0 – Live Quota bewiesen, Enforced Routing als naechster Schritt
 **Gesamter AI Stack (~100 EUR/Monat):**
 | Tool | Kosten | Rolle |
 |------|--------|-------|
-| Claude Code | ~20 EUR | Builder, Architekt, CLI |
+| Claude Code | ~20 EUR | Chief of Staff, Builder, Architekt, CLI |
 | Codex (OpenAI) | ~20 EUR | CLI Worker |
 | Gemini AI Pro x2 Accounts | ~40 EUR | Primaere Worker-Lane (daily Quota reset) |
 | MiniMax Coding Plan | ~20 EUR | Arbeitsbiene fuer Massenarbeit (2.7M Context, guenstig) |
@@ -79,22 +82,19 @@ Version: 2.0 – Live Quota bewiesen, Enforced Routing als naechster Schritt
 ## 4. Now / Next / Later
 
 ### NOW
-- **Enforced Routing** — Flash-Lite-Entscheidung steuert welches Modell laeuft
-- **Modell-Wechsel** — Agent muss zwischen Flash/Pro/Flash-Lite wechseln koennen
-- **Heartbeat-Konzept ueberdenken** — was sollen Heartbeats im DGDH-Kontext tun?
+- **Worker-Loop schaerfen**
+- **Reviewer-Matrix** verfeinern
 
 ### NEXT
-- **Erstes echtes Projekt** — Gemini erledigt eine reale Aufgabe
-- **Quota im Dashboard** — Usage % pro Bucket, live
-- **Run-Trace im Dashboard** — Quota → Entscheidung → Ergebnis
+- **CEO V1** implementieren
+- **Tool-/Guardrail-Loop** nachziehen
 
 ### LATER
-- Claude/Codex reaktivieren unter strengen Bedingungen
-- Multi-Agent-Coordination
-- Mehr Autonomie nur bei stabiler Governance
+- **Multi-Agent**-Ausbau
+- **Expansion** (andere Provider)
 
 ### NOT NOW
-- Multi-Agent-Komplexitaet
+- Multi-Agent-Komplexitaet ohne stabile Grundrollen
 - Neue Architekturflächen
 - Benchmark-Theater
 - Romantische "mehr Autonomie"-Erweiterungen
@@ -105,13 +105,12 @@ Version: 2.0 – Live Quota bewiesen, Enforced Routing als naechster Schritt
 
 | Was | Wann | Warum wichtig |
 |-----|------|---------------|
+| Worker-Beweis erbracht | 2026-03-21 | Echte Aufgabe in Test-Repo erfolgreich beendet |
+| Reviewer-Beweis erbracht | 2026-03-21 | Review findet statt Re-Implementation statt |
+| Dashboard-Bruecke | 2026-03-21 | Rollen lassen sich im UI zuweisen |
+| Role Templates | 2026-03-21 | Feste Rollen statt fluider Prompts |
+| Issue-Lifecycle-Automatik | 2026-03-21 | Runs verschieben Issues sauber im Board |
 | Live Quota aus Google API | 2026-03-21 | Echte Quota-Daten statt statische Config |
-| Flash-Lite Router liefert korrekte Proposals | 2026-03-21 | `research-light/small/flash` — richtige Entscheidung |
-| Issue Runs starten sauber | 2026-03-21 | assign → wakeup → run → succeeded, kein manuelles Wakeup |
-| Quota-Injection in Routing Pipeline | 2026-03-21 | Live-Daten fliessen automatisch vor jedem Run ein |
-| OAuth Creds aus Code entfernt | 2026-03-21 | GitHub Push-Blocker geloest, Env Vars statt Hardcoded |
-| Skill Filtering + Routing Engine | 2026-03-20 | Flash-Lite entscheidet Skills autonom |
-| Session Compaction + Agent Health | 2026-03-19 | Saubere Status-Semantik |
 
 ---
 
@@ -120,9 +119,9 @@ Version: 2.0 – Live Quota bewiesen, Enforced Routing als naechster Schritt
 ```
 Architecture      ████████████████░░░░  80%
 Governance        ████████████████░░░░  80%
-Routing Engine    ██████████████░░░░░░  70%  ← advisory ok, enforced fehlt
-Operator Surface  ████████░░░░░░░░░░░░  40%  ← ENGPASS
-Produktive Work   ████░░░░░░░░░░░░░░░░  20%  ← noch keine echte Entlastung
+Routing Engine    ██████████████████░░  90%
+Operator Surface  ██████████░░░░░░░░░░  50%
+Produktive Work   ██████████░░░░░░░░░░  50%
 ```
 
 ---
@@ -131,10 +130,9 @@ Produktive Work   ████░░░░░░░░░░░░░░░░  
 
 | Risk | Warum relevant | Gegenmassnahme |
 |------|----------------|----------------|
-| Advisory-only Routing | Flash-Lite entscheidet, aber nichts passiert | Enforced Mode implementieren |
-| Heartbeats broken | Kein Kontext → Gemini geht rogue | Heartbeat-Konzept grundlegend ueberdenken |
-| Keine echte Entlastung | System funktioniert technisch, liefert aber nichts Nuetzliches | Erstes echtes Projekt testen |
+| Keine echte Entlastung | System funktioniert technisch, liefert aber noch kein Kundenprojekt | Fokus auf erstes echtes Projekt |
 | Operator-Blindheit | David sieht zu wenig im Dashboard | Quota + Routing ins UI bringen |
+| PowerShell-Fehler | Gemini verbrennt Tokens in Windows | Shell-Anweisungen und Loop-Detection einbauen |
 
 ---
 
@@ -153,7 +151,7 @@ Produktive Work   ████░░░░░░░░░░░░░░░░  
 - Flash-Lite Router: `server/src/services/gemini-flash-lite-router.ts`
 - Control Plane: `server/src/services/gemini-control-plane.ts`
 - Heartbeat: `server/src/services/heartbeat.ts`
-- Routing Policy: `server/config/gemini-routing-policy.v1.json`
+- Role Templates: `server/config/role-templates/*.json`
 
 ---
 
@@ -165,9 +163,9 @@ DU BIST NEU HIER?
 2. Gemini = primaere Worker-Lane
 3. Token-Oekonomie = Kern
 4. Leitfrage: "Entlastet das David real?"
-5. Phase: Enforced Routing (advisory → enforced)
+5. Phase: Worker-Loop schaerfen + Reviewer-Matrix + CEO V1
 6. NICHT: neue Lanes, mehr Architektur, Benchmark-Theater
-7. Lies: ROADMAP.md fuer den Plan, VISION.md fuer das grosse Bild
+7. Lies: doc/plans/2026-03-21-dgdh-north-star-roadmap.md
 ```
 
 ---

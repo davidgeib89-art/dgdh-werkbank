@@ -97,6 +97,19 @@ function renderApiAccessNote(env: Record<string, string>): string {
   ].join("\n");
 }
 
+function renderPowerShellNote(): string {
+  if (os.platform() !== "win32") return "";
+  return [
+    "Windows PowerShell note:",
+    "- This run is executed in Windows PowerShell.",
+    "- Do not use '&&' to chain commands; use ';' instead.",
+    "- Example: 'npm install; npm test' (not 'npm install && npm test').",
+    "- Be careful with backslashes and double quotes in JSON arguments.",
+    "",
+    "",
+  ].join("\n");
+}
+
 function renderIssueTaskNote(context: Record<string, unknown>): string {
   const taskPrompt = asString(context.paperclipTaskPrompt, "").trim();
   if (!taskPrompt) return "";
@@ -532,6 +545,7 @@ export async function execute(
         "",
       ].join("\n")
     : "";
+  const powerShellNote = renderPowerShellNote();
   const prompt = joinPromptSections([
     strictFloorMode ? "" : instructionsPrefix,
     roleTemplateNote,
@@ -542,6 +556,7 @@ export async function execute(
     floorModeGateNote,
     paperclipEnvNote,
     apiAccessNote,
+    powerShellNote,
     renderedPrompt,
   ]);
   const promptMetrics = {

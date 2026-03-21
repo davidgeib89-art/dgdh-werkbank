@@ -14,46 +14,40 @@ Gemini ist die erste Arbeiterbiene. Die Infrastruktur steht:
 - **Issue Runs** starten sauber und liefern Ergebnisse
 - **Routing Engine** (Flash-Lite → Control Plane → Heartbeat) ist durchgaengig verkabelt
 
-**Aber:** Die Routing-Entscheidung wird noch nicht durchgesetzt. Der Router empfiehlt nur (`advisory` Mode), das konfigurierte Modell laeuft trotzdem. Das ist der Kern-Blocker.
+**Naechster Schritt:** Worker-Loop schaerfen, Reviewer-Matrix, dann CEO V1.
 
 ---
 
-## Phase 1: ENFORCED ROUTING (Naechster Schritt)
+## Phase 1: ENFORCED ROUTING (ERLEDIGT)
 
 **Ziel:** Flash-Lite-Entscheidung steuert tatsaechlich welches Modell laeuft.
 
 | Was | Status | Detail |
 |-----|--------|--------|
-| `advisory` → `enforced` Mode umschalten | Offen | `laneStrategy` muss von `advisory_keep_configured` auf enforced wechseln |
-| Modell-Wechsel durchsetzen | Offen | Wenn Flash-Lite `pro` sagt, muss der Adapter `gemini-3.1-pro-preview` starten |
-| Bucket-Enforcement | Offen | `chosenBucket` muss das effektive Modell bestimmen |
-| Quota-basierte Eskalation | Offen | Flash exhausted → automatisch Flash statt Flash-Lite |
-
-**Done-Kriterium:** Flash-Lite sagt "pro" → Agent laeuft tatsaechlich auf Pro-Modell. Sichtbar im Run-Log.
+| `advisory` → `enforced` Mode umschalten | Erledigt | `soft_enforced` Mode aktiv |
+| Modell-Wechsel durchsetzen | Erledigt | Router-Empfehlung wird angewendet |
+| Bucket-Enforcement | Erledigt | `chosenBucket` bestimmt das effektive Modell |
+| Quota-basierte Eskalation | Erledigt | Flash exhausted → automatisch Flash statt Flash-Lite |
 
 ---
 
-## Phase 2: HEARTBEATS REPARIEREN
+## Phase 2: HEARTBEATS REPARIEREN (ERLEDIGT)
 
 **Ziel:** Heartbeats sind aktuell broken — sie bekommen keinen Issue-Kontext und Gemini geht ohne Aufgabe rogue.
 
 | Was | Status | Detail |
 |-----|--------|--------|
-| Heartbeat-Kontext definieren | Offen | Was soll ein Heartbeat im DGDH-Kontext tun? |
-| Issue-Kontext in Heartbeats | Offen | Heartbeat sollte offene Issues kennen, nicht blind starten |
-| Heartbeat-Intervall sinnvoll setzen | Offen | 3600s ist zu lang fuer Monitoring, zu kurz fuer nichts |
-| Rogue-Prevention | Offen | Ohne klaren Auftrag darf Gemini nichts machen |
-
-**Offene Frage:** Brauchen wir Heartbeats ueberhaupt oder reichen Issue-Runs?
+| Heartbeat-Gate | Erledigt | Heartbeat-Gate enforced Issue-Assignment. Kein Run ohne zugewiesenes Issue |
 
 ---
 
-## Phase 3: ECHTE AUFGABEN
+## Phase 3: ECHTE AUFGABEN (TEILWEISE ERLEDIGT)
 
 **Ziel:** Gemini erledigt eine echte Aufgabe die David entlastet — nicht nur Test-Issues.
 
 | Was | Status | Detail |
 |-----|--------|--------|
+| Worker + Reviewer Beweis | Erledigt | Worker + Reviewer in echten Runs bewiesen |
 | Erstes echtes Mini-Projekt | Offen | z.B. Webseite verbessern, Content schreiben, Recherche |
 | Ergebnis-Qualitaet bewerten | Offen | War das Ergebnis brauchbar ohne Nacharbeit? |
 | Token-Effizienz messen | Offen | Wie viel Quota hat die Aufgabe gekostet? |
@@ -63,12 +57,13 @@ Gemini ist die erste Arbeiterbiene. Die Infrastruktur steht:
 
 ---
 
-## Phase 4: OPERATOR SURFACE
+## Phase 4: OPERATOR SURFACE (TEILWEISE)
 
 **Ziel:** David versteht die Lage ohne Repo-Dive.
 
 | Was | Status | Detail |
 |-----|--------|--------|
+| Rollen-Management | Erledigt | Dashboard hat Rollen-Dropdown und Agent-Edit |
 | Quota im Dashboard sichtbar | Offen | Usage % pro Bucket, live |
 | Routing-Entscheidung im Dashboard | Offen | Flash-Lite Proposal + Rationale pro Run |
 | Run-Trace | Offen | Quota → Entscheidung → Ergebnis → Kosten |
@@ -104,9 +99,9 @@ Gemini ist die erste Arbeiterbiene. Die Infrastruktur steht:
 ```
 Architecture      ████████████████░░░░  80%
 Governance        ████████████████░░░░  80%
-Routing Engine    ██████████████░░░░░░  70%  ← advisory funktioniert, enforced fehlt
-Operator Surface  ████████░░░░░░░░░░░░  40%  ← David sieht zu wenig
-Produktive Work   ████░░░░░░░░░░░░░░░░  20%  ← noch keine echte Entlastung
+Routing Engine    ██████████████████░░  90%  ← Enforced Routing funktioniert
+Operator Surface  ██████████░░░░░░░░░░  50%  ← Dashboard hat Rollen, Quota fehlt
+Produktive Work   ██████████░░░░░░░░░░  50%  ← Worker/Reviewer bewiesen, echtes Projekt fehlt
 ```
 
 ---

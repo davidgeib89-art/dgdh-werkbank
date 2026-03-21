@@ -104,7 +104,9 @@ Gemini kennt das Schema (keystatic.config.ts + content.config.ts) und weiss exak
 - **Minimaler Reviewer-Pfad gebaut:** Wenn ein `reviewer`-Agent ein Issue uebernimmt, bekommt er im Prompt automatisch den letzten non-reviewer Run desselben Issues als Review-Ziel (Run-ID, Worker-Agent, Summary, read-file evidence paths)
 - **Reviewer blockt sauber ohne Ziel:** Wenn noch kein Worker-Run fuer das Issue existiert, wird der Reviewer-Prompt explizit auf `blocked` statt auf Ausfuehrung des Pakets gelenkt
 - **Reviewer gehaertet:** `accepted` soll nur noch bei erfuelltem `doneWhen`, sauberem Scope und ohne unsupported claims/source drift vergeben werden; bei materiellen Zweifeln lieber `needs_revision`
+- **Worker-Loop gehaertet:** `worker.json` fuehrt jetzt explizit einen `locate -> hypothesize -> patch -> validate` Default-Loop und verlangt ein kurzes strukturiertes Handoff (`Goal`, `Result`, `Files Changed`, `Validation`, `Blockers`, `Next`)
 - **Reviewer in echten Runs bewiesen:** Erstlauf war zu weich, nach Haertung ist ein `accepted`-Urteil auf dem echten Test-Artefakt vertretbar; Review passiert wirklich statt Re-Implementation
+- **Reviewer-Matrix gehaertet:** `reviewer.json` prueft jetzt entlang `Scope`, `Correctness`, `Evidence`, `Safety/Readiness` und soll vor `accepted` wenn sinnvoll schnelle Checks wie readback/lint/test/build nutzen
 - **Issue-Lifecycle jetzt automatisch:** Erfolgreicher `worker`-Run zieht ein Issue im normalen Assignment-Flow auf `in_review` (auch wenn es vorher noch `todo` war); erfolgreicher `reviewer`-Run mit `Verdict: accepted` zieht auf `done`
 - **Reviewer-Verdict-Parser gefixt:** `stdoutExcerpt` liegt bei Gemini als NDJSON/stream-json vor; `extractReviewerVerdict()` rekonstruiert jetzt Assistant-Content aus den JSON-Linien, damit `Verdict: accepted` auch in echten Run-Logs erkannt und `Issue -> done` wirklich ausgelost wird
 - **Geschlossene Issues promoten keine alten deferred Runs mehr:** Nach `done`/`cancelled` werden deferred issue-execution wakes nicht mehr neu gestartet
@@ -116,9 +118,9 @@ Gemini kennt das Schema (keystatic.config.ts + content.config.ts) und weiss exak
 - **Quota-Observability weiter schaerfen:** Snapshot wird gespeichert + wiederverwendet, aber fruehere `0%`-Drift zeigt, dass Refresh-/Darstellungslogik noch weiter verifiziert werden sollte
 
 ### Naechste Schritte (Prioritaet)
-1. **CEO bauen:** Parent-Mission rein -> 3-5 Work-Packet-Issues raus, sichtbar im Dashboard
+1. **CEO V1 bauen:** Parent-Mission rein -> 3-5 Work-Packet-Issues raus, sichtbar im Dashboard, jetzt auf gehaertetem Worker/Reviewer-Unterbau
 2. **Kleinen Shell-/Tooling-Fix fuer Gemini ziehen:** PowerShell-`&&` vermeiden, damit Worker/Reviewer weniger Tokens verbrennen
-3. **Quota-Observability schaerfen:** CLI-`/stats session` und internen Refresh-Pfad wieder voll deckungsgleich machen
+3. **Tool-/Guardrail-Loop spaeter ziehen:** nach CEO V1 MCP-/policy-aehnlicher machen und Checks tiefer in den Loop zurueckfuehren
 
 ---
 
@@ -127,6 +129,7 @@ Gemini kennt das Schema (keystatic.config.ts + content.config.ts) und weiss exak
 - **Engine ≠ CEO.** Engine = Infrastruktur (Modellwahl, Budget, Kontext). CEO = Agent-Rolle (plant, delegiert, reviewed).
 - **Rollen = kanonische Templates.** Feste systemdefinierte Rollen (`CEO`, `Worker`, `Reviewer`) in `server/config/role-templates/*.json`. Nicht vom Agenten selbst mutierbar. Details: `doc/plans/2026-03-21-role-template-architecture.md`.
 - **Packets 1+2 fertig.** Template-System definiert + drei Rollen spezifiziert. Packets 3-6 erst nach Beweis.
+- **Paper-Review schaerft die Reihenfolge.** Erst Worker-Loop haerten, dann Reviewer-Matrix, dann CEO V1; grosser Tool-/Guardrail-Ausbau erst danach.
 - **Beweis vor Infrastruktur.** Smoke-Test mit echter worker.json vor DB-Migration/UI-Dropdown.
 - **Smoke-Test-Pfad existiert bereits im Code.** `server/config/role-templates/worker.json` ist angelegt; `adapterConfig.roleTemplateId = "worker"` und optional `roleAppendPrompt` werden in `heartbeat.ts` aufgeloest und als `paperclipRoleTemplatePrompt` in Gemini-Prompts injiziert.
 - **Dashboard kann Rollen jetzt bedienen.** Rolle + Operator-Prompt laufen ueber bestehendes `adapterConfig` JSON; kein neues DB-Schema, keine Migration.

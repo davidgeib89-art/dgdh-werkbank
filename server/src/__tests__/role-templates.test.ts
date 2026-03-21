@@ -38,6 +38,9 @@ describe("resolveAssignedRoleTemplate", () => {
     expect(result.assigned?.prompt).toContain(
       "You are the Worker role for David Geib Digitales Handwerk",
     );
+    expect(result.assigned?.prompt).toContain("1. Locate");
+    expect(result.assigned?.prompt).toContain("2. Hypothesize");
+    expect(result.assigned?.prompt).toContain("4. Validate");
   });
 
   it("appends the operator add-on prompt without replacing the template", () => {
@@ -66,6 +69,9 @@ describe("resolveAssignedRoleTemplate", () => {
     expect(result.assigned?.prompt).toContain(
       "Accepted is only allowed when the result satisfies doneWhen",
     );
+    expect(result.assigned?.prompt).toContain("Review dimensions:");
+    expect(result.assigned?.prompt).toContain("Scope -");
+    expect(result.assigned?.prompt).toContain("Safety and Readiness");
     expect(result.assigned?.template.constraints).toContain(
       "Do not accept results with unsupported claims, source drift, or scope drift.",
     );

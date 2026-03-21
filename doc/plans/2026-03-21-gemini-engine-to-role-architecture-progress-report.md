@@ -29,6 +29,15 @@ Update later the same day:
 - the role-template path is no longer just architecture; it has operational proof
 - the next constraint is no longer "can roles be injected?" but "how do we review and tighten worker behavior?"
 
+Update after paper review later the same day:
+
+- the North Star direction is confirmed
+- the next operational improvement is not "more agents" but sharper worker/reviewer behavior
+- near-term order is now:
+  - harden `worker.json` with a visible execution loop
+  - harden `reviewer.json` with a fixed review matrix and pre-accept checks
+  - then build `CEO V1`
+
 ## 1.1 Outcome reached after this report was started
 
 The originally planned next step in this report was "start Packet 3."

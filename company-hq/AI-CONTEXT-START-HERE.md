@@ -8,28 +8,26 @@ Last updated: 2026-03-21
 
 If you are a new AI agent in this repo:
 
-1. Start with this file.
-2. Load only the Active Core Set first.
-3. Do not load archived documents unless the task explicitly requires historical context.
+1. Start with `INIT.md` and `MEMORY.md`.
+2. Then read this file.
+3. Load only the Active Core Set first.
+4. Do not load archived documents unless the task explicitly requires historical context.
 
 ## Active Core Set (Load First)
 
-1. `company-hq/DGDH-CEO-CONTEXT.md` — CEO's view, current phase, priorities
-2. `company-hq/ROADMAP.md` — where we are, where we're going, why
-3. `company-hq/VISION.md` — mission, values, organizational structure
-4. `company-hq/MODEL-ROADMAP.md` — model strategy and lane priorities
-5. `company-hq/AGENT-CONSTITUTION.md` — agent governance rules
-6. `company-hq/AGENT-PROFILES.md` — agent roles and capabilities
+1. `doc/plans/2026-03-21-dgdh-north-star-roadmap.md` — The North Star (PRIMARY REFERENCE)
+2. `company-hq/DGDH-CEO-CONTEXT.md` — CEO's view, current phase, priorities
+3. `company-hq/ROADMAP.md` — where we are, where we're going, why
+4. `company-hq/VISION.md` — mission, values, organizational structure
 
 ## Governance Set (Load When Working On Execution Behavior)
 
-1. `company-hq/AUTONOMY-MODES.md`
-2. `company-hq/BUDGET-POLICY.md`
-3. `company-hq/ESCALATION-MATRIX.md`
-4. `company-hq/IDLE-POLICY.md`
-5. `company-hq/TASK-BRIEF-TEMPLATE.md`
-6. `company-hq/ROLE-ROUTING-CONTRACT.md`
-7. `company-hq/MINIMAL-CORE-PROMPT-CONTRACT.md`
+1. `company-hq/AGENT-CONSTITUTION.md`
+2. `company-hq/AGENT-PROFILES.md`
+3. `company-hq/AUTONOMY-MODES.md`
+4. `company-hq/BUDGET-POLICY.md`
+5. `company-hq/ESCALATION-MATRIX.md`
+6. `company-hq/IDLE-POLICY.md`
 
 ## Technical Reference (Load When Working On Routing/Quota)
 
@@ -49,18 +47,19 @@ These are historical references, not default operating context.
 
 When two docs conflict:
 
-1. prefer Active Core Set (especially CEO-CONTEXT and ROADMAP)
-2. then prefer Governance Set
-3. treat archived docs as historical evidence only
+1. prefer the `MEMORY.md` and `doc/plans/2026-03-21-dgdh-north-star-roadmap.md`
+2. then prefer Active Core Set (especially CEO-CONTEXT and ROADMAP)
+3. then prefer Governance Set
+4. treat archived docs as historical evidence only
 
 ## Current State Summary (2026-03-21)
 
-- **Live Quota** works — real Google API data flows into routing
-- **Flash-Lite Router** makes correct autonomous decisions (model/bucket/skills)
-- **Issue Runs** start cleanly via assignment in dashboard
-- **Routing is advisory only** — next step is enforced mode
-- **Heartbeats are broken** — no context, needs rethinking
-- **No real productive work yet** — only test issues completed
+- **Engine bewiesen:** Flash-Lite Router, Live Quota, Context Injection und `soft_enforced` Routing funktionieren.
+- **Role Templates existieren:** Feste Rollen (`worker.json`, `reviewer.json`, `ceo.json`) bilden den Agent Layer.
+- **Worker/Reviewer bewiesen:** Echte Runs mit Worker und Reviewer wurden erfolgreich durchgefuehrt, Issue-Lifecycles werden automatisch gemanagt.
+- **Heartbeat-Gate:** Kein Run startet ohne zugewiesenes Issue. Routine-Approval ist fuer normale bounded Tasks deaktiviert.
+- **Dashboard Bruecke:** Rollen lassen sich ueber das Agent-Edit-UI verwalten.
+- **Naechste Schritte:** Worker-Loop schaerfen, Reviewer-Matrix härten, CEO V1 ausbauen und PowerShell `&&` Fix einbauen.
 
 ## Key Technical Facts
 

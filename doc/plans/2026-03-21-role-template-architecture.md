@@ -4,6 +4,26 @@ Status: Working direction
 Date: 2026-03-21
 Purpose: Preserve the agreed direction for durable agent roles before compact/context loss.
 
+## 0. Post-Paper Reprioritization
+
+After reviewing `doc/research/2026-03-21-paper-insights-for-dgdh.md`, the immediate order is sharper:
+
+1. Harden the `Worker` template with a visible execution loop:
+   - `locate -> hypothesize -> patch -> validate`
+2. Harden the `Reviewer` template with a fixed review matrix:
+   - `Scope`
+   - `Correctness`
+   - `Evidence`
+   - `Safety / Readiness`
+3. Build `CEO V1` on top of that more reliable substrate
+
+Important interpretation:
+
+- this does not replace the CEO direction
+- it corrects sequencing
+- Packets 1 and 2 above are template-level prompt improvements, not new orchestration infrastructure
+- a bigger tool-state-machine or MCP-like runtime loop still comes later, after `CEO V1`
+
 ## 1. Problem
 
 The current Paperclip-style `role` field is too weak for DGDH.
