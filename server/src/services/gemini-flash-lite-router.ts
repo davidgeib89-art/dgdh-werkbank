@@ -233,33 +233,45 @@ function normalizeAllowedSkills(
     .slice(0, 16);
 }
 
+function coalesce(raw: Record<string, unknown>, ...keys: string[]): unknown {
+  for (const key of keys) {
+    if (raw[key] !== undefined) return raw[key];
+  }
+  return undefined;
+}
+
 function normalizeProposalFromRaw(
   raw: Record<string, unknown>,
   skillPool: string[],
 ): GeminiFlashLiteProposal | null {
-  const taskClass = asString(raw.taskClass);
-  const budgetClass = asString(raw.budgetClass);
-  const chosenBucket = asString(raw.chosenBucket);
-  const chosenModelLane = asString(raw.chosenModelLane);
-  const fallbackBucket = asString(raw.fallbackBucket);
+  const taskClass = asString(coalesce(raw, "taskClass", "task_class"));
+  const budgetClass = asString(coalesce(raw, "budgetClass", "budget_class"));
+  const chosenBucket = asString(coalesce(raw, "chosenBucket", "chosen_bucket"));
+  const chosenModelLane = asString(coalesce(raw, "chosenModelLane", "chosen_model_lane"));
+  const fallbackBucketRaw = asString(coalesce(raw, "fallbackBucket", "fallback_bucket"));
   const rationale = asString(raw.rationale);
 
   if (
     !isTaskClass(taskClass) ||
     !isBudgetClass(budgetClass) ||
     !isBucket(chosenBucket) ||
-    !isBucket(fallbackBucket) ||
     !chosenModelLane ||
     !rationale
   ) {
     return null;
   }
 
-  const executionIntentRaw = asString(raw.executionIntent);
-  const targetFolderRaw = asString(raw.targetFolder);
-  const doneWhenRaw = asString(raw.doneWhen);
-  const riskLevelRaw = asString(raw.riskLevel);
-  const needsApprovalRaw = asBoolean(raw.needsApproval);
+  // fallbackBucket is optional — default to chosenBucket if missing or invalid
+  const fallbackBucket: BucketName = isBucket(fallbackBucketRaw)
+    ? fallbackBucketRaw
+    : chosenBucket;
+
+  const executionIntentRaw = asString(coalesce(raw, "executionIntent", "execution_intent"));
+  const targetFolderRaw = asString(coalesce(raw, "targetFolder", "target_folder"));
+  const doneWhenRaw = asString(coalesce(raw, "doneWhen", "done_when"));
+  const riskLevelRaw = asString(coalesce(raw, "riskLevel", "risk_level"));
+  const needsApprovalRaw = asBoolean(coalesce(raw, "needsApproval", "needs_approval"));
+  const allowedSkillsRaw = coalesce(raw, "allowedSkills", "allowed_skills");
 
   return {
     taskClass,
@@ -274,12 +286,12 @@ function normalizeProposalFromRaw(
     riskLevel: isRiskLevel(riskLevelRaw)
       ? riskLevelRaw
       : defaultRiskLevel({ taskClass, budgetClass }),
-    missingInputs: normalizeMissingInputs(raw.missingInputs),
+    missingInputs: normalizeMissingInputs(coalesce(raw, "missingInputs", "missing_inputs")),
     needsApproval: needsApprovalRaw ?? false,
     chosenBucket,
     chosenModelLane,
     fallbackBucket,
-    allowedSkills: normalizeAllowedSkills(raw.allowedSkills, skillPool),
+    allowedSkills: normalizeAllowedSkills(allowedSkillsRaw, skillPool),
     rationale,
   };
 }
@@ -335,7 +347,7 @@ function readRouterPolicy(
     enabled,
     fallbackOnly,
     model: asString(routerConfig.model) ?? "gemini-2.5-flash-lite",
-    timeoutSec: clampInt(routerConfig.timeoutSec, 8, 2, 20),
+    timeoutSec: clampInt(routerConfig.timeoutSec, 30, 2, 90),
     breakerThreshold: clampInt(breakerConfig.threshold, 3, 1, 10),
     breakerCooldownSec: clampInt(breakerConfig.cooldownSec, 90, 10, 900),
     cacheEnabled: asBoolean(cacheConfig.enabled) ?? true,
@@ -622,12 +634,23 @@ function buildStrictPrompt(input: {
   };
 
   return [
-    "Return ONLY one JSON object. No markdown, no prose.",
+    "ROUTING CLASSIFIER MODE.",
+    "You are a routing metadata classifier. Your ONLY job is to output a JSON routing decision.",
+    "DO NOT call any tools. DO NOT read files. DO NOT search the web. DO NOT execute the task.",
+    "Return ONLY one JSON object. No markdown, no prose, no explanation.",
+    "Base your classification solely on the taskText description — do not look up any files.",
     "Choose values strictly from the provided enums and allowlists.",
     "allowedSkills must be a subset of allowedSkillPool. Omit skills not needed for this task.",
     "If uncertain, choose safe conservative defaults.",
     JSON.stringify(body),
   ].join("\n");
+}
+
+function extractJsonObject(text: string): string | null {
+  const start = text.indexOf("{");
+  const end = text.lastIndexOf("}");
+  if (start === -1 || end === -1 || end <= start) return null;
+  return text.slice(start, end + 1);
 }
 
 function tryParseProposal(
@@ -637,14 +660,14 @@ function tryParseProposal(
   proposal: GeminiFlashLiteProposal | null;
   parseStatus: GeminiFlashLiteParseStatus;
 } {
-  const trimmed = summary.trim();
-  if (!(trimmed.startsWith("{") && trimmed.endsWith("}"))) {
+  const candidate = extractJsonObject(summary.trim());
+  if (!candidate) {
     return { proposal: null, parseStatus: "invalid_json" };
   }
 
   let parsedRaw: Record<string, unknown>;
   try {
-    parsedRaw = parseObject(JSON.parse(trimmed));
+    parsedRaw = parseObject(JSON.parse(candidate));
   } catch {
     return { proposal: null, parseStatus: "invalid_json" };
   }
@@ -826,13 +849,13 @@ export async function produceFlashLiteRoutingProposal(
     manualOverride: input.manualOverride,
   });
 
+  // Router calls must NEVER execute tasks — no tool approval, no yolo.
+  // With piped stdin (prompt then EOF), any tool call attempt will fail immediately.
   const args = [
     "--output-format",
     "stream-json",
     "--model",
     model,
-    "--approval-mode",
-    "yolo",
     "--sandbox=none",
   ];
 

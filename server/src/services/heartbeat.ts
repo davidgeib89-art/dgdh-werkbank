@@ -64,6 +64,7 @@ import {
 } from "./gemini-routing.js";
 import { refreshGeminiRuntimeQuotaSnapshot } from "./gemini-quota-producer.js";
 import { produceFlashLiteRoutingProposal } from "./gemini-flash-lite-router.js";
+import { fetchLiveGeminiQuota } from "./gemini-quota-api.js";
 
 const MAX_LIVE_LOG_CHUNK_BYTES = 8 * 1024;
 const HEARTBEAT_MAX_CONCURRENT_RUNS_DEFAULT = 1;
@@ -2690,8 +2691,46 @@ export function heartbeatService(db: Db) {
         : null;
       applyIssuePromptContext(context, issueRef);
 
-      const runtimeConfigForRouting = parseObject(agent.runtimeConfig);
+      let runtimeConfigForRouting = parseObject(agent.runtimeConfig);
       let runtimeStateForRouting = parseObject(runtime.stateJson);
+
+      // For gemini_local agents, inject live quota data from the API before
+      // the preflight refresh so the control plane sees fresh usage percentages.
+      if (agent.adapterType === "gemini_local") {
+        const liveQuota = await fetchLiveGeminiQuota().catch(() => null);
+        if (liveQuota && Object.keys(liveQuota.buckets).length > 0) {
+          logger.info(
+            {
+              snapshotAt: liveQuota.snapshotAt,
+              buckets: Object.fromEntries(
+                Object.entries(liveQuota.buckets).map(([k, v]) => [
+                  k,
+                  { usagePercent: v?.usagePercent, state: v?.state, resetAt: v?.resetAt },
+                ]),
+              ),
+            },
+            "[paperclip:quota-api] live quota injected",
+          );
+          const routing = parseObject(
+            runtimeConfigForRouting.routingPolicy,
+          );
+          runtimeConfigForRouting = {
+            ...runtimeConfigForRouting,
+            routingPolicy: {
+              ...routing,
+              quotaFeed: {
+                ...parseObject(routing.quotaFeed),
+                ...liveQuota,
+              },
+            },
+          };
+        } else {
+          logger.warn(
+            "[paperclip:quota-api] live quota fetch returned nothing — falling back to static config",
+          );
+        }
+      }
+
       const preflightQuotaRefresh = refreshGeminiRuntimeQuotaSnapshot({
         runtimeConfig: runtimeConfigForRouting,
         runtimeState: runtimeStateForRouting,
