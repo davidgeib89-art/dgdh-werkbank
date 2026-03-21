@@ -142,6 +142,12 @@ function renderEngineDirectiveNote(context: Record<string, unknown>): string {
   return lines.join("\n");
 }
 
+function renderRoleTemplateNote(context: Record<string, unknown>): string {
+  const roleTemplatePrompt = asString(context.paperclipRoleTemplatePrompt, "").trim();
+  if (!roleTemplatePrompt) return "";
+  return `${roleTemplatePrompt}\n\n`;
+}
+
 function buildPromptHeader(prompt: string, maxLines = 18): string {
   return prompt.split(/\r?\n/).slice(0, maxLines).join("\n").trim();
 }
@@ -501,6 +507,7 @@ export async function execute(
     !strictFloorMode && !sessionId && bootstrapPromptTemplate.trim().length > 0
       ? renderTemplate(bootstrapPromptTemplate, templateData).trim()
       : "";
+  const roleTemplateNote = strictFloorMode ? "" : renderRoleTemplateNote(context);
   const sessionHandoffNote = strictFloorMode
     ? ""
     : asString(context.paperclipSessionHandoffMarkdown, "").trim();
@@ -527,6 +534,7 @@ export async function execute(
     : "";
   const prompt = joinPromptSections([
     strictFloorMode ? "" : instructionsPrefix,
+    roleTemplateNote,
     renderedBootstrapPrompt,
     sessionHandoffNote,
     issueTaskNote,
@@ -539,6 +547,7 @@ export async function execute(
   const promptMetrics = {
     promptChars: prompt.length,
     instructionsChars: instructionsPrefix.length,
+    roleTemplateChars: roleTemplateNote.length,
     bootstrapPromptChars: renderedBootstrapPrompt.length,
     sessionHandoffChars: sessionHandoffNote.length,
     issueTaskChars: issueTaskNote.length,

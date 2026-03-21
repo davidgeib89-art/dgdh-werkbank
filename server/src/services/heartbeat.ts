@@ -65,6 +65,7 @@ import {
 import { refreshGeminiRuntimeQuotaSnapshot } from "./gemini-quota-producer.js";
 import { produceFlashLiteRoutingProposal } from "./gemini-flash-lite-router.js";
 import { fetchLiveGeminiQuota } from "./gemini-quota-api.js";
+import { resolveAssignedRoleTemplate } from "./role-templates.js";
 
 const MAX_LIVE_LOG_CHUNK_BYTES = 8 * 1024;
 const HEARTBEAT_MAX_CONCURRENT_RUNS_DEFAULT = 1;
@@ -2789,6 +2790,33 @@ export function heartbeatService(db: Db) {
           mergedConfig,
         );
       const resolvedConfig = { ...configWithSecrets };
+      const roleTemplateResolution = resolveAssignedRoleTemplate(resolvedConfig);
+      delete context.paperclipRoleTemplate;
+      delete context.paperclipRoleTemplatePrompt;
+      delete context.paperclipRoleTemplateError;
+      if (roleTemplateResolution.error) {
+        context.paperclipRoleTemplateError = roleTemplateResolution.error;
+        logger.warn(
+          {
+            companyId: agent.companyId,
+            agentId: agent.id,
+            roleTemplateId: roleTemplateResolution.requestedRoleTemplateId,
+            error: roleTemplateResolution.error,
+          },
+          "[paperclip:role-template] failed to resolve assigned role template",
+        );
+      } else if (roleTemplateResolution.assigned) {
+        context.paperclipRoleTemplate = {
+          id: roleTemplateResolution.assigned.template.id,
+          version: roleTemplateResolution.assigned.template.version,
+          label: roleTemplateResolution.assigned.template.label,
+          description: roleTemplateResolution.assigned.template.description,
+          sourcePath: roleTemplateResolution.assigned.sourcePath,
+          roleAppendPrompt: roleTemplateResolution.assigned.roleAppendPrompt,
+        };
+        context.paperclipRoleTemplatePrompt =
+          roleTemplateResolution.assigned.prompt;
+      }
       const issueRef = issueId
         ? await db
             .select({

@@ -18,6 +18,64 @@
 
 ---
 
+## DGDH Revenue Lane #1 — Web Design Produkt
+
+**Das ist Davids erstes echtes Produkt und die Origin Story von DGDH.**
+
+### Was ist es?
+Astro 5 + Keystatic CMS OnePager-Template fuer kleine Unternehmen.
+Hosting: Cloudflare Pages Free Tier. Kunde zahlt nur ~5€/Jahr fuer Domain.
+
+### Repo & erster Kunde
+- Template-Repo: `C:\Users\holyd\DGDH\worktrees\ferienwohnung-bamberger`
+- Erster Kunde live: https://urlaub-bei-bambergers.de/ (Ferienwohnung Bamberger)
+- Naechstes Projekt: Gleiche Site fuer Kunden-Tante, anderes Branding
+
+### Content-Modell (alles statische Textdateien, keine DB!)
+```
+src/content/settings/site.json     → Branding, SEO, Theme, Kontakt
+src/content/settings/profile.json  → Branchentyp (ferienwohnung | verein | other)
+src/content/sections/*/            → Sections: showcase, highlights, pricing,
+                                      testimonials, location, faq, poi, contact-form
+twilight.config.yaml               → YAML-Fallback, Config via getResolvedSettings()
+```
+
+### Die Grosse Vision (AI-Workflow)
+1. David legt Kundendaten in einen Ordner (Texte, Bilder, Logo)
+2. DGDH-System forkt Template-Repo
+3. Gemini-Worker liest Schema + befuellt alle Content-Dateien
+4. Push zu GitHub → Cloudflare deployt automatisch
+5. David reviewed → fertig
+
+**Warum das perfekt fuer AI ist:** Kein Backend, keine DB — nur strukturierte Textdateien.
+Gemini kennt das Schema (keystatic.config.ts + content.config.ts) und weiss exakt was zu befuellen ist.
+
+### Branchenprofile (geplant)
+`ferienwohnung` ✅ | `verein` | `friseur` | `restaurant` | `handwerker` | ...
+
+---
+
+## CEO Profil
+
+- **Name:** David Geib, geb. 29.10.1989, Meddersheim
+- **Status:** Aktuell arbeitslos (~650 EUR/Monat), arbeitet Vollzeit an DGDH
+- **Neurodivergent:** IQ ~133, wahrscheinlich ADHS + Autismus / Hochbegabung — maximale Mustererkennung
+- **Motivation:** Geld verdienen → AI-Abos/Kontingente skalieren → Welt verbessern (Ziel: Psychologie studieren, Kinder foerdern)
+- **Zeithorizont:** Wichtiges Gespraech 30.06 → danach 6-8 Wochen nicht verfuegbar. Bis dahin muss DGDH laufen.
+- **Leitfrage:** Entlastet das David real oder verschoenert es nur die Maschine?
+
+### AI Stack & Budget (~100 EUR/Monat)
+| Tool | Kosten | Rolle |
+|------|--------|-------|
+| Claude Code | ~20 EUR | Builder, Architekt, CLI |
+| Codex (OpenAI) | ~20 EUR | CLI Worker |
+| Gemini AI Pro x2 | ~40 EUR | Primaere Worker-Lane (Quotas resetten taeglich) |
+| MiniMax Coding Plan | ~20 EUR | Arbeitsbiene fuer guenstige Massenarbeit (2.7M Context) |
+
+**Regel:** Jeder Euro muss sich in echter Entlastung oder Einnahmen niederschlagen.
+
+---
+
 ## Aktueller Stand (2026-03-21)
 
 **Phase:** Engine bewiesen + Role-Architecture Design fertig. Naechster Schritt: minimaler Smoke-Test (worker.json in echtem Gemini-Run).
@@ -53,6 +111,7 @@
 - **Rollen = kanonische Templates.** Feste systemdefinierte Rollen (`CEO`, `Worker`, `Reviewer`) in `server/config/role-templates/*.json`. Nicht vom Agenten selbst mutierbar. Details: `doc/plans/2026-03-21-role-template-architecture.md`.
 - **Packets 1+2 fertig.** Template-System definiert + drei Rollen spezifiziert. Packets 3-6 erst nach Beweis.
 - **Beweis vor Infrastruktur.** Smoke-Test mit echter worker.json vor DB-Migration/UI-Dropdown.
+- **Smoke-Test-Pfad existiert bereits im Code.** `server/config/role-templates/worker.json` ist angelegt; `adapterConfig.roleTemplateId = "worker"` und optional `roleAppendPrompt` werden in `heartbeat.ts` aufgeloest und als `paperclipRoleTemplatePrompt` in Gemini-Prompts injiziert.
 - **Keine Mikro-Approvals.** David = CEO-Entscheidungen, nicht Klick-Dispatcher fuer Routine.
 - **Heartbeats = Ausfuehrungspuls.** Genau ein autorisiertes Work Packet, nicht Autonomie-Loop.
 - **Gemini zuerst.** Engine-Core provider-agnostisch, aber Phase 1 nur Gemini.

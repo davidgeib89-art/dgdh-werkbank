@@ -433,6 +433,13 @@ If that proof is weak:
 
 - revise the canonical role content before expanding infrastructure
 
+Current implementation status:
+
+- `server/config/role-templates/worker.json` exists as the first canonical template artifact
+- `adapterConfig.roleTemplateId` and optional `adapterConfig.roleAppendPrompt` already resolve in the server
+- the resolved template prompt is injected into Gemini runs through `paperclipRoleTemplatePrompt`
+- this is intentionally only a smoke-test path, not the final DB/UI-backed role system
+
 ## 15. Packet 1 Technical Specification
 
 Status:

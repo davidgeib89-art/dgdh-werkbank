@@ -64,6 +64,16 @@ Version: 2.0 – Live Quota bewiesen, Enforced Routing als naechster Schritt
 - **Flash Pool:** gemini-2.5-flash, gemini-3-flash-preview
 - **Flash-Lite Pool:** gemini-2.5-flash-lite, gemini-3.1-flash-lite-preview
 
+**Gesamter AI Stack (~100 EUR/Monat):**
+| Tool | Kosten | Rolle |
+|------|--------|-------|
+| Claude Code | ~20 EUR | Builder, Architekt, CLI |
+| Codex (OpenAI) | ~20 EUR | CLI Worker |
+| Gemini AI Pro x2 Accounts | ~40 EUR | Primaere Worker-Lane (daily Quota reset) |
+| MiniMax Coding Plan | ~20 EUR | Arbeitsbiene fuer Massenarbeit (2.7M Context, guenstig) |
+
+**Zeithorizont:** Wichtiges Gespraech 30.06 → danach 6-8 Wochen nicht verfuegbar. System muss bis dahin stabil laufen.
+
 ---
 
 ## 4. Now / Next / Later

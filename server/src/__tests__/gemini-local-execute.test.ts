@@ -430,6 +430,83 @@ describe("gemini execute", () => {
   );
 
   itGeminiExecute(
+    "prepends canonical role template notes when provided in context",
+    async () => {
+      const root = await fs.mkdtemp(
+        path.join(os.tmpdir(), "paperclip-gemini-role-template-"),
+      );
+      const workspace = path.join(root, "workspace");
+      const commandPath = path.join(root, "gemini");
+      const capturePath = path.join(root, "capture.json");
+      await fs.mkdir(workspace, { recursive: true });
+      const executablePath = await writeFakeGeminiCommand(commandPath);
+      const runtimeCommand =
+        process.platform === "win32" ? process.execPath : executablePath;
+      const runtimeExtraArgs =
+        process.platform === "win32" ? [`${commandPath}.cjs`] : undefined;
+
+      const previousHome = process.env.HOME;
+      process.env.HOME = root;
+
+      let invocationPrompt = "";
+      try {
+        await execute({
+          runId: "run-role-template",
+          agent: {
+            id: "agent-1",
+            companyId: "company-1",
+            name: "Gemini Worker",
+            adapterType: "gemini_local",
+            adapterConfig: {},
+          },
+          runtime: {
+            sessionId: null,
+            sessionParams: null,
+            sessionDisplayId: null,
+            taskKey: null,
+          },
+          config: {
+            command: runtimeCommand,
+            cwd: workspace,
+            ...(runtimeExtraArgs ? { extraArgs: runtimeExtraArgs } : {}),
+            env: {
+              PAPERCLIP_TEST_CAPTURE_PATH: capturePath,
+            },
+            promptTemplate: "Follow the paperclip heartbeat.",
+          },
+          context: {
+            paperclipRoleTemplatePrompt: [
+              "Canonical role template: Worker (worker@v1)",
+              "Role purpose: Execute one clearly scoped work packet and produce a concrete result.",
+              "",
+              "Stay inside scope. Do not redefine the mission.",
+            ].join("\n"),
+          },
+          authToken: "run-jwt-token",
+          onLog: async () => {},
+          onMeta: async (meta) => {
+            invocationPrompt = meta.prompt ?? "";
+          },
+        });
+
+        expect(invocationPrompt).toContain(
+          "Canonical role template: Worker (worker@v1)",
+        );
+        expect(invocationPrompt).toContain(
+          "Stay inside scope. Do not redefine the mission.",
+        );
+      } finally {
+        if (previousHome === undefined) {
+          delete process.env.HOME;
+        } else {
+          process.env.HOME = previousHome;
+        }
+        await fs.rm(root, { recursive: true, force: true });
+      }
+    },
+  );
+
+  itGeminiExecute(
     "fails strict floor on fenced final output",
     async () => {
       const root = await fs.mkdtemp(

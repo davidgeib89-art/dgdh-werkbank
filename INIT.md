@@ -64,7 +64,7 @@ Monorepo mit pnpm workspaces + TypeScript project references.
 |---------|-------|
 | `server/` | Express API Backend (Node/TypeScript, laeuft via `tsx`) |
 | `ui/` | React Frontend (Dashboard) |
-| `packages/db` | Kysely DB Schema + Migrations |
+| `packages/db` | Drizzle DB Schema + Migrations |
 | `packages/shared` | Shared Types und Utilities |
 | `packages/adapters/*` | Agent-Adapter (gemini-local, claude-local, etc.) |
 
@@ -73,7 +73,7 @@ Monorepo mit pnpm workspaces + TypeScript project references.
 | Was | Wo |
 |-----|-----|
 | Live Quota API | `server/src/services/gemini-quota-api.ts` |
-| Flash-Lite Router | `server/src/services/gemini-flash-lite-router.ts` |
+| Gemini Thinking Router (historischer Dateiname) | `server/src/services/gemini-flash-lite-router.ts` |
 | Control Plane | `server/src/services/gemini-control-plane.ts` |
 | Heartbeat (Run-Loop) | `server/src/services/heartbeat.ts` |
 | Routing + Quota | `server/src/services/gemini-routing.ts` |

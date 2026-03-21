@@ -458,6 +458,65 @@ Erst danach:
 - MiniMax integrieren
 - danach optional weitere Lanes wie Claude/Codex unter denselben Kern ziehen
 
+## 13.5 DGDH Revenue Lane #1 — Web Design als erstes echtes Produkt
+
+Das ist Davids Origin Story und der erste konkrete Use Case fuer DGDH als AI-Mensch-Symbiose-Firma.
+
+### Was bereits existiert
+
+Ein fertiges Astro 5 + Keystatic CMS OnePager-Template:
+- **Hosting:** Cloudflare Pages Free Tier, 0 EUR laufende Kosten
+- **Kunde zahlt:** ~5€/Jahr fuer Domain — das ist der gesamte Kostenblock
+- **Erster Kunde live:** https://urlaub-bei-bambergers.de/
+- **Repo:** `C:\Users\holyd\DGDH\worktrees\ferienwohnung-bamberger`
+
+### Warum das perfekt fuer DGDH-AI ist
+
+Alle Inhalte liegen als **statische Textdateien in Git** — keine Datenbank, kein Backend:
+
+```
+src/content/settings/site.json     → Branding, SEO, Theme, Kontakt
+src/content/settings/profile.json  → Branchentyp
+src/content/sections/*/            → Sections: showcase, highlights, pricing,
+                                      testimonials, location, faq, poi, contact-form
+```
+
+Das Schema ist in `keystatic.config.ts` und `src/content.config.ts` vollstaendig definiert.
+Ein Gemini-Worker kann das Schema lesen und weiss exakt welche Felder er befuellen muss.
+
+### Der Ziel-Workflow (was DGDH hier leisten soll)
+
+```
+David legt Kundendaten in Ordner
+         ↓
+DGDH forkt Template-Repo
+         ↓
+Gemini-Worker befuellt alle Content-Dateien nach Schema
+         ↓
+Push zu GitHub → Cloudflare deployt automatisch
+         ↓
+David reviewed kurz → lieferbar
+```
+
+### Branchenprofile (Template-Familie)
+
+Fester Shared Core + variable Branchenprofile:
+
+| Profil | Status |
+|--------|--------|
+| `ferienwohnung` | ✅ fertig, Kunde live |
+| `verein` | geplant |
+| `friseur` / `kosmetik` | geplant |
+| `restaurant` / `cafe` | geplant |
+| `handwerker` | geplant |
+
+### Technische Constraints (non-negotiable)
+
+- `output: "static"` in Astro — kein SSR ausser Keystatic OAuth-Route
+- Worker-Bundle unter 3 MB (Cloudflare Free Tier Limit)
+- Kein eigenes Formular-Backend, keine Buchungslogik, kein Plugin-System
+- Config immer ueber `getResolvedSettings()` — nie direkt lesen
+
 ## 14. Was explizit noch nicht getan werden soll
 
 - kein romantischer Multi-Agent-Ausbau bevor eine Lane stabil ist
