@@ -217,11 +217,86 @@ describe("heartbeat governance helpers", () => {
     expect(extractReviewerVerdict(output)).toBe("needs_revision");
   });
 
+  it("extracts the reviewer verdict from ndjson stdout excerpts", () => {
+    const output = [
+      JSON.stringify({
+        type: "message",
+        role: "user",
+        content: [
+          "Return exactly these sections:",
+          "1. Verdict: accepted | needs_revision | blocked",
+          "2. Findings",
+        ].join("\n"),
+      }),
+      JSON.stringify({
+        type: "message",
+        role: "assistant",
+        content: "1. Verdict: accepted\n\n2. Findings",
+        delta: true,
+      }),
+    ].join("\n");
+
+    expect(extractReviewerVerdict(output)).toBe("accepted");
+  });
+
+  it("extracts the reviewer verdict from streamed assistant delta chunks", () => {
+    const output = [
+      JSON.stringify({
+        type: "message",
+        role: "assistant",
+        content: "I will now review the worker output.",
+        delta: true,
+      }),
+      JSON.stringify({
+        type: "message",
+        role: "assistant",
+        content: "1. Verdict: accepted\n\n2. Findings",
+        delta: true,
+      }),
+    ].join("\n");
+
+    expect(extractReviewerVerdict(output)).toBe("accepted");
+  });
+
+  it("extracts the reviewer verdict when verdict is markdown-formatted", () => {
+    const output = [
+      JSON.stringify({
+        type: "message",
+        role: "assistant",
+        content: "The task appears complete.\n\n**Verdict:** accepted",
+        delta: true,
+      }),
+      JSON.stringify({
+        type: "message",
+        role: "assistant",
+        content: "\n\n2. **Findings:**\n- doneWhen satisfied",
+        delta: true,
+      }),
+    ].join("\n");
+
+    expect(extractReviewerVerdict(output)).toBe("accepted");
+  });
+
   it("moves succeeded worker runs into in_review", () => {
     expect(
       determineIssueStatusAfterRun({
         runStatus: "succeeded",
         issueStatus: "in_progress",
+        roleTemplateId: "worker",
+        stdoutExcerpt: "done",
+      }),
+    ).toMatchObject({
+      nextStatus: "in_review",
+      reason: "worker_completed_waiting_for_review",
+      reviewerVerdict: null,
+    });
+  });
+
+  it("moves succeeded worker runs from todo into in_review in the assignment flow", () => {
+    expect(
+      determineIssueStatusAfterRun({
+        runStatus: "succeeded",
+        issueStatus: "todo",
         roleTemplateId: "worker",
         stdoutExcerpt: "done",
       }),

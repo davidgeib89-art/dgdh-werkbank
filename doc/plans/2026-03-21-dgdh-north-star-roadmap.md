@@ -341,6 +341,148 @@ Die richtige Form fuer CEO/Worker/Reviewer ist:
 
 Das ist die spaetere smarte Shared-Memory-Richtung.
 
+### Strukturierte Handoff-Summaries (Inspiration: ReMe)
+
+Damit Handoffs zwischen Rollen maschinell auswertbar sind, sollen Worker, Reviewer und CEO
+ihre Ergebnisse in einem festen Schema liefern:
+
+```
+## Goal        — was sollte erreicht werden (= doneWhen)
+## Result      — was wurde tatsaechlich gemacht
+## Files Changed — welche Dateien, was geaendert
+## Blockers    — was hat nicht funktioniert oder fehlt
+## Next        — was sollte als naechstes passieren
+```
+
+Umsetzungsreihenfolge:
+
+1. Zuerst rein als Prompt-Anweisung in den Role-Templates (zero code)
+2. Spaeter optional als parsed/structured Output den der CEO maschinell lesen kann
+3. Noch spaeter inkrementelle Summaries: neuer Run merged in bestehendes Summary statt Neuschreiben
+
+Inspiration: `github.com/agentscope-ai/ReMe` — deren Summary-Schema (Goal, Constraints, Progress,
+Key Decisions, Next Steps, Critical Context) ist ein gutes Referenzformat. Fuer DGDH angepasst
+auf den Worker/Reviewer/CEO-Handoff-Kontext.
+
+Wichtig: Das ersetzt nicht die spaetere querybare Shared-Memory-Architektur.
+Es ist der einfachste erste Schritt der sofort die Handoff-Qualitaet verbessert.
+
+### Patterns aus PentAGI (Inspiration: github.com/vxcontrol/pentagi)
+
+PentAGI ist ein Multi-Agent-Pentesting-System. Anderer Use Case, aber die Orchestrierungs-Patterns
+sind direkt uebertragbar auf DGDH's CEO/Worker/Reviewer-Modell.
+
+**1. Loop-Detection im Adapter**
+
+Problem: Gemini wiederholt fehlgeschlagene Commands (z.B. PowerShell-`&&`) und verbrennt Tokens.
+PentAGI loest das mit einem Adviser-Agent der identische Tool-Calls erkennt (Schwelle: 5x).
+DGDH-Ansatz: deterministische Regel im Gemini-Adapter — kein separater Agent noetig.
+Wenn derselbe Command 3x fehlschlaegt, Warnung injizieren oder Run stoppen.
+
+Umsetzung: im PowerShell-Fix mitbauen, profitiert jede Rolle sofort.
+
+**2. Barrier-Tool fuer strukturiertes Run-Ende (`complete_task`)**
+
+Problem: Worker/Reviewer hoeren einfach auf. Kein explizites "ich bin fertig"-Signal.
+PentAGI loest das mit Barrier Functions (`FinalyTool`, `CodeResult`, `HackResult`).
+DGDH-Ansatz: `complete_task`-Tool das der Agent am Ende aufrufen MUSS.
+Das Tool erzwingt das strukturierte Handoff-Summary (Goal/Result/Files/Blockers/Next).
+
+Verbindet zwei Patterns: Barrier (PentAGI) + Handoff-Summary (ReMe).
+Umsetzung: nach CEO V1, als Verbindungsstueck zwischen Worker und Reviewer.
+
+**3. Token-Budgets pro Rolle**
+
+PentAGI gibt verschiedenen Agents verschiedene Token-Limits:
+Generator (Opus) 4096, Coder (Sonnet) 2048, Searcher 1024.
+DGDH-Ansatz: In Role-Templates als optionales Feld (`maxOutputTokens`):
+- CEO: hoeher (plant, braucht Kontext)
+- Worker: mittel (fuehrt aus)
+- Reviewer: klein (prueft, braucht wenig Output)
+
+Umsetzung: Feld in Role-Template-Schema ergaenzen, Engine liest es beim Routing.
+
+**4. Generator + Refiner Zweistufen-Pattern (spaeter)**
+
+PentAGI zerlegt Tasks in zwei Schritten: erst grob (Generator), dann verfeinert (Refiner).
+DGDH-Ansatz fuer spaeter: CEO zerlegt Mission in Packets (Schritt 1).
+Zweiter Pass reichert jedes Packet mit Projekt-Kontext an: targetFolder pruefen,
+Dateien lesen, doneWhen schaerfen (Schritt 2).
+
+Umsetzung: erst wenn CEO V1 bewiesen ist.
+
+**5. Chain Summarization fuer lange Runs (spaeter)**
+
+PentAGI komprimiert aeltere Messages, behaelt nur die letzten N Bytes intakt.
+DGDH-Ansatz: relevant wenn CEO ueber mehrere Packets hinweg plant und
+Kontext aus frueheren Reviews braucht. Aeltere Packet-Ergebnisse komprimieren,
+aktuelle behalten.
+
+Umsetzung: erst wenn Runs laenger werden als ein einzelnes Packet.
+
+### Patterns aus Spec-Kit (Inspiration: github.com/github/spec-kit)
+
+GitHub's Spec-Kit (72k+ Stars) formalisiert genau das Pattern das DGDH als
+CEO → Worker → Reviewer baut:
+
+```
+Spec-Kit:  Specify → Plan    → Tasks   → Implement
+DGDH:     Mission → CEO     → Packets → Worker → Review
+```
+
+Das validiert unsere Architektur-Richtung. Konkret uebertragbar:
+
+**1. Strukturiertes Packet-Template fuer CEO-Output (sofort in CEO V1)**
+
+CEO soll Work Packets nicht frei formulieren sondern in festem Format:
+
+```
+## Titel
+## Ziel — was soll am Ende existieren
+## Scope — was genau geaendert/erstellt wird
+## doneWhen — messbare Abnahmekriterien
+## targetFolder — wo im Repo
+## Annahmen — was der CEO angenommen hat
+## [NEEDS INPUT] — was unklar ist und David entscheiden muss
+```
+
+Der `[NEEDS INPUT]`-Marker (Spec-Kit: `[NEEDS CLARIFICATION]`) ist zentral:
+statt bei Unklarheit zu raten, markiert der CEO explizit was er nicht weiss.
+David sieht im Dashboard sofort welche Packets Klaerung brauchen.
+
+Gehoert direkt in den `ceo.json` systemPrompt.
+
+**2. Constitution-Check im CEO-Prompt (sofort in CEO V1)**
+
+Spec-Kit hat eine `constitution.md` mit unverhaenderbaren Prinzipien die bei
+jedem Schritt gecheckt werden. DGDH hat North Star + Leitfrage + NO-GOs,
+aber verstreut und nicht im CEO-Prompt.
+
+Kompakter Pruefblock direkt im CEO-Template:
+
+- Entlastet das David real? Wenn nein → nicht erstellen
+- Ist der Scope klar genug fuer einen Worker? Wenn nein → `[NEEDS INPUT]`
+- Passt es ins Budget (kleine bounded Tasks)? Wenn nein → kleiner schneiden
+- Braucht es Review? → defaultNeedsReview setzen
+
+Kein separates File — rein als Prompt-Anweisung im CEO-Template.
+
+**3. Traceability: Packet → Run → Evidence → Verdict (nach CEO V1)**
+
+Spec-Kit verbindet jede Anforderung bidirektional mit Implementation und Tests.
+DGDH-Ansatz: CEO-Packet hat doneWhen, Worker referenziert via Issue,
+Reviewer prueft gegen doneWhen. Fehlt noch: CEO liest nach Review ob Packet
+wirklich erledigt ist und entscheidet naechsten Schritt.
+
+Das ist der spaetere CEO-Loop ueber `parentIssueId` + Child-Issue-Verdicts.
+
+**4. Feature-Branch pro Work Packet (spaeter)**
+
+Spec-Kit erstellt pro Feature einen Branch. DGDH-Ansatz: jedes CEO-Packet
+koennte einen eigenen Branch bekommen. Worker arbeitet auf Branch,
+Reviewer prueft Branch, Merge bei accepted. Erst relevant wenn mehrere
+Packets parallel laufen.
+
 ## 11. Multi-Agent-Arbeit: Erst smart strukturieren, dann parallelisieren
 
 Ja, das spaetere Ziel ist intelligente parallele Arbeit.

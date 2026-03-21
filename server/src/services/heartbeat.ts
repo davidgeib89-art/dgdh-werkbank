@@ -1011,23 +1011,68 @@ function buildReviewerTaskPrompt(input: {
 
 export type ReviewerVerdict = "accepted" | "needs_revision" | "blocked";
 
+function matchReviewerVerdict(
+  output: string,
+): ReviewerVerdict | null {
+  for (const rawLine of output.split(/\r?\n/)) {
+    const normalizedLine = rawLine
+      .replace(/[`#>]/g, "")
+      .replace(/\*\*/g, "")
+      .replace(/\*/g, "")
+      .trim();
+    const verdictMatch = normalizedLine.match(
+      /^(?:\d+\.\s*)?_?Verdict:?_?\s*(accepted|needs_revision|blocked)\s*$/i,
+    );
+    const verdict = verdictMatch?.[1]?.toLowerCase();
+    if (
+      verdict === "accepted" ||
+      verdict === "needs_revision" ||
+      verdict === "blocked"
+    ) {
+      return verdict;
+    }
+  }
+  return null;
+}
+
+function collectAssistantContentFromStreamJson(
+  output: string,
+): string | null {
+  const chunks: string[] = [];
+  for (const line of output.split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (!trimmed.startsWith("{") || !trimmed.endsWith("}")) continue;
+    try {
+      const parsed = JSON.parse(trimmed) as {
+        type?: unknown;
+        role?: unknown;
+        content?: unknown;
+      };
+      if (
+        parsed.type === "message" &&
+        parsed.role === "assistant" &&
+        typeof parsed.content === "string" &&
+        parsed.content.length > 0
+      ) {
+        chunks.push(parsed.content);
+      }
+    } catch {
+      // Ignore non-JSON or partial lines in stdout excerpts.
+    }
+  }
+  if (chunks.length === 0) return null;
+  return chunks.join("\n");
+}
+
 export function extractReviewerVerdict(
   output: string | null | undefined,
 ): ReviewerVerdict | null {
   if (!output) return null;
-  const verdictPattern =
-    /^\s*(?:\d+\.\s*)?(?:[*_]{0,2})Verdict(?:[*_]{0,2})\s*:\s*(accepted|needs_revision|blocked)\s*$/gim;
-  const matches = [...output.matchAll(verdictPattern)];
-  if (matches.length === 0) return null;
-  const lastMatch = matches[matches.length - 1]?.[1]?.toLowerCase();
-  if (
-    lastMatch === "accepted" ||
-    lastMatch === "needs_revision" ||
-    lastMatch === "blocked"
-  ) {
-    return lastMatch;
+  const assistantOutput = collectAssistantContentFromStreamJson(output);
+  if (assistantOutput) {
+    return matchReviewerVerdict(assistantOutput);
   }
-  return null;
+  return matchReviewerVerdict(output);
 }
 
 export function readAssignedRoleTemplateId(
@@ -1075,7 +1120,10 @@ export function determineIssueStatusAfterRun(input: {
 
   const workerLikeRole =
     roleTemplateId === "worker" || roleTemplateId == null;
-  if (workerLikeRole && issueStatus === "in_progress") {
+  if (
+    workerLikeRole &&
+    issueStatus !== "in_review"
+  ) {
     return {
       nextStatus: "in_review",
       reason: "worker_completed_waiting_for_review",

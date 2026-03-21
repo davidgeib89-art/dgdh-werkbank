@@ -105,7 +105,8 @@ Gemini kennt das Schema (keystatic.config.ts + content.config.ts) und weiss exak
 - **Reviewer blockt sauber ohne Ziel:** Wenn noch kein Worker-Run fuer das Issue existiert, wird der Reviewer-Prompt explizit auf `blocked` statt auf Ausfuehrung des Pakets gelenkt
 - **Reviewer gehaertet:** `accepted` soll nur noch bei erfuelltem `doneWhen`, sauberem Scope und ohne unsupported claims/source drift vergeben werden; bei materiellen Zweifeln lieber `needs_revision`
 - **Reviewer in echten Runs bewiesen:** Erstlauf war zu weich, nach Haertung ist ein `accepted`-Urteil auf dem echten Test-Artefakt vertretbar; Review passiert wirklich statt Re-Implementation
-- **Issue-Lifecycle jetzt automatisch:** Erfolgreicher `worker`-Run zieht ein Issue von `in_progress` auf `in_review`; erfolgreicher `reviewer`-Run mit `Verdict: accepted` zieht auf `done`
+- **Issue-Lifecycle jetzt automatisch:** Erfolgreicher `worker`-Run zieht ein Issue im normalen Assignment-Flow auf `in_review` (auch wenn es vorher noch `todo` war); erfolgreicher `reviewer`-Run mit `Verdict: accepted` zieht auf `done`
+- **Reviewer-Verdict-Parser gefixt:** `stdoutExcerpt` liegt bei Gemini als NDJSON/stream-json vor; `extractReviewerVerdict()` rekonstruiert jetzt Assistant-Content aus den JSON-Linien, damit `Verdict: accepted` auch in echten Run-Logs erkannt und `Issue -> done` wirklich ausgelost wird
 - **Geschlossene Issues promoten keine alten deferred Runs mehr:** Nach `done`/`cancelled` werden deferred issue-execution wakes nicht mehr neu gestartet
 
 ### Was noch fehlt
@@ -132,6 +133,12 @@ Gemini kennt das Schema (keystatic.config.ts + content.config.ts) und weiss exak
 - **Keine Mikro-Approvals.** David = CEO-Entscheidungen, nicht Klick-Dispatcher fuer Routine.
 - **Heartbeats = Ausfuehrungspuls.** Genau ein autorisiertes Work Packet, nicht Autonomie-Loop.
 - **Gemini zuerst.** Engine-Core provider-agnostisch, aber Phase 1 nur Gemini.
+- **Strukturierte Handoff-Summaries (inspiriert von ReMe).** Worker/Reviewer/CEO sollen Ergebnisse in festem Schema liefern: Goal, Result, Files Changed, Blockers, Next. Macht Handoffs maschinell auswertbar. Zuerst als Prompt-Anweisung, spaeter parsed Output. Ref: `github.com/agentscope-ai/ReMe`
+- **Loop-Detection im Adapter (inspiriert von PentAGI).** Wenn Gemini denselben fehlerhaften Command 3x wiederholt (z.B. PowerShell-`&&`), soll der Adapter warnen/stoppen statt Tokens zu verbrennen. PentAGI nutzt Schwelle 5x identische Tool-Calls + max 10 Gesamt. Unser Ansatz: deterministische Regel im Adapter, kein separater Agent.
+- **`complete_task` Barrier-Tool (inspiriert von PentAGI).** Worker/Reviewer sollen am Run-Ende ein explizites Tool aufrufen das strukturiertes Ergebnis erzwingt (statt einfach aufzuhoeren). Verbindet Handoff-Summaries mit klarem Run-Ende. PentAGI: `FinalyTool`/`CodeResult`/`HackResult`. Ref: `github.com/vxcontrol/pentagi`
+- **Token-Budgets pro Rolle (inspiriert von PentAGI).** CEO bekommt hoeheres Token-Budget (plant, braucht Kontext), Worker mittel, Reviewer klein. In Role-Templates als Feld, nicht hardcoded. PentAGI: Generator 4096, Coder 2048, Searcher 1024.
+- **CEO-Output als strukturiertes Packet-Template (inspiriert von Spec-Kit).** CEO soll Work Packets nicht frei formulieren sondern in festem Format: Titel, Ziel, Scope, doneWhen, targetFolder, Annahmen, `[NEEDS INPUT]`-Marker fuer Unklarheiten. `[NEEDS INPUT]` ist besser als raten — David sieht sofort was Klaerung braucht. Ref: `github.com/github/spec-kit` (Specify → Plan → Tasks → Implement = Mission → CEO → Packets → Worker → Review). Gehoert direkt in den `ceo.json` systemPrompt.
+- **Constitution-Check im CEO-Prompt (inspiriert von Spec-Kit).** Kompakter Pruefblock bevor Packets erstellt werden: Entlastet es David real? Scope klar genug fuer Worker? Passt ins Budget? Braucht Review? Kein separates File, rein als Prompt-Anweisung.
 - **Issues IMMER mit projectId erstellen** - sonst kein Workspace-Lookup
 - **Token Caps = Warnings** - timeoutSec ist der echte Guard
 - **MiniMax spaeter** - erst nach stabiler Gemini-Lane und Firmenbetrieb
