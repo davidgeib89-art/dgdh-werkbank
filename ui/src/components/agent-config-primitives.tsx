@@ -24,6 +24,8 @@ export const help: Record<string, string> = {
   role: "Organizational role. Determines position and capabilities.",
   reportsTo: "The agent this one reports to in the org hierarchy.",
   capabilities: "Describes what this agent can do. Shown in the org chart and used for task routing.",
+  roleTemplateId: "Canonical runtime role template prepended to supported agent runs. Use this for Worker, CEO, or Reviewer role behavior.",
+  roleAppendPrompt: "Optional operator-controlled add-on prompt. Extends the canonical role without replacing it.",
   adapterType: "How this agent runs: local CLI (Claude/Codex/OpenCode), OpenClaw Gateway, spawned process, or generic HTTP webhook.",
   cwd: "Default working directory fallback for local adapters. Use an absolute path on the machine running Paperclip.",
   promptTemplate: "Sent on every heartbeat. Keep this small and dynamic. Use it for current-task framing, not large static instructions. Supports {{ agent.id }}, {{ agent.name }}, {{ agent.role }} and other template variables.",
@@ -310,12 +312,14 @@ export function DraftTextarea({
   immediate,
   placeholder,
   minRows,
+  maxLength,
 }: {
   value: string;
   onCommit: (v: string) => void;
   immediate?: boolean;
   placeholder?: string;
   minRows?: number;
+  maxLength?: number;
 }) {
   const [draft, setDraft] = useState(value);
   useEffect(() => setDraft(value), [value]);
@@ -340,6 +344,7 @@ export function DraftTextarea({
       className="w-full rounded-md border border-border px-2.5 py-1.5 bg-transparent outline-none text-sm font-mono placeholder:text-muted-foreground/40 resize-none overflow-hidden"
       placeholder={placeholder}
       value={draft}
+      maxLength={maxLength}
       onChange={(e) => {
         setDraft(e.target.value);
         if (immediate) onCommit(e.target.value);

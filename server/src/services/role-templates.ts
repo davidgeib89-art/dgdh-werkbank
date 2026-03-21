@@ -21,6 +21,13 @@ export interface ResolvedAssignedRoleTemplate {
   prompt: string;
 }
 
+export interface RoleTemplateSummary {
+  id: string;
+  version: string;
+  label: string;
+  description: string;
+}
+
 export type AssignedRoleTemplateResolution =
   | {
       requestedRoleTemplateId: null;
@@ -137,6 +144,32 @@ function loadRoleTemplateById(
       }`,
     };
   }
+}
+
+export function listRoleTemplateSummaries(): RoleTemplateSummary[] {
+  const dir = roleTemplatesDir();
+  if (!fs.existsSync(dir)) return [];
+
+  const entries = fs
+    .readdirSync(dir, { withFileTypes: true })
+    .filter((entry) => entry.isFile() && entry.name.endsWith(".json"))
+    .map((entry) => {
+      const roleTemplateId = normalizeRoleTemplateId(
+        entry.name.replace(/\.json$/i, ""),
+      );
+      if (!roleTemplateId) return null;
+      const loaded = loadRoleTemplateById(roleTemplateId);
+      if (!loaded.template) return null;
+      return {
+        id: loaded.template.id,
+        version: loaded.template.version,
+        label: loaded.template.label,
+        description: loaded.template.description,
+      } satisfies RoleTemplateSummary;
+    })
+    .filter((entry): entry is RoleTemplateSummary => entry !== null);
+
+  return entries.sort((left, right) => left.label.localeCompare(right.label));
 }
 
 function renderRoleTemplatePrompt(input: {

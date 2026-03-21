@@ -7,7 +7,7 @@ import type {
   CompanySecret,
   EnvBinding,
 } from "@paperclipai/shared";
-import type { AdapterModel } from "../api/agents";
+import type { AdapterModel, RoleTemplateSummary } from "../api/agents";
 import { agentsApi } from "../api/agents";
 import { secretsApi } from "../api/secrets";
 import { assetsApi } from "../api/assets";
@@ -35,6 +35,7 @@ import {
   CollapsibleSection,
   DraftInput,
   DraftNumberInput,
+  DraftTextarea,
   help,
   adapterLabels,
 } from "./agent-config-primitives";
@@ -341,6 +342,14 @@ export function AgentConfigForm(props: AgentConfigFormProps) {
     enabled: Boolean(selectedCompanyId),
   });
   const models = fetchedModels ?? externalModels ?? [];
+  const {
+    data: roleTemplates = [],
+    error: roleTemplatesError,
+  } = useQuery({
+    queryKey: queryKeys.agents.roleTemplates,
+    queryFn: () => agentsApi.roleTemplates(),
+    enabled: !isCreate,
+  });
 
   /** Props passed to adapter-specific config field components */
   const adapterFieldProps = {
@@ -396,6 +405,19 @@ export function AgentConfigForm(props: AgentConfigFormProps) {
   const currentModelId = isCreate
     ? val!.model
     : eff("adapterConfig", "model", String(config.model ?? ""));
+  const currentRoleTemplateId = isCreate
+    ? ""
+    : eff("adapterConfig", "roleTemplateId", String(config.roleTemplateId ?? ""));
+  const selectedRoleTemplate = roleTemplates.find(
+    (template) => template.id === currentRoleTemplateId,
+  );
+  const currentRoleAppendPrompt = isCreate
+    ? ""
+    : eff(
+        "adapterConfig",
+        "roleAppendPrompt",
+        String(config.roleAppendPrompt ?? ""),
+      );
 
   const thinkingEffortKey =
     adapterType === "codex_local"
@@ -507,6 +529,58 @@ export function AgentConfigForm(props: AgentConfigFormProps) {
                   return asset.contentPath;
                 }}
               />
+            </Field>
+            <Field label="Rolle" hint={help.roleTemplateId}>
+              <select
+                className={inputClass}
+                value={currentRoleTemplateId}
+                onChange={(e) =>
+                  mark(
+                    "adapterConfig",
+                    "roleTemplateId",
+                    e.target.value || undefined,
+                  )
+                }
+              >
+                <option value="">Keine Rolle</option>
+                {roleTemplates.map((template: RoleTemplateSummary) => (
+                  <option key={`${template.id}:${template.version}`} value={template.id}>
+                    {template.label} ({template.version})
+                  </option>
+                ))}
+              </select>
+              {selectedRoleTemplate ? (
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {selectedRoleTemplate.description}
+                </p>
+              ) : (
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Keine kanonische Laufzeitrolle fuer diesen Agenten gesetzt.
+                </p>
+              )}
+              {roleTemplatesError && (
+                <p className="mt-1 text-xs text-destructive">
+                  {roleTemplatesError instanceof Error
+                    ? roleTemplatesError.message
+                    : "Role templates konnten nicht geladen werden."}
+                </p>
+              )}
+            </Field>
+            <Field label="Operator Prompt" hint={help.roleAppendPrompt}>
+              <DraftTextarea
+                value={currentRoleAppendPrompt}
+                onCommit={(v) =>
+                  mark("adapterConfig", "roleAppendPrompt", v || undefined)
+                }
+                immediate
+                minRows={4}
+                maxLength={4000}
+                placeholder="Optional additive instruction from David..."
+              />
+              <div className="mt-1 flex items-center justify-between text-xs text-muted-foreground">
+                <span>Erweitert die Rolle, ersetzt sie nicht.</span>
+                <span>{currentRoleAppendPrompt.length}/4000</span>
+              </div>
             </Field>
             {isLocal && (
               <>

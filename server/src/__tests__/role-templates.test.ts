@@ -1,7 +1,28 @@
 import { describe, expect, it } from "vitest";
-import { resolveAssignedRoleTemplate } from "../services/role-templates.ts";
+import {
+  listRoleTemplateSummaries,
+  resolveAssignedRoleTemplate,
+} from "../services/role-templates.ts";
 
 describe("resolveAssignedRoleTemplate", () => {
+  it("lists the current canonical role templates for the dashboard", () => {
+    const result = listRoleTemplateSummaries();
+
+    expect(result).toEqual([
+      expect.objectContaining({ id: "ceo", version: "v1", label: "CEO" }),
+      expect.objectContaining({
+        id: "reviewer",
+        version: "v1",
+        label: "Reviewer",
+      }),
+      expect.objectContaining({
+        id: "worker",
+        version: "v1",
+        label: "Worker",
+      }),
+    ]);
+  });
+
   it("loads the canonical worker template and renders a prompt", () => {
     const result = resolveAssignedRoleTemplate({
       roleTemplateId: "worker",

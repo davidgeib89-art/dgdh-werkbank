@@ -78,7 +78,7 @@ Gemini kennt das Schema (keystatic.config.ts + content.config.ts) und weiss exak
 
 ## Aktueller Stand (2026-03-21)
 
-**Phase:** Engine bewiesen + Role-Architecture Design fertig. Naechster Schritt: minimaler Smoke-Test (worker.json in echtem Gemini-Run).
+**Phase:** Engine bewiesen + Rollen-Smoke-Test-Bruecke im Dashboard fertig. Naechster Schritt: echter Gemini-Run mit gesetzter Rolle.
 
 ### Was funktioniert (bewiesen in echten Runs)
 - **Live Quota:** Echte Google-Quota-Daten fliessen ins Routing
@@ -92,16 +92,20 @@ Gemini kennt das Schema (keystatic.config.ts + content.config.ts) und weiss exak
 - **Routine-Approval deaktiviert:** Normale bounded Tasks laufen ohne manuelles Approval (North-Star-konform)
 - **Evidence-Fallback:** Server-seitiger `tool.evidence` Event wenn Gemini `read_file` mit leerem Output liefert (sha256, preview, byte count)
 - **Path-Normalization:** `trimIssueText()` bereinigt HTML-Entities und Markdown-Escaping vor Agent-Prompt
+- **Role Template Registry:** `GET /api/role-templates` listet kanonische Templates fuer das Dashboard
+- **Agent PATCH support:** `adapterConfig.roleTemplateId` + `roleAppendPrompt` koennen ueber `PATCH /api/agents/:id` gesetzt werden
+- **Dashboard-Bruecke:** Agent-Edit-UI hat Rollen-Dropdown + Operator-Prompt und speichert ueber den bestehenden Save-Flow
+- **Erste 3 Templates vorhanden:** `worker.json`, `ceo.json`, `reviewer.json`
 
 ### Was noch fehlt
 - **Kein Review-Layer:** doneWhen landet im Prompt aber niemand prueft ob Gemini es erfuellt hat
 - **Keine CEO-Agent-Rolle in Runtime:** Design steht (Packet 2), aber noch nicht im System aktiv
-- **Role-Templates noch nicht implementiert:** Packets 1+2 (Design) fertig, Packets 3-6 (Implementation) offen
+- **Kein echter Rollen-Run bewiesen:** UI + API + Prompt-Injektion stehen, aber der erste echte Gemini-Run mit gesetzter Rolle muss noch gefahren und bewertet werden
 
 ### Naechste Schritte (Prioritaet)
-1. **Smoke-Test:** `worker.json` systemPrompt in echten Gemini-Run injizieren, echte Aufgabe testen
-2. Wenn Smoke-Test funktioniert: Packet 3 (Backend-Felder fuer roleTemplateId etc.)
-3. Erste echte DGDH-Aufgabe die David real entlastet
+1. **Echter Rollen-Smoke-Test:** Agent im Dashboard auf `worker` setzen, Operator-Prompt optional, echte Aufgabe ausfuehren
+2. Run pruefen: War der Rollenprompt im Prompt sichtbar und war das Verhalten besser/klarer?
+3. Wenn positiv: naechster Ausbau Richtung CEO/Reviewer-Live-Nutzung statt weiterer Meta-Architektur
 
 ---
 
@@ -112,6 +116,7 @@ Gemini kennt das Schema (keystatic.config.ts + content.config.ts) und weiss exak
 - **Packets 1+2 fertig.** Template-System definiert + drei Rollen spezifiziert. Packets 3-6 erst nach Beweis.
 - **Beweis vor Infrastruktur.** Smoke-Test mit echter worker.json vor DB-Migration/UI-Dropdown.
 - **Smoke-Test-Pfad existiert bereits im Code.** `server/config/role-templates/worker.json` ist angelegt; `adapterConfig.roleTemplateId = "worker"` und optional `roleAppendPrompt` werden in `heartbeat.ts` aufgeloest und als `paperclipRoleTemplatePrompt` in Gemini-Prompts injiziert.
+- **Dashboard kann Rollen jetzt bedienen.** Rolle + Operator-Prompt laufen ueber bestehendes `adapterConfig` JSON; kein neues DB-Schema, keine Migration.
 - **Keine Mikro-Approvals.** David = CEO-Entscheidungen, nicht Klick-Dispatcher fuer Routine.
 - **Heartbeats = Ausfuehrungspuls.** Genau ein autorisiertes Work Packet, nicht Autonomie-Loop.
 - **Gemini zuerst.** Engine-Core provider-agnostisch, aber Phase 1 nur Gemini.

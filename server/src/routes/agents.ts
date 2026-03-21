@@ -53,6 +53,7 @@ import {
 import { DEFAULT_CURSOR_LOCAL_MODEL } from "@paperclipai/adapter-cursor-local";
 import { DEFAULT_GEMINI_LOCAL_MODEL } from "@paperclipai/adapter-gemini-local";
 import { ensureOpenCodeModelConfiguredAndAvailable } from "@paperclipai/adapter-opencode-local/server";
+import { listRoleTemplateSummaries } from "../services/role-templates.js";
 
 export function agentRoutes(db: Db) {
   const DEFAULT_INSTRUCTIONS_PATH_KEYS: Record<string, string> = {
@@ -66,6 +67,7 @@ export function agentRoutes(db: Db) {
     "instructionsFilePath",
     "agentsMdPath",
   ]);
+  const ROLE_APPEND_PROMPT_MAX_CHARS = 4000;
 
   const router = Router();
   const svc = agentService(db);
@@ -393,6 +395,39 @@ export function agentRoutes(db: Db) {
     return path.resolve(cwd, trimmed);
   }
 
+  function normalizeRoleTemplateAdapterConfig(
+    adapterConfig: Record<string, unknown>,
+  ): Record<string, unknown> {
+    const next = { ...adapterConfig };
+
+    if (Object.prototype.hasOwnProperty.call(next, "roleTemplateId")) {
+      const roleTemplateId = asNonEmptyString(next.roleTemplateId);
+      if (!roleTemplateId) {
+        delete next.roleTemplateId;
+      } else {
+        next.roleTemplateId = roleTemplateId.toLowerCase();
+      }
+    }
+
+    if (Object.prototype.hasOwnProperty.call(next, "roleAppendPrompt")) {
+      const rawValue = next.roleAppendPrompt;
+      const normalized =
+        typeof rawValue === "string" ? rawValue.trim() : "";
+      if (!normalized) {
+        delete next.roleAppendPrompt;
+      } else {
+        if (normalized.length > ROLE_APPEND_PROMPT_MAX_CHARS) {
+          throw unprocessable(
+            `roleAppendPrompt must be at most ${ROLE_APPEND_PROMPT_MAX_CHARS} characters`,
+          );
+        }
+        next.roleAppendPrompt = normalized;
+      }
+    }
+
+    return next;
+  }
+
   async function assertCanManageInstructionsPath(
     req: Request,
     targetAgent: { id: string; companyId: string },
@@ -538,6 +573,11 @@ export function agentRoutes(db: Db) {
     },
   );
 
+  router.get("/role-templates", (req, res) => {
+    assertBoard(req);
+    res.json(listRoleTemplateSummaries());
+  });
+
   router.post(
     "/companies/:companyId/adapters/:type/test-environment",
     validate(testAdapterEnvironmentSchema),
@@ -556,10 +596,12 @@ export function agentRoutes(db: Db) {
         string,
         unknown
       >;
+      const normalizedRoleTemplateConfig =
+        normalizeRoleTemplateAdapterConfig(inputAdapterConfig);
       const normalizedAdapterConfig =
         await secretsSvc.normalizeAdapterConfigForPersistence(
           companyId,
-          inputAdapterConfig,
+          normalizedRoleTemplateConfig,
           { strictMode: strictSecretsMode },
         );
       const { config: runtimeAdapterConfig } =
@@ -1915,13 +1957,15 @@ export function agentRoutes(db: Db) {
         res.status(422).json({ error: "adapterConfig must be an object" });
         return;
       }
+      const normalizedRoleTemplateConfig =
+        normalizeRoleTemplateAdapterConfig(adapterConfig);
       const changingInstructionsPath = Object.keys(adapterConfig).some((key) =>
         KNOWN_INSTRUCTIONS_PATH_KEYS.has(key),
       );
       if (changingInstructionsPath) {
         await assertCanManageInstructionsPath(req, existing);
       }
-      patchData.adapterConfig = adapterConfig;
+      patchData.adapterConfig = normalizedRoleTemplateConfig;
     }
 
     const requestedAdapterType =

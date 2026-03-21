@@ -23,6 +23,13 @@ export interface AdapterModel {
   label: string;
 }
 
+export interface RoleTemplateSummary {
+  id: string;
+  version: string;
+  label: string;
+  description: string;
+}
+
 export interface ClaudeLoginResult {
   exitCode: number | null;
   signal: string | null;
@@ -121,6 +128,7 @@ export const agentsApi = {
     api.get<AdapterModel[]>(
       `/companies/${encodeURIComponent(companyId)}/adapters/${encodeURIComponent(type)}/models`,
     ),
+  roleTemplates: () => api.get<RoleTemplateSummary[]>("/role-templates"),
   testEnvironment: (
     companyId: string,
     type: string,
