@@ -391,6 +391,29 @@ Das bedeutet:
 - MiniMax ist **nicht jetzt**
 - aber MiniMax ist ein klarer spaeterer Ausbaukandidat
 
+### 12.2.1 Browser Use CLI + MiniMax als externe Tool-Kombination
+
+Unabhaengig von der DGDH-internen MiniMax-Integration gibt es eine externe Anwendung:
+
+**Browser Use CLI** ist ein AI-gesteuertes Browser-Automation-Tool (open source, Python).
+Einsatzgebiet ausserhalb DGDH: Davids Ferienwohnung-Kunden (Web Design Nebenlane).
+
+- Preise/Verfuegbarkeit von Airbnb, Booking.com automatisch checken
+- Buchungsformulare auf Kunden-Websites testen
+- Content-Updates auf mehreren Plattformen
+
+Browser Use CLI unterstuetzt OpenAI-kompatible APIs. MiniMax kann damit direkt genutzt werden:
+
+```python
+llm = ChatOpenAI(
+    model="minimax-text-01",
+    base_url="https://api.minimax.chat/v1",
+    api_key="..."
+)
+```
+
+Das ist kein DGDH-Infrastruktur-Thema — es ist ein externes Freelance-Tool das bei Bedarf aktiviert wird.
+
 ### 12.3 Wie MiniMax spaeter eingefuegt werden soll
 
 MiniMax soll spaeter **nicht** als Sonderwelt eingebaut werden.
