@@ -193,6 +193,38 @@ export interface GeminiRoutingPreflightResult {
   policySource: string;
   applyModelLane: boolean;
   controlPlane: GeminiControlPlaneState;
+  useGeminiQuota: boolean;
+  quotaConfidence: "high" | "medium" | "low";
+  quotaHealth: QuotaHealthLevel;
+}
+
+type QuotaHealthLevel = "healthy" | "watch" | "conserve" | "avoid" | "unavailable";
+
+export function classifyQuotaHealth(
+  usagePercent: number | null,
+  state: string | null,
+): QuotaHealthLevel {
+  if (state === "exhausted" || state === "cooldown") return "unavailable";
+  if (usagePercent === null) return "watch";
+  if (usagePercent <= 60) return "healthy";
+  if (usagePercent <= 80) return "watch";
+  if (usagePercent <= 95) return "conserve";
+  return "avoid";
+}
+
+export function computeQuotaConfidence(
+  isStale: boolean | null,
+  staleReason: string | null,
+  bucketHealth: QuotaHealthLevel,
+): "high" | "medium" | "low" {
+  if (isStale) return "low";
+  if (staleReason) return "low";
+  if (bucketHealth === "unavailable") return "medium";
+  return "high";
+}
+
+export function shouldUseGeminiQuota(bucketHealth: QuotaHealthLevel): boolean {
+  return bucketHealth !== "unavailable" && bucketHealth !== "avoid";
 }
 
 export function resolveGeminiRoutingPreflight(
@@ -213,6 +245,19 @@ export function resolveGeminiRoutingPreflight(
     snapshotAt: new Date().toISOString(),
   });
 
+  const effectiveBucketSnapshot =
+    resolver.controlPlane.bucket.snapshots[resolver.selected.effectiveBucket];
+  const bucketHealth = classifyQuotaHealth(
+    effectiveBucketSnapshot?.usagePercent ?? null,
+    resolver.controlPlane.bucket.selectedState,
+  );
+  const quotaConfidence = computeQuotaConfidence(
+    resolver.controlPlane.quota.isStale,
+    resolver.controlPlane.quota.staleReason,
+    bucketHealth,
+  );
+  const useGeminiQuota = shouldUseGeminiQuota(bucketHealth);
+
   const result: GeminiRoutingPreflightResult = {
     selected: resolver.selected,
     quotaState: resolver.quotaState,
@@ -222,6 +267,9 @@ export function resolveGeminiRoutingPreflight(
     policySource: resolver.policySource,
     applyModelLane: resolver.applyModelLane,
     controlPlane: resolver.controlPlane,
+    useGeminiQuota,
+    quotaConfidence,
+    quotaHealth: bucketHealth,
   };
 
   input.context.paperclipRoutingPreflight = {
@@ -233,6 +281,9 @@ export function resolveGeminiRoutingPreflight(
     policySource: result.policySource,
     applyModelLane: result.applyModelLane,
     controlPlane: result.controlPlane,
+    useGeminiQuota: result.useGeminiQuota,
+    quotaConfidence: result.quotaConfidence,
+    quotaHealth: result.quotaHealth,
   };
 
   if (!asString(input.context.accountLabel)) {

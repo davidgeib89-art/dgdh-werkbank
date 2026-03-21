@@ -40,6 +40,13 @@ describe("produceFlashLiteRoutingProposal", () => {
       "gemini-3.1-pro-preview",
       "gemini-2.5-flash-lite",
     ],
+    allowedSkillPool: [
+      "repo-read",
+      "repo-write",
+      "web-search",
+      "test-runner",
+      "status-summary",
+    ],
     manualOverride: null,
   };
 
@@ -343,5 +350,124 @@ describe("produceFlashLiteRoutingProposal", () => {
     expect(second.source).toBe("flash_lite_call");
     expect(second.cacheHit).toBe(true);
     expect(hoisted.runChildProcessMock).not.toHaveBeenCalled();
+  });
+
+  it("flash-lite decides allowedSkills and they are passed through", async () => {
+    hoisted.runChildProcessMock.mockResolvedValue({
+      exitCode: 0,
+      signal: null,
+      timedOut: false,
+      stdout: JSON.stringify({
+        type: "assistant",
+        message: {
+          content: [
+            {
+              type: "output_text",
+              text: JSON.stringify({
+                taskClass: "research-light",
+                budgetClass: "small",
+                chosenBucket: "flash",
+                chosenModelLane: "gemini-3-flash-preview",
+                fallbackBucket: "pro",
+                allowedSkills: ["repo-read", "web-search", "status-summary"],
+                rationale:
+                  "Light research task. Flash bucket has capacity. Web search needed, no writes required.",
+              }),
+            },
+          ],
+        },
+      }),
+      stderr: "",
+    });
+
+    const result = await produceFlashLiteRoutingProposal({
+      ...baseInput,
+      runtimeConfig: { routingPolicy: { llmRouter: { enabled: true } } },
+    });
+
+    expect(result.parseStatus).toBe("ok");
+    expect(result.proposal?.allowedSkills).toEqual([
+      "repo-read",
+      "web-search",
+      "status-summary",
+    ]);
+  });
+
+  it("strips skills not in allowedSkillPool", async () => {
+    hoisted.runChildProcessMock.mockResolvedValue({
+      exitCode: 0,
+      signal: null,
+      timedOut: false,
+      stdout: JSON.stringify({
+        type: "assistant",
+        message: {
+          content: [
+            {
+              type: "output_text",
+              text: JSON.stringify({
+                taskClass: "bounded-implementation",
+                budgetClass: "small",
+                chosenBucket: "flash",
+                chosenModelLane: "gemini-3-flash-preview",
+                fallbackBucket: "pro",
+                allowedSkills: [
+                  "repo-read",
+                  "unknown-skill",
+                  "dangerous-tool",
+                  "repo-write",
+                ],
+                rationale: "bounded edit",
+              }),
+            },
+          ],
+        },
+      }),
+      stderr: "",
+    });
+
+    const result = await produceFlashLiteRoutingProposal({
+      ...baseInput,
+      runtimeConfig: { routingPolicy: { llmRouter: { enabled: true } } },
+    });
+
+    expect(result.parseStatus).toBe("ok");
+    expect(result.proposal?.allowedSkills).toEqual(["repo-read", "repo-write"]);
+    expect(result.proposal?.allowedSkills).not.toContain("unknown-skill");
+    expect(result.proposal?.allowedSkills).not.toContain("dangerous-tool");
+  });
+
+  it("returns empty allowedSkills when flash-lite omits them", async () => {
+    hoisted.runChildProcessMock.mockResolvedValue({
+      exitCode: 0,
+      signal: null,
+      timedOut: false,
+      stdout: JSON.stringify({
+        type: "assistant",
+        message: {
+          content: [
+            {
+              type: "output_text",
+              text: JSON.stringify({
+                taskClass: "research-light",
+                budgetClass: "small",
+                chosenBucket: "flash",
+                chosenModelLane: "gemini-3-flash-preview",
+                fallbackBucket: "pro",
+                rationale: "no skills returned",
+              }),
+            },
+          ],
+        },
+      }),
+      stderr: "",
+    });
+
+    const result = await produceFlashLiteRoutingProposal({
+      ...baseInput,
+      runtimeConfig: { routingPolicy: { llmRouter: { enabled: true } } },
+    });
+
+    expect(result.parseStatus).toBe("ok");
+    expect(result.proposal?.allowedSkills).toEqual([]);
   });
 });

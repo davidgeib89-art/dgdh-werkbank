@@ -43,6 +43,7 @@ export interface GeminiFlashLiteProposal {
   chosenBucket: BucketName;
   chosenModelLane: string;
   fallbackBucket: BucketName;
+  allowedSkills: string[];
   rationale: string;
 }
 
@@ -55,6 +56,7 @@ export interface GeminiFlashLiteRouterInput {
   quotaSnapshot: Record<string, unknown>;
   allowedBuckets: BucketName[];
   allowedModelLanes: string[];
+  allowedSkillPool: string[];
   manualOverride: Record<string, unknown> | null;
 }
 
@@ -218,8 +220,22 @@ function defaultRiskLevel(input: {
   return "medium";
 }
 
+function normalizeAllowedSkills(
+  value: unknown,
+  skillPool: string[],
+): string[] {
+  if (!Array.isArray(value)) return [];
+  const pool = new Set(skillPool);
+  return value
+    .filter((entry): entry is string => typeof entry === "string")
+    .map((entry) => entry.trim())
+    .filter((entry) => entry.length > 0 && pool.has(entry))
+    .slice(0, 16);
+}
+
 function normalizeProposalFromRaw(
   raw: Record<string, unknown>,
+  skillPool: string[],
 ): GeminiFlashLiteProposal | null {
   const taskClass = asString(raw.taskClass);
   const budgetClass = asString(raw.budgetClass);
@@ -263,6 +279,7 @@ function normalizeProposalFromRaw(
     chosenBucket,
     chosenModelLane,
     fallbackBucket,
+    allowedSkills: normalizeAllowedSkills(raw.allowedSkills, skillPool),
     rationale,
   };
 }
@@ -281,6 +298,7 @@ function normalizeSimilarityKey(input: {
   taskText: string;
   allowedBuckets: BucketName[];
   allowedModelLanes: string[];
+  allowedSkillPool: string[];
   manualOverride: Record<string, unknown> | null;
 }): string {
   const normalizedTask = input.taskText
@@ -295,6 +313,7 @@ function normalizeSimilarityKey(input: {
     task: normalizedTask,
     buckets: [...input.allowedBuckets].sort(),
     lanes: [...input.allowedModelLanes].sort(),
+    skills: [...input.allowedSkillPool].sort(),
     override,
   });
   return signature;
@@ -341,7 +360,7 @@ function parseRuntimeState(
           const key = asString(raw.key);
           const createdAt = asString(raw.createdAt);
           const proposal = asObject(raw.proposal);
-          const normalizedProposal = normalizeProposalFromRaw(proposal);
+          const normalizedProposal = normalizeProposalFromRaw(proposal, []);
           if (!key || !createdAt || !normalizedProposal) {
             return null;
           }
@@ -563,6 +582,7 @@ function buildStrictPrompt(input: {
   quotaSnapshot: Record<string, unknown>;
   allowedBuckets: BucketName[];
   allowedModelLanes: string[];
+  allowedSkillPool: string[];
   manualOverride: Record<string, unknown> | null;
 }): string {
   const body = {
@@ -570,6 +590,7 @@ function buildStrictPrompt(input: {
     quotaSnapshot: input.quotaSnapshot,
     allowedBuckets: input.allowedBuckets,
     allowedModelLanes: input.allowedModelLanes,
+    allowedSkillPool: input.allowedSkillPool,
     manualOverride: input.manualOverride,
     outputSchema: {
       taskClass: [
@@ -594,19 +615,25 @@ function buildStrictPrompt(input: {
       chosenBucket: ["flash", "pro", "flash-lite"],
       chosenModelLane: "string (must be one of allowedModelLanes)",
       fallbackBucket: ["flash", "pro", "flash-lite"],
-      rationale: "short string",
+      allowedSkills:
+        "string[] (subset of allowedSkillPool — only include skills genuinely needed for this task)",
+      rationale: "short string (founder-readable: task type, chosen bucket, why these skills)",
     },
   };
 
   return [
     "Return ONLY one JSON object. No markdown, no prose.",
     "Choose values strictly from the provided enums and allowlists.",
+    "allowedSkills must be a subset of allowedSkillPool. Omit skills not needed for this task.",
     "If uncertain, choose safe conservative defaults.",
     JSON.stringify(body),
   ].join("\n");
 }
 
-function tryParseProposal(summary: string): {
+function tryParseProposal(
+  summary: string,
+  skillPool: string[],
+): {
   proposal: GeminiFlashLiteProposal | null;
   parseStatus: GeminiFlashLiteParseStatus;
 } {
@@ -622,7 +649,7 @@ function tryParseProposal(summary: string): {
     return { proposal: null, parseStatus: "invalid_json" };
   }
 
-  const proposal = normalizeProposalFromRaw(parsedRaw);
+  const proposal = normalizeProposalFromRaw(parsedRaw, skillPool);
   if (!proposal) {
     return { proposal: null, parseStatus: "schema_invalid" };
   }
@@ -721,10 +748,12 @@ export async function produceFlashLiteRoutingProposal(
   }
 
   const taskText = normalizeFreeTextTask(input.context);
+  const skillPool = input.allowedSkillPool;
   const cacheKey = normalizeSimilarityKey({
     taskText,
     allowedBuckets: input.allowedBuckets,
     allowedModelLanes: input.allowedModelLanes,
+    allowedSkillPool: skillPool,
     manualOverride: input.manualOverride,
   });
 
@@ -793,6 +822,7 @@ export async function produceFlashLiteRoutingProposal(
     quotaSnapshot: input.quotaSnapshot,
     allowedBuckets: input.allowedBuckets,
     allowedModelLanes: input.allowedModelLanes,
+    allowedSkillPool: skillPool,
     manualOverride: input.manualOverride,
   });
 
@@ -850,7 +880,7 @@ export async function produceFlashLiteRoutingProposal(
   }
 
   const parsed = parseGeminiJsonl(proc.stdout);
-  const parsedProposal = tryParseProposal(parsed.summary);
+  const parsedProposal = tryParseProposal(parsed.summary, skillPool);
   if ((proc.exitCode ?? 0) !== 0 && parsedProposal.parseStatus !== "ok") {
     return finalize({
       attempted: true,

@@ -2746,6 +2746,13 @@ export function heartbeatService(db: Db) {
         },
         allowedBuckets: ["flash", "pro", "flash-lite"],
         allowedModelLanes: Object.values(policy.bucketModels),
+        allowedSkillPool: [
+          "repo-read",
+          "repo-write",
+          "web-search",
+          "test-runner",
+          "status-summary",
+        ],
         manualOverride:
           Object.keys(manualOverrideForRouter).length > 0
             ? manualOverrideForRouter
@@ -2808,6 +2815,18 @@ export function heartbeatService(db: Db) {
         runtimeState: runtimeStateForRouting,
         context,
       });
+
+      if (
+        flashLiteProposal.proposal?.allowedSkills &&
+        flashLiteProposal.proposal.allowedSkills.length > 0
+      ) {
+        resolvedConfig.includeSkills = flashLiteProposal.proposal.allowedSkills;
+        context.paperclipSkillSelection = {
+          allowedSkills: flashLiteProposal.proposal.allowedSkills,
+          source: "flash_lite_proposal",
+        };
+      }
+
       const executionWorkspace = await realizeExecutionWorkspace({
         base: {
           baseCwd: resolvedWorkspace.cwd,
