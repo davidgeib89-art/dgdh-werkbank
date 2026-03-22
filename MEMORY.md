@@ -109,17 +109,15 @@ handoff-faehig. Ref: `github.com/microsoft/markitdown`
 - Reviewer-Kontext-Fix: `heartbeat.ts` liefert Worker-Handoff + Artefaktpfade in Review-Prompt
 - Issue-Lifecycle automatisch: Worker → `in_review`; Reviewer `accepted` → `done`
 
-**Stand 2026-03-22 — DGD-38/39 done, DGD-36 Sprint aktiv:**
+**Stand 2026-03-22 � DGD-38/39/36 done, DGD-32 als naechster Schritt:**
 - DGD-33, DGD-35, DGD-37, DGD-34 `done` (Reviewer accepted)
 - DGD-38 `done`: vier Legal-Felder in keystatic.config.ts + content.config.ts + Keystatic UI-Persistenz bewiesen
 - DGD-39 `done`: Footer + Impressum rendern Legal-Felder aus site.json konditional
-- DGD-36 aktiv: content.config.ts um highlights.image/link + testimonials.authorImage/link erweitert; Komponenten angepasst; Sprint laeuft
-- DGD-32 bleibt auf `todo` (offen bis DGD-36 done + Reviewer accepted)
-- **Naechste Reihenfolge:** DGD-36 fertig → Reviewer → DGD-32 CEO-Aggregation
-- **Bekannte System-Gaps:** Issue-Kommentare nicht zuverlaessig als Kontext fuer Reviewer/CEO — kritische Infos immer in `doneWhen` / Description
-- **Onboarding-Prompts:** Fuer alle 4 Rollen fertig (Planer/Coder/Reviewer/Researcher) — in Claude-Session erarbeitet
-- **Researcher-Rolle geplant:** Konzept fertig (GitHub-Repo → North-Star-Check → strukturierter Bericht an Planer); noch kein Template/Issue
-- **git_worktree → project_primary:** Fuer DGD-38 pragmatisch umgestellt (Windows-Junctions zu holprig); Zwischenzustand bewusst
+- DGD-36 `done`: content.config.ts um highlights.image/link + testimonials.authorImage/link erweitert; Renderer angepasst
+- DGD-32 bleibt auf `todo` (offen bis CEO-Aggregation retriggered ist)
+- **Naechste Reihenfolge:** DGD-32 CEO-Aggregation retrigger
+- **Bekannte System-Gaps:** Issue-Kommentare nicht zuverlaessig als Kontext fuer Reviewer/CEO � kritische Infos immer in `doneWhen` / Description
+- **Onboarding-Prompts:** Fuer alle 4 Rollen fertig (Planer/Coder/Reviewer/Researcher) � in Claude-Session erarbeitet
 ## Koordinations-Prinzip (Claude als Chief of Staff)
 
 Claude koordiniert nicht jeden einzelnen Run-Status. Codex/Gemini arbeiten in Sprints durch.
@@ -186,6 +184,7 @@ PATCH /api/issues/{id}  Body: {"assigneeAgentId": "<agent-id>"}
 # Worker:   fe5d3d60-9e8a-4e0c-b494-087d3518755c
 # Reviewer: 9e721036-35b7-446e-a752-2df7a1a8caad
 ```
+
 
 
 
