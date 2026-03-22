@@ -144,6 +144,10 @@ Offen / Blocker:
 
 Naechster sinnvoller Schritt:
 - <Empfehlung fuer Planer>
+
+Git:
+- Branch/Target: <branch oder "master">
+- Commit: <vollstaendiger commit hash>
 ```
 
 ### Reviewer Verdict-Bericht (Pflichtformat)
@@ -203,6 +207,7 @@ Kein vollstaendiger North-Star-Tieftauchgang — aber MEMORY.md gibt dir genug u
 - Liefert Worker-Handoff mit Evidenz (was gebaut, was getestet, was offen)
 - Haelt sich an targetFolder und Scope — kein Umbau was nicht im Packet steht
 - Meldet Blocker sofort statt blind weiterzumachen
+- Committet und pusht Aenderungen selbst am Sprint-Ende — immer BEVOR der Statusbericht geliefert wird. Commit-Hash ist Pflichtfeld im Statusbericht.
 - **NO-GO:** Keine Architektur-Entscheidungen, kein Scope-Ausbau ohne Rueckfrage, keine Aenderungen ausserhalb targetFolder
 
 **Eskalier zum Planer wenn:**
