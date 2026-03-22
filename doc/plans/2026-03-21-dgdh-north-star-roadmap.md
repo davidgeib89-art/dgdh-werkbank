@@ -651,6 +651,68 @@ Die richtige Uebersetzung ist:
 
 > nicht "Supermemory fuer alles", sondern "sauberes, scoped Handoff-Memory fuer CEO -> Worker -> Reviewer"
 
+### Patterns aus Hermes-Agent (Inspiration: github.com/NousResearch/hermes-agent)
+
+Ein produktionsreifer Open-Source-Agent mit file-based Memory, SQLite-Transcript-Recall,
+Context-Compression und Skills-System. Echter Code, echte Implementierung — nicht nur Konzept.
+
+**1. Drei Speicher-Ebenen strikt trennen (sofort als Prinzip relevant)**
+
+Hermes trennt:
+- `MEMORY.md` — stabiles, langlebiges Wissen (bleibt ueber Sessions)
+- SQLite + FTS5 — Transcript-Recall, durchsuchbare Run-Geschichte
+- Skills-Dateien — wiederverwendbare, progressive-disclosure-faehige Faehigkeiten
+
+DGDH-Uebersetzung:
+- **Stable Memory** → MEMORY.md + role-templates (was das System wissen soll)
+- **Run Recall** → Heartbeat-Run-Logs + Reviewer-Verdicts (was tatsaechlich passiert ist)
+- **Skills** → Paperclip-Skills-Dateien (bereits vorhanden als `.gemini/skills/`)
+
+Das sind drei verschiedene Schichten mit unterschiedlichen Lebenszyklen.
+Sie duerfen nicht vermischt werden — das ist Hermes' wichtigstes Architektur-Prinzip.
+
+**2. Frozen Memory Snapshot pro Run / Issue (sofort als Engine-Prinzip relevant)**
+
+Hermes erstellt zu Beginn jeder Session einen frozen Snapshot des stabilen Memory.
+Der Run liest immer gegen diesen Snapshot — nicht gegen live-mutierende Dateien.
+
+DGDH-Uebersetzung:
+- Pro Issue-Run: einmal Memory/Kontext einfrieren, dann konsistent verwenden
+- Verhindert dass ein laufender Worker-Run durch parallele Aenderungen in Drift geht
+- Einfachste Form: Heartbeat liest Kontext am Run-Start einmalig, injiziert ihn fix
+
+Umsetzungsaufwand: klein (konzeptionell schon so implementiert durch Context-Injection-Layer).
+Explizit machen und dokumentieren.
+
+**3. Context Compression Flush + Structured Handoff (bald, nach CEO-Kette stabil)**
+
+Hermes hat `context_compressor.py`: wenn der Kontext zu gross wird, nicht blind kuerzen,
+sondern strukturiert flushen — wichtige Erkenntnisse in kompaktem Format behalten.
+
+Das ist direkter Vorgaenger unserer Handoff-Summary-Idee. Hermes macht es mit echter Compression.
+
+DGDH-Ansatz:
+- Worker/Reviewer sollen am Run-Ende nicht einfach aufhoeren (`complete_task`-Barrier)
+- Das Barrier-Tool erzwingt den Compression-Flush in strukturierter Form: Goal/Result/Files/Blockers/Next
+- Spaeter: wenn CEO ueber mehrere Packets hinweg plant, Compression der aelteren Packet-Ergebnisse
+
+Trigger: nach CEO-Kette stabil, als Verbindungsstueck zwischen Barrier-Tool und Memory-Schicht.
+
+**4. Memory Security Scanning (spaeter, als Reviewer-Erweiterung)**
+
+Hermes scannt Memory-Writes auf Injection-Versuche bevor sie in MEMORY.md landen.
+Das ist relevant sobald Agents Memory schreiben duerfen — ein kompromittierter Worker koennte
+sonst MEMORY.md mit falschen Annahmen befuellen.
+
+DGDH-Ansatz: erst relevant wenn Agents selbst MEMORY.md oder andere shared Memory-Slices
+schreiben duerfen. Bis dahin: nur Menschen schreiben MEMORY.md.
+
+**5. Was wir explizit NICHT kopieren**
+
+- Tiefes User-/Persona-Profiling via Honcho — kein Consumer-Produkt
+- Globales persoenliches Gedaechtnis — widerspricht issue-scoped Memory-Prinzip
+- `nudge_interval` / `creation_nudge_interval` Config — Hermes-spezifisches Consumer-Pattern
+
 ### Patterns aus AlphaClaw (Inspiration: AlphaClaw / OpenClaw Wrapper)
 
 Ein "Betriebssystem-Wrapper" der einen AI-Agenten monatelang stabil laufen laesst.

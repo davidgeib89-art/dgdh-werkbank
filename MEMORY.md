@@ -121,6 +121,7 @@ handoff-faehig. Ref: `github.com/microsoft/markitdown`
 - **CEO-Budget deutlich verbessert:** Erster CEO-Planungsrun lag bei ~345k Input-Tokens; der echte Delegations-Beweis lag bei `61,877` Total-Tokens (`54,712` Input, `2,308` Output) mit 5 Tool-Calls
 - **CEO braucht API-Hinweis automatisch:** `execute.ts` schaltet den Paperclip-API-Hinweis fuer `roleTemplateId=ceo` jetzt automatisch ein; der Live-Agent wurde zusaetzlich auf `includeApiAccessNote=true` gesetzt
 - **Erste komplette Firmenkette bewiesen:** `DGD-32 -> DGD-33` lief als echte `CEO -> Worker -> Reviewer`-Kette durch. Worker-Run `63f52e05-3d6c-4518-900e-24c7902526f1` erzeugte `docs/schema-refinement-recommendations.md`, Reviewer-Run `fca4fe60-13a3-4348-b040-2aedc53d4fd7` akzeptierte, `DGD-33` ging automatisch auf `done`
+- **Zweite CEO-Kette ebenfalls bewiesen:** `DGD-32 -> DGD-35` lief ebenfalls sauber als `CEO -> Worker -> Reviewer -> done`. Das zeigt Reproduzierbarkeit und nicht nur einen Einzelfall
 - **Reviewer-Kontext-Fix gebaut:** Reviewer bekam anfangs nur Run-Metadaten und blockte deshalb trotz vorhandenem Artefakt. `heartbeat.ts` liefert jetzt zusaetzlich Worker-Handoff und erzeugte Artefaktpfade in den Review-Prompt
 - **Issue-Lifecycle jetzt automatisch:** Erfolgreicher `worker`-Run zieht ein Issue im normalen Assignment-Flow auf `in_review` (auch wenn es vorher noch `todo` war); erfolgreicher `reviewer`-Run mit `Verdict: accepted` zieht auf `done`
 - **Reviewer-Verdict-Parser gefixt:** `stdoutExcerpt` liegt bei Gemini als NDJSON/stream-json vor; `extractReviewerVerdict()` rekonstruiert jetzt Assistant-Content aus den JSON-Linien, damit `Verdict: accepted` auch in echten Run-Logs erkannt und `Issue -> done` wirklich ausgelost wird
@@ -133,9 +134,9 @@ handoff-faehig. Ref: `github.com/microsoft/markitdown`
 - **Quota-Observability weiter schaerfen:** Snapshot wird gespeichert + wiederverwendet, aber fruehere `0%`-Drift zeigt, dass Refresh-/Darstellungslogik noch weiter verifiziert werden sollte
 
 ### Naechste Schritte (Prioritaet)
-1. **Zweite CEO-Kette fahren:** z. B. `DGD-35` oder `DGD-36`, damit wir sehen ob der Erfolg reproduzierbar ist und nicht nur ein Gluecksfall
-2. **Kleinen Shell-/Tooling-Fix fuer Gemini ziehen:** PowerShell-`&&` vermeiden und `node-pty/AttachConsole`-Laerm rund um `run_shell_command` spaeter entschlacken
-3. **Tool-/Guardrail-Loop spaeter ziehen:** nach 1-2 weiteren CEO-basierten Packet-Runs MCP-/policy-aehnlicher machen und Checks tiefer in den Loop zurueckfuehren
+1. **PowerShell-/Tooling-Fix ziehen:** `&&`-Fehlversuche und `node-pty/AttachConsole`-Laerm sind jetzt der naechste direkte Kosten-/Stabilitaetshebel
+2. **Parent-Issue-Aggregation spaeter schneiden:** `DGD-32` bleibt bewusst offen, bis Child-Issues aggregiert/abgenommen werden; das ist ein eigenes Packet
+3. **Tool-/Guardrail-Loop spaeter ziehen:** nach den zwei CEO-basierten Packet-Runs MCP-/policy-aehnlicher machen und Checks tiefer in den Loop zurueckfuehren
 
 ---
 
