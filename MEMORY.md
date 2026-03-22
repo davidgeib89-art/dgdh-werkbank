@@ -56,4 +56,5 @@
 - Schema Fill Worker = `deterministic_tool`, Route `/api/companies/:companyId/revenue-lane/schema-fill/process`.
 - Template-Apply Worker = `deterministic_tool`, Route `/api/companies/:companyId/revenue-lane/template-apply/process`, schreibt kontrolliert nur in den sicheren Template-Workspace und nie in ein Kunden-Git.
 - Revenue-Lane-Ende-zu-Ende ist bis zum sicheren Astro/Keystatic-Template-Build bewiesen; lokaler Build-Nachweis im Template-Workspace erfolgt bei Bedarf via `npm ci` + `npm run build`.
-- Naechster Architektur-Schritt: `Packet -> Lane Routing` fuer `deterministic_tool / free_api / premium_model / local_model`.
+- Lane Routing V1 ist live: `packetType + role` steuern die Lane; `deterministic_tool` blockiert LLM-Calls hart.
+- Naechster Architektur-Schritt: Rollen-/Packet-Reifegrad weiterhaerten (CEO-Spec-Qualitaet, Branchenprofile, spaeter `local_model`-Aktivierung).

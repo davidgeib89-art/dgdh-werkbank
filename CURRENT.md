@@ -1,10 +1,10 @@
 # CURRENT - Live Baton
 
-focus: Sprint J abgeschlossen - Zielausrichtung geschaerft (Prototyp -> wiederverwendbare Plattform)
+focus: Sprint K abgeschlossen - Lane Routing V1 mit packetType/role-Hints bewiesen
 active_issue: none
 next:
-  1) Von Prototyp zu Plattform: Packet-Type -> Lane Routing fuer deterministic_tool / free_api / premium_model / local_model haerten
-  2) Branchenharten der Revenue-Lane-Faehigkeiten (Friseur, Restaurant, Handwerk) auf Basis der neuen Capability-Gap-Analyse
+  1) CEO-Run-Kontext schaerfen: Rollenprompt fuer `ceo` auf Packet-Spec-Erzeugung haerten (ohne Loop-Umbau)
+  2) Branchenharten der Revenue-Lane-Faehigkeiten (Friseur, Restaurant, Handwerk) auf Basis der Capability-Gap-Analyse
 blockers: none
 notes:
 - Arbeitsmodell ab 2026-03-22: Planer = Perplexity via Chat. Codex = grosse Operator-Sprints mit eigenem Debug-Loop, Console-Watch und aktiver Bedienung von Paperclip/Werkbank. Reviewer/Researcher = Gemini CLI. Claude = nur wenn wirklich noetig, um Quota zu schonen.
@@ -20,6 +20,8 @@ notes:
 - Echter `npm run build` im sicheren Template-Workspace ist nach lokalem `npm ci` gruen; damit ist die Revenue-Lane-Foundation bis zum deploy-faehigen Template-Build bewiesen.
 - Sprint J liefert die Zielausrichtung als Prototyp-zu-Plattform-Richtung: heutige Kundenarbeit ist Sandkasten fuer generische Agent-Faehigkeiten, die spaeter fuer viele Kunden wiederverwendbar laufen.
 - Prototyping-Phase bleibt explizit: schneller iterieren, ehrlich Gaps markieren, Fundament richtig bauen statt Einzelfall-Perfektion.
+- Sprint K liefert Lane Routing V1: `packetType + role` entscheiden die Lane; `deterministic_tool` blockt LLM-Calls hart und setzt `blockReason=deterministic_tool_no_llm_call`.
+- Routing-Entscheidungen sind jetzt transparent im `routingReason` sichtbar (Lane, Quelle, packetType, Rolle, Bucket, Modell, Grund).
 - Fuer Projekt Astro/Keystatic zeigt der Project-Workspace auf den sicheren Template-only-Workspace `C:\Users\holyd\DGDH\worktrees\astro-keystatic-template-geib`.
 - Kein Kunden-Git mehr unter `C:\Users\holyd\DGDH\worktrees\ferienwohnung-bamberger`; der bisherige Kunden-Stand wurde aus dem Agenten-Bereich nach `C:\Users\holyd\Documents\Websites\kunden-archive\ferienwohnung-bamberger` verschoben.
 last_updated_by: Codex (Coder)
