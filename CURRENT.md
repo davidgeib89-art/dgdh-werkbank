@@ -1,16 +1,17 @@
 # CURRENT - Live Baton
 
-focus: Baton frei
-active_issue: none
+focus: Sprint A — Worker Abort bei Loop-Stop + Reviewer Simplicity Criterion
+active_issue: noch nicht erstellt (Sprint A)
 next:
-  1) Neue Priorisierung durch Planner
+  1) Sprint A: Worker git checkout bei 5x stop + Blocked-Handoff + Reviewer Simplicity Prompt-Tweak
+  2) Sprint B: CEO Auto-Retrigger (Engine triggert CEO nach Reviewer accepted)
+  3) Revenue Lane Ingestion — warten auf echte Kundendaten
 blockers: none
 notes:
-- DGD-32 done: CEO-Aggregation retrigger lief durch und Parent wurde geschlossen
-- DGD-33, DGD-34, DGD-35, DGD-36, DGD-37, DGD-38, DGD-39 done
-- Paperclip-Dashboard up: http://localhost:3100/api/health = ok
-- pnpm dev:watch im Paperclip-Repo laeuft
-- Original-Astro-Workspace hat node_modules/Junction-Probleme - Verifikation weiter in temp copy
-- git_worktree Policy aktiv fuer Projekt Astro/Keystatic
-last_updated_by: Codex (Coder)
+- Planer-Entscheidung (Perplexity + Claude): Claudes Reihenfolge freigegeben
+- DGD-32 bis DGD-39 alle done
+- ceo.json hat [NEEDS INPUT] + Constitution-Check bereits — echtes Problem ist Auto-Retrigger
+- Simplicity Criterion geht als Prompt-Tweak in Sprint A rein, kein eigener Sprint
+- Ingestion ohne Testdaten = Infrastruktur als Selbstzweck, warten
+last_updated_by: Claude (Planer+Coder)
 updated_at: 2026-03-22

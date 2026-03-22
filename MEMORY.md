@@ -115,7 +115,15 @@ handoff-faehig. Ref: `github.com/microsoft/markitdown`
 - DGD-39 `done`: Footer + Impressum rendern Legal-Felder aus site.json konditional
 - DGD-36 `done`: content.config.ts um highlights.image/link + testimonials.authorImage/link erweitert; Renderer angepasst
 - DGD-32 `done`: CEO-Aggregation retrigger lief durch und der Parent wurde geschlossen
-- **Naechste Reihenfolge:** neue Priorisierung durch Planner
+
+**Freigegebene Sprint-Reihenfolge (Planer-Entscheidung 2026-03-22):**
+
+| Prio | Sprint | Scope | Aufwand |
+|------|--------|-------|---------|
+| 1 | Worker Abort bei Loop-Stop | `git checkout .` + strukturierter Blocked-Handoff bei 5x stop | Klein |
+| 2 | Reviewer Simplicity Criterion | Prompt-Tweak in `reviewer.json` — direkt in Sprint 1 rein | Minimal |
+| 3 | CEO Auto-Retrigger | Engine triggert CEO automatisch nach Reviewer accepted — kein manuelles Unassign/Reassign | Mittel |
+| 4 | Revenue Lane Ingestion | Warten auf echte Kundendaten | — |
 - **Bekannte System-Gaps:** Issue-Kommentare nicht zuverlaessig als Kontext fuer Reviewer/CEO — kritische Infos immer in `doneWhen` / Description
 - **Onboarding-Prompts:** Fuer alle 4 Rollen fertig (Planer/Coder/Reviewer/Researcher) — in Claude-Session erarbeitet
 
