@@ -1071,10 +1071,19 @@ Fester Shared Core + variable Branchenprofile:
 
 ### Technische Constraints (non-negotiable)
 
-- `output: "static"` in Astro — kein SSR ausser Keystatic OAuth-Route
+- `output: "static"` in Astro - kein SSR ausser Keystatic OAuth-Route
 - Worker-Bundle unter 3 MB (Cloudflare Free Tier Limit)
 - Kein eigenes Formular-Backend, keine Buchungslogik, kein Plugin-System
-- Config immer ueber `getResolvedSettings()` — nie direkt lesen
+- Config immer ueber `getResolvedSettings()` - nie direkt lesen
+
+### Operative Klarstellung gegen Drift
+
+- Revenue Lane ist nicht "eine zufaellige Kundenseite jetzt irgendwie fertig machen", sondern eine wiederverwendbare Produktionsfaehigkeit der Werkbank
+- Der erste Fokus ist der naechste stabile Packet-Typ oder Tool-Pfad, nicht der vollstaendige Einzelfall-Abschluss
+- Fuer Revenue Lane ist die aktuelle Reihenfolge: Image Preprocessing -> Content Extraction/Draft -> Schema Fill -> Review
+- Fehlende Kundennamen, Texte oder Fakten werden als `[NEEDS INPUT]` / Platzhalter markiert, nicht halluziniert
+- Spezialisierte Worker oder Subagent-artige Tools sind gut, aber nur als CEO-gesteuerte, sauber begrenzte Packets mit klarem Input/Output
+- Kontrollierte Parallelisierung ist sinnvoll, sobald Packets wirklich unabhaengig sind (z. B. Bilder vs. Text), aber nicht davor
 
 ## 14. Was explizit noch nicht getan werden soll
 

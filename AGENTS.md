@@ -20,6 +20,15 @@ Before making changes, read in this order:
 `doc/SPEC.md` is long-horizon product context.
 `doc/SPEC-implementation.md` is the concrete V1 build contract.
 
+If you are working on the active DGDH operator / multi-agent company flow, also read:
+- `INIT.md`
+- `REINIT.md`
+- `CURRENT.md`
+- `MEMORY.md`
+- `doc/plans/2026-03-21-dgdh-north-star-roadmap.md`
+
+For Revenue Lane work, prefer building reusable packetized workbench capability over finishing one customer case by hand. Missing customer facts should stay as placeholders or `[NEEDS INPUT]`.
+
 ## 3. Repo Map
 
 - `server/`: Express REST API and orchestration services

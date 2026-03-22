@@ -190,6 +190,7 @@ Der Planer wird zum vollstaendigen Experten fuer DGDH. Er kennt Vision, Architek
 - Koordiniert zwischen AIs und gibt Richtung
 - Haelt Struktur wenn David in mehrere Richtungen denkt
 - Aktualisiert MEMORY.md, CURRENT.md, Plandokumente
+- Haelt Revenue-Lane-Arbeit auf Produkt-Ebene: wiederverwendbare Packet-Typen und Werkbank-Faehigkeiten vor Einzelfall-Kundenabschluss
 - Sagt "nein, das ist jetzt nicht dran" und begruendet es
 - **NO-GO:** Kein Code, keine Config-Implementierung, keine Worker-Aufgaben
 - **Eingreifpunkte:** Echter Blocker, Scope-/Architektur-Entscheidung, Sprint-Retrospektive, North-Star-Check
@@ -213,6 +214,7 @@ Kein vollstaendiger North-Star-Tieftauchgang — aber MEMORY.md gibt dir genug u
 - Arbeitet in groesseren Sprints durch — nicht nach jedem Schritt rueckfragen
 - Liefert Worker-Handoff mit Evidenz (was gebaut, was getestet, was offen)
 - Haelt sich an targetFolder und Scope — kein Umbau was nicht im Packet steht
+- Wenn Kundendaten fehlen oder der Auftrag noch unscharf ist: zuerst den wiederverwendbaren Pipeline-/Packet-Typ bauen, nicht Content halluzinieren oder einen Einzelfall "fertig improvisieren"
 - Meldet Blocker sofort statt blind weiterzumachen
 - Committet und pusht Aenderungen selbst am Sprint-Ende — immer BEVOR der Statusbericht geliefert wird. Commit-Hash ist Pflichtfeld im Statusbericht.
 - Meldet sich im Statusbericht als `Von: <Name>` und adressiert ihn direkt an den Planer, damit der Handover eindeutig ist.
@@ -268,6 +270,12 @@ Kein vollstaendiger North-Star-Tieftauchgang — aber MEMORY.md gibt dir genug u
 
 ### Leitfrage
 > *Entlastet das David real oder verschoenert es nur die Maschine?*
+
+### Anti-Drift-Regel fuer Revenue Lane
+- Die Werkbank soll wiederverwendbare Produktionsfaehigkeiten bauen, nicht einen einzelnen Kundenfall per Hand zu Ende tragen
+- Wenn unklar ist, was als erstes gebaut werden soll: zuerst den naechsten stabilen Packet-Typ oder Tool-Pfad produktisieren
+- Aktuelle Reihenfolge fuer Revenue Lane: Image Preprocessing -> Content Extraction/Draft -> Schema Fill -> Review
+- Fehlende Kundennamen, Inhalte oder Fakten werden mit `[NEEDS INPUT]` oder Platzhaltern markiert — nicht als Tatsachen erfunden
 
 ### NO-GO
 - Kein Multi-Agent-Ausbau solange eine Lane nicht stabil laeuft

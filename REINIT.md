@@ -64,6 +64,13 @@ Wenn das aus `CURRENT.md`, Issue-Text oder Arbeitskontext nicht sauber hervorgeh
 - Statusbericht mit Commit-Hash und Push-Info an den Planer
 - Der Bericht beginnt mit `CODEX STATUSBERICHT`, nennt `Von: Codex` und ist direkt an den Planer adressiert
 
+## Anti-Drift fuer Revenue Lane
+
+- Wenn Kundendaten fehlen, werden keine Inhalte erfunden. Nutze Platzhalter oder `[NEEDS INPUT]`.
+- Wenn ein Auftrag nach Einzelfall-Kundenarbeit aussieht, pruefe zuerst ob eigentlich ein wiederverwendbarer Packet-Typ oder Tool-Pfad gebaut werden soll.
+- Aktuell ist der erste priorisierte Revenue-Lane-Packet-Typ: Bild-Preprocessing / Asset-Optimierung.
+- Spezialrollen oder Subagent-artige Tools sind gut, aber nur als CEO-gesteuerte, klar begrenzte Packets mit sauberem Input/Output.
+
 ## Ressourcen
 
 - **Planer:** Perplexity im Chat

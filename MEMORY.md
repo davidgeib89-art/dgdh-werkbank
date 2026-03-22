@@ -29,7 +29,13 @@ Hosting: Cloudflare Pages Free Tier. Kunde zahlt nur ~5€/Jahr fuer Domain.
 ### Repo & erster Kunde
 - Template-Repo: `C:\Users\holyd\DGDH\worktrees\ferienwohnung-bamberger`
 - Erster Kunde live: https://urlaub-bei-bambergers.de/ (Ferienwohnung Bamberger)
-- Naechstes Projekt: Gleiche Site fuer Kunden-Tante, anderes Branding
+- Naechster Fokus: Revenue-Lane-Produktisierung fuer wiederverwendbare Kundenordner-Pipelines; konkreter Kunde ist zweitrangig bis die Packet-Foundation steht
+
+### Aktuelle operative Richtung (Anti-Drift)
+- Ziel ist nicht der schnelle Abschluss eines einzelnen Kundenprojekts, sondern die wiederverwendbare Werkbank-Faehigkeit fuer diese Auftragsart
+- Revenue Lane soll als Packet-Kette laufen: CEO -> Image Preprocessing -> Content Extraction/Draft -> Schema Fill -> Review
+- Fehlende Namen, Texte oder Fakten werden als `[NEEDS INPUT]` / Platzhalter behandelt, nicht halluziniert
+- Der erste zu produktisierende Revenue-Lane-Packet-Typ ist Bild-Preprocessing / Asset-Optimierung
 
 ### Content-Modell (alles statische Textdateien, keine DB!)
 ```
@@ -42,11 +48,12 @@ twilight.config.yaml               → YAML-Fallback, Config via getResolvedSett
 
 ### Die Grosse Vision (AI-Workflow)
 1. David legt Kundendaten in einen Ordner (Texte, Bilder, Logo, PDFs, Word-Dokumente)
-2. **Ingestion-Schritt:** Kundendaten → Markdown normalisieren (markitdown-Ansatz)
-3. DGDH-System forkt Template-Repo
-4. Gemini-Worker liest normalisiertes Markdown + Schema → befuellt alle Content-Dateien
-5. Push zu GitHub → Cloudflare deployt automatisch
-6. David reviewed → fertig
+2. **Preprocessing-Schritt:** Assets + Dokumente werden normalisiert (Image-Crops/Formate, Markdown-Ingestion)
+3. CEO zerlegt den Auftrag in wiederverwendbare Work Packets
+4. Spezialisierte Worker/Tools bearbeiten unabhaengige Packets (erst Bilder, dann Content/Schema)
+5. DGDH-System forkt Template-Repo und schreibt die Inhalte strukturiert hinein
+6. Push zu GitHub → Cloudflare deployt automatisch
+7. David reviewed kurz → fertig
 
 **Warum das perfekt fuer AI ist:** Kein Backend, keine DB — nur strukturierte Textdateien.
 Gemini kennt das Schema (keystatic.config.ts + content.config.ts) und weiss exakt was zu befuellen ist.
@@ -127,7 +134,7 @@ handoff-faehig. Ref: `github.com/microsoft/markitdown`
 | 1 | Worker Abort bei Loop-Stop | `git checkout .` + strukturierter Blocked-Handoff bei 5x stop | Klein |
 | 2 | Reviewer Simplicity Criterion | Prompt-Tweak in `reviewer.json` — direkt in Sprint 1 rein | Minimal |
 | 3 | CEO Auto-Retrigger | Engine triggert CEO automatisch nach Reviewer accepted — kein manuelles Unassign/Reassign | Mittel |
-| 4 | Revenue Lane Ingestion | Warten auf echte Kundendaten | — |
+| 4 | Revenue Lane Foundation | Image Packet Pipeline zuerst; Content-Fill spaeter und nur mit Platzhaltern / `[NEEDS INPUT]` | Mittel |
 - **Bekannte System-Gaps:** Issue-Kommentare nicht zuverlaessig als Kontext fuer Reviewer/CEO — kritische Infos immer in `doneWhen` / Description
 - **Onboarding-Prompts:** Fuer alle 4 Rollen fertig (Planer/Coder/Reviewer/Researcher) — in Claude-Session erarbeitet
 
@@ -158,7 +165,8 @@ Worker→Reviewer→done Flows laufen ohne Claude-Unterbrechung durch.
 - **Token Caps = Warnings** - timeoutSec ist der echte Guard
 - **MiniMax spaeter** - erst nach stabiler Gemini-Lane und Firmenbetrieb
 - **Free-Lane-Strategie.** Paid-Quota nur fuer Worker/Reviewer/CEO-Hauptarbeit. Freie/guenstige Tier fuer Preprocessing, Drafts, Scans. Tier-2-Modelle werden besser → immer mehr Arbeit wandert nach unten. Trigger: Task ist Vorstufe (Ingestion, Scan, Draft) oder Quota knapp.
-- **Dual-Gemini-Account-Switching fehlt noch.** Beide Pro-Accounts als Failover konfigurieren: Account 1 leer → automatisch Account 2. Kleiner Fix im Gemini-Adapter (2 Env-Var-Sets + Failover bei Quota-Error).
+- **Revenue-Lane-Produktisierung vor Einzelfall-Delivery.** Wenn ein Auftrag wie "baue diese eine Kundenseite" aussieht, ist zuerst zu pruefen welcher wiederverwendbare Packet-Typ oder Tool-Pfad der Werkbank noch fehlt. Erst die Produktionsfaehigkeit, dann der Einzelfall.
+- **Dual-Gemini-Failover ist live.** Account 1 exhausted / 429 / `RESOURCE_EXHAUSTED` -> automatisch Account 2 via `GEMINI_OAUTH_CREDS_2_PATH`; `accountLabel` zeigt `account_1` / `account_2`, Wechsel wird geloggt.
 - **CEO Aggregation: MUST-Sprache eingebaut.** `ceo.json` haelt jetzt: "MUST execute GET API call. Do not trust injected context. tool_calls: 0 is a failure." (Fix aus Run `5ecaa84f`)
 - **git_worktree aktiv fuer Projekt Astro/Keystatic (2026-03-22).** `enabled: true`, `defaultMode: "isolated"`, `workspaceStrategy.type: "git_worktree"`, `allowIssueOverride: true`. Neue Issue-Runs laufen jetzt in isolierten Checkouts. Teardown/PR/Auto-Rollback bewusst noch nicht aktiviert (Phase 5).
 - **Codex-CLI-Arbeit ausserhalb Paperclip.** Wenn Codex direkt im Workspace implementiert (kein Paperclip-Worker-Run), braucht es danach einen formalen Worker-"Abholrunner" bevor Review moeglich ist. Reviewer blockiert sonst korrekt auf fehlendem Execution-Record.
@@ -197,6 +205,5 @@ PATCH /api/issues/{id}  Body: {"assigneeAgentId": "<agent-id>"}
 # Worker:   fe5d3d60-9e8a-4e0c-b494-087d3518755c
 # Reviewer: 9e721036-35b7-446e-a752-2df7a1a8caad
 ```
-
 
 
