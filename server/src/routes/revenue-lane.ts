@@ -4,6 +4,7 @@ import {
   runImagePacketPipelineSchema,
   runRevenueContentExtractorSchema,
   runRevenueSchemaFillSchema,
+  runRevenueTemplateApplySchema,
 } from "@paperclipai/shared";
 import { validate } from "../middleware/validate.js";
 import {
@@ -11,6 +12,7 @@ import {
   revenueContentExtractorService,
   revenueImagePipelineService,
   revenueSchemaFillService,
+  revenueTemplateApplyService,
 } from "../services/index.js";
 import { assertCompanyAccess, getActorInfo } from "./authz.js";
 
@@ -19,6 +21,7 @@ export function revenueLaneRoutes(db: Db) {
   const imagePipeline = revenueImagePipelineService();
   const contentExtractor = revenueContentExtractorService();
   const schemaFill = revenueSchemaFillService();
+  const templateApply = revenueTemplateApplyService();
 
   router.post(
     "/companies/:companyId/revenue-lane/image-pipeline/process",
@@ -111,6 +114,38 @@ export function revenueLaneRoutes(db: Db) {
           assetCount: result.assetCount,
           placeholderCount: result.placeholderCount,
           generatedFileCount: result.generatedFiles.length,
+        },
+      });
+
+      res.status(201).json(result);
+    },
+  );
+
+  router.post(
+    "/companies/:companyId/revenue-lane/template-apply/process",
+    validate(runRevenueTemplateApplySchema),
+    async (req, res) => {
+      const companyId = req.params.companyId as string;
+      assertCompanyAccess(req, companyId);
+
+      const actor = getActorInfo(req);
+      const result = await templateApply.processDirectory(req.body);
+
+      await logActivity(db, {
+        companyId,
+        actorType: actor.actorType,
+        actorId: actor.actorId,
+        agentId: actor.agentId,
+        runId: actor.runId,
+        action: "revenue.template_apply_packet.processed",
+        entityType: "company",
+        entityId: companyId,
+        details: {
+          siteOutputDir: result.siteOutputDir,
+          templateRepoPath: result.templateRepoPath,
+          managedRootCount: result.managedRoots.length,
+          appliedCount: result.appliedCount,
+          deletedCount: result.deletedCount,
         },
       });
 

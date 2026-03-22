@@ -154,6 +154,24 @@ export const runRevenueSchemaFillSchema = z.object({
   templateRepoPath: z.string().trim().min(1).max(520),
 });
 
+export const revenueTemplateApplyResultSchema = z
+  .object({
+    siteOutputDir: z.string().trim().min(1).max(520),
+    templateRepoPath: z.string().trim().min(1).max(520),
+    managedRoots: z.array(z.string().trim().min(1).max(520)).min(1).max(64),
+    appliedCount: z.number().int().min(0),
+    deletedCount: z.number().int().min(0),
+    generatedAt: z.string().datetime(),
+    appliedPaths: z.array(z.string().trim().min(1).max(520)).max(4096),
+    deletedPaths: z.array(z.string().trim().min(1).max(520)).max(4096),
+  })
+  .strict();
+
+export const runRevenueTemplateApplySchema = z.object({
+  siteOutputDir: z.string().trim().min(1).max(260),
+  templateRepoPath: z.string().trim().min(1).max(520),
+});
+
 export type RevenueContentDraftFields = z.infer<
   typeof revenueContentDraftFieldsSchema
 >;
@@ -161,4 +179,7 @@ export type RunRevenueContentExtractor = z.infer<
   typeof runRevenueContentExtractorSchema
 >;
 export type RunRevenueSchemaFill = z.infer<typeof runRevenueSchemaFillSchema>;
+export type RunRevenueTemplateApply = z.infer<
+  typeof runRevenueTemplateApplySchema
+>;
 

@@ -133,13 +133,16 @@ export {
   revenueContentPricingSchema,
   revenueSchemaFillGeneratedFileSchema,
   revenueSchemaFillResultSchema,
+  revenueTemplateApplyResultSchema,
   runImagePacketPipelineSchema,
   runRevenueContentExtractorSchema,
   runRevenueSchemaFillSchema,
+  runRevenueTemplateApplySchema,
   type CreateAssetImageMetadata,
   type RunImagePacketPipeline,
   type RunRevenueContentExtractor,
   type RunRevenueSchemaFill,
+  type RunRevenueTemplateApply,
 } from "./asset.js";
 
 export {

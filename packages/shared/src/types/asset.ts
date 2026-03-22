@@ -107,3 +107,14 @@ export interface RevenueSchemaFillResult {
   generatedFiles: RevenueSchemaFillGeneratedFile[];
 }
 
+export interface RevenueTemplateApplyResult {
+  siteOutputDir: string;
+  templateRepoPath: string;
+  managedRoots: string[];
+  appliedCount: number;
+  deletedCount: number;
+  generatedAt: string;
+  appliedPaths: string[];
+  deletedPaths: string[];
+}
+

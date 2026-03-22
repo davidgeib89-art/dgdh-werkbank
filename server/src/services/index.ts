@@ -4,6 +4,7 @@ export { assetService } from "./assets.js";
 export { revenueImagePipelineService } from "./revenue-image-pipeline.js";
 export { revenueContentExtractorService } from "./revenue-content-extractor.js";
 export { revenueSchemaFillService } from "./revenue-schema-fill.js";
+export { revenueTemplateApplyService } from "./revenue-template-apply.js";
 export { documentService, extractLegacyPlanBody } from "./documents.js";
 export {
   memoryService,

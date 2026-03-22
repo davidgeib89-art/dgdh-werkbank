@@ -15,3 +15,4 @@ Stabile Regeln und Fakten gehoeren in `MEMORY.md`, der Live-Baton in `CURRENT.md
 - Workspace Security - sicherer Template-only-Workspace dokumentiert; Live-Ops haben Kunden-Git aus dem Agenten-Bereich verschoben. Commit `ccf03c3`.
 - Runtime-Check - `GET /api/health` = `200`, Workspace-API bestaetigt den sicheren Astro/Keystatic-Primary-Workspace. Kein Commit.
 - Sprint H - Memory-Verdichtung: `MEMORY.md` komprimiert, Sprint-Historie archiviert, Verdichtungsregeln in Onboarding-Dokus verankert.
+- Sprint I - Revenue Lane Template-Apply Worker geliefert. Reale Anwendung in den sicheren Template-Workspace: `34` Pfade angewendet, `3` veraltete Managed-Pfade geloescht. Echter `npm ci` + `npm run build` im sicheren Template-Workspace gruen.

@@ -25,6 +25,7 @@ export type {
   RevenueSchemaFillGeneratedFile,
   RevenueSchemaFillGeneratedFileKind,
   RevenueSchemaFillResult,
+  RevenueTemplateApplyResult,
 } from "./asset.js";
 export type { Project, ProjectGoalRef, ProjectWorkspace } from "./project.js";
 export type {
