@@ -785,6 +785,18 @@ Nicht jetzt umsetzen. Aber wenn der AI-Workflow bewiesen ist, sind das die naech
 Nominatim zuerst — kein API-Key, gratis, direkter Wert fuer jede Kunden-Site.
 Worker befuellt `location`-Section automatisch: Adresse → lat/lng → Karte einbettbar.
 
+**aitmpl als Skill-Seed-Katalog (aitmpl.com):**
+Marktplatz fuer Claude Code-Komponenten (Agents, Commands, Skills, MCPs, Hooks, Settings).
+Nicht als freies Selbstlern-System — Agents installieren dort nichts autonom.
+Sinnvoller Prozess spaeter: discover → Security/License-Scan → Sandbox-Test → Reviewer-Approval → internes Skill.
+Trigger: wenn DGDH eine eigene interne Skill-Registry braucht und externe Seeds effizienter sind als alles selbst bauen.
+
+**Composio als spaetere Integrationsschicht (github.com/ComposioHQ/composio):**
+Wenn Agents mehrere externe Services brauchen (GitHub, Email, Kalender, externe APIs), ist Composio
+ein sauberer gemeinsamer Auth + Tool-Layer darunter. Kein Ersatz fuer Paperclip-Adapter (loest kein
+Run-Lifecycle, Streaming oder Approval), aber smart als Verbindungsschicht zu externen Services.
+Trigger: wenn CEO-Agent GitHub-PRs erstellen oder Kunden per Email benachrichtigen soll.
+
 ## 11. Multi-Agent-Arbeit: Erst smart strukturieren, dann parallelisieren
 
 Ja, das spaetere Ziel ist intelligente parallele Arbeit.

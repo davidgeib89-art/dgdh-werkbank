@@ -1,8 +1,11 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { execute } from "@paperclipai/adapter-gemini-local/server";
+import {
+  execute,
+  rewriteWindowsPowerShellCommand,
+} from "@paperclipai/adapter-gemini-local/server";
 import { writeFakeNodeCommand } from "./test-command-utils.js";
 
 const itGeminiExecute = process.platform === "win32" ? it.skip : it;
@@ -47,6 +50,54 @@ console.log(JSON.stringify({
   session_id: "gemini-session-1",
   result: ${JSON.stringify(resultText)},
 }));
+`;
+  return writeFakeNodeCommand(commandPath, script);
+}
+
+async function writeFakeGeminiLoopCommand(
+  commandPath: string,
+  options: {
+    command: string;
+    failures: number;
+    keepAliveAfterFailures?: boolean;
+    exitAfterFailuresCode?: number;
+  },
+): Promise<string> {
+  const script = `#!/usr/bin/env node
+console.log(JSON.stringify({
+  type: "system",
+  subtype: "init",
+  session_id: "gemini-session-loop",
+  model: "gemini-3-flash-preview",
+}));
+for (let i = 1; i <= ${options.failures}; i += 1) {
+  console.log(JSON.stringify({
+    type: "tool_use",
+    tool_id: "tool_" + i,
+    tool_name: "shell",
+    parameters: { command: ${JSON.stringify(options.command)} },
+  }));
+  console.log(JSON.stringify({
+    type: "tool_result",
+    tool_id: "tool_" + i,
+    output: {
+      success: {
+        exitCode: 1,
+        stdout: "",
+        stderr: "boom " + i,
+      },
+    },
+    status: "error",
+    is_error: true,
+  }));
+}
+${typeof options.exitAfterFailuresCode === "number" ? `process.exit(${options.exitAfterFailuresCode});` : options.keepAliveAfterFailures === true ? "setInterval(() => {}, 1000);" : `
+console.log(JSON.stringify({
+  type: "result",
+  subtype: "success",
+  session_id: "gemini-session-loop",
+  result: "done",
+}));`}
 `;
   return writeFakeNodeCommand(commandPath, script);
 }
@@ -595,6 +646,138 @@ describe("gemini execute", () => {
       }
     },
   );
+
+  it("rewrites Windows PowerShell && chains for monitoring", () => {
+    expect(
+      rewriteWindowsPowerShellCommand("npm install && npm test", "win32"),
+    ).toEqual({
+      command: "npm install; npm test",
+      rewritten: true,
+    });
+    expect(
+      rewriteWindowsPowerShellCommand("npm install; npm test", "win32"),
+    ).toEqual({
+      command: "npm install; npm test",
+      rewritten: false,
+    });
+    expect(
+      rewriteWindowsPowerShellCommand("npm install && npm test", "linux"),
+    ).toEqual({
+      command: "npm install && npm test",
+      rewritten: false,
+    });
+  });
+
+  it("emits a loop warning after the same failing shell command 3 times", async () => {
+    const root = await fs.mkdtemp(
+      path.join(os.tmpdir(), "paperclip-gemini-loop-warning-"),
+    );
+    const workspace = path.join(root, "workspace");
+    const commandPath = path.join(root, "gemini");
+    await fs.mkdir(workspace, { recursive: true });
+    const executablePath = await writeFakeGeminiLoopCommand(commandPath, {
+      command: "npm install && npm test",
+      failures: 3,
+    });
+    const platformSpy = vi.spyOn(os, "platform").mockReturnValue("win32");
+    const logs: Array<{ stream: "stdout" | "stderr"; chunk: string }> = [];
+
+    try {
+      const result = await execute({
+        runId: "run-loop-warning",
+        agent: {
+          id: "agent-1",
+          companyId: "company-1",
+          name: "Gemini Worker",
+          adapterType: "gemini_local",
+          adapterConfig: {},
+        },
+        runtime: {
+          sessionId: null,
+          sessionParams: null,
+          sessionDisplayId: null,
+          taskKey: null,
+        },
+        config: {
+          command: executablePath,
+          cwd: workspace,
+          promptTemplate: "Follow the paperclip heartbeat.",
+        },
+        context: {},
+        authToken: "run-jwt-token",
+        onLog: async (stream, chunk) => {
+          logs.push({ stream, chunk });
+        },
+      });
+
+      expect(result.exitCode).toBe(0);
+      expect(result.errorCode).toBeNull();
+      const stderr = logs
+        .filter((entry) => entry.stream === "stderr")
+        .map((entry) => entry.chunk)
+        .join("");
+      const stdout = logs
+        .filter((entry) => entry.stream === "stdout")
+        .map((entry) => entry.chunk)
+        .join("");
+      expect(stderr).toContain("[paperclip] PowerShell &&");
+      expect(stdout).toContain("Same command failed 3 times");
+    } finally {
+      platformSpy.mockRestore();
+      await fs.rm(root, { recursive: true, force: true });
+    }
+  });
+
+  it("stops the run after the same failing shell command 5 times", async () => {
+    const root = await fs.mkdtemp(
+      path.join(os.tmpdir(), "paperclip-gemini-loop-stop-"),
+    );
+    const workspace = path.join(root, "workspace");
+    const commandPath = path.join(root, "gemini");
+    await fs.mkdir(workspace, { recursive: true });
+    const executablePath = await writeFakeGeminiLoopCommand(commandPath, {
+      command: "npm install && npm test",
+      failures: 5,
+      exitAfterFailuresCode: 1,
+    });
+    const platformSpy = vi.spyOn(os, "platform").mockReturnValue("win32");
+
+    try {
+      const result = await execute({
+        runId: "run-loop-stop",
+        agent: {
+          id: "agent-1",
+          companyId: "company-1",
+          name: "Gemini Worker",
+          adapterType: "gemini_local",
+          adapterConfig: {},
+        },
+        runtime: {
+          sessionId: null,
+          sessionParams: null,
+          sessionDisplayId: null,
+          taskKey: null,
+        },
+        config: {
+          command: executablePath,
+          cwd: workspace,
+          timeoutSec: 5,
+          promptTemplate: "Follow the paperclip heartbeat.",
+        },
+        context: {},
+        authToken: "run-jwt-token",
+        onLog: async () => {},
+      });
+
+      expect(result.errorCode).toBe("loop_detected");
+      expect(result.errorMessage).toContain(
+        "Loop detected: same command failed 5x. Stopping to prevent token waste.",
+      );
+    } finally {
+      platformSpy.mockRestore();
+      await fs.rm(root, { recursive: true, force: true });
+    }
+  });
 
   itGeminiExecute(
     "fails strict floor on fenced final output",

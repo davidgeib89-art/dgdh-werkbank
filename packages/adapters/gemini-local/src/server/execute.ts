@@ -23,9 +23,11 @@ import {
   parseObject,
   redactEnvForLogs,
   renderTemplate,
+  runningProcesses,
   runChildProcess,
 } from "@paperclipai/adapter-utils/server-utils";
 import { DEFAULT_GEMINI_LOCAL_MODEL } from "../index.js";
+import { parseGeminiStdoutLine } from "../ui/parse-stdout.js";
 import {
   describeGeminiFailure,
   detectGeminiAuthRequired,
@@ -118,11 +120,155 @@ function renderPowerShellNote(): string {
     "Windows PowerShell note:",
     "- This run is executed in Windows PowerShell.",
     "- Do not use '&&' to chain commands; use ';' instead.",
+    "- WRONG: 'npm install && npm test'",
+    "- CORRECT: 'npm install; npm test'",
     "- Example: 'npm install; npm test' (not 'npm install && npm test').",
     "- Be careful with backslashes and double quotes in JSON arguments.",
     "",
     "",
   ].join("\n");
+}
+
+export function rewriteWindowsPowerShellCommand(
+  command: string,
+  platform: NodeJS.Platform = os.platform(),
+): { command: string; rewritten: boolean } {
+  if (platform !== "win32" || !command.includes("&&")) {
+    return { command, rewritten: false };
+  }
+  return {
+    command: command.replace(/\s*&&\s*/g, "; "),
+    rewritten: true,
+  };
+}
+
+function parseExitCodeFromToolResultContent(content: string): number | null {
+  const match = content.match(/(?:^|\r?\n)exit\s+(-?\d+)(?:\r?\n|$)/i);
+  if (!match) return null;
+  const parsed = Number(match[1]);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function emitShellLoopWarningLine(message: string): string {
+  return `${JSON.stringify({
+    type: "tool_result",
+    tool_id: "paperclip-shell-loop-guard",
+    output: message,
+    status: "error",
+    is_error: true,
+  })}\n`;
+}
+
+function createShellLoopMonitor(params: {
+  runId: string;
+  onLog: AdapterExecutionContext["onLog"];
+  platform?: NodeJS.Platform;
+}) {
+  const platform = params.platform ?? os.platform();
+  const pendingCommands = new Map<string, string>();
+  let stdoutBuffer = "";
+  let lastFailedCommand: string | null = null;
+  let consecutiveFailureCount = 0;
+  let loopDetectedMessage: string | null = null;
+
+  const resetFailureStreak = () => {
+    lastFailedCommand = null;
+    consecutiveFailureCount = 0;
+  };
+
+  const handleParsedLine = async (line: string) => {
+    const entries = parseGeminiStdoutLine(line, new Date().toISOString());
+    for (const entry of entries) {
+      if (entry.kind === "tool_call" && entry.name === "command_execution") {
+        const commandInput =
+          typeof entry.input === "object" && entry.input !== null
+            ? asString((entry.input as Record<string, unknown>).command, "").trim()
+            : "";
+        if (!commandInput) continue;
+        const normalized = rewriteWindowsPowerShellCommand(commandInput, platform);
+        if (normalized.rewritten) {
+          await params.onLog(
+            "stderr",
+            "[paperclip] PowerShell &&→; rewrite applied\n",
+          );
+        }
+        pendingCommands.set(
+          entry.toolUseId ?? normalized.command,
+          normalized.command,
+        );
+        continue;
+      }
+
+      if (entry.kind !== "tool_result") continue;
+      const toolUseId = entry.toolUseId ?? "";
+      if (!toolUseId) continue;
+      const command = pendingCommands.get(toolUseId);
+      if (!command) continue;
+      pendingCommands.delete(toolUseId);
+
+      const exitCode = parseExitCodeFromToolResultContent(entry.content);
+      if (exitCode == null) continue;
+      if (exitCode === 0) {
+        resetFailureStreak();
+        continue;
+      }
+
+      if (lastFailedCommand === command) {
+        consecutiveFailureCount += 1;
+      } else {
+        lastFailedCommand = command;
+        consecutiveFailureCount = 1;
+      }
+
+      if (consecutiveFailureCount === 3) {
+        await params.onLog(
+          "stdout",
+          emitShellLoopWarningLine(
+            "[paperclip] Same command failed 3 times. Do not retry. Adapt your approach or report blocked.",
+          ),
+        );
+      }
+
+      if (consecutiveFailureCount < 5 || loopDetectedMessage) continue;
+
+      loopDetectedMessage =
+        "Loop detected: same command failed 5x. Stopping to prevent token waste.";
+      await params.onLog(
+        "stdout",
+        emitShellLoopWarningLine(`[paperclip] ${loopDetectedMessage}`),
+      );
+      await params.onLog("stderr", `[paperclip] ${loopDetectedMessage}\n`);
+      runningProcesses.get(params.runId)?.child.kill("SIGTERM");
+    }
+  };
+
+  const flushStdoutBuffer = async () => {
+    const remaining = stdoutBuffer.trim();
+    stdoutBuffer = "";
+    if (remaining.length > 0) {
+      await handleParsedLine(remaining);
+    }
+  };
+
+  return {
+    getLoopDetectedMessage: () => loopDetectedMessage,
+    flushStdoutBuffer,
+    onLog: async (stream: "stdout" | "stderr", chunk: string) => {
+      if (stream === "stdout") {
+        stdoutBuffer += chunk;
+        let newlineIndex = stdoutBuffer.indexOf("\n");
+        while (newlineIndex >= 0) {
+          const line = stdoutBuffer.slice(0, newlineIndex).replace(/\r$/, "");
+          stdoutBuffer = stdoutBuffer.slice(newlineIndex + 1);
+          if (line.trim().length > 0) {
+            await handleParsedLine(line);
+          }
+          newlineIndex = stdoutBuffer.indexOf("\n");
+        }
+      }
+      await params.onLog(stream, chunk);
+    },
+  };
 }
 
 function renderIssueTaskNote(context: Record<string, unknown>): string {
@@ -627,6 +773,7 @@ export async function execute(
 
   const runAttempt = async (resumeSessionId: string | null) => {
     const args = buildArgs(resumeSessionId);
+    const shellLoopMonitor = createShellLoopMonitor({ runId, onLog });
     if (onMeta) {
       await onMeta({
         adapterType: "gemini_local",
@@ -653,12 +800,14 @@ export async function execute(
       env,
       timeoutSec,
       graceSec,
-      onLog,
+      onLog: shellLoopMonitor.onLog,
       stdin: prompt,
     });
+    await shellLoopMonitor.flushStdoutBuffer();
     return {
       proc,
       parsed: parseGeminiJsonl(proc.stdout),
+      loopDetectedMessage: shellLoopMonitor.getLoopDetectedMessage(),
     };
   };
 
@@ -672,6 +821,7 @@ export async function execute(
         stderr: string;
       };
       parsed: ReturnType<typeof parseGeminiJsonl>;
+      loopDetectedMessage: string | null;
     },
     clearSessionOnMissingSession = false,
     isRetry = false,
@@ -730,6 +880,7 @@ export async function execute(
       ? describeGeminiFailure(attempt.parsed.resultEvent)
       : null;
     const fallbackErrorMessage =
+      attempt.loopDetectedMessage ||
       strictFloorOutputError ||
       parsedError ||
       structuredFailure ||
@@ -741,11 +892,15 @@ export async function execute(
       signal: attempt.proc.signal,
       timedOut: false,
       errorMessage:
-        (attempt.proc.exitCode ?? 0) === 0 && !strictFloorOutputError
+        (attempt.proc.exitCode ?? 0) === 0 &&
+        !strictFloorOutputError &&
+        !attempt.loopDetectedMessage
           ? null
           : fallbackErrorMessage,
       errorCode: strictFloorOutputError
         ? "non_json_output"
+        : attempt.loopDetectedMessage
+        ? "loop_detected"
         : (attempt.proc.exitCode ?? 0) !== 0 && authMeta.requiresAuth
         ? "gemini_auth_required"
         : null,

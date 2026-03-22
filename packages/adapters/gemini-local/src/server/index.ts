@@ -1,4 +1,4 @@
-export { execute } from "./execute.js";
+export { execute, rewriteWindowsPowerShellCommand } from "./execute.js";
 export {
   buildDgdhPromptCoreAssembler,
   buildGeminiDryRunPreflightTelemetry,
