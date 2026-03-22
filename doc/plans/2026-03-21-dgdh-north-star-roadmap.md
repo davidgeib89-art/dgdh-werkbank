@@ -402,6 +402,9 @@ Die richtige Form fuer CEO/Worker/Reviewer ist:
 
 Das ist die spaetere smarte Shared-Memory-Richtung.
 
+Zusaetzlich zu CEO/Worker/Reviewer-Handoffs:
+Planer-Reflexionen (Perplexity ↔ Claude) landen als `doc/reflections/YYYY-MM-DD-*.md` — querybar fuer alle AIs im naechsten Chat-Start.
+
 ### Strukturierte Handoff-Summaries (Inspiration: ReMe)
 
 Damit Handoffs zwischen Rollen maschinell auswertbar sind, sollen Worker, Reviewer und CEO

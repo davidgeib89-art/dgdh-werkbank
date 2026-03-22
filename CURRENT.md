@@ -1,14 +1,14 @@
 # CURRENT - Live Baton
 
-focus: Sprint P (Assignment-Logik) laeuft — Codex arbeitet
-active_issue: Verdrahtung der Multi-Agent-Kette
+focus: Sprint T (Merge-Orchestrator V1) planen und starten
+active_issue: Integration der Worker-Artefakte
 next:
-  1) Sprint P: Assignment-Logik (erstellte Issues landen bei Workern)
-  2) Sprint Q: Reviewer-Feedback-Loop
-  3) Sprint R: CEO-Aggregation
-  4) Sprint S: Smoke Customer Run (erster End-to-End-Lauf)
-blockers: none
+  1) Sprint T: Merge-Orchestrator V1 (Worker liefert Commit+PR statt Worktree-Chaos)
+  2) Sprint U: Scope-Firewall + Run-Abbruch bei Env-Fehlern
+  3) Sprint V: Worktree-Lifecycle-Management
+blockers: Multi-Agent-Kette produziert aktuell unintegrierte Worktree-Inseln
 brainstorm_backlog (2026-03-22, David + Perplexity + Claude):
+  - Planer-Reflexionen als Shared Memory (umgesetzt in North Star Section 10)
   - CEO Prompt Hardening: 4 Tweaks gebuendelt nach Sprint P → `doc/backlog/ceo-prompt-hardening.md`
     (flexible Packet-Zahl, Mission-Typen, Direkt-vs-Kette, Selbst-Reflection)
   - Reflect-Skill als horizontales Tool fuer alle Rollen (spaeter, nach Smoke Run)
