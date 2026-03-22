@@ -184,7 +184,7 @@ describe("heartbeat governance helpers", () => {
     );
     expect(context.paperclipTaskPrompt).toContain("Worker handoff:");
     expect(context.paperclipTaskPrompt).toContain(
-      "Verdict: accepted | needs_revision | blocked",
+      "Verdict: accepted | changes_requested",
     );
     expect(context.paperclipTaskPrompt).toContain(
       "Use accepted only if doneWhen is satisfied, scope was respected, and no unsupported claim or source drift remains.",
@@ -210,7 +210,7 @@ describe("heartbeat governance helpers", () => {
       "No prior non-reviewer run was found for this issue.",
     );
     expect(context.paperclipTaskPrompt).toContain(
-      "Return Verdict: blocked.",
+      "Return Verdict: changes_requested.",
     );
     expect(context.paperclipReviewTargetError).toBe(
       "No prior non-reviewer run found for this issue.",
@@ -220,15 +220,15 @@ describe("heartbeat governance helpers", () => {
   it("extracts the final reviewer verdict instead of the prompt instruction line", () => {
     const output = [
       "Return exactly these sections:",
-      "1. Verdict: accepted | needs_revision | blocked",
+      "1. Verdict: accepted | changes_requested",
       "2. Findings",
       "",
-      "1. Verdict: needs_revision",
+      "1. Verdict: changes_requested",
       "2. Findings",
       "- Source drift detected",
     ].join("\n");
 
-    expect(extractReviewerVerdict(output)).toBe("needs_revision");
+    expect(extractReviewerVerdict(output)).toBe("changes_requested");
   });
 
   it("extracts the reviewer verdict from ndjson stdout excerpts", () => {
@@ -238,7 +238,7 @@ describe("heartbeat governance helpers", () => {
         role: "user",
         content: [
           "Return exactly these sections:",
-          "1. Verdict: accepted | needs_revision | blocked",
+          "1. Verdict: accepted | changes_requested",
           "2. Findings",
         ].join("\n"),
       }),
@@ -346,12 +346,12 @@ describe("heartbeat governance helpers", () => {
         runStatus: "succeeded",
         issueStatus: "in_review",
         roleTemplateId: "reviewer",
-        stdoutExcerpt: "1. Verdict: needs_revision",
+        stdoutExcerpt: "1. Verdict: changes_requested",
       }),
     ).toMatchObject({
       nextStatus: null,
       reason: null,
-      reviewerVerdict: "needs_revision",
+      reviewerVerdict: "changes_requested",
     });
   });
 

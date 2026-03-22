@@ -956,7 +956,7 @@ function buildReviewerTaskPrompt(input: {
       "",
       "Your task:",
       "1. Do not execute the packet yourself.",
-      "2. Return Verdict: blocked.",
+      "2. Return Verdict: changes_requested.",
       "3. Explain that no worker result exists yet to review.",
       "4. Recommend that a worker run the issue first.",
     );
@@ -1013,11 +1013,11 @@ function buildReviewerTaskPrompt(input: {
     "",
     "Acceptance rules:",
     "- Use accepted only if doneWhen is satisfied, scope was respected, and no unsupported claim or source drift remains.",
-    "- If the result references information that cannot be justified from the issue-listed sources, the produced artifact, or recorded evidence, return needs_revision.",
-    "- If there is no worker result to inspect, return blocked.",
+    "- If the result references information that cannot be justified from the issue-listed sources, the produced artifact, or recorded evidence, return changes_requested.",
+    "- If there is no worker result to inspect, return changes_requested.",
     "",
     "Return exactly these sections:",
-    "1. Verdict: accepted | needs_revision | blocked",
+    "1. Verdict: accepted | changes_requested",
     "2. Findings",
     "3. Evidence Checked",
     "4. Recommended Next Step",
@@ -1026,7 +1026,7 @@ function buildReviewerTaskPrompt(input: {
   return lines.join("\n");
 }
 
-export type ReviewerVerdict = "accepted" | "needs_revision" | "blocked";
+export type ReviewerVerdict = "accepted" | "changes_requested";
 
 function matchReviewerVerdict(
   output: string,
@@ -1038,15 +1038,17 @@ function matchReviewerVerdict(
       .replace(/\*/g, "")
       .trim();
     const verdictMatch = normalizedLine.match(
-      /^(?:\d+\.\s*)?_?Verdict:?_?\s*(accepted|needs_revision|blocked)\s*$/i,
+      /^(?:\d+\.\s*)?_?Verdict:?_?\s*(accepted|changes_requested|needs_revision|blocked)\s*$/i,
     );
     const verdict = verdictMatch?.[1]?.toLowerCase();
+    if (verdict === "accepted") return "accepted";
     if (
-      verdict === "accepted" ||
+      verdict === "changes_requested" ||
       verdict === "needs_revision" ||
       verdict === "blocked"
     ) {
-      return verdict;
+      // Keep backward compatibility with older reviewer responses.
+      return "changes_requested";
     }
   }
   return null;

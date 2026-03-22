@@ -49,6 +49,8 @@ describe("resolveAssignedRoleTemplate", () => {
     expect(result.assigned?.prompt).toContain("1. Locate");
     expect(result.assigned?.prompt).toContain("2. Hypothesize");
     expect(result.assigned?.prompt).toContain("4. Validate");
+    expect(result.assigned?.prompt).toContain("3. Evidence");
+    expect(result.assigned?.prompt).toContain("7. Next");
   });
 
   it("appends the operator add-on prompt without replacing the template", () => {
@@ -75,14 +77,24 @@ describe("resolveAssignedRoleTemplate", () => {
     expect(result.error).toBeNull();
     expect(result.assigned?.template.id).toBe("reviewer");
     expect(result.assigned?.prompt).toContain(
-      "Accepted is only allowed when the result satisfies doneWhen",
+      "Allowed verdicts are exactly: accepted | changes_requested.",
     );
-    expect(result.assigned?.prompt).toContain("Review dimensions:");
-    expect(result.assigned?.prompt).toContain("Scope -");
-    expect(result.assigned?.prompt).toContain("Safety and Readiness");
+    expect(result.assigned?.prompt).toContain(
+      "What to check explicitly:",
+    );
+    expect(result.assigned?.prompt).toContain("- Ziel:");
+    expect(result.assigned?.prompt).toContain("- Scope:");
+    expect(result.assigned?.prompt).toContain("- doneWhen:");
+    expect(result.assigned?.prompt).toContain("- Evidence:");
     expect(result.assigned?.prompt).toContain("Simplicity criterion:");
+    expect(result.assigned?.prompt).toContain(
+      "For changes_requested, provide at most 3 concrete fix points.",
+    );
     expect(result.assigned?.template.constraints).toContain(
       "Do not accept results with unsupported claims, source drift, or scope drift.",
+    );
+    expect(result.assigned?.template.constraints).toContain(
+      "For changes_requested, provide no more than 3 concrete and actionable fixes.",
     );
   });
 
@@ -170,14 +182,30 @@ describe("resolveAssignedRoleTemplate", () => {
     expect(parsed.packetType).toBe("premium_model");
   });
 
-  it("reviewer matrix format is structured in the prompt", () => {
+  it("reviewer handoff format is structured in the prompt", () => {
     const result = resolveAssignedRoleTemplate({
       roleTemplateId: "reviewer",
     });
 
     expect(result.error).toBeNull();
-    expect(result.assigned?.prompt).toContain("pass/fail/partial");
-    expect(result.assigned?.prompt).toContain("| Scope            |");
+    expect(result.assigned?.prompt).toContain(
+      "1. Packet",
+    );
+    expect(result.assigned?.prompt).toContain(
+      "2. Verdict: accepted | changes_requested",
+    );
+    expect(result.assigned?.prompt).toContain(
+      "3. doneWhen Check",
+    );
+    expect(result.assigned?.prompt).toContain(
+      "4. Evidence",
+    );
+    expect(result.assigned?.prompt).toContain(
+      "5. Required Fixes",
+    );
+    expect(result.assigned?.prompt).toContain(
+      "6. Next",
+    );
   });
 
   it("returns a clear error for unknown templates", () => {
