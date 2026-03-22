@@ -27,8 +27,9 @@ Astro 5 + Keystatic CMS OnePager-Template fuer kleine Unternehmen.
 Hosting: Cloudflare Pages Free Tier. Kunde zahlt nur ~5€/Jahr fuer Domain.
 
 ### Repo & erster Kunde
-- Template-Repo: `C:\Users\holyd\Documents\Websites\general\astro-keystatic-template-geib`
-- Kunden-Worktree fuer den bestehenden Live-Kunden: `C:\Users\holyd\DGDH\worktrees\ferienwohnung-bamberger`
+- Aktiver Agenten-/Paperclip-Workspace fuer Astro/Keystatic: `C:\Users\holyd\DGDH\worktrees\astro-keystatic-template-geib`
+- Ursprungs-Template-Repo ausserhalb des Agenten-Bereichs: `C:\Users\holyd\Documents\Websites\general\astro-keystatic-template-geib`
+- Kunden-Git fuer den bestehenden Live-Kunden liegt bewusst ausserhalb des Agenten-Bereichs: `C:\Users\holyd\Documents\Websites\kunden-archive\ferienwohnung-bamberger`
 - Erster Kunde live: https://urlaub-bei-bambergers.de/ (Ferienwohnung Bamberger)
 - Naechster Fokus: Revenue-Lane-Produktisierung fuer wiederverwendbare Kundenordner-Pipelines; konkreter Kunde ist zweitrangig bis die Packet-Foundation steht
 
@@ -36,6 +37,7 @@ Hosting: Cloudflare Pages Free Tier. Kunde zahlt nur ~5€/Jahr fuer Domain.
 - Ziel ist nicht der schnelle Abschluss eines einzelnen Kundenprojekts, sondern die wiederverwendbare Werkbank-Faehigkeit fuer diese Auftragsart
 - Revenue Lane soll als Packet-Kette laufen: CEO -> Image Preprocessing -> Content Extraction/Draft -> Schema Fill -> Review
 - Fehlende Namen, Texte oder Fakten werden als `[NEEDS INPUT]` / Platzhalter behandelt, nicht halluziniert
+- Project-Workspaces fuer Agenten duerfen nie direkt auf ein Kunden-Git zeigen; fuer Astro/Keystatic ist der kanonische sichere Workspace `C:\Users\holyd\DGDH\worktrees\astro-keystatic-template-geib`
 - Der erste zu produktisierende Revenue-Lane-Packet-Typ ist Bild-Preprocessing / Asset-Optimierung
 - Sprint E ist geliefert: deterministische `sharp`-Pipeline plus reviewbares Manifest fuer den Kundenordner `shared/Kunde/Unbekannt Bamberger Tante/processed`
 - Sprint F ist geliefert: Flash-Lite-Content-Extraction schreibt `processed/content-draft.json` mit strukturiertem Draft oder `source: "no_input"` wenn kein Textmaterial vorliegt
@@ -173,6 +175,7 @@ Worker→Reviewer→done Flows laufen ohne Claude-Unterbrechung durch.
 - **Image Packet Pipeline ist deterministic_tool, nicht LLM.** Route: `POST /api/companies/:companyId/revenue-lane/image-pipeline/process`. Service verarbeitet repo-relative Kundenordner mit `sharp`, erzeugt `hero/gallery/thumb` in `webp+jpg`, schreibt `manifest.json`, nutzt `sharp.strategy.attention`, und haelt pro Output das 200-KB-Ziel.
 - **Content Extraction Worker ist free_api auf Gemini Flash-Lite.** Route: `POST /api/companies/:companyId/revenue-lane/content-extractor/process`. Service liest repo-relative Textquellen (`.txt`, `.md`, `.markdown`, `.json`) plus `manifest.json`, schreibt `processed/content-draft.json` und markiert fehlendes Material strikt mit `null` bzw. `source: "no_input"` statt zu halluzinieren.
 - **Schema Fill Worker ist deterministic_tool.** Route: `POST /api/companies/:companyId/revenue-lane/schema-fill/process`. Service liest `manifest.json` + `content-draft.json` + Template-Repo-Pfad, kopiert referenzierte Hero/Gallery/Thumb-Assets nach `processed/site-output/src/assets/images/...`, erzeugt `src/content/settings/*.json` plus Section-Markdown unter `processed/site-output/src/content/...`, und ersetzt fehlende Inhalte durch explizite Platzhalter statt leere Felder oder Halluzinationen.
+- **Workspace-Sicherheitsregel fuer Revenue Lane:** Paperclip-Projekt `0bce43aa-2bb9-4572-9938-f556a3279149` zeigt live auf `C:\Users\holyd\DGDH\worktrees\astro-keystatic-template-geib`; Kunden-Git liegt absichtlich ausserhalb von `C:\Users\holyd\DGDH\worktrees`, damit Agenten nicht versehentlich direkt auf Kundenrepos arbeiten.
 - **Dual-Gemini-Failover ist live.** Account 1 exhausted / 429 / `RESOURCE_EXHAUSTED` -> automatisch Account 2 via `GEMINI_OAUTH_CREDS_2_PATH`; `accountLabel` zeigt `account_1` / `account_2`, Wechsel wird geloggt.
 - **CEO Aggregation: MUST-Sprache eingebaut.** `ceo.json` haelt jetzt: "MUST execute GET API call. Do not trust injected context. tool_calls: 0 is a failure." (Fix aus Run `5ecaa84f`)
 - **git_worktree aktiv fuer Projekt Astro/Keystatic (2026-03-22).** `enabled: true`, `defaultMode: "isolated"`, `workspaceStrategy.type: "git_worktree"`, `allowIssueOverride: true`. Neue Issue-Runs laufen jetzt in isolierten Checkouts. Teardown/PR/Auto-Rollback bewusst noch nicht aktiviert (Phase 5).

@@ -1027,8 +1027,9 @@ Ein fertiges Astro 5 + Keystatic CMS OnePager-Template:
 - **Hosting:** Cloudflare Pages Free Tier, 0 EUR laufende Kosten
 - **Kunde zahlt:** ~5€/Jahr fuer Domain — das ist der gesamte Kostenblock
 - **Erster Kunde live:** https://urlaub-bei-bambergers.de/
-- **Template-Repo:** `C:\Users\holyd\Documents\Websites\general\astro-keystatic-template-geib`
-- **Kunden-Worktree fuer den bestehenden Live-Kunden:** `C:\Users\holyd\DGDH\worktrees\ferienwohnung-bamberger`
+- **Aktiver Agenten-/Paperclip-Workspace:** `C:\Users\holyd\DGDH\worktrees\astro-keystatic-template-geib`
+- **Ursprungs-Template-Repo ausserhalb des Agenten-Bereichs:** `C:\Users\holyd\Documents\Websites\general\astro-keystatic-template-geib`
+- **Kunden-Git ausserhalb des Agenten-Bereichs:** `C:\Users\holyd\Documents\Websites\kunden-archive\ferienwohnung-bamberger`
 
 ### Warum das perfekt fuer DGDH-AI ist
 

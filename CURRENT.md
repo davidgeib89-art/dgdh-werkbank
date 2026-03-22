@@ -17,6 +17,7 @@ notes:
 - Realer Lauf gegen `shared/Kunde/Unbekannt Bamberger Tante` erzeugt 7x `hero/gallery/thumb` in `webp+jpg`, alles unter 200 KB.
 - Realer Sprint-F-Lauf gegen `shared/Kunde/Unbekannt Bamberger Tante` erzeugt korrekt `source: "no_input"` mit allen Content-Feldern `null`, weil dort aktuell nur Bilder vorliegen.
 - Realer Sprint-G-Lauf gegen `shared/Kunde/Unbekannt Bamberger Tante` erzeugt `processed/site-output/` mit 21 kopierten Bild-Assets, allen benoetigten Content-Dateien und 14 expliziten Platzhaltern statt leerer Felder.
-- Fuer Projekt Astro/Keystatic muss der Project-Workspace auf das Template-Repo `C:\Users\holyd\Documents\Websites\general\astro-keystatic-template-geib` zeigen, nicht auf einen Kunden-Worktree.
+- Fuer Projekt Astro/Keystatic zeigt der Project-Workspace jetzt auf den sicheren Template-only-Workspace `C:\Users\holyd\DGDH\worktrees\astro-keystatic-template-geib`.
+- Kein Kunden-Git mehr unter `C:\Users\holyd\DGDH\worktrees\ferienwohnung-bamberger`; der bisherige Kunden-Stand wurde aus dem Agenten-Bereich nach `C:\Users\holyd\Documents\Websites\kunden-archive\ferienwohnung-bamberger` verschoben.
 last_updated_by: Codex (Coder)
 updated_at: 2026-03-22
