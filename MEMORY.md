@@ -2,7 +2,7 @@
 
 > Diese Datei wird von JEDER AI gelesen und gepflegt die in diesem Repo arbeitet.
 > Halte sie aktuell. Die naechste AI (oder du selbst nach /compact) ist darauf angewiesen.
-> Max ~333 Zeilen (Davids Lieblingszahl). Fakten, keine Prosa. Stabile Infos, keine Session-Details.
+> Halte sie knapp. Fakten, keine Prosa. Stabile Infos, keine Session-Details. Live Baton steht in `CURRENT.md`, nicht hier.
 
 ---
 
@@ -81,9 +81,9 @@ handoff-faehig. Ref: `github.com/microsoft/markitdown`
 
 ---
 
-## Aktueller Stand (2026-03-21)
+## Bewiesener Stand (2026-03-22)
 
-**Phase:** Engine bewiesen + Worker und Reviewer in echten Runs bewiesen. CEO V1 ist live als Planungs- und Delegationsrolle bewiesen, und die erste vollstaendige Kette ist geschafft: `Mission -> CEO -> Child-Issue -> Worker -> Reviewer -> done`.
+**Phase:** Vollstaendige Kette `Mission → CEO → Child-Issue → Worker → Reviewer → done` bewiesen. CEO Aggregation Mode bewiesen (Run `371ee72a`): CEO erkennt vorhandene Children, aggregiert Verdicts, schliesst Parent NICHT blind bei Luecken, erstellt Follow-up.
 
 ### Was funktioniert (bewiesen in echten Runs)
 
@@ -93,31 +93,29 @@ handoff-faehig. Ref: `github.com/microsoft/markitdown`
 **Rollen (alle 3 Templates bewiesen):**
 - `worker.json`: `locate → hypothesize → patch → validate` Loop + strukturierter Handoff
 - `reviewer.json`: 4 Dimensionen (Scope/Correctness/Evidence/Safety), parseable Matrix-Tabelle, Pre-Accept-Rules
-- `ceo.json`: Constitution-Check, Packet-Schema mit `[NEEDS INPUT]`, Token-Budget max 3-5 Dateien, API-Hinweis automatisch aktiv
+- `ceo.json`: Planning Mode + Aggregation Mode, Constitution-Check, Packet-Schema mit `[NEEDS INPUT]`, Token-Budget max 3-5 Dateien, API-Hinweis automatisch aktiv
 
 **Infrastruktur:**
 - Role Template Registry (`GET /api/role-templates`), Agent PATCH support, Dashboard Rollen-Dropdown + Create-Flow
 - Evidence-Fallback, Path-Normalization, `wakeOnDemand=true` fuer neue Agents
 - PowerShell `&&`→`;` Normalisierung; Loop-Detection 3x=warn / 5x=stop (`errorCode: loop_detected`)
 - `[NEEDS INPUT]` Dashboard: Marker aus `issue.description` → gelber Hinweis-Block + Edit/Comment-CTAs
+- CURRENT.md / MEMORY.md Sync-Split: stable facts vs. live baton getrennt
 
 **Kette bewiesen (reproduzierbar):**
 - `DGD-32 → DGD-33` und `DGD-32 → DGD-35` liefen als `CEO → Worker → Reviewer → done`
+- CEO Aggregation Mode: DGD-32 Run erkannte DGD-34 (blockiert) + DGD-36 ([NEEDS INPUT]) als Luecken → DGD-37 Follow-up erstellt, Parent korrekt offen gelassen
 - CEO-Budget: ~345k Tokens (erster Run) → 61,877 Tokens (nach Haertung)
 - Reviewer-Kontext-Fix: `heartbeat.ts` liefert Worker-Handoff + Artefaktpfade in Review-Prompt
 - Issue-Lifecycle automatisch: Worker → `in_review`; Reviewer `accepted` → `done`
 
-### Was noch fehlt
-- **Kein automatischer Worker → Reviewer Chain:** Manuell zuweisen noetig
-- **CEO Parent-Aggregation fehlt:** DGD-32 bleibt `todo` bis Child-Issues manuell aggregiert werden
-- **Quota-Observability:** Refresh-/Darstellungslogik noch nicht voll verifiziert
-
-### Naechste Schritte (Prioritaet)
-1. **`ceo.json` [NEEDS INPUT]-Feinschliff:** Eine Zeile ergaenzen — Marker soll durch echte Antwort ersetzt, nicht nur geloescht werden
-2. **CEO Parent-Aggregation:** DGD-32 schliessen wenn Children done — CEO-Review-Run der Child-Verdicts aggregiert
-3. **Tool-/Guardrail-Loop:** MCP-aehnlicher, Checks tiefer in den Loop — erst nach Parent-Aggregation
-
----
+**Stand 2026-03-22 — DGD-34 done, git_worktree-Aktivierung als naechster Schritt:**
+- DGD-33, DGD-35, DGD-37, DGD-34 `done` (Reviewer accepted)
+- DGD-34 Lektion: Codex-CLI-Arbeit ausserhalb Paperclip braucht danach formalen Worker-"Abholrunner" bevor Review moeglich ist
+- DGD-32 bleibt auf `todo` (offen bis DGD-36/38/39 done)
+- **Naechste Reihenfolge:** git_worktree aktivieren → DGD-38 → DGD-39 → DGD-36 → DGD-32 CEO-Aggregation
+- **Bekannte Abhaengigkeit:** DGD-39 haengt an DGD-38 (taxId/vatId/etc. noch nicht im Schema)
+- **Bekannte System-Gaps:** Issue-Kommentare nicht zuverlaessig als Kontext fuer Reviewer/CEO — kritische Infos immer in `doneWhen` / Description
 
 ## Architektur-Entscheidungen (gefestigt)
 
@@ -139,6 +137,11 @@ handoff-faehig. Ref: `github.com/microsoft/markitdown`
 - **Issues IMMER mit projectId erstellen** - sonst kein Workspace-Lookup
 - **Token Caps = Warnings** - timeoutSec ist der echte Guard
 - **MiniMax spaeter** - erst nach stabiler Gemini-Lane und Firmenbetrieb
+- **Free-Lane-Strategie.** Paid-Quota nur fuer Worker/Reviewer/CEO-Hauptarbeit. Freie/guenstige Tier fuer Preprocessing, Drafts, Scans. Tier-2-Modelle werden besser → immer mehr Arbeit wandert nach unten. Trigger: Task ist Vorstufe (Ingestion, Scan, Draft) oder Quota knapp.
+- **Dual-Gemini-Account-Switching fehlt noch.** Beide Pro-Accounts als Failover konfigurieren: Account 1 leer → automatisch Account 2. Kleiner Fix im Gemini-Adapter (2 Env-Var-Sets + Failover bei Quota-Error).
+- **CEO Aggregation: MUST-Sprache eingebaut.** `ceo.json` haelt jetzt: "MUST execute GET API call. Do not trust injected context. tool_calls: 0 is a failure." (Fix aus Run `5ecaa84f`)
+- **git_worktree Infrastruktur vorhanden aber nicht aktiviert.** `workspace-runtime.ts` implementiert echtes `git worktree add`. Policy-Aufloesung in `execution-workspace-policy.ts` fertig. Fuer Projekt Astro/Keystatic per `PATCH /api/projects/0bce43aa...` aktivierbar (kein Codeaufwand). Teardown/PR/Rollback noch nicht fertig verdrahtet — bewusst zurueckgestellt. `SHOW_EXPERIMENTAL_ISSUE_WORKTREE_UI = false` (UI versteckt).
+- **Codex-CLI-Arbeit ausserhalb Paperclip.** Wenn Codex direkt im Workspace implementiert (kein Paperclip-Worker-Run), braucht es danach einen formalen Worker-"Abholrunner" bevor Review moeglich ist. Reviewer blockiert sonst korrekt auf fehlendem Execution-Record.
 
 ---
 
@@ -147,7 +150,10 @@ handoff-faehig. Ref: `github.com/microsoft/markitdown`
 | Was | ID |
 |-----|-----|
 | Company | `45b3b93e-8a30-4078-acc6-1c721b29b2ff` |
-| Agent Research-Gemini | `9e721036-35b7-446e-a752-2df7a1a8caad` |
+| CEO-Agent | `4e93472c-78f6-409a-9adf-dc57454ea17c` |
+| Reviewer-Agent | `9e721036-35b7-446e-a752-2df7a1a8caad` |
+| Worker-Agent | `fe5d3d60-9e8a-4e0c-b494-087d3518755c` |
+| Projekt Astro/Keystatic | `0bce43aa-2bb9-4572-9938-f556a3279149` |
 | Projekt Gemini Benchmark | `8534a922-eaf2-4495-a250-648b0d1ca96b` |
 
 ---
@@ -157,16 +163,18 @@ handoff-faehig. Ref: `github.com/microsoft/markitdown`
 ```txt
 # Assign (triggert sofort einen Run):
 PATCH /api/issues/{id}
-Body: {"assigneeAgentId": "9e721036-35b7-446e-a752-2df7a1a8caad"}
+Body: {"assigneeAgentId": "<agent-id>"}
 
 # Re-trigger (unassign + reassign):
 PATCH /api/issues/{id}  Body: {"assigneeAgentId": null}
 # warten
-PATCH /api/issues/{id}  Body: {"assigneeAgentId": "9e721036-..."}
+PATCH /api/issues/{id}  Body: {"assigneeAgentId": "<agent-id>"}
 
 # NICHT: POST /api/agents/{id}/wakeup - das ist Heartbeat ohne Kontext!
+
+# Agenten-IDs:
+# CEO:      4e93472c-78f6-409a-9adf-dc57454ea17c
+# Worker:   fe5d3d60-9e8a-4e0c-b494-087d3518755c
+# Reviewer: 9e721036-35b7-446e-a752-2df7a1a8caad
 ```
 
----
-
-> Zuletzt aktualisiert: 2026-03-22 von Claude Code (PowerShell-Fix + Loop-Detection + [NEEDS INPUT]-Dashboard ergaenzt, veraltete Eintraege bereinigt, unter 150 Zeilen)

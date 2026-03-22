@@ -9,13 +9,15 @@
 
 ## Schritt 1: MEMORY lesen
 
-Lies **sofort** `MEMORY.md` im Repo-Root. Das ist der geteilte Zustand aller AIs die hier arbeiten. Dort steht:
-- Was gerade funktioniert und was nicht
-- Wo wir in der Entwicklung stehen
-- Aktive Aufgaben und Blocker
+Lies **sofort** `MEMORY.md` im Repo-Root. Das ist der geteilte stabile Zustand aller AIs die hier arbeiten. Dort steht:
+- Was bewiesen funktioniert
+- Welche Architektur-Entscheidungen gelten
+- Welche Dokumente den Detailstand enthalten
 - Technische Quick-Reference
 
-**MEMORY.md ist deine Pflicht.** Wenn du Code, Architektur oder Design-Entscheidungen aenderst: update MEMORY.md BEVOR du die Session beendest. Die naechste AI (oder du selbst nach /compact) ist darauf angewiesen.
+**MEMORY.md ist deine Pflicht.** Wenn du stabile Facts, Architektur oder proven state aenderst: update MEMORY.md BEVOR du die Session beendest. Die naechste AI (oder du selbst nach /compact) ist darauf angewiesen.
+
+Lies **direkt danach** `CURRENT.md`, wenn die Datei existiert. Das ist der Live Baton zwischen den CLIs: aktueller Fokus, aktives Issue, naechster Schritt, Blocker, letzte schreibende AI.
 
 ---
 
@@ -106,12 +108,18 @@ Monorepo mit pnpm workspaces + TypeScript project references.
 
 ### MEMORY.md Pflege
 - **Lies MEMORY.md am Anfang** - versteh wo wir stehen
-- **Update MEMORY.md am Ende** - wenn sich etwas geaendert hat
+- **Update MEMORY.md am Ende** - aber nur wenn sich stabile Fakten, Architektur oder bewiesener Stand geaendert haben
 - **Korrigiere MEMORY.md sofort** - wenn etwas darin falsch ist
 - **Halte es kurz** - max ~150 Zeilen, Fakten statt Prosa
 - **Keine Session-Details** - nur stabile Fakten die ueber Sessions hinweg gelten
 - **Architektur-Entscheidungen festhalten** - die naechste AI muss wissen WARUM
 - **Aktive Arbeitsdokumente verlinken** - wenn du an einem Plandokument arbeitest, stelle sicher dass MEMORY.md darauf verweist
+
+### CURRENT.md Pflege
+- **Lies CURRENT.md direkt nach MEMORY.md** - wenn die Datei existiert
+- **Update CURRENT.md am Session-Ende** - nicht MEMORY.md, wenn du Fokus/Issue/Next/Blockers uebergibst
+- **Halte CURRENT.md extrem kurz** - max ~15 Zeilen, nur Live Baton
+- **Schema nicht kreativ umbauen** - `focus`, `active_issue`, `next`, `blockers`, `last_updated_by`, `updated_at`
 
 ### Issue Runs (Gemini-Agent steuern)
 - Issue Run starten: `PATCH /api/issues/{id}` mit `{"assigneeAgentId": "..."}`
@@ -128,11 +136,12 @@ Monorepo mit pnpm workspaces + TypeScript project references.
 
 1. Lies diese INIT.md
 2. Lies MEMORY.md
-3. Lies die aktiven Arbeitsdokumente (verlinkt in MEMORY.md oder neueste in `doc/plans/`)
-4. Lies `doc/plans/2026-03-21-dgdh-north-star-roadmap.md`
-5. Du bist wieder auf Stand
-6. Arbeite weiter wo die letzte Session aufgehoert hat
+3. Lies CURRENT.md wenn vorhanden
+4. Lies die aktiven Arbeitsdokumente (verlinkt in MEMORY.md oder neueste in `doc/plans/`)
+5. Lies `doc/plans/2026-03-21-dgdh-north-star-roadmap.md`
+6. Du bist wieder auf Stand
+7. Arbeite weiter wo die letzte Session aufgehoert hat
 
 ---
 
-> *Diese Datei ist der Schluessel zu nahtlosem Kontext ueber beliebig viele AI-Sessions und -Modelle hinweg. Halte MEMORY.md aktuell, verlinke aktive Arbeitsdokumente, und lies den North Star, damit die Richtung stabil bleibt.*
+> *Diese Datei ist der Schluessel zu nahtlosem Kontext ueber beliebig viele AI-Sessions und -Modelle hinweg. Halte MEMORY.md stabil, CURRENT.md knapp, verlinke aktive Arbeitsdokumente, und lies den North Star, damit die Richtung stabil bleibt.*

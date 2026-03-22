@@ -101,6 +101,22 @@ describe("resolveAssignedRoleTemplate", () => {
     );
   });
 
+  it("ceo template contains aggregation mode instructions", () => {
+    const result = resolveAssignedRoleTemplate({
+      roleTemplateId: "ceo",
+    });
+
+    expect(result.error).toBeNull();
+    expect(result.assigned?.prompt).toContain("Aggregation Mode");
+    expect(result.assigned?.prompt).toContain("parentId");
+    expect(result.assigned?.prompt).toContain(
+      "GET /api/companies/PAPERCLIP_COMPANY_ID/issues?parentId=PAPERCLIP_TASK_ID",
+    );
+    expect(result.assigned?.template.constraints).toContain(
+      "In Aggregation Mode: read child statuses first, then decide. Do not create new packets if all children are already done.",
+    );
+  });
+
   it("reviewer matrix format is structured in the prompt", () => {
     const result = resolveAssignedRoleTemplate({
       roleTemplateId: "reviewer",

@@ -157,6 +157,63 @@ Empfohlene Verteilung:
 - Worker: standardmaessig guenstiger und schneller, nur bei Bedarf teurer
 - Review: je nach Stakes guenstig oder stark
 
+### 6.1 Gemini-Free-Lane als sofortiger Handwerker
+
+`gemini_local` ist nicht nur der strategische Provider fuer Stufe 1, sondern auch die naheliegende
+sofort nutzbare Handwerker-Lane fuer tokenaufwendige Routinearbeit.
+
+Wichtig:
+
+- das ist **kein zweiter Provider**
+- das ist **kein** Bruch mit "erst nur Gemini"
+- es ist dieselbe Gemini-Lane mit billigerem/quota-freundlichem Default fuer bounded Arbeit
+- laut aktueller Gemini-Doku gibt es im Free Tier freie Tokens fuer die guenstigeren Flash-/Flash-Lite-Lanes
+
+Warum das fuer DGDH attraktiv ist:
+
+- `gemini_local` existiert im Repo bereits als echter Adapter
+- Resume, structured Output und Skills-Injection sind schon vorhanden
+- keine neue Provider-Sonderwelt noetig
+- sofort nutzbar fuer echte Arbeitsentlastung
+
+Die Rolle dieses Handwerkers ist:
+
+- bounded Research
+- Repo-Scans und erste Einordnung
+- Drafts, Umformungen, Markdown-/Schema-Befuellung
+- einfache Refactors und erste Implementierungs-Paesse
+
+Nicht die Rolle dieses Handwerkers ist:
+
+- CEO-Entscheidungen
+- finaler High-Stakes-Review
+- riskante Repo-Umbauten ohne klaren Packet-Rahmen
+
+Operative Regel:
+
+- Worker startet standardmaessig zuerst auf der billigsten sinnvollen Gemini-Lane
+- nur bei Bedarf wird auf staerkere Gemini-Modelle eskaliert
+- wenn Free-Quota leer oder instabil ist, bleibt der Fallback **innerhalb** der Gemini-Lane
+- Ziel ist: erst die billige Handwerker-Lane maximal nutzen, dann erst teurere Denker-Lanes anfassen
+
+Klarer Trigger fuer die Free-Handwerker-Lane:
+
+- **Preprocessing** — Kundenordner normalisieren, Rohdaten in Markdown umwandeln, Repo-Struktur scannen
+- **Drafts** — erster Inhalts-Pass, Packet-Beschreibungen formulieren, Zusammenfassungen erstellen
+- **Einfache Refactors** — kleine, klar begrenzte Code-Umformungen ohne Architektur-Entscheidungen
+- **NICHT** — CEO-Planung, finaler Review, High-Stakes-Entscheidungen, riskante Repo-Umbauten
+
+Warum das strategisch wichtig ist: Tier-2-Modelle werden mit jeder Generation besser.
+Was heute noch "braucht ein starkes Modell" ist morgen Handwerker-Arbeit.
+Die freie Lane wachsen lassen heisst: Kostenbasis senken ohne Qualitaet zu opfern.
+
+Infrastruktur-Gap (noch offen):
+
+- **Dual-Gemini-Account-Switching** — beide Pro-Accounts als Failover konfigurieren.
+  Account 1 Quota leer → automatisch Account 2. Kleiner Fix im Gemini-Adapter:
+  2 Env-Var-Sets (`GEMINI_ACCOUNT_1_*`, `GEMINI_ACCOUNT_2_*`) + Failover bei Quota-Error.
+  Verdoppelt die verfuegbare taeglich-resettende Quota ohne Mehrkosten.
+
 ## 7. Zwei getrennte Ebenen: Engine Layer vs Agent Layer
 
 Es gibt zwei fundamental verschiedene Ebenen, die nicht verwechselt werden duerfen:
@@ -478,12 +535,22 @@ wirklich erledigt ist und entscheidet naechsten Schritt.
 
 Das ist der spaetere CEO-Loop ueber `parentIssueId` + Child-Issue-Verdicts.
 
-**4. Feature-Branch pro Work Packet (spaeter)**
+**4. Feature-Branch pro Work Packet (Phase 1.5 — jetzt aktivierbar)**
 
 Spec-Kit erstellt pro Feature einen Branch. DGDH-Ansatz: jedes CEO-Packet
-koennte einen eigenen Branch bekommen. Worker arbeitet auf Branch,
-Reviewer prueft Branch, Merge bei accepted. Erst relevant wenn mehrere
-Packets parallel laufen.
+bekommt einen eigenen isolierten git_worktree-Checkout. Worker arbeitet
+im Worktree, Reviewer prueft dort, Merge bei accepted.
+
+Stand 2026-03-22: Die Infrastruktur ist real implementiert in
+`server/src/services/workspace-runtime.ts` (`git worktree add`),
+Policy-Aufloesung in `execution-workspace-policy.ts` vorhanden,
+API-Support per `PATCH /api/projects/:id` aktiv. Aktivierung fuer das
+Astro/Keystatic-Projekt ist ein API-Call, kein Codeaufwand.
+
+Was noch nicht fertig ist: automatischer Teardown, PR-Flow, Auto-Rollback
+bei `needs_revision`. Die volle "Review → Merge/Rollback"-Maschine kommt
+spaeter. Das minimale Sicherheitsnetz (isolierter Checkout pro Packet)
+ist jetzt aktiv zu schalten — vor komplexen Produktions-Packets wie DGD-36.
 
 ### Patterns aus Karpathy autoresearch (Inspiration: github.com/karpathy/autoresearch)
 
@@ -513,19 +580,28 @@ Blocked — umbau das halbe Repo nicht."
 Diese Regel ist bereits implizit im worker.json — kein eigenes Packet, nur Verstaerkung beim naechsten
 Template-Update.
 
-**3. Git Reset Rollback-Loop (Phase 5 — nicht jetzt)**
+**3. Git Reset Rollback-Loop (zwei Ebenen — unterschiedliche Reife)**
 
 Karpathy nutzt Git als State-Machine: Code aendern → commit → Experiment → wenn schlechter: `git reset`.
 Das wuerde bei DGDH bedeuten: Reviewer gibt `needs_revision` → Engine macht `git reset --hard`
 auf Stand vor dem Worker-Run → naechster Versuch startet sauber.
 
-Warum nicht jetzt: erfordert koordinierten Branch-/Reset-Mechanismus zwischen Reviewer-Urteil und Engine.
-Das ist Phase-5-Infrastruktur.
+**Ebene 1 — Isolierter Checkout (jetzt aktivierbar):**
+Worker laeuft im eigenen git_worktree statt direkt auf dem Primary Workspace.
+Wenn der Run schlecht laeuft, ist der Primary Workspace unberuehrt.
+Das ist kein Auto-Rollback, aber ein effektives Sicherheitsnetz.
+Infrastruktur vorhanden, Aktivierung per API-Call (siehe Feature-Branch-Abschnitt).
+
+**Ebene 2 — Auto-Rollback bei needs_revision (Phase 5 — nicht jetzt):**
+Reviewer gibt `needs_revision` → Engine macht automatisch `git reset --hard` im Worktree
+→ naechster Worker-Versuch startet sauber. Erfordert koordinierten
+Branch-/Reset-Mechanismus zwischen Reviewer-Urteil und Engine.
+Das bleibt Phase-5-Infrastruktur.
 
 Lightweight-Version haben wir schon: Worker-Prompt sagt "adapt once, then report blocked" statt
 blind in Repair-Loops zu laufen.
 
-Trigger fuer echten Git-Rollback: wenn Worker-Runs nachweislich im Repair-Rabbit-Hole stecken und
+Trigger fuer Auto-Rollback (Ebene 2): wenn Worker-Runs nachweislich im Repair-Rabbit-Hole stecken und
 Reviewer-Urteil allein nicht reicht um den Zustand zu bereinigen.
 
 ### Patterns aus markitdown (Inspiration: github.com/microsoft/markitdown)
@@ -825,6 +901,31 @@ Die geplante Reihenfolge ist:
 1. Gemini sauber machen
 2. DGDH-Firmenbetrieb auf dieser Basis stabilisieren
 3. erst dann den naechsten Provider integrieren
+
+### 12.1.1 OpenRouter Free als spaetere experimentelle Handwerker-Lane
+
+OpenRouter ist als spaetere Zusatz-Lane interessant, weil es echte `:free` Modellvarianten und den
+Router `openrouter/free` anbietet und ueber eine headless OpenAI-kompatible API verfuegbar ist.
+
+Wichtig laut aktueller OpenRouter-Doku:
+
+- ohne gekaufte Credits sind Free-Model-API-Requests auf `50/Tag` limitiert
+- ab mindestens `10` gekauften Credits steigt das Free-Model-Limit auf `1000/Tag`
+- Free-Model-Verfuegbarkeit und Rate Limits koennen je nach Modell und Provider schwanken
+- dadurch kann sich ein Modell wie `arcee-ai/trinity-large-preview:free` subjektiv nach "viel mehr" anfuehlen, wenn auf dem Account Credits liegen
+
+Das bedeutet fuer DGDH:
+
+- OpenRouter Free ist **keine** unendliche Gratis-Infrastruktur
+- aber es ist eine sehr interessante spaetere Overflow-/Experiment-Lane fuer bounded One-Shot-Arbeit
+- gut fuer billige Recherche, Umformungen, erste Drafts und nicht-kritische Worker-Pakete
+- nicht geeignet als Basis fuer CEO-Lane, Governance oder kritische Reviewer
+
+Architektur-Regel:
+
+- wenn OpenRouter Free spaeter kommt, dann als normale Provider-/Adapter-Lane
+- nicht als Sonderwelt mit eigener Engine-Logik
+- bevorzugter Einstieg waere ueber einen einfachen headless Adapter oder zuerst ueber `process`
 
 ### 12.2 MiniMax als bevorzugter naechster Kandidat
 
