@@ -152,8 +152,23 @@ describe("resolveAssignedRoleTemplate", () => {
     expect(result.assigned?.prompt).toContain(
       "GET /api/companies/PAPERCLIP_COMPANY_ID/issues?parentId=PAPERCLIP_TASK_ID",
     );
+    expect(result.assigned?.prompt).toContain(
+      "GET /api/issues/CHILD_ISSUE_ID/approvals",
+    );
+    expect(result.assigned?.prompt).toContain(
+      "latest review approval status is approved",
+    );
+    expect(result.assigned?.prompt).toContain(
+      "All packets accepted. Mission complete.",
+    );
     expect(result.assigned?.template.constraints).toContain(
       "Aggregation Mode: MUST execute GET /api/companies/.../issues?parentId=... before any decision. Do not trust injected context for child statuses. The API call is mandatory and non-optional. Do not create new packets if all children are already done.",
+    );
+    expect(result.assigned?.template.constraints).toContain(
+      "Aggregation Mode: For each child issue, fetch /api/issues/{childIssueId}/approvals and treat only latest status=approved as complete. changes_requested or no approval keeps parent open.",
+    );
+    expect(result.assigned?.template.constraints).toContain(
+      "If and only if all child approvals are approved, PATCH parent issue status to done and report: All packets accepted. Mission complete.",
     );
     expect(result.assigned?.template.constraints).toContain(
       "After creating child issues, fetch /api/companies/{companyId}/agents and assign each packet to an idle worker (adapterConfig.roleTemplateId == worker) when available.",
