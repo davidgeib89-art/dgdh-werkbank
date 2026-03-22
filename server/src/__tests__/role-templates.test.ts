@@ -120,6 +120,13 @@ describe("resolveAssignedRoleTemplate", () => {
     expect(result.assigned?.prompt).toContain(
       "Execute the issue creation calls. Do not merely print sample commands",
     );
+    expect(result.assigned?.prompt).toContain(
+      "fetch available agents with GET /api/companies/PAPERCLIP_COMPANY_ID/agents",
+    );
+    expect(result.assigned?.prompt).toContain(
+      "adapterConfig.roleTemplateId == \"worker\" and status == \"idle\"",
+    );
+    expect(result.assigned?.prompt).toContain("[NEEDS WORKER]");
   });
 
   it("ceo template contains aggregation mode instructions", () => {
@@ -135,6 +142,12 @@ describe("resolveAssignedRoleTemplate", () => {
     );
     expect(result.assigned?.template.constraints).toContain(
       "Aggregation Mode: MUST execute GET /api/companies/.../issues?parentId=... before any decision. Do not trust injected context for child statuses. The API call is mandatory and non-optional. Do not create new packets if all children are already done.",
+    );
+    expect(result.assigned?.template.constraints).toContain(
+      "After creating child issues, fetch /api/companies/{companyId}/agents and assign each packet to an idle worker (adapterConfig.roleTemplateId == worker) when available.",
+    );
+    expect(result.assigned?.template.constraints).toContain(
+      "If no idle worker is available, keep packet unassigned and report [NEEDS WORKER] in the handoff.",
     );
   });
 
