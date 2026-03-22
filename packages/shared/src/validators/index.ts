@@ -123,9 +123,15 @@ export {
 
 export {
   createAssetImageMetadataSchema,
+  revenueContentContactSchema,
+  revenueContentDraftFieldsSchema,
+  revenueContentLocationSchema,
+  revenueContentPricingSchema,
   runImagePacketPipelineSchema,
+  runRevenueContentExtractorSchema,
   type CreateAssetImageMetadata,
   type RunImagePacketPipeline,
+  type RunRevenueContentExtractor,
 } from "./asset.js";
 
 export {

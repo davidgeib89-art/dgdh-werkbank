@@ -16,6 +16,7 @@ export interface AssetImage {
 
 export type RevenueImageVariantName = "hero" | "gallery" | "thumb";
 export type RevenueImageOutputFormat = "webp" | "jpg";
+export type RevenueContentDraftSource = "gemini_flash_lite" | "no_input";
 
 export interface RevenueImagePipelineOutput {
   variant: RevenueImageVariantName;
@@ -44,5 +45,47 @@ export interface RevenueImagePipelineResult {
   targetBytes: number;
   generatedAt: string;
   assets: RevenueImagePipelineAsset[];
+}
+
+export interface RevenueContentPricing {
+  priceText: string | null;
+  currency: string | null;
+  period: string | null;
+  notes: string | null;
+}
+
+export interface RevenueContentLocation {
+  address: string | null;
+  city: string | null;
+  region: string | null;
+  postalCode: string | null;
+  country: string | null;
+}
+
+export interface RevenueContentContact {
+  name: string | null;
+  email: string | null;
+  phone: string | null;
+  website: string | null;
+}
+
+export interface RevenueContentDraftFields {
+  name: string | null;
+  tagline: string | null;
+  description: string | null;
+  highlights: string[] | null;
+  amenities: string[] | null;
+  pricing: RevenueContentPricing | null;
+  location: RevenueContentLocation | null;
+  contact: RevenueContentContact | null;
+}
+
+export interface RevenueContentDraft extends RevenueContentDraftFields {
+  source: RevenueContentDraftSource;
+  sourceDir: string;
+  manifestPath: string;
+  outputPath: string;
+  sourceFiles: string[];
+  generatedAt: string;
 }
 

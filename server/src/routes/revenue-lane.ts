@@ -1,13 +1,21 @@
 import { Router } from "express";
 import type { Db } from "@paperclipai/db";
-import { runImagePacketPipelineSchema } from "@paperclipai/shared";
+import {
+  runImagePacketPipelineSchema,
+  runRevenueContentExtractorSchema,
+} from "@paperclipai/shared";
 import { validate } from "../middleware/validate.js";
-import { logActivity, revenueImagePipelineService } from "../services/index.js";
+import {
+  logActivity,
+  revenueContentExtractorService,
+  revenueImagePipelineService,
+} from "../services/index.js";
 import { assertCompanyAccess, getActorInfo } from "./authz.js";
 
 export function revenueLaneRoutes(db: Db) {
   const router = Router();
   const imagePipeline = revenueImagePipelineService();
+  const contentExtractor = revenueContentExtractorService();
 
   router.post(
     "/companies/:companyId/revenue-lane/image-pipeline/process",
@@ -34,6 +42,38 @@ export function revenueLaneRoutes(db: Db) {
           manifestPath: result.manifestPath,
           imageCount: result.imageCount,
           targetBytes: result.targetBytes,
+        },
+      });
+
+      res.status(201).json(result);
+    },
+  );
+
+  router.post(
+    "/companies/:companyId/revenue-lane/content-extractor/process",
+    validate(runRevenueContentExtractorSchema),
+    async (req, res) => {
+      const companyId = req.params.companyId as string;
+      assertCompanyAccess(req, companyId);
+
+      const actor = getActorInfo(req);
+      const result = await contentExtractor.processDirectory(req.body);
+
+      await logActivity(db, {
+        companyId,
+        actorType: actor.actorType,
+        actorId: actor.actorId,
+        agentId: actor.agentId,
+        runId: actor.runId,
+        action: "revenue.content_packet_extractor.processed",
+        entityType: "company",
+        entityId: companyId,
+        details: {
+          sourceDir: result.sourceDir,
+          manifestPath: result.manifestPath,
+          outputPath: result.outputPath,
+          source: result.source,
+          sourceFileCount: result.sourceFiles.length,
         },
       });
 

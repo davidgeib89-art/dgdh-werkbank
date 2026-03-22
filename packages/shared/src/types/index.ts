@@ -11,6 +11,12 @@ export type {
 } from "./agent.js";
 export type {
   AssetImage,
+  RevenueContentContact,
+  RevenueContentDraft,
+  RevenueContentDraftFields,
+  RevenueContentDraftSource,
+  RevenueContentLocation,
+  RevenueContentPricing,
   RevenueImageOutputFormat,
   RevenueImagePipelineAsset,
   RevenueImagePipelineOutput,

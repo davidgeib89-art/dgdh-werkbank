@@ -2,6 +2,7 @@ export { companyService } from "./companies.js";
 export { agentService, deduplicateAgentName } from "./agents.js";
 export { assetService } from "./assets.js";
 export { revenueImagePipelineService } from "./revenue-image-pipeline.js";
+export { revenueContentExtractorService } from "./revenue-content-extractor.js";
 export { documentService, extractLegacyPlanBody } from "./documents.js";
 export {
   memoryService,

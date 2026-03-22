@@ -27,7 +27,8 @@ Astro 5 + Keystatic CMS OnePager-Template fuer kleine Unternehmen.
 Hosting: Cloudflare Pages Free Tier. Kunde zahlt nur ~5€/Jahr fuer Domain.
 
 ### Repo & erster Kunde
-- Template-Repo: `C:\Users\holyd\DGDH\worktrees\ferienwohnung-bamberger`
+- Template-Repo: `C:\Users\holyd\Documents\Websites\general\astro-keystatic-template-geib`
+- Kunden-Worktree fuer den bestehenden Live-Kunden: `C:\Users\holyd\DGDH\worktrees\ferienwohnung-bamberger`
 - Erster Kunde live: https://urlaub-bei-bambergers.de/ (Ferienwohnung Bamberger)
 - Naechster Fokus: Revenue-Lane-Produktisierung fuer wiederverwendbare Kundenordner-Pipelines; konkreter Kunde ist zweitrangig bis die Packet-Foundation steht
 
@@ -37,6 +38,7 @@ Hosting: Cloudflare Pages Free Tier. Kunde zahlt nur ~5€/Jahr fuer Domain.
 - Fehlende Namen, Texte oder Fakten werden als `[NEEDS INPUT]` / Platzhalter behandelt, nicht halluziniert
 - Der erste zu produktisierende Revenue-Lane-Packet-Typ ist Bild-Preprocessing / Asset-Optimierung
 - Sprint E ist geliefert: deterministische `sharp`-Pipeline plus reviewbares Manifest fuer den Kundenordner `shared/Kunde/Unbekannt Bamberger Tante/processed`
+- Sprint F ist geliefert: Flash-Lite-Content-Extraction schreibt `processed/content-draft.json` mit strukturiertem Draft oder `source: "no_input"` wenn kein Textmaterial vorliegt
 
 ### Content-Modell (alles statische Textdateien, keine DB!)
 ```
@@ -135,7 +137,7 @@ handoff-faehig. Ref: `github.com/microsoft/markitdown`
 | 1 | Worker Abort bei Loop-Stop | `git checkout .` + strukturierter Blocked-Handoff bei 5x stop | Klein |
 | 2 | Reviewer Simplicity Criterion | Prompt-Tweak in `reviewer.json` — direkt in Sprint 1 rein | Minimal |
 | 3 | CEO Auto-Retrigger | Engine triggert CEO automatisch nach Reviewer accepted — kein manuelles Unassign/Reassign | Mittel |
-| 4 | Revenue Lane Foundation | Image Packet Pipeline geliefert; Content Extraction Worker (Flash-Lite) als naechstes | Mittel |
+| 4 | Revenue Lane Foundation | Image Packet Pipeline + Content Extraction Worker geliefert; Schema Fill Worker als naechstes | Mittel |
 - **Bekannte System-Gaps:** Issue-Kommentare nicht zuverlaessig als Kontext fuer Reviewer/CEO — kritische Infos immer in `doneWhen` / Description
 - **Onboarding-Prompts:** Fuer alle 4 Rollen fertig (Planer/Coder/Reviewer/Researcher) — in Claude-Session erarbeitet
 
@@ -168,6 +170,7 @@ Worker→Reviewer→done Flows laufen ohne Claude-Unterbrechung durch.
 - **Free-Lane-Strategie.** Paid-Quota nur fuer Worker/Reviewer/CEO-Hauptarbeit. Freie/guenstige Tier fuer Preprocessing, Drafts, Scans. Tier-2-Modelle werden besser → immer mehr Arbeit wandert nach unten. Trigger: Task ist Vorstufe (Ingestion, Scan, Draft) oder Quota knapp.
 - **Revenue-Lane-Produktisierung vor Einzelfall-Delivery.** Wenn ein Auftrag wie "baue diese eine Kundenseite" aussieht, ist zuerst zu pruefen welcher wiederverwendbare Packet-Typ oder Tool-Pfad der Werkbank noch fehlt. Erst die Produktionsfaehigkeit, dann der Einzelfall.
 - **Image Packet Pipeline ist deterministic_tool, nicht LLM.** Route: `POST /api/companies/:companyId/revenue-lane/image-pipeline/process`. Service verarbeitet repo-relative Kundenordner mit `sharp`, erzeugt `hero/gallery/thumb` in `webp+jpg`, schreibt `manifest.json`, nutzt `sharp.strategy.attention`, und haelt pro Output das 200-KB-Ziel.
+- **Content Extraction Worker ist free_api auf Gemini Flash-Lite.** Route: `POST /api/companies/:companyId/revenue-lane/content-extractor/process`. Service liest repo-relative Textquellen (`.txt`, `.md`, `.markdown`, `.json`) plus `manifest.json`, schreibt `processed/content-draft.json` und markiert fehlendes Material strikt mit `null` bzw. `source: "no_input"` statt zu halluzinieren.
 - **Dual-Gemini-Failover ist live.** Account 1 exhausted / 429 / `RESOURCE_EXHAUSTED` -> automatisch Account 2 via `GEMINI_OAUTH_CREDS_2_PATH`; `accountLabel` zeigt `account_1` / `account_2`, Wechsel wird geloggt.
 - **CEO Aggregation: MUST-Sprache eingebaut.** `ceo.json` haelt jetzt: "MUST execute GET API call. Do not trust injected context. tool_calls: 0 is a failure." (Fix aus Run `5ecaa84f`)
 - **git_worktree aktiv fuer Projekt Astro/Keystatic (2026-03-22).** `enabled: true`, `defaultMode: "isolated"`, `workspaceStrategy.type: "git_worktree"`, `allowIssueOverride: true`. Neue Issue-Runs laufen jetzt in isolierten Checkouts. Teardown/PR/Auto-Rollback bewusst noch nicht aktiviert (Phase 5).
@@ -207,4 +210,3 @@ PATCH /api/issues/{id}  Body: {"assigneeAgentId": "<agent-id>"}
 # Worker:   fe5d3d60-9e8a-4e0c-b494-087d3518755c
 # Reviewer: 9e721036-35b7-446e-a752-2df7a1a8caad
 ```
-
