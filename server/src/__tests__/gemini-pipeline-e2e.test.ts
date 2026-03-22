@@ -507,13 +507,13 @@ describe("Case 3: needsApproval=true, blocked=false — awaiting_approval gate",
     // blocked=false: not (high + large + implement) — budgetClass is medium
     expect(result.selected.blocked).toBe(false);
     expect(result.selected.blockReason).toBeNull();
-    // needsApproval=true: requiresApprovalByRisk = (riskLevel === "high") = true
-    expect(result.selected.needsApproval).toBe(true);
+    // needsApproval=false: routine approval gate is currently disabled
+    expect(result.selected.needsApproval).toBe(false);
 
-    // Gate 2 fires: routingNeedsApproval = !blocked && needsApproval
+    // Gate 2 does NOT fire: routingNeedsApproval = !blocked && needsApproval
     const gate2WouldFire =
       !result.selected.blocked && result.selected.needsApproval === true;
-    expect(gate2WouldFire).toBe(true);
+    expect(gate2WouldFire).toBe(false);
 
     // Gate 1 does NOT fire
     expect(result.selected.blocked).toBe(false);
@@ -610,7 +610,7 @@ describe("Chain: Stage-1 (mocked) → Stage-2 (real) produces correct enforced p
     expect(preflight.selected.blocked).toBe(true);
     expect(preflight.selected.blockReason).toBe("missing_inputs");
     expect(preflight.selected.missingInputs).toContain("auth library docs");
-    expect(preflight.selected.needsApproval).toBe(true); // missingInputs → needsApproval
+    expect(preflight.selected.needsApproval).toBe(false); // routine approvals disabled
     expect(preflight.selected.taskType).toBe("bounded-implementation");
     expect(preflight.selected.budgetClass).toBe("medium");
 
@@ -631,8 +631,6 @@ describe("Chain: Stage-1 (mocked) → Stage-2 (real) produces correct enforced p
     expect(statsSummary!.summary).toBe(
       "Routing blocked: missing_inputs",
     );
-    expect(statsSummary!.message).toBe(
-      "Task requires operator approval before execution",
-    );
+    expect(statsSummary!.message).toBeUndefined();
   });
 });

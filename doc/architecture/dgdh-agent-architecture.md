@@ -3,6 +3,17 @@
 **Status:** kanonisch (2026-03-22)
 **Gilt für:** alle AIs die mit DGDH arbeiten
 
+## Phase: Prototyping einer grossen Zukunft
+
+DGDH ist in der Prototyping-Phase. Wir bauen nicht fuer kurzfristigen Revenue —
+wir bauen die Maschine die irgendwann autonom Wert erzeugt.
+
+Revenue kommt wenn die Maschine faehig ist, nicht vorher.
+Solange Abokosten unter ~100 EUR/Monat bleiben: gross denken, keine Eile.
+Kleine Projekte die aufkommen sind Testgelegenheiten, nicht das Hauptziel.
+
+AIs sollen keinen Revenue-Druck auf David ausueben. Grosse Vision first.
+
 ## Das Kernprinzip: Opinionated Flexibility
 
 DGDH-Agenten sind weder starr noch chaotisch.

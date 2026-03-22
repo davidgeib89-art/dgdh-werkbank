@@ -48,7 +48,11 @@ describe("codex local adapter skill injection", () => {
 
     await createPaperclipRepoSkill(currentRepo, "paperclip");
     await createPaperclipRepoSkill(oldRepo, "paperclip");
-    await fs.symlink(path.join(oldRepo, "skills", "paperclip"), path.join(skillsHome, "paperclip"));
+    await fs.symlink(
+      path.join(oldRepo, "skills", "paperclip"),
+      path.join(skillsHome, "paperclip"),
+      process.platform === "win32" ? "dir" : undefined,
+    );
 
     const logs: string[] = [];
     await ensureCodexSkillsInjected(
@@ -61,8 +65,8 @@ describe("codex local adapter skill injection", () => {
       },
     );
 
-    expect(await fs.realpath(path.join(skillsHome, "paperclip"))).toBe(
-      await fs.realpath(path.join(currentRepo, "skills", "paperclip")),
+    expect(await fs.readlink(path.join(skillsHome, "paperclip"))).toBe(
+      path.join(currentRepo, "skills", "paperclip"),
     );
     expect(logs.some((line) => line.includes('Repaired Codex skill "paperclip"'))).toBe(true);
   });
@@ -77,15 +81,19 @@ describe("codex local adapter skill injection", () => {
 
     await createPaperclipRepoSkill(currentRepo, "paperclip");
     await createCustomSkill(customRoot, "paperclip");
-    await fs.symlink(path.join(customRoot, "custom", "paperclip"), path.join(skillsHome, "paperclip"));
+    await fs.symlink(
+      path.join(customRoot, "custom", "paperclip"),
+      path.join(skillsHome, "paperclip"),
+      process.platform === "win32" ? "dir" : undefined,
+    );
 
     await ensureCodexSkillsInjected(async () => {}, {
       skillsHome,
       skillsEntries: [{ name: "paperclip", source: path.join(currentRepo, "skills", "paperclip") }],
     });
 
-    expect(await fs.realpath(path.join(skillsHome, "paperclip"))).toBe(
-      await fs.realpath(path.join(customRoot, "custom", "paperclip")),
+    expect(await fs.readlink(path.join(skillsHome, "paperclip"))).toBe(
+      path.join(customRoot, "custom", "paperclip"),
     );
   });
 });

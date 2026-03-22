@@ -13,9 +13,18 @@
 
 ## DGDH Kern
 - DGDH = David Geib - Digitales Handwerk; David ist der einzige menschliche Operator.
-- Leitfrage: Entlastet das David real oder verschoenert es nur die Maschine?
+- Leitfragen: "Entlastet das David real?" UND "Wird die Firma faehiger — oder nur groesser?"
 - Langfristige Richtung: David gibt die Richtung, die Maschine uebernimmt mit wachsender Modellfaehigkeit immer mehr Entscheidungen und Lieferung.
 - Planer = Perplexity im Chat; Codex = grosser Operator-Sprint-Coder; Reviewer/Researcher = Gemini CLI; Claude nur wenn wirklich noetig.
+
+## Phase und Prioritaet (Korrektur 2026-03-22)
+- DGDH ist in der PROTOTYPING-PHASE. Wir bauen an einer grossen Zukunft.
+- Revenue ist NICHT der aktuelle Fokus. Revenue ist Teil der langfristigen Vision — es kommt wenn die Maschine wirklich faehig ist.
+- Solange Abokosten unter ~100 EUR/Monat bleiben, koennen wir gross denken ohne Revenue-Druck.
+- Die Multi-Agent-Kette (CEO → Assistent → Worker → Reviewer) IST der richtige Fokus — das ist die Kernfaehigkeit die DGDH ausmacht.
+- Kleine Usecases fuer aufkommende Projekte (Kunden, eigene Ideen) sind Gelegenheiten die Maschine zu testen — nicht das Hauptziel.
+- FALSCH: "Wir muessen jetzt Revenue-Kunden durch die Pipeline schicken". RICHTIG: "Wir bauen die Maschine die das irgendwann automatisch kann."
+- AIs sollen KEINEN Revenue-Druck auf David ausueben. Grosse Vision > kurzfristiger Output.
 - Coder committen und pushen vor dem Bericht; Statusberichte beginnen mit `CODEX STATUSBERICHT`, `Von: Codex`, `An: Planer`.
 
 ## Wichtige IDs
@@ -50,8 +59,10 @@
 - End-to-End Multi-Agent-Kette (Sprint S) laeuft durch (Prototyp-Reife), produziert aber isolierte Worktree-Inseln.
 - Naechster Fokus fuer Produktionsreife: Merge-Orchestrator, harte Review-Gates, Scope-Firewall.
 
-## Revenue Lane Foundation
+## Revenue Lane Foundation (langfristige Capability, nicht aktueller Fokus)
 - Revenue Lane baut wiederverwendbare DGDH-Faehigkeiten, nicht Einzelfall-Abschluesse.
+- Revenue-Pipelines sind funktional (Sprint E-I) aber NICHT der aktuelle Sprint-Fokus.
+- Revenue kommt organisch wenn die Agent-Kette reif genug ist — kein kuenstlicher Druck.
 - Packet-Kette: `CEO -> Image Preprocessing -> Content Extraction/Draft -> Schema Fill -> Review`.
 - Image Packet Pipeline = `deterministic_tool`, Route `/api/companies/:companyId/revenue-lane/image-pipeline/process`.
 - Content Extraction Worker = `free_api` auf Gemini Flash-Lite, Route `/api/companies/:companyId/revenue-lane/content-extractor/process`.

@@ -23,15 +23,33 @@ Wenn andere Dokumente aeltere Richtungen enthalten, gilt fuer die aktuelle Ausba
 
 DGDH ist keine "autonome AI-Firma ohne Menschen".
 
-DGDH ist eine **Mensch-Maschine-Symbiose-Firma**:
+DGDH ist eine **Mensch-Maschine-Symbiose-Firma** die die Welt verbessern soll:
 
 - David bleibt der menschliche CEO, Auftraggeber und finale Entscheider.
-- AI-Agents sollen echte Arbeit leisten, aber innerhalb klarer Governance.
+- AI-Agents sind **trainierte Angestellte** — spezialisiert auf bestimmte Aufgaben,
+  operierend in festen Guidelines, aber frei denkend, reflektierend und zusammenarbeitend.
+  Wie eine echte Menschenfirma, nur mit AI-Angestellten.
+- Das Ziel ist nicht "AI die Dinge tut" sondern **AI auf menschlichem Qualitaetsniveau** —
+  Agenten die verstehen, reflektieren und eigenstaendig gute Entscheidungen treffen.
+- Revenue kommt irgendwann organisch — wenn die Firma wirklich faehig ist, Qualitaet zu erzeugen.
+  Revenue ist das Mittel zum Scalen, nicht das Hauptziel.
 - Paperclip ist nicht die Vision, sondern das Betriebssystem dafuer.
 
-Die Leitfrage bleibt:
+### Phase: Prototyping einer grossen Zukunft
+
+DGDH ist aktuell in der Prototyping-Phase. Wir bauen keine Produkte fuer Kunden —
+wir bauen die Maschine die das irgendwann automatisch kann.
+
+- Solange Abokosten unter ~100 EUR/Monat bleiben: gross denken, keine Eile, kein Revenue-Druck.
+- Kleine Projekte (Kunden-Websites, eigene Ideen) sind Spass, Prototyping und nuetzliche
+  Testgelegenheiten — sie nehmen David Zeit ab und geben echten Value, aber sie sind nicht
+  das Hauptziel und ihr Output braucht immer menschliche Kontrolle und Korrektur.
+- AIs sollen **keinen Revenue-Druck** auf David ausueben. Grosse Vision first.
+
+Die Leitfragen:
 
 > Entlastet das David real oder verschoenert es nur die Maschine?
+> Wird die Firma faehiger — oder nur groesser?
 
 ## 3. Das Zielbild fuer die naechste echte Stufe
 
@@ -1020,9 +1038,15 @@ Erst danach:
 - MiniMax integrieren
 - danach optional weitere Lanes wie Claude/Codex unter denselben Kern ziehen
 
-## 13.5 DGDH Revenue Lane #1 — Web Design als erstes echtes Produkt
+## 13.5 DGDH Revenue Lane #1 — Web Design als Prototyp-Sandbox
 
-Das ist Davids Origin Story und der erste konkrete Use Case fuer DGDH als AI-Mensch-Symbiose-Firma.
+> **Achtung:** Revenue ist NICHT der aktuelle Fokus. Revenue Lane ist eine langfristige
+> Capability die organisch waechst. Die kleinen Webseitenprojekte sind Spass, Prototyping
+> und nuetzlich fuer David — aber nicht das Hauptziel. David kann die auch per Hand machen.
+> Die AI-Ergebnisse brauchen immer menschliche Kontrolle weil die Qualitaet noch nicht
+> auf menschlichem Niveau ist. Genau das wollen wir aendern.
+
+Das ist Davids Origin Story und ein konkreter Sandbox-Use-Case fuer DGDH als AI-Mensch-Symbiose-Firma.
 
 ### Was bereits existiert
 
@@ -1175,26 +1199,69 @@ Spaeteres Zielbild:
 - CEO-Kontext: `company-hq/DGDH-CEO-CONTEXT.md`
 - Vision: `company-hq/VISION.md`
 
-## 19. Langfristige Autonomie-Vision
+## 19. Die grosse Vision: Mensch-Maschine-Symbiose
 
-Diese Firma ist bewusst als Prototyp gestartet. Einzelfaelle wie "Bamberger Tante" sind nicht das Ziel, sondern der Sandkasten, in dem wir robuste Faehigkeiten bauen.
+Diese Firma ist bewusst als Prototyp gestartet. Einzelfaelle wie "Bamberger Tante" sind
+Sandkasten — nuetzlich, lehrreich, aber nicht das Ziel.
 
-Zeithorizonte:
-- Heute: Prototyping. Schnell lernen, ehrlich Gaps markieren, saubere Grundbausteine liefern.
-- Mittelfristig: generische Agent-Faehigkeiten (Image Pipeline, Content Extraction, Schema Fill, Template Apply), die fuer viele Kundenprofile wiederverwendbar laufen.
-- Langfristig: David gibt Richtung und Prioritaeten; die Maschine plant, entscheidet im Rahmen der Governance und liefert den operativen Grossteil.
+### Was DGDH wirklich werden soll
 
-Kernprinzip:
-- `go with the flow` bedeutet nicht zufaellig bauen, sondern mit realen Faellen organisch lernen und gleichzeitig das Fundament so bauen, dass Autonomie monatlich messbar steigt.
-- Die Weiterentwicklung der LLMs wird genutzt, aber nicht blind vorausgesetzt: jede neue Modellfaehigkeit wird als stabiler Packet-Typ in die Werkbank integriert.
+Eine Firma in der AI-Agenten wie trainierte menschliche Angestellte arbeiten:
+- Spezialisiert auf bestimmte Aufgaben, operierend in festen Guidelines
+- Aber frei denkend, reflektierend, zusammenarbeitend — wie eine echte Menschenfirma
+- Menschliche Qualitaet ist der Massstab, nicht "gut genug fuer AI"
+- Revenue kommt organisch wenn die Qualitaet stimmt — dann scalen wir
 
-Messrichtung:
-- Die Leitfrage "Entlastet das David real?" bleibt.
-- Zusaetzliche Steuerfrage fuer die naechsten Monate: "Wie viel weniger muss David diesen Monat entscheiden als im letzten Monat?"
+### Zeithorizonte
 
-Architektur-Folge:
-- Revenue Lane bleibt Capability-Builder, nicht Einzelfall-Fabrik.
-- Naechster Fokus ist `Packet -> Lane Routing`, damit dieselbe Firma-Engine fuer verschiedene Aufgaben und Branchen automatisch die passende Lane waehlt.
+- **Heute:** Prototyping. Die Multi-Agent-Kette verdrahten. Schnell lernen, ehrlich Gaps
+  markieren. Kleine Projekte als Testgelegenheiten nutzen.
+- **Mittelfristig:** Agenten die eigenstaendig Qualitaet erzeugen. David kontrolliert
+  und korrigiert immer weniger. Die Firma nutzt ihre Quoten um SICH SELBST weiterzuentwickeln
+  wenn David nicht da ist.
+- **Langfristig:** David gibt Richtung und Prioritaeten. Die Maschine plant, entscheidet
+  im Rahmen der Governance, liefert und verbessert sich selbst.
+
+### Scaling bedeutet nicht nur mehr Output
+
+Scaling bei DGDH heisst vor allem:
+- **Scaling von Faehigkeiten** — die Firma kann morgen mehr als heute
+- **Scaling von Tokeneffizienz** — gleiche Qualitaet mit weniger Tokens
+- **Scaling von Entscheidungsqualitaet** — je schlauer das System handelt, desto besser
+- **Scaling von Selbstverbesserung** — neue Skills schreiben, eigene Prozesse optimieren,
+  irgendwann den eigenen Core umschreiben wenn die Agenten schlau genug sind
+
+Revenue-Scaling kommt als Konsequenz von Capability-Scaling, nicht umgekehrt.
+
+### Selbstverbesserungs-Vision (stufenweise, immer unter Davids Kontrolle)
+
+1. **Reflexive Skill-Registrierung** — neue Skills werden automatisch erkannt und registriert
+2. **Skill-Komposition** — Agenten kombinieren bestehende Skills zu neuen
+3. **Skill-Creation** — Agenten erkennen Muster und schlagen neue Skills vor
+4. **Core-Verbesserung** — Agenten schreiben eigene Engine-Logik, Prompts und Prozesse um
+   (nur wenn sie schlau genug sind, mit hartem Review-Gate)
+
+Git Snapshot Engine als Grundlage: jede Aenderung ist versioniert, reversibel, auditierbar.
+Spezialisierte Agenten/Subagenten/Skills zur Selbstverbesserung — nicht generisch, sondern gezielt.
+
+**Harte Grenze: David hat das letzte Wort. Immer. Auch bei Stufe 4.**
+
+Details: `doc/architecture/dgdh-agent-architecture.md` und `doc/backlog/skill-creation-engine.md`
+
+### Kernprinzipien
+
+- `go with the flow` bedeutet nicht zufaellig bauen, sondern mit realen Faellen organisch
+  lernen und gleichzeitig das Fundament so bauen, dass Autonomie monatlich messbar steigt.
+- Die Weiterentwicklung der LLMs wird genutzt, aber nicht blind vorausgesetzt: jede neue
+  Modellfaehigkeit wird als stabiler Packet-Typ in die Werkbank integriert.
+- Kleine Projekte (Websites, Eventmaps, IoT-Dashboards, was auch immer kommt) sind
+  Gelegenheiten die Maschine zu testen — nicht Revenue-Pflicht.
+
+### Messrichtung
+
+- "Wird die Firma faehiger?" — nicht nur "produziert sie mehr?"
+- "Wie viel weniger muss David diesen Monat entscheiden als im letzten Monat?"
+- "Kann die Firma ohne David eine Woche lang sinnvoll weiterarbeiten?"
 
 ## 20. Backlog (nicht priorisiert, nur Notizen)
 
