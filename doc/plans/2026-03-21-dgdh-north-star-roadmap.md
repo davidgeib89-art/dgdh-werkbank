@@ -388,6 +388,8 @@ Und die wichtigste Regel ist:
 
 *(Wichtiger Trigger für die Zukunft: Sobald Multi-Agent-Koordination startet oder DGDH-Infrastruktur-Code umgebaut wird, müssen wir auf einen getypten "Knowledge Graph" mit Blast-Radius-Analyse umsteigen. Siehe dazu: `company-hq/research/2026-03-21-knowledge-graph-memory-pattern.md`)*
 
+*(Separates Review-Research: `company-hq/research/2026-03-22-code-review-graph-review-research.md`. Wenn Reviews im DGDH/Paperclip-Infrastruktur-Repo zu viele Tokens verbrennen oder Seiteneffekte uebersehen, wollen wir daraus zuerst uebernehmen: lokalen inkrementellen Repo-Graph, Blast-Radius-Analyse fuer Reviewer und minimale Review-Kontext-Selektion - nicht die Claude-Plugin-/VS-Code-Huelle oder Embeddings-first-Komplexitaet.)*
+
 ### Handoff-Memory statt Brain-Soup
 
 Die richtige Form fuer CEO/Worker/Reviewer ist:
@@ -1152,6 +1154,7 @@ Spaeteres Zielbild:
 ## 18. Verweise
 
 - Fruehere Detailanalyse: `doc/plans/2026-03-21-heartbeat-ceo-worker-review-architecture-report.md`
+- Review-Beschleunigung / Blast-Radius-Research: `company-hq/research/2026-03-22-code-review-graph-review-research.md`
 - Bestehende Firmenrichtung: `company-hq/ROADMAP.md`
 - CEO-Kontext: `company-hq/DGDH-CEO-CONTEXT.md`
 - Vision: `company-hq/VISION.md`
