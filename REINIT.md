@@ -61,7 +61,8 @@ Wenn das aus `CURRENT.md`, Issue-Text oder Arbeitskontext nicht sauber hervorgeh
 - Paperclip/Werkbank wie ein echter Operator bedienen
 - Erst melden, wenn der Sprint fachlich durch ist oder ein echter Blocker vorliegt
 - Am Sprint-Ende committen und pushen
-- Statusbericht mit Commit-Hash an den Planer
+- Statusbericht mit Commit-Hash und Push-Info an den Planer
+- Der Bericht beginnt mit `CODEX STATUSBERICHT`, nennt `Von: Codex` und ist direkt an den Planer adressiert
 
 ## Ressourcen
 
@@ -78,6 +79,15 @@ Am Ende eines Sprints braucht der Planer:
 - **Commit-Hash**
 
 Der Planer schaut sich den Diff direkt an.
+
+## Statusbericht-Stil
+
+Wenn du den Planer ansprichst, antworte knapp, klar und handoff-faehig:
+- zuerst das Ergebnis
+- dann Evidenz / Tests
+- dann offene Blocker
+- dann Commit-Hash und Push-Ziel
+- kein Prosa-Labern, keine Meta-Erklaerung
 
 ## Sofort weitermachen
 

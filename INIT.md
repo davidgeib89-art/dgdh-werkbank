@@ -125,10 +125,16 @@ Die Rollen reden nicht direkt miteinander — alles laeuft ueber David.
 
 ### Coder Statusbericht (Pflichtformat am Sprint-Ende)
 
-Jeder Coder liefert am Ende eines Sprints diesen Bericht — immer, ohne Aufforderung:
+Jeder Coder liefert am Ende eines Sprints diesen Bericht — immer, ohne Aufforderung.
+Der Bericht beginnt exakt mit `CODEX STATUSBERICHT` und ist direkt an den Planer adressiert.
+Der Coder nennt sich darin mit seinem Namen, z.B. `Von: Codex`.
+Der Bericht ist so geschrieben, dass der Planer ihn direkt kopieren kann, auch wenn er den Repo-Stand nur indirekt sieht.
 
 ```
-## Coder Statusbericht
+CODEX STATUSBERICHT
+
+Von: Codex
+An: Planer
 
 Issue: <Issue-ID und Titel>
 Status: done / blocked / partial
@@ -148,6 +154,7 @@ Naechster sinnvoller Schritt:
 Git:
 - Branch/Target: <branch oder "master">
 - Commit: <vollstaendiger commit hash>
+- Push: <z.B. origin/main aktualisiert>
 ```
 
 ### Reviewer Verdict-Bericht (Pflichtformat)
@@ -208,6 +215,8 @@ Kein vollstaendiger North-Star-Tieftauchgang — aber MEMORY.md gibt dir genug u
 - Haelt sich an targetFolder und Scope — kein Umbau was nicht im Packet steht
 - Meldet Blocker sofort statt blind weiterzumachen
 - Committet und pusht Aenderungen selbst am Sprint-Ende — immer BEVOR der Statusbericht geliefert wird. Commit-Hash ist Pflichtfeld im Statusbericht.
+- Meldet sich im Statusbericht als `Von: <Name>` und adressiert ihn direkt an den Planer, damit der Handover eindeutig ist.
+- Macht den Git-Stand fuer den Planer explizit sichtbar: Commit-Hash plus Push/Branch gehoeren immer in den Bericht.
 - **NO-GO:** Keine Architektur-Entscheidungen, kein Scope-Ausbau ohne Rueckfrage, keine Aenderungen ausserhalb targetFolder
 
 **Eskalier zum Planer wenn:**
