@@ -208,6 +208,7 @@ export function InlineEditor({
 
     return (
       <textarea
+        data-inline-editor-input="true"
         ref={inputRef}
         value={draft}
         rows={1}
@@ -234,6 +235,7 @@ export function InlineEditor({
 
   return (
     <DisplayTag
+      data-inline-editor-display="true"
       className={cn(
         "cursor-pointer rounded hover:bg-accent/50 transition-colors overflow-hidden",
         pad,

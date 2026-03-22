@@ -14,11 +14,13 @@ import { queryKeys } from "../lib/queryKeys";
 import { readIssueDetailBreadcrumb } from "../lib/issueDetailBreadcrumb";
 import { useProjectOrder } from "../hooks/useProjectOrder";
 import { relativeTime, cn, formatTokens } from "../lib/utils";
+import { extractNeedsInputLines } from "../lib/issueNeedsInput";
 import { InlineEditor } from "../components/InlineEditor";
 import { CommentThread } from "../components/CommentThread";
 import { IssueDocumentsSection } from "../components/IssueDocumentsSection";
 import { IssueProperties } from "../components/IssueProperties";
 import { LiveRunWidget } from "../components/LiveRunWidget";
+import { NeedsInputNotice } from "../components/NeedsInputNotice";
 import type { MentionOption } from "../components/MarkdownEditor";
 import { ScrollToBottom } from "../components/ScrollToBottom";
 import { StatusIcon } from "../components/StatusIcon";
@@ -207,6 +209,8 @@ export function IssueDetail() {
   const [attachmentDragActive, setAttachmentDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const lastMarkedReadIssueIdRef = useRef<string | null>(null);
+  const descriptionEditorRef = useRef<HTMLDivElement | null>(null);
+  const commentsSectionRef = useRef<HTMLDivElement | null>(null);
 
   const { data: issue, isLoading, error } = useQuery({
     queryKey: queryKeys.issues.detail(issueId!),
@@ -355,6 +359,11 @@ export function IssueDetail() {
       .filter((i) => i.parentId === issue.id)
       .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
   }, [allIssues, issue]);
+
+  const needsInputLines = useMemo(
+    () => extractNeedsInputLines(issue?.description),
+    [issue?.description],
+  );
 
   const commentReassignOptions = useMemo(() => {
     const options: Array<{ id: string; label: string; searchText?: string }> = [];
@@ -626,6 +635,25 @@ export function IssueDetail() {
   const isImageAttachment = (attachment: IssueAttachment) => attachment.contentType.startsWith("image/");
   const attachmentList = attachments ?? [];
   const hasAttachments = attachmentList.length > 0;
+
+  function openDescriptionEditor() {
+    const container = descriptionEditorRef.current;
+    if (!container) return;
+    container.scrollIntoView({ behavior: "smooth", block: "center" });
+    const display = container.querySelector<HTMLElement>('[data-inline-editor-display="true"]');
+    display?.click();
+  }
+
+  function openCommentComposer() {
+    setDetailTab("comments");
+    requestAnimationFrame(() => {
+      commentsSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      const editor = commentsSectionRef.current?.querySelector<HTMLElement>(
+        'textarea, [contenteditable="true"]',
+      );
+      editor?.focus();
+    });
+  }
   const attachmentUploadButton = (
     <>
       <input
@@ -796,20 +824,30 @@ export function IssueDetail() {
           className="text-xl font-bold"
         />
 
-        <InlineEditor
-          value={issue.description ?? ""}
-          onSave={(description) => updateIssue.mutateAsync({ description })}
-          as="p"
-          className="text-[15px] leading-7 text-foreground"
-          placeholder="Add a description..."
-          multiline
-          mentions={mentionOptions}
-          imageUploadHandler={async (file) => {
-            const attachment = await uploadAttachment.mutateAsync(file);
-            return attachment.contentPath;
-          }}
-        />
+        <div ref={descriptionEditorRef}>
+          <InlineEditor
+            value={issue.description ?? ""}
+            onSave={(description) => updateIssue.mutateAsync({ description })}
+            as="p"
+            className="text-[15px] leading-7 text-foreground"
+            placeholder="Add a description..."
+            multiline
+            mentions={mentionOptions}
+            imageUploadHandler={async (file) => {
+              const attachment = await uploadAttachment.mutateAsync(file);
+              return attachment.contentPath;
+            }}
+          />
+        </div>
       </div>
+
+      {needsInputLines.length > 0 && (
+        <NeedsInputNotice
+          lines={needsInputLines}
+          onEditDescription={openDescriptionEditor}
+          onAddComment={openCommentComposer}
+        />
+      )}
 
       <PluginSlotOutlet
         slotTypes={["toolbarButton", "contextMenuItem"]}
@@ -957,34 +995,36 @@ export function IssueDetail() {
         </TabsList>
 
         <TabsContent value="comments">
-          <CommentThread
-            comments={commentsWithRunMeta}
-            linkedRuns={timelineRuns}
-            companyId={issue.companyId}
-            projectId={issue.projectId}
-            issueStatus={issue.status}
-            agentMap={agentMap}
-            draftKey={`paperclip:issue-comment-draft:${issue.id}`}
-            enableReassign
-            reassignOptions={commentReassignOptions}
-            currentAssigneeValue={currentAssigneeValue}
-            mentions={mentionOptions}
-            onAdd={async (body, reopen, reassignment) => {
-              if (reassignment) {
-                await addCommentAndReassign.mutateAsync({ body, reopen, reassignment });
-                return;
-              }
-              await addComment.mutateAsync({ body, reopen });
-            }}
-            imageUploadHandler={async (file) => {
-              const attachment = await uploadAttachment.mutateAsync(file);
-              return attachment.contentPath;
-            }}
-            onAttachImage={async (file) => {
-              await uploadAttachment.mutateAsync(file);
-            }}
-            liveRunSlot={<LiveRunWidget issueId={issueId!} companyId={issue.companyId} />}
-          />
+          <div ref={commentsSectionRef}>
+            <CommentThread
+              comments={commentsWithRunMeta}
+              linkedRuns={timelineRuns}
+              companyId={issue.companyId}
+              projectId={issue.projectId}
+              issueStatus={issue.status}
+              agentMap={agentMap}
+              draftKey={`paperclip:issue-comment-draft:${issue.id}`}
+              enableReassign
+              reassignOptions={commentReassignOptions}
+              currentAssigneeValue={currentAssigneeValue}
+              mentions={mentionOptions}
+              onAdd={async (body, reopen, reassignment) => {
+                if (reassignment) {
+                  await addCommentAndReassign.mutateAsync({ body, reopen, reassignment });
+                  return;
+                }
+                await addComment.mutateAsync({ body, reopen });
+              }}
+              imageUploadHandler={async (file) => {
+                const attachment = await uploadAttachment.mutateAsync(file);
+                return attachment.contentPath;
+              }}
+              onAttachImage={async (file) => {
+                await uploadAttachment.mutateAsync(file);
+              }}
+              liveRunSlot={<LiveRunWidget issueId={issueId!} companyId={issue.companyId} />}
+            />
+          </div>
         </TabsContent>
 
         <TabsContent value="subissues">

@@ -114,6 +114,7 @@ handoff-faehig. Ref: `github.com/microsoft/markitdown`
 - **Reviewer-Matrix gehaertet:** `reviewer.json` prueft jetzt entlang `Scope`, `Correctness`, `Evidence`, `Safety/Readiness` und soll vor `accepted` wenn sinnvoll schnelle Checks wie readback/lint/test/build nutzen
 - **Reviewer-Matrix jetzt parseable:** Output-Format ist als feste Tabelle definiert (`Dimension | Status | Note`), damit spaeter CEO/Parser die Review-Dimensionen zuverlaessig lesen koennen
 - **CEO V1 Template gebaut:** `ceo.json` enthaelt jetzt Constitution-Check, fixes Packet-Schema (`Titel`, `Ziel`, `Scope`, `doneWhen`, `targetFolder`, `Annahmen`, `[NEEDS INPUT]`) und festen Abschluss-Handoff
+- **`[NEEDS INPUT]` jetzt im Dashboard sichtbar:** Issue-Detail erkennt Marker direkt aus `issue.description`, zeigt die exakten Zeilen, markiert das Packet als nicht worker-ready und bietet CTAs zum bestehenden Description-Edit- und Kommentar-Flow
 - **CEO auf Token-Disziplin geschaerft:** Kontextbudget jetzt explizit im Template (`max. 3-5 direkt relevante Dateien`, kein Codebase-Exploration-Loop, keine spekulativen/missing-file Suchen)
 - **Minimale CEO-Delegationsbruecke vorbereitet:** Kein neues Tool noetig; Gemini bekommt schon Paperclip API Zugang. `execute.ts` injiziert jetzt auch `PAPERCLIP_PROJECT_ID`, und der API-Hinweis enthaelt ein PowerShell-sicheres Beispiel zum Erstellen unzugewiesener Child-Issues ueber `run_shell_command`
 - **CEO-Delegation nachgeschaerft:** Nach dem ersten Rerun sucht der CEO nicht mehr nach `pc`/`paperclip`-CLI oder Subagent-Hilfe, sondern soll direkt `Invoke-RestMethod` gegen die bestehende Paperclip-HTTP-API verwenden
@@ -128,7 +129,6 @@ handoff-faehig. Ref: `github.com/microsoft/markitdown`
 - **Geschlossene Issues promoten keine alten deferred Runs mehr:** Nach `done`/`cancelled` werden deferred issue-execution wakes nicht mehr neu gestartet
 
 ### Was noch fehlt
-- **CEO noch nicht live bewiesen:** Template und Prompt stehen, aber es gibt noch keinen echten CEO-Run der Mission -> Work-Packet-Issues im Dashboard erzeugt
 - **Kein automatischer Worker -> Reviewer Chain:** Der minimale Reviewer ist nutzbar, aber noch nicht automatisch nach Worker-Abschluss verdrahtet
 - **Rollen noch nicht voll ausgereift:** Reviewer urteilt jetzt brauchbar, aber operative Effizienz ist noch nicht ideal (z. B. PowerShell-`&&`-Fehlversuche)
 - **Quota-Observability weiter schaerfen:** Snapshot wird gespeichert + wiederverwendet, aber fruehere `0%`-Drift zeigt, dass Refresh-/Darstellungslogik noch weiter verifiziert werden sollte
@@ -193,4 +193,4 @@ PATCH /api/issues/{id}  Body: {"assigneeAgentId": "9e721036-..."}
 
 ---
 
-> Zuletzt aktualisiert: 2026-03-21 von Claude Code (MEMORY aktualisiert auf Post-Engine-Stand + aktive Arbeitsdokumente verlinkt)
+> Zuletzt aktualisiert: 2026-03-22 von Codex (Dashboard-Needs-Input-Hinweis ergaenzt und veralteten CEO-Stand bereinigt)
