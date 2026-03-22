@@ -109,13 +109,18 @@ handoff-faehig. Ref: `github.com/microsoft/markitdown`
 - Reviewer-Kontext-Fix: `heartbeat.ts` liefert Worker-Handoff + Artefaktpfade in Review-Prompt
 - Issue-Lifecycle automatisch: Worker → `in_review`; Reviewer `accepted` → `done`
 
-**Stand 2026-03-22 — DGD-34 done, git_worktree-Aktivierung als naechster Schritt:**
+**Stand 2026-03-22 — DGD-38 accepted, DGD-39 als naechster Schritt:**
 - DGD-33, DGD-35, DGD-37, DGD-34 `done` (Reviewer accepted)
+- DGD-38 `done` nach realer UI-Persistenz-Verifikation; vier Legal-Felder sichtbar und in `site.json` gespeichert
 - DGD-34 Lektion: Codex-CLI-Arbeit ausserhalb Paperclip braucht danach formalen Worker-"Abholrunner" bevor Review moeglich ist
-- DGD-32 bleibt auf `todo` (offen bis DGD-36/38/39 done)
-- **Naechste Reihenfolge:** git_worktree aktivieren → DGD-38 → DGD-39 → DGD-36 → DGD-32 CEO-Aggregation
-- **Bekannte Abhaengigkeit:** DGD-39 haengt an DGD-38 (taxId/vatId/etc. noch nicht im Schema)
+- DGD-32 bleibt auf `todo` (offen bis DGD-36/39 done)
+- **Naechste Reihenfolge:** DGD-39 → DGD-36 → DGD-32 CEO-Aggregation
 - **Bekannte System-Gaps:** Issue-Kommentare nicht zuverlaessig als Kontext fuer Reviewer/CEO — kritische Infos immer in `doneWhen` / Description
+## Koordinations-Prinzip (Claude als Chief of Staff)
+
+Claude koordiniert nicht jeden einzelnen Run-Status. Codex/Gemini arbeiten in Sprints durch.
+Claude kommt rein bei: echten Blockern, Scope-/Architektur-Entscheidungen, Sprint-Retrospektiven.
+Worker→Reviewer→done Flows laufen ohne Claude-Unterbrechung durch.
 
 ## Architektur-Entscheidungen (gefestigt)
 
@@ -140,7 +145,7 @@ handoff-faehig. Ref: `github.com/microsoft/markitdown`
 - **Free-Lane-Strategie.** Paid-Quota nur fuer Worker/Reviewer/CEO-Hauptarbeit. Freie/guenstige Tier fuer Preprocessing, Drafts, Scans. Tier-2-Modelle werden besser → immer mehr Arbeit wandert nach unten. Trigger: Task ist Vorstufe (Ingestion, Scan, Draft) oder Quota knapp.
 - **Dual-Gemini-Account-Switching fehlt noch.** Beide Pro-Accounts als Failover konfigurieren: Account 1 leer → automatisch Account 2. Kleiner Fix im Gemini-Adapter (2 Env-Var-Sets + Failover bei Quota-Error).
 - **CEO Aggregation: MUST-Sprache eingebaut.** `ceo.json` haelt jetzt: "MUST execute GET API call. Do not trust injected context. tool_calls: 0 is a failure." (Fix aus Run `5ecaa84f`)
-- **git_worktree Infrastruktur vorhanden aber nicht aktiviert.** `workspace-runtime.ts` implementiert echtes `git worktree add`. Policy-Aufloesung in `execution-workspace-policy.ts` fertig. Fuer Projekt Astro/Keystatic per `PATCH /api/projects/0bce43aa...` aktivierbar (kein Codeaufwand). Teardown/PR/Rollback noch nicht fertig verdrahtet — bewusst zurueckgestellt. `SHOW_EXPERIMENTAL_ISSUE_WORKTREE_UI = false` (UI versteckt).
+- **git_worktree aktiv fuer Projekt Astro/Keystatic (2026-03-22).** `enabled: true`, `defaultMode: "isolated"`, `workspaceStrategy.type: "git_worktree"`, `allowIssueOverride: true`. Neue Issue-Runs laufen jetzt in isolierten Checkouts. Teardown/PR/Auto-Rollback bewusst noch nicht aktiviert (Phase 5).
 - **Codex-CLI-Arbeit ausserhalb Paperclip.** Wenn Codex direkt im Workspace implementiert (kein Paperclip-Worker-Run), braucht es danach einen formalen Worker-"Abholrunner" bevor Review moeglich ist. Reviewer blockiert sonst korrekt auf fehlendem Execution-Record.
 
 ---
@@ -177,4 +182,5 @@ PATCH /api/issues/{id}  Body: {"assigneeAgentId": "<agent-id>"}
 # Worker:   fe5d3d60-9e8a-4e0c-b494-087d3518755c
 # Reviewer: 9e721036-35b7-446e-a752-2df7a1a8caad
 ```
+
 
