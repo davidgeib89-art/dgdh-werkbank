@@ -1124,22 +1124,36 @@ export function determineIssueStatusAfterRun(input: {
   runStatus: string;
   issueStatus: string | null | undefined;
   roleTemplateId: string | null | undefined;
+  errorCode?: string | null | undefined;
   stdoutExcerpt?: string | null | undefined;
 }): {
-  nextStatus: "in_review" | "done" | null;
+  nextStatus: "blocked" | "in_review" | "done" | null;
   reason:
+    | "worker_loop_detected"
     | "worker_completed_waiting_for_review"
     | "reviewer_accepted"
     | null;
   reviewerVerdict: ReviewerVerdict | null;
 } {
-  if (input.runStatus !== "succeeded") {
+  const normalizedErrorCode = readNonEmptyString(input.errorCode)?.toLowerCase() ?? null;
+  if (
+    input.runStatus !== "succeeded" &&
+    !(input.runStatus === "blocked" && normalizedErrorCode === "loop_detected")
+  ) {
     return { nextStatus: null, reason: null, reviewerVerdict: null };
   }
 
   const issueStatus = readNonEmptyString(input.issueStatus)?.toLowerCase();
   if (!issueStatus || CLOSED_ISSUE_STATUSES.has(issueStatus)) {
     return { nextStatus: null, reason: null, reviewerVerdict: null };
+  }
+
+  if (input.runStatus === "blocked" && normalizedErrorCode === "loop_detected") {
+    return {
+      nextStatus: "blocked",
+      reason: "worker_loop_detected",
+      reviewerVerdict: null,
+    };
   }
 
   const roleTemplateId =
@@ -2005,6 +2019,7 @@ export function heartbeatService(db: Db) {
       runStatus: run.status,
       issueStatus: issue.status,
       roleTemplateId,
+      errorCode: run.errorCode,
       stdoutExcerpt: run.stdoutExcerpt,
     });
     if (!transition.nextStatus || transition.nextStatus === issue.status) {
@@ -2025,10 +2040,10 @@ export function heartbeatService(db: Db) {
       action: "issue.updated",
       entityType: "issue",
       entityId: updatedIssue.id,
-      details: {
-        identifier: updatedIssue.identifier,
-        status: updatedIssue.status,
-        autoTransition: true,
+        details: {
+          identifier: updatedIssue.identifier,
+          status: updatedIssue.status,
+          autoTransition: true,
         transitionReason: transition.reason,
         roleTemplateId,
         reviewerVerdict: transition.reviewerVerdict,
@@ -4346,6 +4361,8 @@ export function heartbeatService(db: Db) {
           outcome = "awaiting_approval";
         } else if (adapterResult.timedOut) {
           outcome = "timed_out";
+        } else if (adapterResult.errorCode === "loop_detected") {
+          outcome = "blocked";
         } else if (
           (adapterResult.exitCode ?? 0) === 0 &&
           !adapterResult.errorMessage
@@ -4417,6 +4434,8 @@ export function heartbeatService(db: Db) {
             ? "cancelled"
             : outcome === "timed_out"
             ? "timed_out"
+            : outcome === "blocked"
+            ? "blocked"
             : "failed";
 
         const usageJson =

@@ -102,6 +102,18 @@ console.log(JSON.stringify({
   return writeFakeNodeCommand(commandPath, script);
 }
 
+async function writeFakeGitCommand(commandPath: string, capturePath: string) {
+  const script = `#!/usr/bin/env node
+const fs = require("node:fs");
+fs.writeFileSync(${JSON.stringify(capturePath)}, JSON.stringify({
+  argv: process.argv.slice(2),
+  cwd: process.cwd(),
+}), "utf8");
+process.exit(0);
+`;
+  return writeFakeNodeCommand(commandPath, script);
+}
+
 type CapturePayload = {
   argv: string[];
   paperclipEnvKeys: string[];
@@ -778,6 +790,80 @@ describe("gemini execute", () => {
       await fs.rm(root, { recursive: true, force: true });
     }
   });
+
+  itGeminiExecute(
+    "aborts looped worker runs by resetting the workspace",
+    async () => {
+      const root = await fs.mkdtemp(
+        path.join(os.tmpdir(), "paperclip-gemini-loop-cleanup-"),
+      );
+      const workspace = path.join(root, "workspace");
+      const geminiCommandPath = path.join(root, "gemini");
+      const gitCommandPath = path.join(root, "git");
+      const gitCapturePath = path.join(root, "git-capture.json");
+      await fs.mkdir(workspace, { recursive: true });
+      const executablePath = await writeFakeGeminiLoopCommand(geminiCommandPath, {
+        command: "npm install && npm test",
+        failures: 5,
+        exitAfterFailuresCode: 1,
+      });
+      const fakeGitPath = await writeFakeGitCommand(gitCommandPath, gitCapturePath);
+      const platformSpy = vi.spyOn(os, "platform").mockReturnValue("win32");
+
+      const previousPath = process.env.PATH;
+      process.env.PATH = `${path.dirname(fakeGitPath)}${path.delimiter}${
+        previousPath ?? ""
+      }`;
+
+      try {
+        const result = await execute({
+          runId: "run-loop-cleanup",
+          agent: {
+            id: "agent-1",
+            companyId: "company-1",
+            name: "Gemini Worker",
+            adapterType: "gemini_local",
+            adapterConfig: {},
+          },
+          runtime: {
+            sessionId: null,
+            sessionParams: null,
+            sessionDisplayId: null,
+            taskKey: null,
+          },
+          config: {
+            command: executablePath,
+            cwd: workspace,
+            timeoutSec: 5,
+            env: {},
+            promptTemplate: "Follow the paperclip heartbeat.",
+          },
+          context: {},
+          authToken: "run-jwt-token",
+          onLog: async () => {},
+        });
+
+        expect(result.errorCode).toBe("loop_detected");
+        expect(result.errorMessage).toContain(
+          "Workspace reset with git checkout -- .",
+        );
+
+        const capture = JSON.parse(
+          await fs.readFile(gitCapturePath, "utf8"),
+        ) as { argv: string[]; cwd: string };
+        expect(capture.argv).toEqual(["checkout", "--", "."]);
+        expect(capture.cwd).toBe(workspace);
+      } finally {
+        platformSpy.mockRestore();
+        if (previousPath === undefined) {
+          delete process.env.PATH;
+        } else {
+          process.env.PATH = previousPath;
+        }
+        await fs.rm(root, { recursive: true, force: true });
+      }
+    },
+  );
 
   itGeminiExecute(
     "fails strict floor on fenced final output",

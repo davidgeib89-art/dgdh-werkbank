@@ -271,6 +271,43 @@ function createShellLoopMonitor(params: {
   };
 }
 
+async function cleanupWorkspaceAfterLoopStop(input: {
+  runId: string;
+  cwd: string;
+  env: Record<string, string>;
+}) {
+  const cleanupRunId = `${input.runId}:loop-cleanup`;
+  try {
+    const cleanup = await runChildProcess(
+      cleanupRunId,
+      "git",
+      ["checkout", "--", "."],
+      {
+        cwd: input.cwd,
+        env: input.env,
+        timeoutSec: 30,
+        graceSec: 5,
+        onLog: async () => {},
+      },
+    );
+
+    const workspaceReset = (cleanup.exitCode ?? 0) === 0;
+    return {
+      workspaceReset,
+      cleanupExitCode: cleanup.exitCode,
+      cleanupSignal: cleanup.signal,
+      cleanupError: null as string | null,
+    };
+  } catch (error) {
+    return {
+      workspaceReset: false,
+      cleanupExitCode: null as number | null,
+      cleanupSignal: null as string | null,
+      cleanupError: error instanceof Error ? error.message : String(error),
+    };
+  }
+}
+
 function renderIssueTaskNote(context: Record<string, unknown>): string {
   const taskPrompt = asString(context.paperclipTaskPrompt, "").trim();
   if (!taskPrompt) return "";
@@ -804,10 +841,19 @@ export async function execute(
       stdin: prompt,
     });
     await shellLoopMonitor.flushStdoutBuffer();
+    const loopDetectedMessage = shellLoopMonitor.getLoopDetectedMessage();
+    const loopAbortCleanup = loopDetectedMessage
+      ? await cleanupWorkspaceAfterLoopStop({
+          runId,
+          cwd,
+          env,
+        })
+      : null;
     return {
       proc,
       parsed: parseGeminiJsonl(proc.stdout),
-      loopDetectedMessage: shellLoopMonitor.getLoopDetectedMessage(),
+      loopDetectedMessage,
+      loopAbortCleanup,
     };
   };
 
@@ -822,6 +868,12 @@ export async function execute(
       };
       parsed: ReturnType<typeof parseGeminiJsonl>;
       loopDetectedMessage: string | null;
+      loopAbortCleanup: {
+        workspaceReset: boolean;
+        cleanupExitCode: number | null;
+        cleanupSignal: string | null;
+        cleanupError: string | null;
+      } | null;
     },
     clearSessionOnMissingSession = false,
     isRetry = false,
@@ -879,13 +931,47 @@ export async function execute(
     const structuredFailure = attempt.parsed.resultEvent
       ? describeGeminiFailure(attempt.parsed.resultEvent)
       : null;
+    const loopAbortMessage = attempt.loopDetectedMessage
+      ? attempt.loopAbortCleanup?.workspaceReset
+        ? `${attempt.loopDetectedMessage} Workspace reset with git checkout -- .`
+        : attempt.loopAbortCleanup?.cleanupError
+        ? `${attempt.loopDetectedMessage} Workspace cleanup failed: ${attempt.loopAbortCleanup.cleanupError}`
+        : `${attempt.loopDetectedMessage} Workspace cleanup not attempted.`
+      : null;
     const fallbackErrorMessage =
-      attempt.loopDetectedMessage ||
+      loopAbortMessage ||
       strictFloorOutputError ||
       parsedError ||
       structuredFailure ||
       stderrLine ||
       `Gemini exited with code ${attempt.proc.exitCode ?? -1}`;
+    const resultJson = attempt.loopDetectedMessage
+      ? {
+          type: "loop_detected",
+          status: "blocked",
+          result: "blocked",
+          summary: attempt.loopDetectedMessage,
+          message: attempt.loopAbortCleanup?.workspaceReset
+            ? "Workspace reset with git checkout -- ."
+            : attempt.loopAbortCleanup?.cleanupError
+            ? `Workspace cleanup failed: ${attempt.loopAbortCleanup.cleanupError}`
+            : "Workspace cleanup not attempted.",
+          handoff: {
+            title: "Blocked handoff",
+            goal: "Stop the worker safely after loop detection.",
+            result: "blocked",
+            blocker: attempt.loopDetectedMessage,
+            workspaceReset: attempt.loopAbortCleanup?.workspaceReset ?? false,
+            next: "Reassess the prompt, scope, or command strategy before reassigning.",
+          },
+          workspaceReset: attempt.loopAbortCleanup?.workspaceReset ?? false,
+          cleanupExitCode: attempt.loopAbortCleanup?.cleanupExitCode ?? null,
+          cleanupSignal: attempt.loopAbortCleanup?.cleanupSignal ?? null,
+        }
+      : attempt.parsed.resultEvent ?? {
+          stdout: attempt.proc.stdout,
+          stderr: attempt.proc.stderr,
+        };
 
     return {
       exitCode: attempt.proc.exitCode,
@@ -912,10 +998,7 @@ export async function execute(
       model,
       billingType,
       costUsd: attempt.parsed.costUsd,
-      resultJson: attempt.parsed.resultEvent ?? {
-        stdout: attempt.proc.stdout,
-        stderr: attempt.proc.stderr,
-      },
+      resultJson,
       summary: attempt.parsed.summary,
       question: attempt.parsed.question,
       clearSession:

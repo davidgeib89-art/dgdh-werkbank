@@ -92,6 +92,23 @@ describe("summarizeHeartbeatRunResultJson", () => {
     });
   });
 
+  it("labels loop_detected resultJson as blocked with cleanup message", () => {
+    const summary = summarizeHeartbeatRunResultJson({
+      type: "loop_detected",
+      status: "blocked",
+      result: "blocked",
+      summary: "Loop detected: same command failed 5x. Stopping to prevent token waste.",
+      message: "Workspace reset with git checkout -- .",
+      workspaceReset: true,
+    });
+
+    expect(summary).toEqual({
+      result: "blocked",
+      summary: "Loop detected: same command failed 5x. Stopping to prevent token waste.",
+      message: "Workspace reset with git checkout -- .",
+    });
+  });
+
   it("does not overwrite explicit summary with routing blocked label when summary is already set", () => {
     const summary = summarizeHeartbeatRunResultJson({
       type: "routing_blocked",

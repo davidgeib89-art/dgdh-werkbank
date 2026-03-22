@@ -99,6 +99,8 @@ handoff-faehig. Ref: `github.com/microsoft/markitdown`
 - Role Template Registry (`GET /api/role-templates`), Agent PATCH support, Dashboard Rollen-Dropdown + Create-Flow
 - Evidence-Fallback, Path-Normalization, `wakeOnDemand=true` fuer neue Agents
 - PowerShell `&&`→`;` Normalisierung; Loop-Detection 3x=warn / 5x=stop (`errorCode: loop_detected`)
+- Loop-Detection 5x fuehrt jetzt zusaetzlich zu Workspace-Cleanup via `git checkout -- .` und blocked Issue-Transition
+- `reviewer.json` hat die Simplicity Criterion als explizite Pre-Accept-Rule
 - `[NEEDS INPUT]` Dashboard: Marker aus `issue.description` → gelber Hinweis-Block + Edit/Comment-CTAs
 - CURRENT.md / MEMORY.md Sync-Split: stable facts vs. live baton getrennt
 
@@ -193,7 +195,6 @@ PATCH /api/issues/{id}  Body: {"assigneeAgentId": "<agent-id>"}
 # Worker:   fe5d3d60-9e8a-4e0c-b494-087d3518755c
 # Reviewer: 9e721036-35b7-446e-a752-2df7a1a8caad
 ```
-
 
 
 

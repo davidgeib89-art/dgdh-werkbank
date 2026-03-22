@@ -72,6 +72,7 @@ describe("resolveAssignedRoleTemplate", () => {
     expect(result.assigned?.prompt).toContain("Review dimensions:");
     expect(result.assigned?.prompt).toContain("Scope -");
     expect(result.assigned?.prompt).toContain("Safety and Readiness");
+    expect(result.assigned?.prompt).toContain("Simplicity criterion:");
     expect(result.assigned?.template.constraints).toContain(
       "Do not accept results with unsupported claims, source drift, or scope drift.",
     );
@@ -113,7 +114,7 @@ describe("resolveAssignedRoleTemplate", () => {
       "GET /api/companies/PAPERCLIP_COMPANY_ID/issues?parentId=PAPERCLIP_TASK_ID",
     );
     expect(result.assigned?.template.constraints).toContain(
-      "In Aggregation Mode: read child statuses first, then decide. Do not create new packets if all children are already done.",
+      "Aggregation Mode: MUST execute GET /api/companies/.../issues?parentId=... before any decision. Do not trust injected context for child statuses. The API call is mandatory and non-optional. Do not create new packets if all children are already done.",
     );
   });
 

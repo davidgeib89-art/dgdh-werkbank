@@ -51,5 +51,19 @@ export function summarizeHeartbeatRunResultJson(
     summary.message = "Task requires operator approval before execution";
   }
 
+  if (resultJson["type"] === "loop_detected") {
+    summary.result = "blocked";
+    const loopSummary = resultJson["summary"];
+    if (typeof loopSummary === "string" && loopSummary.length > 0) {
+      summary.summary = loopSummary.startsWith("Loop detected:")
+        ? loopSummary
+        : `Loop detected: ${loopSummary}`;
+    }
+    const loopMessage = resultJson["message"];
+    if (typeof loopMessage === "string" && loopMessage.length > 0) {
+      summary.message = loopMessage;
+    }
+  }
+
   return Object.keys(summary).length > 0 ? summary : null;
 }

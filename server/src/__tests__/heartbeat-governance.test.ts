@@ -355,6 +355,22 @@ describe("heartbeat governance helpers", () => {
     });
   });
 
+  it("marks loop-detected worker runs as blocked issues", () => {
+    expect(
+      determineIssueStatusAfterRun({
+        runStatus: "blocked",
+        issueStatus: "in_progress",
+        roleTemplateId: "worker",
+        errorCode: "loop_detected",
+        stdoutExcerpt: "Loop detected: same command failed 5x.",
+      }),
+    ).toMatchObject({
+      nextStatus: "blocked",
+      reason: "worker_loop_detected",
+      reviewerVerdict: null,
+    });
+  });
+
   it("does not promote deferred issue execution for closed issues", () => {
     expect(shouldPromoteDeferredIssueExecution("done")).toBe(false);
     expect(shouldPromoteDeferredIssueExecution("cancelled")).toBe(false);
