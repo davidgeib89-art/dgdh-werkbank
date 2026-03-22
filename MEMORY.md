@@ -101,6 +101,7 @@ handoff-faehig. Ref: `github.com/microsoft/markitdown`
 - PowerShell `&&`→`;` Normalisierung; Loop-Detection 3x=warn / 5x=stop (`errorCode: loop_detected`)
 - Loop-Detection 5x fuehrt jetzt zusaetzlich zu Workspace-Cleanup via `git checkout -- .` und blocked Issue-Transition
 - `reviewer.json` hat die Simplicity Criterion als explizite Pre-Accept-Rule
+- Reviewer-accepted Child-Issues retriggern den CEO-Parent automatisch via Unassign/Reassign + Wakeup
 - `[NEEDS INPUT]` Dashboard: Marker aus `issue.description` → gelber Hinweis-Block + Edit/Comment-CTAs
 - CURRENT.md / MEMORY.md Sync-Split: stable facts vs. live baton getrennt
 
@@ -149,7 +150,7 @@ Worker→Reviewer→done Flows laufen ohne Claude-Unterbrechung durch.
 - **Loop-Detection im Adapter (inspiriert von PentAGI).** Wenn Gemini denselben fehlerhaften Command 3x wiederholt (z.B. PowerShell-`&&`), soll der Adapter warnen/stoppen statt Tokens zu verbrennen. PentAGI nutzt Schwelle 5x identische Tool-Calls + max 10 Gesamt. Unser Ansatz: deterministische Regel im Adapter, kein separater Agent.
 - **`complete_task` Barrier-Tool (inspiriert von PentAGI).** Worker/Reviewer sollen am Run-Ende ein explizites Tool aufrufen das strukturiertes Ergebnis erzwingt (statt einfach aufzuhoeren). Verbindet Handoff-Summaries mit klarem Run-Ende. PentAGI: `FinalyTool`/`CodeResult`/`HackResult`. Ref: `github.com/vxcontrol/pentagi`
 - **Token-Budgets pro Rolle (inspiriert von PentAGI).** CEO bekommt hoeheres Token-Budget (plant, braucht Kontext), Worker mittel, Reviewer klein. In Role-Templates als Feld, nicht hardcoded. PentAGI: Generator 4096, Coder 2048, Searcher 1024.
-- **CEO-Output als strukturiertes Packet-Template (inspiriert von Spec-Kit).** CEO soll Work Packets nicht frei formulieren sondern in festem Format: Titel, Ziel, Scope, doneWhen, targetFolder, Annahmen, `[NEEDS INPUT]`-Marker fuer Unklarheiten. `[NEEDS INPUT]` ist besser als raten — David sieht sofort was Klaerung braucht. Ref: `github.com/github/spec-kit` (Specify → Plan → Tasks → Implement = Mission → CEO → Packets → Worker → Review). Gehoert direkt in den `ceo.json` systemPrompt.
+- **CEO-Output als strukturiertes Packet-Template (inspiriert von Spec-Kit).** CEO soll Work Packets nicht frei formulieren sondern in festem Format: Titel, Ziel, Scope, doneWhen, targetFolder, Annahmen, `[NEEDS INPUT]`-Marker fuer Unklarheiten. `[NEEDS INPUT]` ist besser als raten — David sieht sofort was Klaerung braucht. Ref: `github.com/github/spec-kit` (Specify → Plan → Tasks → Implement = Mission → CEO → Packets → Worker → Review). Gemeinsam in den `ceo.json` systemPrompt.
 - **Constitution-Check im CEO-Prompt (inspiriert von Spec-Kit).** Kompakter Pruefblock bevor Packets erstellt werden: Entlastet es David real? Scope klar genug fuer Worker? Passt ins Budget? Braucht Review? Kein separates File, rein als Prompt-Anweisung.
 - **CEO braucht API-Hinweis automatisch.** Der erste CEO-Delegationslauf blieb bei Prosa/Snippets stehen, weil `includeApiAccessNote` im Agent-Config fehlte. Fix-Richtung: fuer `roleTemplateId=ceo` den Paperclip-API-Hinweis im Gemini-Adapter automatisch einschalten und explizit sagen: echte `run_shell_command`-POSTs ausfuehren, keine Demo-Kommandos ausgeben.
 - **Issues IMMER mit projectId erstellen** - sonst kein Workspace-Lookup

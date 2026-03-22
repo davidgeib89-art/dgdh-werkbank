@@ -1186,6 +1186,145 @@ export function determineIssueStatusAfterRun(input: {
   return { nextStatus: null, reason: null, reviewerVerdict: null };
 }
 
+type AutoRetriggerIssueRecord = {
+  id: string;
+  companyId: string;
+  parentId: string | null;
+  status: string;
+  assigneeAgentId: string | null;
+  identifier: string | null;
+};
+
+type AutoRetriggerAgentRecord = {
+  id: string;
+  companyId: string;
+  adapterConfig: Record<string, unknown> | null;
+};
+
+type AutoRetriggerActivityInput = {
+  companyId: string;
+  actorType: "agent";
+  actorId: string;
+  agentId: string | null;
+  runId: string | null;
+  action: string;
+  entityType: string;
+  entityId: string;
+  details: Record<string, unknown>;
+};
+
+type AutoRetriggerDeps = {
+  getIssueById: (issueId: string) => Promise<AutoRetriggerIssueRecord | null>;
+  getAgentById: (agentId: string) => Promise<AutoRetriggerAgentRecord | null>;
+  updateIssue: (
+    issueId: string,
+    patch: { assigneeAgentId?: string | null },
+  ) => Promise<AutoRetriggerIssueRecord | null>;
+  wakeup: (agentId: string, opts: WakeupOptions) => Promise<unknown>;
+  recordActivity: (input: AutoRetriggerActivityInput) => Promise<void>;
+};
+
+export async function retriggerCEOParentIssueAfterReviewerAcceptance(input: {
+  childIssue: AutoRetriggerIssueRecord;
+  reviewerRunId: string;
+  reviewerAgentId: string;
+  transitionReason: string | null;
+  reviewerVerdict: ReviewerVerdict | null;
+}, deps: AutoRetriggerDeps) {
+  if (
+    input.transitionReason !== "reviewer_accepted" ||
+    input.reviewerVerdict !== "accepted"
+  ) {
+    return null;
+  }
+
+  const parentId = input.childIssue.parentId;
+  if (!parentId) return null;
+
+  const parentIssue = await deps.getIssueById(parentId);
+  if (!parentIssue || parentIssue.companyId !== input.childIssue.companyId) {
+    return null;
+  }
+
+  const parentStatus = readNonEmptyString(parentIssue.status)?.toLowerCase();
+  if (!parentStatus || CLOSED_ISSUE_STATUSES.has(parentStatus)) {
+    return null;
+  }
+
+  const parentAssigneeAgentId = parentIssue.assigneeAgentId;
+  if (!parentAssigneeAgentId) return null;
+
+  const parentAssignee = await deps.getAgentById(parentAssigneeAgentId);
+  if (!parentAssignee || parentAssignee.companyId !== parentIssue.companyId) {
+    return null;
+  }
+
+  const roleTemplateResolution = resolveAssignedRoleTemplate(
+    parentAssignee.adapterConfig,
+  );
+  if (roleTemplateResolution.assigned?.template.id !== "ceo") {
+    return null;
+  }
+
+  const unassigned = await deps.updateIssue(parentIssue.id, {
+    assigneeAgentId: null,
+  });
+  if (!unassigned) return null;
+
+  const retriggered = await deps.updateIssue(parentIssue.id, {
+    assigneeAgentId: parentAssigneeAgentId,
+  });
+  if (!retriggered) return null;
+
+  const wakeupResult = await deps.wakeup(parentAssigneeAgentId, {
+    source: "automation",
+    triggerDetail: "system",
+    reason: "issue_assigned",
+    payload: {
+      issueId: retriggered.id,
+      childIssueId: input.childIssue.id,
+      mutation: "retrigger",
+    },
+    requestedByActorType: "agent",
+    requestedByActorId: input.reviewerAgentId,
+    contextSnapshot: {
+      issueId: retriggered.id,
+      source: "issue.auto_retrigger",
+      parentIssueId: retriggered.id,
+      childIssueId: input.childIssue.id,
+      wakeReason: "issue_assigned",
+    },
+  });
+
+  await deps.recordActivity({
+    companyId: retriggered.companyId,
+    actorType: "agent",
+    actorId: input.reviewerAgentId,
+    agentId: input.reviewerAgentId,
+    runId: input.reviewerRunId,
+    action: "issue.auto_retriggered",
+    entityType: "issue",
+    entityId: retriggered.id,
+    details: {
+      identifier: retriggered.identifier,
+      childIssueId: input.childIssue.id,
+      parentIssueId: retriggered.id,
+      parentAssigneeAgentId,
+      roleTemplateId: roleTemplateResolution.assigned?.template.id ?? null,
+      wakeupQueued: wakeupResult != null,
+      _previous: {
+        assigneeAgentId: unassigned.assigneeAgentId,
+      },
+    },
+  });
+
+  return {
+    parentIssue: retriggered,
+    parentAssigneeAgentId,
+    wakeupQueued: wakeupResult != null,
+  };
+}
+
 export function shouldPromoteDeferredIssueExecution(
   issueStatus: string | null | undefined,
 ) {
@@ -2031,6 +2170,27 @@ export function heartbeatService(db: Db) {
     });
     if (!updatedIssue) return null;
 
+    const retriggerResult =
+      transition.reason === "reviewer_accepted" &&
+      transition.reviewerVerdict === "accepted"
+        ? await retriggerCEOParentIssueAfterReviewerAcceptance(
+            {
+              childIssue: updatedIssue,
+              reviewerRunId: run.id,
+              reviewerAgentId: run.agentId,
+              transitionReason: transition.reason,
+              reviewerVerdict: transition.reviewerVerdict,
+            },
+            {
+              getIssueById: (issueId) => issuesSvc.getById(issueId),
+              getAgentById: getAgent,
+              updateIssue: (issueId, patch) => issuesSvc.update(issueId, patch),
+              wakeup: enqueueWakeup,
+              recordActivity: (input) => logActivity(db, input),
+            },
+          )
+        : null;
+
     await logActivity(db, {
       companyId: updatedIssue.companyId,
       actorType: "agent",
@@ -2059,6 +2219,13 @@ export function heartbeatService(db: Db) {
       roleTemplateId,
       reviewerVerdict: transition.reviewerVerdict,
       reason: transition.reason,
+      parentRetrigger: retriggerResult
+        ? {
+            parentIssueId: retriggerResult.parentIssue.id,
+            parentAssigneeAgentId: retriggerResult.parentAssigneeAgentId,
+            wakeupQueued: retriggerResult.wakeupQueued,
+          }
+        : null,
     };
   }
 
@@ -4548,6 +4715,7 @@ export function heartbeatService(db: Db) {
                   roleTemplateId: issueTransition.roleTemplateId,
                   reviewerVerdict: issueTransition.reviewerVerdict,
                   reason: issueTransition.reason,
+                  parentRetrigger: issueTransition.parentRetrigger,
                 },
               });
             }

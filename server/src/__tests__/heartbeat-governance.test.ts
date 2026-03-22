@@ -23,9 +23,9 @@ import {
   requiresGovernedWorkPacket,
   resolveDryRunUsageTotals,
   resolveHardTokenCapTokens,
+  retriggerCEOParentIssueAfterReviewerAcceptance,
   shouldPromoteDeferredIssueExecution,
 } from "../services/heartbeat.ts";
-
 const ORIGINAL_GOVERNANCE_TEST_MODE = process.env.GOVERNANCE_TEST_MODE;
 
 afterEach(() => {
@@ -352,6 +352,130 @@ describe("heartbeat governance helpers", () => {
       nextStatus: null,
       reason: null,
       reviewerVerdict: "needs_revision",
+    });
+  });
+
+  it("re-triggers a CEO parent issue after an accepted reviewer run", async () => {
+    const childIssue = {
+      id: "child-issue-1",
+      companyId: "company-1",
+      parentId: "parent-issue-1",
+      status: "in_review",
+      assigneeAgentId: null,
+      identifier: "DAV-201",
+    };
+    const parentIssue = {
+      id: "parent-issue-1",
+      companyId: "company-1",
+      parentId: null,
+      status: "in_progress",
+      assigneeAgentId: "agent-ceo-1",
+      identifier: "DAV-200",
+    };
+    const parentAgent = {
+      id: "agent-ceo-1",
+      companyId: "company-1",
+      adapterConfig: {
+        roleTemplateId: "ceo",
+      },
+    };
+    const updateCalls: Array<{ issueId: string; patch: Record<string, unknown> }> = [];
+    const wakeupCalls: Array<{ agentId: string; opts: Record<string, unknown> }> = [];
+    const activityCalls: Array<Record<string, unknown>> = [];
+
+    const result = await retriggerCEOParentIssueAfterReviewerAcceptance(
+      {
+        childIssue,
+        reviewerRunId: "run-reviewer-1",
+        reviewerAgentId: "agent-reviewer-1",
+        transitionReason: "reviewer_accepted",
+        reviewerVerdict: "accepted",
+      },
+      {
+        getIssueById: async (issueId) =>
+          issueId === parentIssue.id ? parentIssue : null,
+        getAgentById: async (agentId) =>
+          agentId === parentAgent.id ? parentAgent : null,
+        updateIssue: async (issueId, patch) => {
+          updateCalls.push({ issueId, patch });
+          if (issueId !== parentIssue.id) return null;
+          if (patch.assigneeAgentId === null) {
+            return {
+              ...parentIssue,
+              assigneeAgentId: null,
+            };
+          }
+          if (patch.assigneeAgentId === parentAgent.id) {
+            return parentIssue;
+          }
+          return null;
+        },
+        wakeup: async (agentId, opts) => {
+          wakeupCalls.push({ agentId, opts });
+          return { queued: true };
+        },
+        recordActivity: async (input) => {
+          activityCalls.push(input);
+        },
+      },
+    );
+
+    expect(result).toMatchObject({
+      parentIssue,
+      parentAssigneeAgentId: parentAgent.id,
+      wakeupQueued: true,
+    });
+    expect(updateCalls).toEqual([
+      {
+        issueId: parentIssue.id,
+        patch: { assigneeAgentId: null },
+      },
+      {
+        issueId: parentIssue.id,
+        patch: { assigneeAgentId: parentAgent.id },
+      },
+    ]);
+    expect(wakeupCalls).toHaveLength(1);
+    expect(wakeupCalls[0]).toMatchObject({
+      agentId: parentAgent.id,
+      opts: {
+        source: "automation",
+        triggerDetail: "system",
+        reason: "issue_assigned",
+        requestedByActorType: "agent",
+        requestedByActorId: "agent-reviewer-1",
+        payload: {
+          issueId: parentIssue.id,
+          childIssueId: childIssue.id,
+          mutation: "retrigger",
+        },
+        contextSnapshot: {
+          issueId: parentIssue.id,
+          source: "issue.auto_retrigger",
+          parentIssueId: parentIssue.id,
+          childIssueId: childIssue.id,
+          wakeReason: "issue_assigned",
+        },
+      },
+    });
+    expect(activityCalls).toHaveLength(1);
+    expect(activityCalls[0]).toMatchObject({
+      companyId: parentIssue.companyId,
+      actorType: "agent",
+      actorId: "agent-reviewer-1",
+      agentId: "agent-reviewer-1",
+      runId: "run-reviewer-1",
+      action: "issue.auto_retriggered",
+      entityType: "issue",
+      entityId: parentIssue.id,
+      details: {
+        identifier: parentIssue.identifier,
+        childIssueId: childIssue.id,
+        parentIssueId: parentIssue.id,
+        parentAssigneeAgentId: parentAgent.id,
+        roleTemplateId: "ceo",
+        wakeupQueued: true,
+      },
     });
   });
 
