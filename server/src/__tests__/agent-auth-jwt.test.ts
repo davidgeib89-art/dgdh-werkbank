@@ -1,3 +1,6 @@
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createLocalAgentJwt, verifyLocalAgentJwt } from "../agent-auth-jwt.js";
 
@@ -6,12 +9,14 @@ describe("agent local JWT", () => {
   const ttlEnv = "PAPERCLIP_AGENT_JWT_TTL_SECONDS";
   const issuerEnv = "PAPERCLIP_AGENT_JWT_ISSUER";
   const audienceEnv = "PAPERCLIP_AGENT_JWT_AUDIENCE";
+  const configEnv = "PAPERCLIP_CONFIG";
 
   const originalEnv = {
     secret: process.env[secretEnv],
     ttl: process.env[ttlEnv],
     issuer: process.env[issuerEnv],
     audience: process.env[audienceEnv],
+    config: process.env[configEnv],
   };
 
   beforeEach(() => {
@@ -19,6 +24,7 @@ describe("agent local JWT", () => {
     process.env[ttlEnv] = "3600";
     delete process.env[issuerEnv];
     delete process.env[audienceEnv];
+    delete process.env[configEnv];
     vi.useFakeTimers();
   });
 
@@ -32,6 +38,8 @@ describe("agent local JWT", () => {
     else process.env[issuerEnv] = originalEnv.issuer;
     if (originalEnv.audience === undefined) delete process.env[audienceEnv];
     else process.env[audienceEnv] = originalEnv.audience;
+    if (originalEnv.config === undefined) delete process.env[configEnv];
+    else process.env[configEnv] = originalEnv.config;
   });
 
   it("creates and verifies a token", () => {
@@ -75,5 +83,47 @@ describe("agent local JWT", () => {
     process.env[issuerEnv] = "paperclip";
     process.env[audienceEnv] = "paperclip-api";
     expect(verifyLocalAgentJwt(token!)).toBeNull();
+  });
+
+  it("loads jwt config from paperclip env file when runtime env secret is unset", () => {
+    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-jwt-"));
+    const configPath = path.join(tempRoot, "config.json");
+    const envPath = path.join(tempRoot, ".env");
+
+    try {
+      fs.writeFileSync(configPath, "{}\n");
+      fs.writeFileSync(
+        envPath,
+        [
+          "PAPERCLIP_AGENT_JWT_SECRET=file-secret",
+          "PAPERCLIP_AGENT_JWT_TTL_SECONDS=120",
+          "PAPERCLIP_AGENT_JWT_ISSUER=file-issuer",
+          "PAPERCLIP_AGENT_JWT_AUDIENCE=file-audience",
+          "",
+        ].join("\n"),
+      );
+
+      delete process.env[secretEnv];
+      delete process.env[ttlEnv];
+      delete process.env[issuerEnv];
+      delete process.env[audienceEnv];
+      process.env[configEnv] = configPath;
+
+      vi.setSystemTime(new Date("2026-01-01T00:00:00.000Z"));
+      const token = createLocalAgentJwt("agent-1", "company-1", "claude_local", "run-1");
+      expect(typeof token).toBe("string");
+
+      const claims = verifyLocalAgentJwt(token!);
+      expect(claims).toMatchObject({
+        sub: "agent-1",
+        company_id: "company-1",
+        adapter_type: "claude_local",
+        run_id: "run-1",
+        iss: "file-issuer",
+        aud: "file-audience",
+      });
+    } finally {
+      fs.rmSync(tempRoot, { recursive: true, force: true });
+    }
   });
 });

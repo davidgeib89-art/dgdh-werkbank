@@ -1,4 +1,7 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
+import { existsSync, readFileSync } from "node:fs";
+import { parse as parseEnvFileContents } from "dotenv";
+import { resolvePaperclipEnvPath } from "./paths.js";
 
 interface JwtHeader {
   alg: string;
@@ -25,7 +28,43 @@ function parseNumber(value: string | undefined, fallback: number) {
   return Math.floor(parsed);
 }
 
+function hasOwnEnvKey(key: string) {
+  return Object.prototype.hasOwnProperty.call(process.env, key);
+}
+
+function maybeLoadJwtEnvFromPaperclipEnvFile() {
+  // Explicit env config (including empty string) wins over file fallback.
+  if (hasOwnEnvKey("PAPERCLIP_AGENT_JWT_SECRET")) return;
+
+  const envPath = resolvePaperclipEnvPath();
+  if (!existsSync(envPath)) return;
+
+  try {
+    const parsed = parseEnvFileContents(readFileSync(envPath, "utf8"));
+    const secret = parsed.PAPERCLIP_AGENT_JWT_SECRET?.trim();
+    if (secret) process.env.PAPERCLIP_AGENT_JWT_SECRET = secret;
+
+    const ttl = parsed.PAPERCLIP_AGENT_JWT_TTL_SECONDS?.trim();
+    if (ttl && !hasOwnEnvKey("PAPERCLIP_AGENT_JWT_TTL_SECONDS")) {
+      process.env.PAPERCLIP_AGENT_JWT_TTL_SECONDS = ttl;
+    }
+
+    const issuer = parsed.PAPERCLIP_AGENT_JWT_ISSUER?.trim();
+    if (issuer && !hasOwnEnvKey("PAPERCLIP_AGENT_JWT_ISSUER")) {
+      process.env.PAPERCLIP_AGENT_JWT_ISSUER = issuer;
+    }
+
+    const audience = parsed.PAPERCLIP_AGENT_JWT_AUDIENCE?.trim();
+    if (audience && !hasOwnEnvKey("PAPERCLIP_AGENT_JWT_AUDIENCE")) {
+      process.env.PAPERCLIP_AGENT_JWT_AUDIENCE = audience;
+    }
+  } catch {
+    // Keep JWT behavior stable: if env file parsing fails, fallback to current env only.
+  }
+}
+
 function jwtConfig() {
+  maybeLoadJwtEnvFromPaperclipEnvFile();
   const secret = process.env.PAPERCLIP_AGENT_JWT_SECRET;
   if (!secret) return null;
 
