@@ -5,8 +5,7 @@ Status: Active operating note
 
 ## 1. Single Source of Truth
 
-- Canonical git repository: `C:/Users/holyd/DGDH/repos/paperclip-main`
-- Canonical active development worktree (current): `C:/Users/holyd/DGDH/worktrees/paperclip-codex`
+- Canonical git repository: `C:/Users/holyd/DGDH/worktrees/dgdh-werkbank`
 - Canonical strategy/governance docs in repo: `company-hq/`
 
 Interpretation:
@@ -18,13 +17,12 @@ Interpretation:
 
 ### Active
 
-- `worktrees/paperclip-codex` for implementation and integration.
+- `worktrees/dgdh-werkbank` for implementation and integration.
 - Gemini as controlled live validation lane.
 
 ### Dormant
 
-- `worktrees/paperclip-claude`
-- `worktrees/paperclip-gemini` can be active for controlled tests; otherwise dormant by default.
+- Legacy worktrees (`paperclip-codex`, `paperclip-claude`, `paperclip-gemini`) are no longer active.
 
 Dormant means:
 
@@ -48,9 +46,9 @@ Dormant means:
 
 Use these paths for current operations:
 
-- Repo tasks and code changes: `worktrees/paperclip-codex`
-- Canonical governance docs: `worktrees/paperclip-codex/company-hq`
-- Strategy plans: `worktrees/paperclip-codex/doc/plans`
+- Repo tasks and code changes: `worktrees/dgdh-werkbank`
+- Canonical governance docs: `worktrees/dgdh-werkbank/company-hq`
+- Strategy plans: `worktrees/dgdh-werkbank/doc/plans`
 
 Avoid treating top-level `DGDH/company-hq` as canonical for new edits.
 
@@ -58,7 +56,7 @@ Avoid treating top-level `DGDH/company-hq` as canonical for new edits.
 
 The following are intentionally manual-only:
 
-1. Rename `repos/paperclip-main` to `repos/dgdh-platform`
+1. Rename repository or migrate origin to a new remote name
 2. Rename/move worktree directories and re-register with git worktree commands
 3. Rename GitHub repository or migrate origin to a new remote name
 4. Archive or delete legacy worktrees

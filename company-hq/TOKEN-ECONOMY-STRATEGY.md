@@ -25,9 +25,10 @@ Token usage is treated like a governed operating budget. Every autonomous capabi
 
 ## 3. Current Enforcement Line
 
-1. Codex and Claude in Paperclip runtime remain in Dormant state.
-2. Gemini is the only allowed Controlled Pilot lane for live tests.
-3. Copilot + human flow remains the default implementation path.
+1. Codex is an active Sprint-Coder (Controlled Pilot, ab 2026-03-22).
+2. Gemini is the active Reviewer lane (Controlled Pilot).
+3. Claude operates as Planer (external, not in Paperclip runtime).
+4. David + AI-assisted flow remains the default implementation path.
 
 ## 4. Practical Dormant Procedure
 

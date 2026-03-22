@@ -1,3 +1,5 @@
+> **Ueberholt durch North Star Roadmap 2026-03-21.** Siehe: `doc/plans/2026-03-21-dgdh-north-star-roadmap.md`
+
 # DGDH Platform Evolution Strategy
 
 Date: 2026-03-17

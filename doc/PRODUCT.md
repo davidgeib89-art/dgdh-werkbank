@@ -1,3 +1,5 @@
+> **Paperclip-Upstream-Doc.** DGDH-operative Richtung siehe: `doc/plans/2026-03-21-dgdh-north-star-roadmap.md`
+
 # Paperclip — Product Definition
 
 ## What It Is

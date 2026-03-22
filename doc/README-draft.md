@@ -1,3 +1,5 @@
+> **Paperclip-Upstream-Doc.** DGDH-operative Richtung siehe: `doc/plans/2026-03-21-dgdh-north-star-roadmap.md`
+
 # Instructions for writing the README.md
 
 The readme should be visually interesting, to the point, not too long.

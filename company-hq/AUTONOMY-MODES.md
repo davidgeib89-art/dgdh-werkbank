@@ -1,6 +1,8 @@
 # DGDH Autonomy Modes
 
-Version: 1.0
+Version: 1.1
+
+> **Aktueller Stand (2026-03-22):** Nur Mode 1 (Supervised Build) und Mode 2 (Bounded Autonomy) sind aktiv. Mode 3 (Mission Operations) ist definiert aber noch nicht aktiviert.
 
 ## Mode 1: Supervised Build
 

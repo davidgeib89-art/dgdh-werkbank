@@ -1,26 +1,17 @@
 # Workspace Bootstrap Memo
 
-Date: 2026-03-16
+Date: 2026-03-16 (updated 2026-03-22)
 Audience: David Geib - Digitales Handwerk
 
 ## Current repo / worktree context
 
-- Repo/worktree: `paperclip-codex` at `C:\Users\holyd\DGDH\worktrees\paperclip-codex`
-- Git branch: `codex-work` tracking `origin/codex-work`
-- Worktree mode: enabled via repo-local `.paperclip/`
+- Active worktree: `dgdh-werkbank` at `C:\Users\holyd\DGDH\worktrees\dgdh-werkbank`
+- Git branch: `main`
 - Configured server mode: `local_trusted` + `private`
-- Configured server port in `.paperclip/config.json`: `3101`
-- Current heartbeat API URL in this agent session: `http://127.0.0.1:3102`
-- Note: both `3101` and `3102` currently answer `/api/health`; confirm which server is the intended manual QA target before testing
-- Embedded Postgres dir: `C:\Users\holyd\.paperclip-worktrees\instances\codex-work\db`
-- Embedded Postgres port: `54330`
-- Storage dir: `C:\Users\holyd\.paperclip-worktrees\instances\codex-work\data\storage`
-- Current git state is not clean. Tracked edits exist in `README.md`, `doc/DEVELOPING.md`, `packages/shared/src/constants.ts`, `server/src/services/heartbeat.ts`, `server/src/services/issues.ts`, `ui/src/components/Sidebar.tsx`, `ui/src/lib/company-routes.ts`, and `ui/src/pages/MemoryViewer.tsx`. Untracked files currently include this memo and `ui/src/components/memory/`.
+- Default server port: `3100`
 
-This worktree is isolated from the default Paperclip instance. The repo-local
-`.paperclip/config.json` points at a dedicated instance under
-`C:\Users\holyd\.paperclip-worktrees\instances\codex-work`, which is the right
-setup for supervised local development without cross-worktree DB collisions.
+Worktree isolation is available via repo-local `.paperclip/config.json`
+pointing at a dedicated instance, preventing cross-worktree DB collisions.
 
 ## Important folders
 
@@ -82,43 +73,10 @@ Important limitation:
   `archive`, `correct`, `reinforce`, `promote`)
 - I did not find dedicated UI tests for the memory viewer page yet
 
-## Known UI / debug notes
+## Dev notes
 
-- `pnpm dev` watch restarts are currently a real debug hazard for heartbeat and
-  memory verification. Local doc changes in `doc/DEVELOPING.md` now recommend
-  `pnpm dev:once` as the stable verification path because touching `server/src`
-  or imported workspace packages can orphan active runs.
-- Local WIP also adds company-prefixed handling for the Memory route. The
-  changes in `ui/src/components/Sidebar.tsx` and `ui/src/lib/company-routes.ts`
-  suggest `/memory` was not fully aligned with the `/<companyPrefix>/...`
-  routing model and is being corrected.
-- Memory viewer UI is being modularized in the current tree. `MemoryViewer.tsx`
-  now delegates filters, list items, detail display, and reflection cards into
-  `ui/src/components/memory/`, which should make later governance actions
-  easier to add without keeping the page monolithic.
-- There are currently no open UI TypeScript errors from the checks I ran:
-  `pnpm --filter @paperclipai/ui typecheck` passes, and `pnpm -r typecheck`
-  also passes across the workspace. If someone expects active UI type errors,
-  re-check against a different branch or earlier state.
-- The main environment oddity right now is the port mismatch between config
-  (`3101`) and this running agent session (`3102`). Because both health
-  endpoints respond successfully, it is worth clarifying which server instance
-  should be used for manual browser verification.
+- Use `pnpm dev:once` for stable heartbeat verification (watch mode can orphan active runs).
+- Memory viewer UI exists at `/<companyPrefix>/memory` with modular components under `ui/src/components/memory/`.
+- Memory backend services (memory, reflection, governance) are integrated.
 
-## Recommended next supervised steps
-
-1. Decide whether `3101` or `3102` is the canonical local server for this
-   worktree and remove the ambiguity before doing supervised browser QA.
-2. Decide whether memory should remain read-mostly for now or whether the next
-   implementation step is the board mutation/governance flow.
-3. If memory work continues, verify `/<companyPrefix>/memory` manually using
-   `pnpm dev:once` and confirm which actions are intentionally missing versus
-   actually broken.
-4. Add targeted UI coverage for the memory viewer once the intended governance
-   behavior is locked down.
-5. Update any stale plan/docs that still describe the memory viewer as missing;
-   the viewer exists, and the remaining uncertainty is mostly around routing,
-   mutation coverage, and test depth.
-
-No tasks, agents, heartbeats, or company-structure changes were created from
-this memo. This is only a local workspace bootstrap handoff.
+This is a local workspace bootstrap handoff — no tasks, agents, or company-structure changes were created.
