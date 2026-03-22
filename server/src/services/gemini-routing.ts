@@ -7,6 +7,12 @@ import {
 } from "./gemini-control-plane.js";
 
 type BucketName = "flash" | "pro" | "flash-lite";
+type PacketType =
+  | "deterministic_tool"
+  | "free_api"
+  | "premium_model"
+  | "local_model";
+type RoleHint = "ceo" | "worker" | "reviewer";
 type TaskType =
   | "research-light"
   | "bounded-implementation"
@@ -21,11 +27,24 @@ interface TaskRoutePolicy {
   reason: string;
 }
 
+interface PacketTypeRoutePolicy {
+  lane: PacketType;
+  hardBlockLlm: boolean;
+  reason: string;
+}
+
+interface RoleHintPolicy {
+  preferredLane: PacketType;
+  reason: string;
+}
+
 interface GeminiRoutingPolicy {
   version: string;
   defaultAccountLabel: string;
   defaultMode: RoutingMode;
   taskRoutes: Record<TaskType, TaskRoutePolicy>;
+  packetTypeRoutes: Record<PacketType, PacketTypeRoutePolicy>;
+  roleHints: Record<RoleHint, RoleHintPolicy>;
   bucketModels: Record<BucketName, string>;
 }
 
@@ -56,6 +75,42 @@ const DEFAULT_POLICY: GeminiRoutingPolicy = {
       reason: "floor benchmarks stay in the cheapest stable lane",
     },
   },
+  packetTypeRoutes: {
+    deterministic_tool: {
+      lane: "deterministic_tool",
+      hardBlockLlm: true,
+      reason: "deterministic packets must run in tool lane and never call an LLM",
+    },
+    free_api: {
+      lane: "free_api",
+      hardBlockLlm: false,
+      reason: "free_api packets prefer the cheapest stable flash-lite lane",
+    },
+    premium_model: {
+      lane: "premium_model",
+      hardBlockLlm: false,
+      reason: "premium packets prioritize stronger lanes and degrade by quota availability",
+    },
+    local_model: {
+      lane: "local_model",
+      hardBlockLlm: false,
+      reason: "local_model is a placeholder lane until a local adapter is activated",
+    },
+  },
+  roleHints: {
+    ceo: {
+      preferredLane: "premium_model",
+      reason: "ceo planning and aggregation favors stronger premium reasoning",
+    },
+    worker: {
+      preferredLane: "free_api",
+      reason: "worker runs default to the cheapest useful execution lane",
+    },
+    reviewer: {
+      preferredLane: "free_api",
+      reason: "reviewer defaults to free_api and can escalate by packet stakes",
+    },
+  },
   bucketModels: {
     flash: "gemini-3-flash-preview",
     pro: "gemini-3.1-pro-preview",
@@ -75,8 +130,64 @@ function asString(value: unknown): string | null {
   return trimmed.length > 0 ? trimmed : null;
 }
 
+function asBoolean(value: unknown): boolean | null {
+  if (typeof value === "boolean") return value;
+  return null;
+}
+
 function isBucket(value: string | null): value is BucketName {
   return value === "flash" || value === "pro" || value === "flash-lite";
+}
+
+function isPacketType(value: string | null): value is PacketType {
+  return (
+    value === "deterministic_tool" ||
+    value === "free_api" ||
+    value === "premium_model" ||
+    value === "local_model"
+  );
+}
+
+function isRoleHint(value: string | null): value is RoleHint {
+  return value === "ceo" || value === "worker" || value === "reviewer";
+}
+
+function bucketAvailable(state: string | null): boolean {
+  return state !== "exhausted" && state !== "cooldown";
+}
+
+function normalizePacketType(context: Record<string, unknown>): PacketType | null {
+  const direct = asString(context.packetType) ?? asString(context.packet_type);
+  if (isPacketType(direct)) return direct;
+
+  const workPacketBudget = asObject(context.workPacketBudget);
+  const fromBudget =
+    asString(workPacketBudget.packetType) ??
+    asString(workPacketBudget.packet_type);
+  if (isPacketType(fromBudget)) return fromBudget;
+
+  return null;
+}
+
+function normalizeRoleHint(context: Record<string, unknown>): RoleHint | null {
+  const roleValue =
+    asString(context.role) ??
+    asString(context.roleName) ??
+    asString(context.agentRole) ??
+    asString(context.issueRole);
+  const normalized = roleValue?.toLowerCase() ?? null;
+  return isRoleHint(normalized) ? normalized : null;
+}
+
+type LaneDecisionSource = "packet_type" | "role_hint" | "control_plane_default";
+
+export interface GeminiRoutingLaneDecision {
+  lane: PacketType;
+  source: LaneDecisionSource;
+  packetType: PacketType | null;
+  roleHint: RoleHint | null;
+  reason: string;
+  hardBlockLlm: boolean;
 }
 
 export function getGeminiRoutingPolicy(): {
@@ -118,6 +229,49 @@ export function getGeminiRoutingPolicy(): {
       }
     }
 
+    const rawPacketTypeRoutes = asObject(raw.packetTypeRoutes);
+    const mergedPacketTypeRoutes: GeminiRoutingPolicy["packetTypeRoutes"] = {
+      ...DEFAULT_POLICY.packetTypeRoutes,
+    };
+    const packetTypeKeys: PacketType[] = [
+      "deterministic_tool",
+      "free_api",
+      "premium_model",
+      "local_model",
+    ];
+    for (const packetTypeKey of packetTypeKeys) {
+      const candidate = asObject(rawPacketTypeRoutes[packetTypeKey]);
+      const lane = asString(candidate.lane);
+      const reason = asString(candidate.reason);
+      const hardBlockLlm = asBoolean(candidate.hardBlockLlm);
+      if (isPacketType(lane) && reason) {
+        mergedPacketTypeRoutes[packetTypeKey] = {
+          lane,
+          hardBlockLlm:
+            hardBlockLlm ??
+            DEFAULT_POLICY.packetTypeRoutes[packetTypeKey].hardBlockLlm,
+          reason,
+        };
+      }
+    }
+
+    const rawRoleHints = asObject(raw.roleHints);
+    const mergedRoleHints: GeminiRoutingPolicy["roleHints"] = {
+      ...DEFAULT_POLICY.roleHints,
+    };
+    const roleKeys: RoleHint[] = ["ceo", "worker", "reviewer"];
+    for (const roleKey of roleKeys) {
+      const candidate = asObject(rawRoleHints[roleKey]);
+      const preferredLane = asString(candidate.preferredLane);
+      const reason = asString(candidate.reason);
+      if (isPacketType(preferredLane) && reason) {
+        mergedRoleHints[roleKey] = {
+          preferredLane,
+          reason,
+        };
+      }
+    }
+
     const rawBucketModels = asObject(raw.bucketModels);
     const mergedBucketModels: GeminiRoutingPolicy["bucketModels"] = {
       ...DEFAULT_POLICY.bucketModels,
@@ -138,6 +292,8 @@ export function getGeminiRoutingPolicy(): {
         (asString(raw.defaultMode) as RoutingMode | null) ??
         DEFAULT_POLICY.defaultMode,
       taskRoutes: mergedTaskRoutes,
+      packetTypeRoutes: mergedPacketTypeRoutes,
+      roleHints: mergedRoleHints,
       bucketModels: mergedBucketModels,
     };
     return { policy, source: policyPath };
@@ -193,12 +349,55 @@ export interface GeminiRoutingPreflightResult {
   policySource: string;
   applyModelLane: boolean;
   controlPlane: GeminiControlPlaneState;
+  laneDecision: GeminiRoutingLaneDecision;
   useGeminiQuota: boolean;
   quotaConfidence: "high" | "medium" | "low";
   quotaHealth: QuotaHealthLevel;
 }
 
 type QuotaHealthLevel = "healthy" | "watch" | "conserve" | "avoid" | "unavailable";
+
+function resolveLaneDecision(input: {
+  policy: GeminiRoutingPolicy;
+  packetType: PacketType | null;
+  roleHint: RoleHint | null;
+}): GeminiRoutingLaneDecision {
+  if (input.packetType) {
+    const route =
+      input.policy.packetTypeRoutes[input.packetType] ??
+      DEFAULT_POLICY.packetTypeRoutes[input.packetType];
+    return {
+      lane: route.lane,
+      source: "packet_type",
+      packetType: input.packetType,
+      roleHint: input.roleHint,
+      reason: route.reason,
+      hardBlockLlm: route.hardBlockLlm,
+    };
+  }
+
+  if (input.roleHint) {
+    const roleRoute =
+      input.policy.roleHints[input.roleHint] ?? DEFAULT_POLICY.roleHints[input.roleHint];
+    return {
+      lane: roleRoute.preferredLane,
+      source: "role_hint",
+      packetType: null,
+      roleHint: input.roleHint,
+      reason: roleRoute.reason,
+      hardBlockLlm: roleRoute.preferredLane === "deterministic_tool",
+    };
+  }
+
+  return {
+    lane: "free_api",
+    source: "control_plane_default",
+    packetType: null,
+    roleHint: null,
+    reason: "no packetType/role hint; keep control-plane default bucket routing",
+    hardBlockLlm: false,
+  };
+}
 
 export function classifyQuotaHealth(
   usagePercent: number | null,
@@ -244,29 +443,97 @@ export function resolveGeminiRoutingPreflight(
     configuredModel: asString(input.adapterConfig.model),
     snapshotAt: new Date().toISOString(),
   });
+  const packetType = normalizePacketType(input.context);
+  const roleHint = normalizeRoleHint(input.context);
+  const laneDecision = resolveLaneDecision({
+    policy,
+    packetType,
+    roleHint,
+  });
+  const shouldApplyLaneOverride = laneDecision.source !== "control_plane_default";
+
+  const selected = { ...resolver.selected };
+  let applyModelLane = resolver.applyModelLane;
+
+  const bucketStates = resolver.controlPlane.bucket.states;
+  const chooseBucket = (candidates: BucketName[]): BucketName => {
+    for (const candidate of candidates) {
+      if (bucketAvailable(bucketStates[candidate] ?? null)) {
+        return candidate;
+      }
+    }
+    return selected.selectedBucket;
+  };
+
+  if (shouldApplyLaneOverride && laneDecision.lane === "free_api") {
+    const nextBucket = chooseBucket(["flash-lite", "flash", "pro"]);
+    selected.selectedBucket = nextBucket;
+    selected.effectiveBucket = nextBucket;
+    selected.recommendedModelLane = policy.bucketModels[nextBucket];
+    selected.effectiveModelLane = policy.bucketModels[nextBucket];
+    selected.modelLaneReason = `lane free_api selected ${nextBucket}`;
+    selected.laneStrategy = "soft_enforced_use_recommended";
+    applyModelLane = true;
+  }
+
+  if (shouldApplyLaneOverride && laneDecision.lane === "premium_model") {
+    const nextBucket = chooseBucket(["pro", "flash", "flash-lite"]);
+    selected.selectedBucket = nextBucket;
+    selected.effectiveBucket = nextBucket;
+    selected.recommendedModelLane = policy.bucketModels[nextBucket];
+    selected.effectiveModelLane = policy.bucketModels[nextBucket];
+    selected.modelLaneReason = `lane premium_model selected ${nextBucket}`;
+    selected.laneStrategy = "soft_enforced_use_recommended";
+    applyModelLane = true;
+  }
+
+  if (shouldApplyLaneOverride && laneDecision.lane === "local_model") {
+    selected.modelLaneReason = "lane local_model placeholder is not active; keeping control-plane lane";
+  }
+
+  if (shouldApplyLaneOverride && laneDecision.lane === "deterministic_tool") {
+    applyModelLane = false;
+    selected.blocked = true;
+    selected.blockReason = "deterministic_tool_no_llm_call";
+    selected.modelLaneReason = "deterministic_tool requires non-LLM tool execution lane";
+  }
 
   const effectiveBucketSnapshot =
-    resolver.controlPlane.bucket.snapshots[resolver.selected.effectiveBucket];
+    resolver.controlPlane.bucket.snapshots[selected.effectiveBucket];
   const bucketHealth = classifyQuotaHealth(
     effectiveBucketSnapshot?.usagePercent ?? null,
-    resolver.controlPlane.bucket.selectedState,
+    bucketStates[selected.effectiveBucket] ?? null,
   );
   const quotaConfidence = computeQuotaConfidence(
     resolver.controlPlane.quota.isStale,
     resolver.controlPlane.quota.staleReason,
     bucketHealth,
   );
-  const useGeminiQuota = shouldUseGeminiQuota(bucketHealth);
+  const useGeminiQuota =
+    laneDecision.lane === "deterministic_tool"
+      ? false
+      : shouldUseGeminiQuota(bucketHealth);
+
+  const laneReason = [
+    `lane=${laneDecision.lane}`,
+    `lane_source=${laneDecision.source}`,
+    `packetType=${laneDecision.packetType ?? "none"}`,
+    `role=${laneDecision.roleHint ?? "none"}`,
+    `bucket=${selected.effectiveBucket}`,
+    `model=${selected.effectiveModelLane}`,
+    `reason=${laneDecision.reason}`,
+  ].join(", ");
 
   const result: GeminiRoutingPreflightResult = {
-    selected: resolver.selected,
+    selected,
     quotaState: resolver.quotaState,
-    routingReason: resolver.routingReason,
+    routingReason: `${resolver.routingReason}; ${laneReason}`,
     mode: resolver.mode,
     advisoryOnly: resolver.advisoryOnly,
     policySource: resolver.policySource,
-    applyModelLane: resolver.applyModelLane,
+    applyModelLane,
     controlPlane: resolver.controlPlane,
+    laneDecision,
     useGeminiQuota,
     quotaConfidence,
     quotaHealth: bucketHealth,
@@ -281,6 +548,7 @@ export function resolveGeminiRoutingPreflight(
     policySource: result.policySource,
     applyModelLane: result.applyModelLane,
     controlPlane: result.controlPlane,
+    laneDecision: result.laneDecision,
     useGeminiQuota: result.useGeminiQuota,
     quotaConfidence: result.quotaConfidence,
     quotaHealth: result.quotaHealth,

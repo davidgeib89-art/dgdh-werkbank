@@ -9,6 +9,11 @@ import { runChildProcess } from "@paperclipai/adapter-utils/server-utils";
 import { parseGeminiJsonl } from "@paperclipai/adapter-gemini-local/server";
 
 type BucketName = "flash" | "pro" | "flash-lite";
+type PacketType =
+  | "deterministic_tool"
+  | "free_api"
+  | "premium_model"
+  | "local_model";
 type TaskClass =
   | "research-light"
   | "bounded-implementation"
@@ -161,6 +166,24 @@ function clampInt(value: unknown, fallback: number, min: number, max: number) {
 
 function isBucket(value: string | null): value is BucketName {
   return value === "flash" || value === "pro" || value === "flash-lite";
+}
+
+function isPacketType(value: string | null): value is PacketType {
+  return (
+    value === "deterministic_tool" ||
+    value === "free_api" ||
+    value === "premium_model" ||
+    value === "local_model"
+  );
+}
+
+function readPacketType(context: Record<string, unknown>): PacketType | null {
+  const direct = asString(context.packetType) ?? asString(context.packet_type);
+  if (isPacketType(direct)) return direct;
+  const budget = asObject(context.workPacketBudget);
+  const fromBudget =
+    asString(budget.packetType) ?? asString(budget.packet_type);
+  return isPacketType(fromBudget) ? fromBudget : null;
 }
 
 function isTaskClass(value: string | null): value is TaskClass {
@@ -737,6 +760,21 @@ export async function produceFlashLiteRoutingProposal(
       latencyMs: null,
       warning: null,
       fallbackReason: "adapter_not_gemini_local",
+      cacheHit: false,
+      cacheKey: null,
+    });
+  }
+
+  const packetType = readPacketType(input.context);
+  if (packetType === "deterministic_tool") {
+    return finalize({
+      attempted: false,
+      source: "heuristic_policy",
+      proposal: null,
+      parseStatus: "not_attempted",
+      latencyMs: null,
+      warning: "flash_lite_router_skipped_deterministic_tool",
+      fallbackReason: "deterministic_tool_no_llm_call",
       cacheHit: false,
       cacheKey: null,
     });

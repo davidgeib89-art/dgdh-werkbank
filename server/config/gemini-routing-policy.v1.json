@@ -24,6 +24,39 @@
       "reason": "floor benchmarks stay in the cheapest stable lane"
     }
   },
+  "packetTypeRoutes": {
+    "deterministic_tool": {
+      "lane": "deterministic_tool",
+      "hardBlockLlm": true,
+      "reason": "deterministic packets must run in tool lane and never call an LLM"
+    },
+    "free_api": {
+      "lane": "free_api",
+      "reason": "free_api packets prefer the cheapest stable flash-lite lane"
+    },
+    "premium_model": {
+      "lane": "premium_model",
+      "reason": "premium packets prioritize stronger lanes and degrade by quota availability"
+    },
+    "local_model": {
+      "lane": "local_model",
+      "reason": "local_model is a placeholder lane until a local adapter is activated"
+    }
+  },
+  "roleHints": {
+    "ceo": {
+      "preferredLane": "premium_model",
+      "reason": "ceo planning and aggregation favors stronger premium reasoning"
+    },
+    "worker": {
+      "preferredLane": "free_api",
+      "reason": "worker runs default to the cheapest useful execution lane"
+    },
+    "reviewer": {
+      "preferredLane": "free_api",
+      "reason": "reviewer defaults to free_api and can escalate by packet stakes"
+    }
+  },
   "bucketModels": {
     "flash": "gemini-3-flash-preview",
     "pro": "gemini-3.1-pro-preview",

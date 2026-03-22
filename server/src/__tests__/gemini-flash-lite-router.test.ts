@@ -188,6 +188,29 @@ describe("produceFlashLiteRoutingProposal", () => {
     expect(result.routerHealth.fallbackCount).toBe(1);
   });
 
+  it("hard-skips flash-lite call for deterministic_tool packets", async () => {
+    const result = await produceFlashLiteRoutingProposal({
+      ...baseInput,
+      runtimeConfig: {
+        routingPolicy: {
+          llmRouter: {
+            enabled: true,
+          },
+        },
+      },
+      context: {
+        paperclipTaskPrompt: "Run deterministic image packet",
+        packetType: "deterministic_tool",
+      },
+    });
+
+    expect(result.attempted).toBe(false);
+    expect(result.source).toBe("heuristic_policy");
+    expect(result.parseStatus).toBe("not_attempted");
+    expect(result.fallbackReason).toBe("deterministic_tool_no_llm_call");
+    expect(hoisted.runChildProcessMock).not.toHaveBeenCalled();
+  });
+
   it("supports kill-switch fallback_only mode", async () => {
     const result = await produceFlashLiteRoutingProposal({
       ...baseInput,

@@ -234,4 +234,108 @@ describe("resolveGeminiRoutingPreflight extended fields", () => {
     expect(result).not.toBeNull();
     expect(result!.selected.selectedBucket).toBe("flash");
   });
+
+  it("packetType deterministic_tool hard-blocks the run and disables model-lane apply", () => {
+    const result = resolveGeminiRoutingPreflight({
+      adapterType: "gemini_local",
+      adapterConfig: { model: "gemini-3-flash-preview" },
+      runtimeConfig: {
+        routingPolicy: {
+          mode: "soft_enforced",
+          bucketState: { flash: "ok", pro: "ok", "flash-lite": "ok" },
+        },
+      },
+      context: {
+        packetType: "deterministic_tool",
+        role: "worker",
+      },
+    });
+
+    expect(result).not.toBeNull();
+    expect(result!.laneDecision.lane).toBe("deterministic_tool");
+    expect(result!.laneDecision.source).toBe("packet_type");
+    expect(result!.selected.blocked).toBe(true);
+    expect(result!.selected.blockReason).toBe("deterministic_tool_no_llm_call");
+    expect(result!.applyModelLane).toBe(false);
+    expect(result!.useGeminiQuota).toBe(false);
+    expect(result!.routingReason).toContain("lane=deterministic_tool");
+  });
+
+  it("packetType free_api prefers flash-lite lane", () => {
+    const result = resolveGeminiRoutingPreflight({
+      adapterType: "gemini_local",
+      adapterConfig: { model: "gemini-3.1-pro-preview" },
+      runtimeConfig: {
+        routingPolicy: {
+          mode: "soft_enforced",
+          bucketState: { flash: "ok", pro: "ok", "flash-lite": "ok" },
+        },
+      },
+      context: {
+        packetType: "free_api",
+        role: "worker",
+      },
+    });
+
+    expect(result).not.toBeNull();
+    expect(result!.laneDecision.lane).toBe("free_api");
+    expect(result!.selected.selectedBucket).toBe("flash-lite");
+    expect(result!.selected.effectiveModelLane).toBe("gemini-2.5-flash-lite");
+    expect(result!.applyModelLane).toBe(true);
+    expect(result!.routingReason).toContain("lane=free_api");
+  });
+
+  it("packetType premium_model prefers pro and degrades to flash if pro is exhausted", () => {
+    const result = resolveGeminiRoutingPreflight({
+      adapterType: "gemini_local",
+      adapterConfig: { model: "gemini-3-flash-preview" },
+      runtimeConfig: {
+        routingPolicy: {
+          mode: "soft_enforced",
+          bucketState: {
+            flash: "ok",
+            pro: "exhausted",
+            "flash-lite": "ok",
+          },
+        },
+      },
+      context: {
+        packetType: "premium_model",
+        role: "ceo",
+      },
+    });
+
+    expect(result).not.toBeNull();
+    expect(result!.laneDecision.lane).toBe("premium_model");
+    expect(result!.selected.selectedBucket).toBe("flash");
+    expect(result!.selected.effectiveModelLane).toBe("gemini-3-flash-preview");
+    expect(result!.routingReason).toContain("lane=premium_model");
+  });
+
+  it("role hint ceo prefers premium lane when packetType is absent", () => {
+    const result = resolveGeminiRoutingPreflight({
+      adapterType: "gemini_local",
+      adapterConfig: { model: "gemini-3-flash-preview" },
+      runtimeConfig: {
+        routingPolicy: {
+          mode: "soft_enforced",
+          bucketState: {
+            flash: "ok",
+            pro: "ok",
+            "flash-lite": "ok",
+          },
+        },
+      },
+      context: {
+        role: "ceo",
+      },
+    });
+
+    expect(result).not.toBeNull();
+    expect(result!.laneDecision.source).toBe("role_hint");
+    expect(result!.laneDecision.lane).toBe("premium_model");
+    expect(result!.selected.selectedBucket).toBe("pro");
+    expect(result!.selected.effectiveModelLane).toBe("gemini-3.1-pro-preview");
+    expect(result!.routingReason).toContain("role=ceo");
+  });
 });
