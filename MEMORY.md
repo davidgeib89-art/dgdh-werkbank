@@ -102,6 +102,7 @@ handoff-faehig. Ref: `github.com/microsoft/markitdown`
 - Loop-Detection 5x fuehrt jetzt zusaetzlich zu Workspace-Cleanup via `git checkout -- .` und blocked Issue-Transition
 - `reviewer.json` hat die Simplicity Criterion als explizite Pre-Accept-Rule
 - Reviewer-accepted Child-Issues retriggern den CEO-Parent automatisch via Unassign/Reassign + Wakeup
+- Gemini quota failover wechselt bei exhausted/RESOURCE_EXHAUSTED automatisch von Account 1 auf Account 2 und setzt `accountLabel` auf `account_1` / `account_2`
 - `[NEEDS INPUT]` Dashboard: Marker aus `issue.description` → gelber Hinweis-Block + Edit/Comment-CTAs
 - CURRENT.md / MEMORY.md Sync-Split: stable facts vs. live baton getrennt
 

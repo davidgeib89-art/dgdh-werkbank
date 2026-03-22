@@ -1,8 +1,10 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { logger } from "../middleware/logger.js";
 
 type BucketName = "flash" | "pro" | "flash-lite";
+type GeminiAccountLabel = "account_1" | "account_2";
 
 export interface GeminiLiveQuotaBucket {
   usagePercent: number;
@@ -61,6 +63,21 @@ interface OAuthCreds {
 
 const LOAD_CODE_ASSIST_URL =
   "https://cloudcode-pa.googleapis.com/v1internal:loadCodeAssist";
+
+function resolvePrimaryCredsPath(overridePath?: string): string {
+  return (
+    overridePath?.trim() ||
+    process.env.GEMINI_OAUTH_CREDS_PATH?.trim() ||
+    path.join(os.homedir(), ".gemini", "oauth_creds.json")
+  );
+}
+
+function resolveSecondaryCredsPath(): string {
+  return (
+    process.env.GEMINI_OAUTH_CREDS_2_PATH?.trim() ||
+    path.join(os.homedir(), ".gemini", "oauth_creds_2.json")
+  );
+}
 
 function readCredsFile(credsPath: string): OAuthCreds | null {
   try {
@@ -159,6 +176,7 @@ async function resolveProjectId(token: string): Promise<string | null> {
 function buildQuotaFeed(
   data: ApiResponse,
   snapshotAt: string,
+  accountLabel: GeminiAccountLabel,
 ): GeminiLiveQuotaFeed {
   // Track minimum remaining fraction per bucket (most conservative)
   const minFraction: Partial<Record<BucketName, number>> = {};
@@ -208,28 +226,44 @@ function buildQuotaFeed(
 
   return {
     snapshotAt,
-    accountLabel: null,
+    accountLabel,
     buckets,
   };
 }
 
-export async function fetchLiveGeminiQuota(
-  credsPath?: string,
-): Promise<GeminiLiveQuotaFeed | null> {
-  const resolvedCredsPath =
-    credsPath ?? path.join(os.homedir(), ".gemini", "oauth_creds.json");
+function isResourceExhaustedFeed(feed: GeminiLiveQuotaFeed): boolean {
+  const buckets = Object.values(feed.buckets);
+  return buckets.length > 0 && buckets.every((bucket) => bucket.state === "exhausted");
+}
 
-  // Check cache first
-  const cached = cacheByCredsPath.get(resolvedCredsPath);
+async function readResponseErrorKind(res: Response): Promise<"resource_exhausted" | "other_error"> {
+  if (res.status === 429) return "resource_exhausted";
+
+  const text = await res.text().catch(() => "");
+  if (/resource_exhausted/i.test(text)) return "resource_exhausted";
+  return "other_error";
+}
+
+async function fetchQuotaFeedForAccount(input: {
+  credsPath: string;
+  accountLabel: GeminiAccountLabel;
+}): Promise<{
+  feed: GeminiLiveQuotaFeed | null;
+  resourceExhausted: boolean;
+}> {
+  const cached = cacheByCredsPath.get(input.credsPath);
   if (cached && Date.now() - cached.fetchedAt < CACHE_TTL_MS) {
-    return cached.result;
+    return {
+      feed: cached.result,
+      resourceExhausted: isResourceExhaustedFeed(cached.result),
+    };
   }
 
-  const creds = readCredsFile(resolvedCredsPath);
-  if (!creds) return null;
+  const creds = readCredsFile(input.credsPath);
+  if (!creds) return { feed: null, resourceExhausted: false };
 
   const token = await getValidToken(creds);
-  if (!token) return null;
+  if (!token) return { feed: null, resourceExhausted: false };
 
   try {
     const projectId = await resolveProjectId(token);
@@ -243,17 +277,62 @@ export async function fetchLiveGeminiQuota(
       signal: AbortSignal.timeout(10_000),
     });
 
-    if (!res.ok) return null;
+    if (!res.ok) {
+      const errorKind = await readResponseErrorKind(res);
+      return {
+        feed: null,
+        resourceExhausted: errorKind === "resource_exhausted",
+      };
+    }
 
     const data = (await res.json()) as ApiResponse;
-    if (!data.buckets?.length) return null;
+    if (!data.buckets?.length) return { feed: null, resourceExhausted: false };
 
     const snapshotAt = new Date().toISOString();
-    const result = buildQuotaFeed(data, snapshotAt);
-
-    cacheByCredsPath.set(resolvedCredsPath, { result, fetchedAt: Date.now() });
-    return result;
+    const result = buildQuotaFeed(data, snapshotAt, input.accountLabel);
+    cacheByCredsPath.set(input.credsPath, { result, fetchedAt: Date.now() });
+    return {
+      feed: result,
+      resourceExhausted: isResourceExhaustedFeed(result),
+    };
   } catch {
-    return null;
+    return { feed: null, resourceExhausted: false };
   }
+}
+
+export async function fetchLiveGeminiQuota(
+  credsPath?: string,
+): Promise<GeminiLiveQuotaFeed | null> {
+  const primaryCredsPath = resolvePrimaryCredsPath(credsPath);
+  const secondaryCredsPath = resolveSecondaryCredsPath();
+
+  const primary = await fetchQuotaFeedForAccount({
+    credsPath: primaryCredsPath,
+    accountLabel: "account_1",
+  });
+
+  const shouldFailover =
+    primary.resourceExhausted ||
+    (primary.feed ? isResourceExhaustedFeed(primary.feed) : false);
+  if (!shouldFailover) {
+    return primary.feed;
+  }
+
+  const secondary = await fetchQuotaFeedForAccount({
+    credsPath: secondaryCredsPath,
+    accountLabel: "account_2",
+  });
+  if (secondary.feed) {
+    logger.warn(
+      {
+        event: "gemini_account_failover",
+        from: "account_1",
+        to: "account_2",
+      },
+      "Gemini quota failover switched to secondary account",
+    );
+    return secondary.feed;
+  }
+
+  return primary.feed;
 }
