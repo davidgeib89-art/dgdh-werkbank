@@ -1,0 +1,77 @@
+{
+  "identity": {
+    "siteTitle": "[Name der Ferienwohnung]",
+    "siteSubtitle": "[Kurzer Slogan der Unterkunft]",
+    "businessName": "[Name der Ferienwohnung]",
+    "ownerName": "[Name Gastgeber:in]",
+    "taxId": "[Steuer-ID oder USt-IdNr.]",
+    "vatId": "[USt-IdNr. falls vorhanden]",
+    "registrationCourt": "[Registrierungsgericht falls vorhanden]",
+    "registrationNumber": "[Registernummer falls vorhanden]"
+  },
+  "contact": {
+    "email": "[E-Mail-Adresse]",
+    "phone": "[Telefonnummer]",
+    "address": "[Strasse Hausnummer]\n[PLZ Ort]",
+    "whatsappLink": "[Telefonnummer]",
+    "openingHours": "[Kontaktzeiten nachtragen]"
+  },
+  "seo": {
+    "description": "[Kurze Beschreibung der Unterkunft und ihres besonderen Charakters]"
+  },
+  "theme": {
+    "themeHue": 333,
+    "defaultTheme": "light"
+  },
+  "footer": {
+    "copyrightText": "Copyright 2026 [Name der Ferienwohnung]",
+    "footerMessage": "[Kurzer Footer-Hinweis fuer [Name der Ferienwohnung]]"
+  },
+  "social": [],
+  "banner": {
+    "title": "[Name der Ferienwohnung]",
+    "subtitle": "[Kurze Beschreibung der Unterkunft und ihres besonderen Charakters]",
+    "primaryCtaLabel": "Verfuegbarkeit anfragen",
+    "primaryCtaLink": "#buchungsanfrage",
+    "secondaryCtaLabel": "Mehr erfahren",
+    "secondaryCtaLink": "#einblicke-in-die-unterkunft",
+    "quickStats": [
+      {
+        "discriminant": "persons",
+        "value": {
+          "text": "[Personenzahl nachtragen]"
+        }
+      },
+      {
+        "discriminant": "location",
+        "value": {
+          "text": "[Ort]"
+        }
+      },
+      {
+        "discriminant": "price",
+        "value": {
+          "text": "[Preis auf Anfrage]"
+        }
+      }
+    ],
+    "imagesDesktop": [
+      "@assets/images/banner/generated/00.webp",
+      "@assets/images/banner/generated/01.webp",
+      "@assets/images/banner/generated/02.webp",
+      "@assets/images/banner/generated/03.webp",
+      "@assets/images/banner/generated/04.webp",
+      "@assets/images/banner/generated/05.webp",
+      "@assets/images/banner/generated/06.webp"
+    ],
+    "imagesMobile": [
+      "@assets/images/banner/generated/00.webp",
+      "@assets/images/banner/generated/01.webp",
+      "@assets/images/banner/generated/02.webp",
+      "@assets/images/banner/generated/03.webp",
+      "@assets/images/banner/generated/04.webp",
+      "@assets/images/banner/generated/05.webp",
+      "@assets/images/banner/generated/06.webp"
+    ]
+  }
+}

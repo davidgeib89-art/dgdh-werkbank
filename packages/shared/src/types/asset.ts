@@ -89,3 +89,21 @@ export interface RevenueContentDraft extends RevenueContentDraftFields {
   generatedAt: string;
 }
 
+export type RevenueSchemaFillGeneratedFileKind = "content" | "asset";
+
+export interface RevenueSchemaFillGeneratedFile {
+  kind: RevenueSchemaFillGeneratedFileKind;
+  path: string;
+}
+
+export interface RevenueSchemaFillResult {
+  manifestPath: string;
+  contentDraftPath: string;
+  outputDir: string;
+  templateRepoPath: string;
+  assetCount: number;
+  placeholderCount: number;
+  generatedAt: string;
+  generatedFiles: RevenueSchemaFillGeneratedFile[];
+}
+

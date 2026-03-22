@@ -22,6 +22,9 @@ export type {
   RevenueImagePipelineOutput,
   RevenueImagePipelineResult,
   RevenueImageVariantName,
+  RevenueSchemaFillGeneratedFile,
+  RevenueSchemaFillGeneratedFileKind,
+  RevenueSchemaFillResult,
 } from "./asset.js";
 export type { Project, ProjectGoalRef, ProjectWorkspace } from "./project.js";
 export type {

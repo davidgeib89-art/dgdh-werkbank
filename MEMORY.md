@@ -39,6 +39,7 @@ Hosting: Cloudflare Pages Free Tier. Kunde zahlt nur ~5€/Jahr fuer Domain.
 - Der erste zu produktisierende Revenue-Lane-Packet-Typ ist Bild-Preprocessing / Asset-Optimierung
 - Sprint E ist geliefert: deterministische `sharp`-Pipeline plus reviewbares Manifest fuer den Kundenordner `shared/Kunde/Unbekannt Bamberger Tante/processed`
 - Sprint F ist geliefert: Flash-Lite-Content-Extraction schreibt `processed/content-draft.json` mit strukturiertem Draft oder `source: "no_input"` wenn kein Textmaterial vorliegt
+- Sprint G ist geliefert: Schema Fill schreibt `processed/site-output/` mit `src/content/...` plus kopierten Assets unter `src/assets/images/...`; fehlende Felder werden mit expliziten Platzhaltern statt Leerwerten gefuellt
 
 ### Content-Modell (alles statische Textdateien, keine DB!)
 ```
@@ -137,7 +138,7 @@ handoff-faehig. Ref: `github.com/microsoft/markitdown`
 | 1 | Worker Abort bei Loop-Stop | `git checkout .` + strukturierter Blocked-Handoff bei 5x stop | Klein |
 | 2 | Reviewer Simplicity Criterion | Prompt-Tweak in `reviewer.json` — direkt in Sprint 1 rein | Minimal |
 | 3 | CEO Auto-Retrigger | Engine triggert CEO automatisch nach Reviewer accepted — kein manuelles Unassign/Reassign | Mittel |
-| 4 | Revenue Lane Foundation | Image Packet Pipeline + Content Extraction Worker geliefert; Schema Fill Worker als naechstes | Mittel |
+| 4 | Revenue Lane Foundation | Image Packet Pipeline + Content Extraction Worker + Schema Fill Worker geliefert; Template-Apply als naechstes | Mittel |
 - **Bekannte System-Gaps:** Issue-Kommentare nicht zuverlaessig als Kontext fuer Reviewer/CEO — kritische Infos immer in `doneWhen` / Description
 - **Onboarding-Prompts:** Fuer alle 4 Rollen fertig (Planer/Coder/Reviewer/Researcher) — in Claude-Session erarbeitet
 
@@ -171,6 +172,7 @@ Worker→Reviewer→done Flows laufen ohne Claude-Unterbrechung durch.
 - **Revenue-Lane-Produktisierung vor Einzelfall-Delivery.** Wenn ein Auftrag wie "baue diese eine Kundenseite" aussieht, ist zuerst zu pruefen welcher wiederverwendbare Packet-Typ oder Tool-Pfad der Werkbank noch fehlt. Erst die Produktionsfaehigkeit, dann der Einzelfall.
 - **Image Packet Pipeline ist deterministic_tool, nicht LLM.** Route: `POST /api/companies/:companyId/revenue-lane/image-pipeline/process`. Service verarbeitet repo-relative Kundenordner mit `sharp`, erzeugt `hero/gallery/thumb` in `webp+jpg`, schreibt `manifest.json`, nutzt `sharp.strategy.attention`, und haelt pro Output das 200-KB-Ziel.
 - **Content Extraction Worker ist free_api auf Gemini Flash-Lite.** Route: `POST /api/companies/:companyId/revenue-lane/content-extractor/process`. Service liest repo-relative Textquellen (`.txt`, `.md`, `.markdown`, `.json`) plus `manifest.json`, schreibt `processed/content-draft.json` und markiert fehlendes Material strikt mit `null` bzw. `source: "no_input"` statt zu halluzinieren.
+- **Schema Fill Worker ist deterministic_tool.** Route: `POST /api/companies/:companyId/revenue-lane/schema-fill/process`. Service liest `manifest.json` + `content-draft.json` + Template-Repo-Pfad, kopiert referenzierte Hero/Gallery/Thumb-Assets nach `processed/site-output/src/assets/images/...`, erzeugt `src/content/settings/*.json` plus Section-Markdown unter `processed/site-output/src/content/...`, und ersetzt fehlende Inhalte durch explizite Platzhalter statt leere Felder oder Halluzinationen.
 - **Dual-Gemini-Failover ist live.** Account 1 exhausted / 429 / `RESOURCE_EXHAUSTED` -> automatisch Account 2 via `GEMINI_OAUTH_CREDS_2_PATH`; `accountLabel` zeigt `account_1` / `account_2`, Wechsel wird geloggt.
 - **CEO Aggregation: MUST-Sprache eingebaut.** `ceo.json` haelt jetzt: "MUST execute GET API call. Do not trust injected context. tool_calls: 0 is a failure." (Fix aus Run `5ecaa84f`)
 - **git_worktree aktiv fuer Projekt Astro/Keystatic (2026-03-22).** `enabled: true`, `defaultMode: "isolated"`, `workspaceStrategy.type: "git_worktree"`, `allowIssueOverride: true`. Neue Issue-Runs laufen jetzt in isolierten Checkouts. Teardown/PR/Auto-Rollback bewusst noch nicht aktiviert (Phase 5).
