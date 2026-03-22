@@ -109,15 +109,16 @@ handoff-faehig. Ref: `github.com/microsoft/markitdown`
 - Reviewer-Kontext-Fix: `heartbeat.ts` liefert Worker-Handoff + Artefaktpfade in Review-Prompt
 - Issue-Lifecycle automatisch: Worker â†’ `in_review`; Reviewer `accepted` â†’ `done`
 
-**Stand 2026-03-22 — DGD-38/39/36 done, DGD-32 als naechster Schritt:**
+**Stand 2026-03-22 â€” DGD-38/39/36 done, DGD-32 done:**
 - DGD-33, DGD-35, DGD-37, DGD-34 `done` (Reviewer accepted)
 - DGD-38 `done`: vier Legal-Felder in keystatic.config.ts + content.config.ts + Keystatic UI-Persistenz bewiesen
 - DGD-39 `done`: Footer + Impressum rendern Legal-Felder aus site.json konditional
 - DGD-36 `done`: content.config.ts um highlights.image/link + testimonials.authorImage/link erweitert; Renderer angepasst
-- DGD-32 bleibt auf `todo` (offen bis CEO-Aggregation retriggered ist)
-- **Naechste Reihenfolge:** DGD-32 CEO-Aggregation retrigger
-- **Bekannte System-Gaps:** Issue-Kommentare nicht zuverlaessig als Kontext fuer Reviewer/CEO — kritische Infos immer in `doneWhen` / Description
-- **Onboarding-Prompts:** Fuer alle 4 Rollen fertig (Planer/Coder/Reviewer/Researcher) — in Claude-Session erarbeitet
+- DGD-32 `done`: CEO-Aggregation retrigger lief durch und der Parent wurde geschlossen
+- **Naechste Reihenfolge:** neue Priorisierung durch Planner
+- **Bekannte System-Gaps:** Issue-Kommentare nicht zuverlaessig als Kontext fuer Reviewer/CEO â€” kritische Infos immer in `doneWhen` / Description
+- **Onboarding-Prompts:** Fuer alle 4 Rollen fertig (Planer/Coder/Reviewer/Researcher) â€” in Claude-Session erarbeitet
+
 ## Koordinations-Prinzip (Claude als Chief of Staff)
 
 Claude koordiniert nicht jeden einzelnen Run-Status. Codex/Gemini arbeiten in Sprints durch.
