@@ -38,6 +38,21 @@ Update after paper review later the same day:
   - harden `reviewer.json` with a fixed review matrix and pre-accept checks
   - then build `CEO V1`
 
+Update after CEO V1 template slice later the same day:
+
+- `ceo.json` now encodes the Constitution check directly in the canonical CEO prompt
+- `ceo.json` now defines a fixed packet schema with `doneWhen`, `targetFolder`, `Annahmen`, and `[NEEDS INPUT]`
+- `reviewer.json` now requires a parseable review matrix table instead of a vague matrix heading
+- this is a template-level completion, not yet a live CEO mission-run proof
+
+Update after the first live CEO planning run exposed token waste:
+
+- the first real CEO run proved planning behavior but consumed far too many tokens for a planning task
+- root cause was prompt-level: the CEO had no hard instruction to stay inside a tiny context budget
+- `ceo.json` now explicitly caps itself to 3-5 directly relevant files and forbids codebase-exploration loops
+- the MVP delegation path is now defined through existing Paperclip API access in the Gemini adapter, including a child-issue creation example and injected `PAPERCLIP_PROJECT_ID`
+- this means the next CEO proof target is no longer "can the CEO think?" but "can the CEO create real bounded child issues cheaply?"
+
 ## 1.1 Outcome reached after this report was started
 
 The originally planned next step in this report was "start Packet 3."
@@ -691,3 +706,111 @@ If the smoke-test does not produce a clear gain, role content should be revised 
 ## 11. One-Sentence Summary
 
 In the last hours, DGDH moved from "the Gemini engine can think and route" to "the engine is now strong enough that the next real bottleneck is defining the first durable digital employee roles: CEO, Worker, and Reviewer."
+
+## 12. Update: CEO Live Delegation Proof
+
+Later on 2026-03-22, `CEO V1` also crossed from template-only design into a real operational proof.
+
+What changed before the proof:
+
+- `ceo.json` was tightened with a hard context budget:
+  - read only `3-5` directly relevant files
+  - no codebase-exploration loop
+  - if still unclear after that, stop and mark `[NEEDS INPUT]`
+- the Gemini adapter was extended so CEO runs receive:
+  - `PAPERCLIP_PROJECT_ID`
+  - a PowerShell-safe Paperclip API note with a child-issue creation example
+- after an initial failed rerun, the CEO prompt was further hardened:
+  - do not search for a `pc` / `paperclip` CLI
+  - do not ask subagents how to create issues
+  - execute the HTTP API call instead of printing sample commands
+- the adapter now auto-enables the Paperclip API note for `roleTemplateId = "ceo"`
+
+The live proof run:
+
+- parent mission issue: `DGD-32`
+- CEO run: `e204fe77-639d-4a3e-a2d3-4fd140a1331b`
+- workspace: `astro-keystatic-template-geib`
+- outcome: CEO created four real unassigned child issues in Paperclip:
+  - `DGD-33` - Refine Keystatic Content Schemas for Reusability
+  - `DGD-34` - Enhance `new-customer` Script and Intake Process
+  - `DGD-35` - Define and Document Customization Options for Tailwind CSS
+  - `DGD-36` - Assess and Document Core Component Reusability
+
+Why this matters:
+
+- this is the first real proof that DGDH can move from:
+  - mission
+  - to CEO packetization
+  - to visible issues in the board
+- that is the first point where the system stops behaving like a promising workbench and starts behaving like a tiny company
+
+Budget/quality observations:
+
+- the first exploratory CEO attempt was far too expensive at roughly `345k` input tokens
+- after the context-budget + API-guidance hardening, the successful delegation run dropped to:
+  - `61,877` total tokens
+  - `54,712` input tokens
+  - `2,308` output tokens
+  - `5` tool calls
+- this is still not cheap, but it is dramatically better and operationally plausible for a planning role
+
+Residual follow-up after the proof:
+
+- one created title (`DGD-34`) shows a small quoting/escaping artifact in the issue title field
+- `run_shell_command` also emitted noisy `node-pty` / `AttachConsole failed` stderr on Windows while the calls still succeeded
+- the next best proof is no longer "can CEO create packets?" but:
+  - can a CEO-created packet (`DGD-33` etc.) go cleanly through `Worker -> Reviewer -> done`
+
+## 13. Update: First Full CEO -> Worker -> Reviewer Chain
+
+That next proof was completed right after the CEO live delegation milestone.
+
+The concrete chain:
+
+- mission issue: `DGD-32`
+- CEO-created child issue: `DGD-33`
+- worker run: `63f52e05-3d6c-4518-900e-24c7902526f1`
+- reviewer run: `fca4fe60-13a3-4348-b040-2aedc53d4fd7`
+- final issue state: `done`
+
+What the worker did:
+
+- reviewed `keystatic.config.ts`
+- inspected `src/content` and `src/content/sections`
+- created:
+  - `docs/schema-refinement-recommendations.md`
+- ended with a structured handoff including:
+  - goal
+  - result
+  - files changed
+  - validation
+  - blockers
+  - next
+
+What broke in the first review attempt:
+
+- the reviewer only received run metadata plus read evidence
+- it did not receive the worker handoff or the produced artifact path
+- result:
+  - the reviewer returned `blocked`
+  - not because the work was bad
+  - but because the review context was incomplete
+
+The fix:
+
+- `heartbeat.ts` now passes the reviewer:
+  - worker handoff text reconstructed from assistant output
+  - produced artifact paths inferred from the worker output / write calls
+- after that fix, the reviewer could inspect the actual document and deliver a real verdict
+
+Why this matters:
+
+- this is the first complete operating loop in DGDH:
+  - David mission
+  - CEO packetization
+  - Worker execution
+  - Reviewer judgment
+  - automatic issue closure on acceptance
+- at this point, DGDH is no longer just proving isolated roles
+- it is proving coordinated company behavior on one real piece of work

@@ -41,14 +41,19 @@ twilight.config.yaml               → YAML-Fallback, Config via getResolvedSett
 ```
 
 ### Die Grosse Vision (AI-Workflow)
-1. David legt Kundendaten in einen Ordner (Texte, Bilder, Logo)
-2. DGDH-System forkt Template-Repo
-3. Gemini-Worker liest Schema + befuellt alle Content-Dateien
-4. Push zu GitHub → Cloudflare deployt automatisch
-5. David reviewed → fertig
+1. David legt Kundendaten in einen Ordner (Texte, Bilder, Logo, PDFs, Word-Dokumente)
+2. **Ingestion-Schritt:** Kundendaten → Markdown normalisieren (markitdown-Ansatz)
+3. DGDH-System forkt Template-Repo
+4. Gemini-Worker liest normalisiertes Markdown + Schema → befuellt alle Content-Dateien
+5. Push zu GitHub → Cloudflare deployt automatisch
+6. David reviewed → fertig
 
 **Warum das perfekt fuer AI ist:** Kein Backend, keine DB — nur strukturierte Textdateien.
 Gemini kennt das Schema (keystatic.config.ts + content.config.ts) und weiss exakt was zu befuellen ist.
+
+**Ingestion-Pattern (markitdown-inspiriert):** Kundenordner enthaelt oft PDFs, Word-Dokumente,
+Bilder mit Text. Vor dem Worker-Run alles → Markdown normalisieren. Token-effizienter, reviewbar,
+handoff-faehig. Ref: `github.com/microsoft/markitdown`
 
 ### Branchenprofile (geplant)
 `ferienwohnung` ✅ | `verein` | `friseur` | `restaurant` | `handwerker` | ...
@@ -78,7 +83,7 @@ Gemini kennt das Schema (keystatic.config.ts + content.config.ts) und weiss exak
 
 ## Aktueller Stand (2026-03-21)
 
-**Phase:** Engine bewiesen + Worker und Reviewer in echten Runs bewiesen. Naechster Schritt: CEO auf diesem bewiesenen Firmen-Unterbau bauen.
+**Phase:** Engine bewiesen + Worker und Reviewer in echten Runs bewiesen. CEO V1 ist live als Planungs- und Delegationsrolle bewiesen, und die erste vollstaendige Kette ist geschafft: `Mission -> CEO -> Child-Issue -> Worker -> Reviewer -> done`.
 
 ### Was funktioniert (bewiesen in echten Runs)
 - **Live Quota:** Echte Google-Quota-Daten fliessen ins Routing
@@ -107,20 +112,30 @@ Gemini kennt das Schema (keystatic.config.ts + content.config.ts) und weiss exak
 - **Worker-Loop gehaertet:** `worker.json` fuehrt jetzt explizit einen `locate -> hypothesize -> patch -> validate` Default-Loop und verlangt ein kurzes strukturiertes Handoff (`Goal`, `Result`, `Files Changed`, `Validation`, `Blockers`, `Next`)
 - **Reviewer in echten Runs bewiesen:** Erstlauf war zu weich, nach Haertung ist ein `accepted`-Urteil auf dem echten Test-Artefakt vertretbar; Review passiert wirklich statt Re-Implementation
 - **Reviewer-Matrix gehaertet:** `reviewer.json` prueft jetzt entlang `Scope`, `Correctness`, `Evidence`, `Safety/Readiness` und soll vor `accepted` wenn sinnvoll schnelle Checks wie readback/lint/test/build nutzen
+- **Reviewer-Matrix jetzt parseable:** Output-Format ist als feste Tabelle definiert (`Dimension | Status | Note`), damit spaeter CEO/Parser die Review-Dimensionen zuverlaessig lesen koennen
+- **CEO V1 Template gebaut:** `ceo.json` enthaelt jetzt Constitution-Check, fixes Packet-Schema (`Titel`, `Ziel`, `Scope`, `doneWhen`, `targetFolder`, `Annahmen`, `[NEEDS INPUT]`) und festen Abschluss-Handoff
+- **CEO auf Token-Disziplin geschaerft:** Kontextbudget jetzt explizit im Template (`max. 3-5 direkt relevante Dateien`, kein Codebase-Exploration-Loop, keine spekulativen/missing-file Suchen)
+- **Minimale CEO-Delegationsbruecke vorbereitet:** Kein neues Tool noetig; Gemini bekommt schon Paperclip API Zugang. `execute.ts` injiziert jetzt auch `PAPERCLIP_PROJECT_ID`, und der API-Hinweis enthaelt ein PowerShell-sicheres Beispiel zum Erstellen unzugewiesener Child-Issues ueber `run_shell_command`
+- **CEO-Delegation nachgeschaerft:** Nach dem ersten Rerun sucht der CEO nicht mehr nach `pc`/`paperclip`-CLI oder Subagent-Hilfe, sondern soll direkt `Invoke-RestMethod` gegen die bestehende Paperclip-HTTP-API verwenden
+- **CEO-Live-Beweis geschafft:** Run `e204fe77-639d-4a3e-a2d3-4fd140a1331b` hat im richtigen Projekt/Workspace 4 echte unzugewiesene Child-Issues unter `DGD-32` erzeugt (`DGD-33` bis `DGD-36`) statt nur Prosa auszugeben
+- **CEO-Budget deutlich verbessert:** Erster CEO-Planungsrun lag bei ~345k Input-Tokens; der echte Delegations-Beweis lag bei `61,877` Total-Tokens (`54,712` Input, `2,308` Output) mit 5 Tool-Calls
+- **CEO braucht API-Hinweis automatisch:** `execute.ts` schaltet den Paperclip-API-Hinweis fuer `roleTemplateId=ceo` jetzt automatisch ein; der Live-Agent wurde zusaetzlich auf `includeApiAccessNote=true` gesetzt
+- **Erste komplette Firmenkette bewiesen:** `DGD-32 -> DGD-33` lief als echte `CEO -> Worker -> Reviewer`-Kette durch. Worker-Run `63f52e05-3d6c-4518-900e-24c7902526f1` erzeugte `docs/schema-refinement-recommendations.md`, Reviewer-Run `fca4fe60-13a3-4348-b040-2aedc53d4fd7` akzeptierte, `DGD-33` ging automatisch auf `done`
+- **Reviewer-Kontext-Fix gebaut:** Reviewer bekam anfangs nur Run-Metadaten und blockte deshalb trotz vorhandenem Artefakt. `heartbeat.ts` liefert jetzt zusaetzlich Worker-Handoff und erzeugte Artefaktpfade in den Review-Prompt
 - **Issue-Lifecycle jetzt automatisch:** Erfolgreicher `worker`-Run zieht ein Issue im normalen Assignment-Flow auf `in_review` (auch wenn es vorher noch `todo` war); erfolgreicher `reviewer`-Run mit `Verdict: accepted` zieht auf `done`
 - **Reviewer-Verdict-Parser gefixt:** `stdoutExcerpt` liegt bei Gemini als NDJSON/stream-json vor; `extractReviewerVerdict()` rekonstruiert jetzt Assistant-Content aus den JSON-Linien, damit `Verdict: accepted` auch in echten Run-Logs erkannt und `Issue -> done` wirklich ausgelost wird
 - **Geschlossene Issues promoten keine alten deferred Runs mehr:** Nach `done`/`cancelled` werden deferred issue-execution wakes nicht mehr neu gestartet
 
 ### Was noch fehlt
-- **Keine CEO-Agent-Rolle in Runtime:** Design steht (Packet 2), aber noch nicht im System aktiv
+- **CEO noch nicht live bewiesen:** Template und Prompt stehen, aber es gibt noch keinen echten CEO-Run der Mission -> Work-Packet-Issues im Dashboard erzeugt
 - **Kein automatischer Worker -> Reviewer Chain:** Der minimale Reviewer ist nutzbar, aber noch nicht automatisch nach Worker-Abschluss verdrahtet
 - **Rollen noch nicht voll ausgereift:** Reviewer urteilt jetzt brauchbar, aber operative Effizienz ist noch nicht ideal (z. B. PowerShell-`&&`-Fehlversuche)
 - **Quota-Observability weiter schaerfen:** Snapshot wird gespeichert + wiederverwendet, aber fruehere `0%`-Drift zeigt, dass Refresh-/Darstellungslogik noch weiter verifiziert werden sollte
 
 ### Naechste Schritte (Prioritaet)
-1. **CEO V1 bauen:** Parent-Mission rein -> 3-5 Work-Packet-Issues raus, sichtbar im Dashboard, jetzt auf gehaertetem Worker/Reviewer-Unterbau
-2. **Kleinen Shell-/Tooling-Fix fuer Gemini ziehen:** PowerShell-`&&` vermeiden, damit Worker/Reviewer weniger Tokens verbrennen
-3. **Tool-/Guardrail-Loop spaeter ziehen:** nach CEO V1 MCP-/policy-aehnlicher machen und Checks tiefer in den Loop zurueckfuehren
+1. **Zweite CEO-Kette fahren:** z. B. `DGD-35` oder `DGD-36`, damit wir sehen ob der Erfolg reproduzierbar ist und nicht nur ein Gluecksfall
+2. **Kleinen Shell-/Tooling-Fix fuer Gemini ziehen:** PowerShell-`&&` vermeiden und `node-pty/AttachConsole`-Laerm rund um `run_shell_command` spaeter entschlacken
+3. **Tool-/Guardrail-Loop spaeter ziehen:** nach 1-2 weiteren CEO-basierten Packet-Runs MCP-/policy-aehnlicher machen und Checks tiefer in den Loop zurueckfuehren
 
 ---
 
@@ -137,11 +152,13 @@ Gemini kennt das Schema (keystatic.config.ts + content.config.ts) und weiss exak
 - **Heartbeats = Ausfuehrungspuls.** Genau ein autorisiertes Work Packet, nicht Autonomie-Loop.
 - **Gemini zuerst.** Engine-Core provider-agnostisch, aber Phase 1 nur Gemini.
 - **Strukturierte Handoff-Summaries (inspiriert von ReMe).** Worker/Reviewer/CEO sollen Ergebnisse in festem Schema liefern: Goal, Result, Files Changed, Blockers, Next. Macht Handoffs maschinell auswertbar. Zuerst als Prompt-Anweisung, spaeter parsed Output. Ref: `github.com/agentscope-ai/ReMe`
+- **Shared Memory soll strikt scoped sein (inspiriert von supermemory).** Nicht globales Profil-Memory, sondern kleine Slices pro `company -> project -> issue/work-packet`; spaeter mit Relations wie `updates|extends|derives` zwischen Handoffs. Ref: `github.com/supermemoryai/supermemory`
 - **Loop-Detection im Adapter (inspiriert von PentAGI).** Wenn Gemini denselben fehlerhaften Command 3x wiederholt (z.B. PowerShell-`&&`), soll der Adapter warnen/stoppen statt Tokens zu verbrennen. PentAGI nutzt Schwelle 5x identische Tool-Calls + max 10 Gesamt. Unser Ansatz: deterministische Regel im Adapter, kein separater Agent.
 - **`complete_task` Barrier-Tool (inspiriert von PentAGI).** Worker/Reviewer sollen am Run-Ende ein explizites Tool aufrufen das strukturiertes Ergebnis erzwingt (statt einfach aufzuhoeren). Verbindet Handoff-Summaries mit klarem Run-Ende. PentAGI: `FinalyTool`/`CodeResult`/`HackResult`. Ref: `github.com/vxcontrol/pentagi`
 - **Token-Budgets pro Rolle (inspiriert von PentAGI).** CEO bekommt hoeheres Token-Budget (plant, braucht Kontext), Worker mittel, Reviewer klein. In Role-Templates als Feld, nicht hardcoded. PentAGI: Generator 4096, Coder 2048, Searcher 1024.
 - **CEO-Output als strukturiertes Packet-Template (inspiriert von Spec-Kit).** CEO soll Work Packets nicht frei formulieren sondern in festem Format: Titel, Ziel, Scope, doneWhen, targetFolder, Annahmen, `[NEEDS INPUT]`-Marker fuer Unklarheiten. `[NEEDS INPUT]` ist besser als raten — David sieht sofort was Klaerung braucht. Ref: `github.com/github/spec-kit` (Specify → Plan → Tasks → Implement = Mission → CEO → Packets → Worker → Review). Gehoert direkt in den `ceo.json` systemPrompt.
 - **Constitution-Check im CEO-Prompt (inspiriert von Spec-Kit).** Kompakter Pruefblock bevor Packets erstellt werden: Entlastet es David real? Scope klar genug fuer Worker? Passt ins Budget? Braucht Review? Kein separates File, rein als Prompt-Anweisung.
+- **CEO braucht API-Hinweis automatisch.** Der erste CEO-Delegationslauf blieb bei Prosa/Snippets stehen, weil `includeApiAccessNote` im Agent-Config fehlte. Fix-Richtung: fuer `roleTemplateId=ceo` den Paperclip-API-Hinweis im Gemini-Adapter automatisch einschalten und explizit sagen: echte `run_shell_command`-POSTs ausfuehren, keine Demo-Kommandos ausgeben.
 - **Issues IMMER mit projectId erstellen** - sonst kein Workspace-Lookup
 - **Token Caps = Warnings** - timeoutSec ist der echte Guard
 - **MiniMax spaeter** - erst nach stabiler Gemini-Lane und Firmenbetrieb

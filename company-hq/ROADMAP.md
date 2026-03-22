@@ -79,7 +79,7 @@ Gemini ist die erste Arbeiterbiene. Die Infrastruktur steht:
 |-----|---------------|
 | Claude/Codex reaktivieren | Gemini-Lane stabil + echte Luecke die Gemini nicht kann |
 | Multi-Agent-Coordination | Mindestens 2 Agents die einzeln stabil laufen |
-| Shared Memory | Agents die sich kennen muessen fuer eine Aufgabe |
+| Graph-based Memory (Blast Radius) | Start von Multi-Agent-Arbeit oder komplexen Infra-Umbauten (`company-hq/research/2026-03-21-knowledge-graph-memory-pattern.md`) |
 | Mehr Autonomie | Stabile Governance + messbare Entlastung |
 
 ---

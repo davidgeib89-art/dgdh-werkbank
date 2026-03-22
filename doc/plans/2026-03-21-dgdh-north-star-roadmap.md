@@ -329,6 +329,8 @@ Und die wichtigste Regel ist:
 
 > retrieve the smallest useful memory slice, not the broadest possible history
 
+*(Wichtiger Trigger für die Zukunft: Sobald Multi-Agent-Koordination startet oder DGDH-Infrastruktur-Code umgebaut wird, müssen wir auf einen getypten "Knowledge Graph" mit Blast-Radius-Analyse umsteigen. Siehe dazu: `company-hq/research/2026-03-21-knowledge-graph-memory-pattern.md`)*
+
 ### Handoff-Memory statt Brain-Soup
 
 Die richtige Form fuer CEO/Worker/Reviewer ist:
@@ -482,6 +484,244 @@ Spec-Kit erstellt pro Feature einen Branch. DGDH-Ansatz: jedes CEO-Packet
 koennte einen eigenen Branch bekommen. Worker arbeitet auf Branch,
 Reviewer prueft Branch, Merge bei accepted. Erst relevant wenn mehrere
 Packets parallel laufen.
+
+### Patterns aus Karpathy autoresearch (Inspiration: github.com/karpathy/autoresearch)
+
+Ein autonomer Forschungsagent der nachts in einem Endlosloop Code schreibt, trainiert und bewertet.
+Anderer Use Case (Neural Architecture Search), aber drei Patterns sind direkt uebertragbar.
+
+**1. Simplicity Criterion im Reviewer-Prompt (sofort)**
+
+Karpathy's `program.md` enthaelt einen Satz der direkt Davids Leitfrage spiegelt:
+> "Simplicity criterion: All else being equal, simpler is better. A small improvement that adds ugly
+> complexity is not worth it. An improvement of ~0 but much simpler code? Keep."
+
+DGDH-Ansatz: Dieses Kriterium gehoert als explizite Pre-Accept-Rule in `reviewer.json`:
+Wenn der Worker signifikante Komplexitaet fuer minimalen Gewinn hinzugefuegt hat → `needs_revision`.
+Nicht als neue Dimension der Review-Matrix, sondern als Erweiterung der Pre-Accept-Rules.
+
+Umsetzung: naechstes kleines Template-Edit in reviewer.json, zusammen mit dem naechsten Packet.
+
+**2. Single File Modification + Fixed Constraints (bestaetigt, kein neues Packet)**
+
+Karpathy zwingt den Agenten: nur `train.py` anfassen, `prepare.py` ist read-only, hartes Zeitlimit.
+Das bestaetigt unseren `targetFolder`/`targetFiles`-Ansatz in Work Packets.
+
+Ergaenzung fuer Worker-Prompt: "Wenn das Problem ausserhalb deines Scope liegt, brich ab und melde
+Blocked — umbau das halbe Repo nicht."
+
+Diese Regel ist bereits implizit im worker.json — kein eigenes Packet, nur Verstaerkung beim naechsten
+Template-Update.
+
+**3. Git Reset Rollback-Loop (Phase 5 — nicht jetzt)**
+
+Karpathy nutzt Git als State-Machine: Code aendern → commit → Experiment → wenn schlechter: `git reset`.
+Das wuerde bei DGDH bedeuten: Reviewer gibt `needs_revision` → Engine macht `git reset --hard`
+auf Stand vor dem Worker-Run → naechster Versuch startet sauber.
+
+Warum nicht jetzt: erfordert koordinierten Branch-/Reset-Mechanismus zwischen Reviewer-Urteil und Engine.
+Das ist Phase-5-Infrastruktur.
+
+Lightweight-Version haben wir schon: Worker-Prompt sagt "adapt once, then report blocked" statt
+blind in Repair-Loops zu laufen.
+
+Trigger fuer echten Git-Rollback: wenn Worker-Runs nachweislich im Repair-Rabbit-Hole stecken und
+Reviewer-Urteil allein nicht reicht um den Zustand zu bereinigen.
+
+### Patterns aus markitdown (Inspiration: github.com/microsoft/markitdown)
+
+Ein schlankes Python-Tool das beliebige Dateien (PDF, Word, Excel, Bilder, Audio, HTML, CSV, ZIP,
+YouTube-URLs) in Markdown konvertiert — speziell fuer LLM-Pipelines gebaut.
+
+**1. Markdown als kanonisches Zwischenformat (sofort relevant fuer Revenue Lane #1)**
+
+Problem: Kundenordner enthalten PDFs, Word-Dokumente, Bilder mit Text, Excel-Tabellen.
+Gemini-Worker bekommt heute rohe Dateien oder muss selbst parsen — das kostet Tokens und ist fehleranfaellig.
+
+DGDH-Ansatz: Ingestion-Schritt vor dem Worker-Run:
+- Kundenordner → alles normalisieren zu Markdown
+- Markdown ist token-effizient, reviewbar von David, handoff-faehig zwischen Rollen
+- Worker bekommt sauberes Markdown statt heterogene Rohdaten
+
+Direkt relevant fuer den Web-Design-AI-Workflow: Kunde gibt PDFs und Word-Texte her,
+markitdown-Schritt macht daraus strukturiertes Markdown, dann befuellt der Worker das Schema.
+
+**2. Schmales Ingestion-Tool statt Tool-Zoo (Architektur-Prinzip)**
+
+markitdown hat eine einzige Funktion: `convert_to_markdown(uri)`.
+Das ist das Gegenteil von "Agent bekommt Dateisystem-Zugang und macht was er will."
+
+DGDH-Prinzip: Kontext standardisieren bevor agentisch gearbeitet wird.
+CEO/Worker/Reviewer bekommen normalisierte Inputs — keine heterogenen Rohdaten.
+
+**3. Plugin-System fuer Konverter (spaeter)**
+
+markitdown hat optionale Dependency-Gruppen (`[pdf]`, `[docx]`, `[pptx]`) und ein Plugin-System.
+DGDH-Ansatz fuer spaeter: Ingestion-Layer modular erweitern ohne den Worker-Kern anzufassen.
+Neue Formate (z.B. Buchungsplattform-HTML, Bewertungsportale) als eigene Konverter ergaenzen.
+
+Trigger: wenn Revenue Lane #1 mehr als 2-3 Kundenformate hat.
+
+**4. MCP-Server fuer engen Tool-Zugang (bestaetigt bestehende Richtung)**
+
+markitdown bietet einen MCP-Server (`markitdown-mcp`) statt direktem Dateisystem-Zugang.
+Das bestaetigt die in Section 10 dokumentierte MCP-Tool-State-Maschine:
+Agents bekommen engen, definierten Tool-Zugang statt breite Filesystem-Macht.
+
+### Patterns aus supermemory (Inspiration: github.com/supermemoryai/supermemory)
+
+Ein Memory-/Context-Produkt mit API, MCP, SDKs, Project-Scoping und visualisiertem Memory-Graph.
+Nicht alles davon passt zu DGDH. Aber einige Patterns sind fuer die Firmen-Architektur sehr stark.
+
+**1. Scopes statt globales Memory (sofort relevant)**
+
+supermemory arbeitet mit `containerTag` / Projekt-Scopes statt einer einzigen globalen Memory-Masse.
+Das passt direkt zu DGDH.
+
+DGDH-Richtung:
+- Shared Memory immer klein und scoped halten
+- primaere Scopes: `company -> project -> issue/work-packet`
+- CEO darf Parent-/Mission-Scope lesen
+- Worker liest standardmaessig nur Packet-Scope + minimalen Mission-Slice
+- Reviewer liest Packet + Worker-Evidence + relevanten Mission-Slice
+
+Das ist die operative Form von:
+
+> retrieve the smallest useful memory slice, not the broadest possible history
+
+**2. Versionierte Handoff-Relationen statt flacher History (spaeter, aber sehr passend)**
+
+supermemory modelliert Relationen wie `updates`, `extends`, `derives` zwischen Memory-Eintraegen.
+Das ist fuer DGDH deutlich nuetzlicher als ein allgemeines "AI erinnert sich halt".
+
+DGDH-Uebersetzung:
+- Worker-Handoff `updates` den aktuellen Packet-Status
+- Reviewer-Verdict `derives` aus Worker-Evidence + Packet-Definition
+- CEO-Missionsstatus `extends` sich durch Child-Packet-Handoffs
+
+Dadurch wird Memory nicht nur suchbar, sondern auditierbar:
+welcher Stand ist aktuell, was ersetzt was, und welches Urteil basiert auf welcher Evidenz.
+
+Trigger fuer Umsetzung:
+- erst nachdem strukturierte Handoff-Summaries parsed/gespeichert werden
+- kein neues generisches Memory-System vorher
+
+**3. Kleiner MCP-Surface fuer Memory/Context statt Tool-Wildwuchs (bestaetigt Richtung)**
+
+supermemorys MCP-Server bleibt relativ eng:
+- `memory`
+- `recall`
+- `context`
+- wenige zusaetzliche Discovery-/Graph-Tools
+
+Das ist ein gutes Pattern fuer DGDH.
+Wenn DGDH spaeter Memory per MCP exponiert, dann nicht als Tool-Zoo, sondern als kleine,
+klare Surface fuer Handoffs und Kontext.
+
+Moegliche DGDH-Form spaeter:
+- `write_handoff`
+- `recall_handoff`
+- `issue_context`
+- `list_scopes`
+
+Wichtig:
+- immer company- und issue-scoped
+- kein offener "such mal ueber alles" Default
+
+**4. Per-Run / Per-Turn Context-Cache (sofort als Engine-Prinzip relevant)**
+
+supermemory cached Memory-Injection pro Turn, damit Tool-Call-Fortsetzungen nicht denselben
+Kontext immer wieder neu holen.
+
+DGDH-Ansatz:
+- ein Heartbeat-/Run-Kontext soll denselben Memory-Slice nicht mehrfach frisch berechnen
+- Tool-Fortsetzungen und kleine Mehrschritt-Loops sollen denselben aufgeloesten Kontext wiederverwenden
+- spart Tokens, Latenz und senkt Drift
+
+Das ist kein Produkt-Feature fuer David, aber ein sehr gutes Engine-Prinzip.
+
+**5. Was wir explizit NICHT kopieren sollten**
+
+Nicht die richtige Phase fuer DGDH:
+- personal-assistant-first Memory als Hauptprodukt
+- globale User-Profile als zentrale Architektur
+- Connector-Flaechen (Gmail, Drive, Notion, etc.) vor stabiler Firmen-Lane
+
+Die richtige Uebersetzung ist:
+
+> nicht "Supermemory fuer alles", sondern "sauberes, scoped Handoff-Memory fuer CEO -> Worker -> Reviewer"
+
+### Patterns aus AlphaClaw (Inspiration: AlphaClaw / OpenClaw Wrapper)
+
+Ein "Betriebssystem-Wrapper" der einen AI-Agenten monatelang stabil laufen laesst.
+Fokus: Zero-SSH-Management, Watchdog-Stabilitaet, gefuehrte Operator-Workflows.
+
+**1. Proaktive Operator-Notification (sofort, klein)**
+
+AlphaClaw schickt Telegram-Nachrichten wenn ein Agent crasht oder im Loop steckt.
+DGDH-Ansatz: David soll nicht das Dashboard pollen muessen. Wenn ein Run nach X Minuten
+kein Ergebnis liefert, im Loop haengt oder mit `failed` endet, bekommt David aktiv ein Signal.
+
+Das ist *der* echte Wert aus diesem Pattern — nicht das Auto-Repair selbst (Timeout haben wir,
+Git-Reset ist im Karpathy-Pattern), sondern die Notification.
+
+Trigger fuer Umsetzung: sobald CEO-Delegation laeuft und mehrere Runs parallel aktiv sein koennen.
+Dann ist Dashboard-Polling keine Option mehr — David muss push-benachrichtigt werden.
+
+**2. Anti-Drift Prompt Injection (bereits implementiert — Bestaetigung)**
+
+AlphaClaw injiziert bei jedem Run frische AGENTS.md + TOOLS.md als System-Prompt.
+DGDH macht das bereits: `paperclipRoleTemplatePrompt` wird bei jedem Heartbeat-Run
+aus dem Role Template geladen und in den Gemini-Prompt injiziert.
+
+Das ist kein neues Packet — es ist eine Bestaetigung dass wir das richtige Pattern schon haben.
+Konsequenz: Role Templates gut halten = Anti-Drift ist automatisch erledigt.
+
+**3. Diff-View + Inline-Approve im Dashboard (Phase 4)**
+
+AlphaClaw bietet In-Browser File Explorer mit Diff-View fuer Zero-SSH-Workflows.
+DGDH-Ansatz fuer Phase 4: wenn Reviewer `needs_revision` oder `uncertain` zurueckgibt,
+sieht David im Dashboard den Code-Diff und kann inline approven oder abweisen — kein Terminal.
+
+Minimalversion: Run zeigt betroffene Dateien + Diff-Link. Approve-Button fuer Reviewer-Eskalation.
+Volle IDE-im-Browser ist weit spaeter. Erst wenn Worker-Reviewer-Loop bewiesen ist.
+
+### API-Palette fuer Revenue Lane #1 und CEO/Worker-Enrichment
+
+Referenz: `github.com/public-apis/public-apis` — kuratierte Liste freier und freemium APIs.
+Nicht jetzt umsetzen. Aber wenn der AI-Workflow bewiesen ist, sind das die naechsten Hebel.
+
+**Prioritaet 1 — sofort relevant wenn Web-Design-Lane laeuft**
+
+| API | Zweck | Kosten | Notiz |
+|-----|-------|--------|-------|
+| Nominatim (OpenStreetMap) | Geocoding fuer Lage-Sektion | gratis, kein Key | Jede kleine Firma braucht Karte. Worker befuellt lat/lng automatisch aus Adresse. |
+| Microlink / OpenGraphr | Link-Metadaten, OG-Preview | Freemium | POI-Links, Partner-Links mit automatischen Vorschaubildern anreichern. |
+| LibreTranslate | Uebersetzung | Open Source / self-host | Wenn Kunden mehrsprachige Site wollen. Auch auf eigenem Server betreibbar. |
+
+**Prioritaet 2 — sinnvoll wenn Ingestion-Pipeline steht**
+
+| API | Zweck | Kosten | Notiz |
+|-----|-------|--------|-------|
+| CloudConvert / iLovePDF | Dokumenten-Konvertierung | Freemium | Kundenordner mit PDFs/Word → saubere Artefakte fuer Worker. Ergaenzung zu markitdown. |
+| ApiFlash / ScreenshotAPI | Web-Screenshot | Freemium | Competitor-Analyse fuer CEO-Planungsruns. "Wie sehen aehnliche Sites aus?" |
+| Kickbox / Disify | E-Mail-Validierung | Freemium | Kontaktformular-Qualitaet pruefen bevor Kunde live geht. |
+
+**Prioritaet 3 — spaeter / bei Bedarf**
+
+| API | Zweck | Notiz |
+|-----|-------|-------|
+| Wikidata / Wikipedia | Firmen- und Ortsanreicherung | Fuer Kunden mit lokalem Kontext (Geschichte, Sehenswuerdigkeiten) |
+| OpenCage / Geoapify | Erweitertes Geocoding | Wenn Nominatim fuer spezielle Faelle nicht reicht |
+| Sendgrid / Mailtrap | E-Mail-Tests | Kontaktformular-Testing in Staging-Umgebung |
+| DetectLanguage | Spracherkennung | Wenn Kundeninhalte gemischsprachig ankommen |
+
+**Was wir nicht brauchen**
+- Blockchain, Auth-Anbieter, Stock-Market-Daten — kein Bezug zu Revenue Lane #1 oder DGDH-Agenten
+
+**Naechster konkreter Schritt wenn bereit:**
+Nominatim zuerst — kein API-Key, gratis, direkter Wert fuer jede Kunden-Site.
+Worker befuellt `location`-Section automatisch: Adresse → lat/lng → Karte einbettbar.
 
 ## 11. Multi-Agent-Arbeit: Erst smart strukturieren, dann parallelisieren
 

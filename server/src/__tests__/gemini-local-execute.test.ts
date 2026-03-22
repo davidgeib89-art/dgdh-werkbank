@@ -430,6 +430,96 @@ describe("gemini execute", () => {
   );
 
   itGeminiExecute(
+    "injects project-aware API notes for child issue creation when issue context is present",
+    async () => {
+      const root = await fs.mkdtemp(
+        path.join(os.tmpdir(), "paperclip-gemini-ceo-api-"),
+      );
+      const workspace = path.join(root, "workspace");
+      const commandPath = path.join(root, "gemini");
+      const capturePath = path.join(root, "capture.json");
+      await fs.mkdir(workspace, { recursive: true });
+      const executablePath = await writeFakeGeminiCommand(commandPath);
+      const runtimeCommand =
+        process.platform === "win32" ? process.execPath : executablePath;
+      const runtimeExtraArgs =
+        process.platform === "win32" ? [`${commandPath}.cjs`] : undefined;
+
+      const previousHome = process.env.HOME;
+      process.env.HOME = root;
+
+      let invocationPrompt = "";
+      try {
+        await execute({
+          runId: "run-ceo-api",
+          agent: {
+            id: "agent-1",
+            companyId: "company-1",
+            name: "Gemini CEO",
+            adapterType: "gemini_local",
+            adapterConfig: {
+              roleTemplateId: "ceo",
+            },
+          },
+          runtime: {
+            sessionId: null,
+            sessionParams: null,
+            sessionDisplayId: null,
+            taskKey: null,
+          },
+          config: {
+            command: runtimeCommand,
+            cwd: workspace,
+            ...(runtimeExtraArgs ? { extraArgs: runtimeExtraArgs } : {}),
+            env: {
+              PAPERCLIP_TEST_CAPTURE_PATH: capturePath,
+            },
+            promptTemplate: "Plan bounded work packets.",
+          },
+          context: {
+            issueId: "issue-123",
+            taskId: "issue-123",
+            projectId: "project-456",
+          },
+          authToken: "run-jwt-token",
+          onLog: async () => {},
+          onMeta: async (meta) => {
+            invocationPrompt = meta.prompt ?? "";
+          },
+        });
+
+        const capture = JSON.parse(
+          await fs.readFile(capturePath, "utf8"),
+        ) as CapturePayload;
+        expect(capture.paperclipEnvKeys).toEqual(
+          expect.arrayContaining([
+            "PAPERCLIP_PROJECT_ID",
+            "PAPERCLIP_TASK_ID",
+          ]),
+        );
+        expect(invocationPrompt).toContain("Create child issue example:");
+        expect(invocationPrompt).toContain(
+          "Do not search for a Paperclip CLI for issue management.",
+        );
+        expect(invocationPrompt).toContain(
+          "Execute the Paperclip API calls with run_shell_command.",
+        );
+        expect(invocationPrompt).toContain("PAPERCLIP_PROJECT_ID");
+        expect(invocationPrompt).toContain(
+          "/api/companies/$env:PAPERCLIP_COMPANY_ID/issues",
+        );
+      } finally {
+        if (previousHome === undefined) {
+          delete process.env.HOME;
+        } else {
+          process.env.HOME = previousHome;
+        }
+        await fs.rm(root, { recursive: true, force: true });
+      }
+    },
+  );
+
+  itGeminiExecute(
     "prepends canonical role template notes when provided in context",
     async () => {
       const root = await fs.mkdtemp(

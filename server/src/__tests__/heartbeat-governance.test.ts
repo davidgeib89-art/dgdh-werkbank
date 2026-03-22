@@ -155,6 +155,12 @@ describe("heartbeat governance helpers", () => {
         "src/content/settings/site.json",
         "src/content/settings/profile.json",
       ],
+      artifactPaths: ["doc/content-structure-summary.md"],
+      workerHandoff: [
+        "1. Goal",
+        "2. Result",
+        "3. Files Changed: `doc/content-structure-summary.md`",
+      ].join("\n"),
     });
 
     expect(context.paperclipOriginalTaskPrompt).toContain(
@@ -171,6 +177,13 @@ describe("heartbeat governance helpers", () => {
       "src/content/settings/site.json",
     );
     expect(context.paperclipTaskPrompt).toContain(
+      "Worker produced artifacts:",
+    );
+    expect(context.paperclipTaskPrompt).toContain(
+      "doc/content-structure-summary.md",
+    );
+    expect(context.paperclipTaskPrompt).toContain("Worker handoff:");
+    expect(context.paperclipTaskPrompt).toContain(
       "Verdict: accepted | needs_revision | blocked",
     );
     expect(context.paperclipTaskPrompt).toContain(
@@ -179,6 +192,7 @@ describe("heartbeat governance helpers", () => {
     expect(context.paperclipReviewTarget).toMatchObject({
       runId: "run-worker-1",
       agentName: "Gemini Arbeiterbiene",
+      artifactPaths: ["doc/content-structure-summary.md"],
     });
   });
 

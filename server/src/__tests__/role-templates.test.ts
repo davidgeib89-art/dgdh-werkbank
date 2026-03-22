@@ -77,6 +77,40 @@ describe("resolveAssignedRoleTemplate", () => {
     );
   });
 
+  it("loads the canonical ceo template with constitution check and packet schema", () => {
+    const result = resolveAssignedRoleTemplate({
+      roleTemplateId: "ceo",
+    });
+
+    expect(result.error).toBeNull();
+    expect(result.assigned?.template.id).toBe("ceo");
+    expect(result.assigned?.prompt).toContain("Constitution check");
+    expect(result.assigned?.prompt).toContain("[NEEDS INPUT]");
+    expect(result.assigned?.prompt).toContain("doneWhen");
+    expect(result.assigned?.prompt).toContain(
+      "Read at most 3-5 directly relevant files",
+    );
+    expect(result.assigned?.prompt).toContain(
+      "Create real child issues in Paperclip",
+    );
+    expect(result.assigned?.prompt).toContain(
+      "Do not search for a `pc` or `paperclip` CLI.",
+    );
+    expect(result.assigned?.prompt).toContain(
+      "Execute the issue creation calls. Do not merely print sample commands",
+    );
+  });
+
+  it("reviewer matrix format is structured in the prompt", () => {
+    const result = resolveAssignedRoleTemplate({
+      roleTemplateId: "reviewer",
+    });
+
+    expect(result.error).toBeNull();
+    expect(result.assigned?.prompt).toContain("pass/fail/partial");
+    expect(result.assigned?.prompt).toContain("| Scope            |");
+  });
+
   it("returns a clear error for unknown templates", () => {
     const result = resolveAssignedRoleTemplate({
       roleTemplateId: "does-not-exist",

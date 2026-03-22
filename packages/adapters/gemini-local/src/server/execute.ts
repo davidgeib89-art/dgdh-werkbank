@@ -83,13 +83,28 @@ function renderApiAccessNote(env: Record<string, string>): string {
   return [
     "Paperclip API access note:",
     "This adapter runs in Windows PowerShell.",
+    "Do not search for a Paperclip CLI for issue management. Use Invoke-RestMethod directly.",
+    "Execute the Paperclip API calls with run_shell_command. Do not stop at sample code or a prose plan.",
+    "Use the exact PAPERCLIP_* environment variables shown here. Do not replace them with guessed titles, slugs, or localhost ports.",
     "Do not use bare curl in PowerShell because it resolves to Invoke-WebRequest.",
     "Do not send JSON bodies with curl.exe -d '{...}' from PowerShell; that can produce invalid JSON on the server.",
     "Use run_shell_command with curl.exe or Invoke-RestMethod for Paperclip API requests.",
     "GET example:",
     `  run_shell_command({ command: "Invoke-RestMethod -Uri \"$env:PAPERCLIP_API_URL/api/agents/me\" -Headers @{ Authorization = \"Bearer $env:PAPERCLIP_API_KEY\" } | ConvertTo-Json -Depth 10" })`,
+    "Current issue example:",
+    `  run_shell_command({ command: "Invoke-RestMethod -Uri \"$env:PAPERCLIP_API_URL/api/issues/$env:PAPERCLIP_TASK_ID\" -Headers @{ Authorization = \"Bearer $env:PAPERCLIP_API_KEY\" } | ConvertTo-Json -Depth 10" })`,
     "Checkout example:",
     `  run_shell_command({ command: "$body = @{ agentId = $env:PAPERCLIP_AGENT_ID; expectedStatuses = @('todo','backlog','blocked') } | ConvertTo-Json -Depth 4; Invoke-RestMethod -Method Post -Uri \"$env:PAPERCLIP_API_URL/api/issues/{id}/checkout\" -Headers @{ Authorization = \"Bearer $env:PAPERCLIP_API_KEY\"; \"X-Paperclip-Run-Id\" = $env:PAPERCLIP_RUN_ID } -ContentType \"application/json\" -Body $body | ConvertTo-Json -Depth 10" })`,
+    "Create child issue example:",
+    `  run_shell_command({ command: "$description = @'`,
+    `Titel: Example packet`,
+    `Ziel: ...`,
+    `Scope: ...`,
+    `doneWhen: ...`,
+    `targetFolder: ...`,
+    `Annahmen:`,
+    `[NEEDS INPUT]: none`,
+    `'@; $body = @{ projectId = $env:PAPERCLIP_PROJECT_ID; parentId = $env:PAPERCLIP_TASK_ID; title = \"Example packet\"; description = $description; status = \"todo\" } | ConvertTo-Json -Depth 6; Invoke-RestMethod -Method Post -Uri \"$env:PAPERCLIP_API_URL/api/companies/$env:PAPERCLIP_COMPANY_ID/issues\" -Headers @{ Authorization = \"Bearer $env:PAPERCLIP_API_KEY\"; \"X-Paperclip-Run-Id\" = $env:PAPERCLIP_RUN_ID } -ContentType \"application/json\" -Body $body | ConvertTo-Json -Depth 10" })`,
     "POST/PATCH example:",
     `  run_shell_command({ command: "$body = @{ status = \"done\"; comment = \"...\" } | ConvertTo-Json -Depth 4; Invoke-RestMethod -Method Patch -Uri \"$env:PAPERCLIP_API_URL/api/issues/{id}\" -Headers @{ Authorization = \"Bearer $env:PAPERCLIP_API_KEY\"; \"X-Paperclip-Run-Id\" = $env:PAPERCLIP_RUN_ID } -ContentType \"application/json\" -Body $body | ConvertTo-Json -Depth 10" })`,
     "",
@@ -397,6 +412,11 @@ export async function execute(
   if (approvalStatus) env.PAPERCLIP_APPROVAL_STATUS = approvalStatus;
   if (linkedIssueIds.length > 0)
     env.PAPERCLIP_LINKED_ISSUE_IDS = linkedIssueIds.join(",");
+  const contextProjectId =
+    typeof context.projectId === "string" && context.projectId.trim().length > 0
+      ? context.projectId.trim()
+      : "";
+  if (contextProjectId) env.PAPERCLIP_PROJECT_ID = contextProjectId;
   if (effectiveWorkspaceCwd)
     env.PAPERCLIP_WORKSPACE_CWD = effectiveWorkspaceCwd;
   if (workspaceSource) env.PAPERCLIP_WORKSPACE_SOURCE = workspaceSource;
@@ -521,6 +541,15 @@ export async function execute(
       ? renderTemplate(bootstrapPromptTemplate, templateData).trim()
       : "";
   const roleTemplateNote = strictFloorMode ? "" : renderRoleTemplateNote(context);
+  const roleTemplateId = strictFloorMode
+    ? ""
+    : asString(
+        parseObject(agent.adapterConfig).roleTemplateId ??
+          parseObject(config).roleTemplateId,
+        "",
+      )
+        .trim()
+        .toLowerCase();
   const sessionHandoffNote = strictFloorMode
     ? ""
     : asString(context.paperclipSessionHandoffMarkdown, "").trim();
@@ -529,7 +558,8 @@ export async function execute(
   const includePaperclipEnvNote =
     !strictFloorMode && asBoolean(config.includePaperclipEnvNote, false);
   const includeApiAccessNote =
-    !strictFloorMode && asBoolean(config.includeApiAccessNote, false);
+    !strictFloorMode &&
+    (roleTemplateId === "ceo" || asBoolean(config.includeApiAccessNote, false));
   const paperclipEnvNote = includePaperclipEnvNote
     ? renderPaperclipEnvNote(env)
     : "";

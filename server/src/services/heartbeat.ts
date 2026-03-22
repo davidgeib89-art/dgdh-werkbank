@@ -876,6 +876,8 @@ type ReviewTargetPromptContext = {
   model: string | null;
   resultSummary: string | null;
   readEvidencePaths: string[];
+  artifactPaths: string[];
+  workerHandoff: string | null;
 };
 
 function trimIssueText(value: unknown) {
@@ -985,6 +987,21 @@ function buildReviewerTaskPrompt(input: {
   } else {
     lines.push("- Worker read evidence: none recorded");
   }
+  if (reviewTarget.artifactPaths.length > 0) {
+    lines.push("- Worker produced artifacts:");
+    for (const artifactPath of reviewTarget.artifactPaths) {
+      lines.push(`  - ${artifactPath}`);
+    }
+  } else {
+    lines.push("- Worker produced artifacts: none recorded");
+  }
+  if (reviewTarget.workerHandoff) {
+    lines.push(
+      "",
+      "Worker handoff:",
+      reviewTarget.workerHandoff,
+    );
+  }
 
   lines.push(
     "",
@@ -1062,6 +1079,27 @@ function collectAssistantContentFromStreamJson(
   }
   if (chunks.length === 0) return null;
   return chunks.join("\n");
+}
+
+function extractArtifactPathsFromWorkerOutput(
+  output: string | null | undefined,
+): string[] {
+  if (!output) return [];
+  const paths = new Set<string>();
+
+  const assistantOutput = collectAssistantContentFromStreamJson(output);
+  const assistantText = assistantOutput ?? output;
+  for (const match of assistantText.matchAll(/Files Changed:\s*`([^`]+)`/g)) {
+    const candidate = match[1]?.trim();
+    if (candidate) paths.add(candidate);
+  }
+
+  for (const match of output.matchAll(/"file_path":"([^"]+)"/g)) {
+    const candidate = match[1]?.trim();
+    if (candidate) paths.add(candidate);
+  }
+
+  return [...paths];
 }
 
 export function extractReviewerVerdict(
@@ -1324,6 +1362,8 @@ export function applyReviewerPromptContext(
       model: reviewTarget.model,
       resultSummary: reviewTarget.resultSummary,
       readEvidencePaths: reviewTarget.readEvidencePaths,
+      artifactPaths: reviewTarget.artifactPaths,
+      workerHandoff: reviewTarget.workerHandoff,
     };
     delete contextSnapshot.paperclipReviewTargetError;
   } else {
@@ -1844,6 +1884,7 @@ export function heartbeatService(db: Db) {
         status: heartbeatRuns.status,
         finishedAt: heartbeatRuns.finishedAt,
         resultJson: heartbeatRuns.resultJson,
+        stdoutExcerpt: heartbeatRuns.stdoutExcerpt,
         contextSnapshot: heartbeatRuns.contextSnapshot,
         agentName: agents.name,
       })
@@ -1889,6 +1930,11 @@ export function heartbeatService(db: Db) {
     const resultSummaryRecord = summarizeHeartbeatRunResultJson(
       parseObject(target.resultJson),
     );
+    const targetStdoutExcerpt = readNonEmptyString(target.stdoutExcerpt);
+    const workerHandoff =
+      (targetStdoutExcerpt
+        ? collectAssistantContentFromStreamJson(targetStdoutExcerpt)
+        : null) ?? targetStdoutExcerpt;
     const targetContext = parseObject(target.contextSnapshot);
     const targetPreflight = parseObject(targetContext.paperclipRoutingPreflight);
     const targetSelected = parseObject(targetPreflight.selected);
@@ -1919,6 +1965,9 @@ export function heartbeatService(db: Db) {
           .filter((value): value is string => Boolean(value)),
       ),
     ];
+    const artifactPaths = extractArtifactPathsFromWorkerOutput(
+      targetStdoutExcerpt,
+    );
 
     return {
       runId: target.id,
@@ -1936,6 +1985,8 @@ export function heartbeatService(db: Db) {
         readNonEmptyString(resultSummaryRecord?.result) ??
         readNonEmptyString(resultSummaryRecord?.message),
       readEvidencePaths,
+      artifactPaths,
+      workerHandoff,
     };
   }
 

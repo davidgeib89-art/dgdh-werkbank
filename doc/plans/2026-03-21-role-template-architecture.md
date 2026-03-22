@@ -8,14 +8,14 @@ Purpose: Preserve the agreed direction for durable agent roles before compact/co
 
 After reviewing `doc/research/2026-03-21-paper-insights-for-dgdh.md`, the immediate order is sharper:
 
-1. Harden the `Worker` template with a visible execution loop:
+1. [done] Harden the `Worker` template with a visible execution loop:
    - `locate -> hypothesize -> patch -> validate`
-2. Harden the `Reviewer` template with a fixed review matrix:
+2. [done] Harden the `Reviewer` template with a fixed review matrix:
    - `Scope`
    - `Correctness`
    - `Evidence`
    - `Safety / Readiness`
-3. Build `CEO V1` on top of that more reliable substrate
+3. [done] Build `CEO V1` on top of that more reliable substrate
 
 Important interpretation:
 
@@ -23,6 +23,14 @@ Important interpretation:
 - it corrects sequencing
 - Packets 1 and 2 above are template-level prompt improvements, not new orchestration infrastructure
 - a bigger tool-state-machine or MCP-like runtime loop still comes later, after `CEO V1`
+
+Current live interpretation:
+
+- the reviewer matrix output is now parseable
+- the CEO packet schema and constitution check are now defined in the canonical template
+- the CEO template now also caps itself to 3-5 directly relevant files and explicitly forbids codebase-exploration loops
+- the MVP delegation bridge does not require a new server tool; the CEO can use existing Paperclip API access to create unassigned child issues
+- the next proof packet is not more template design, but a real CEO run that creates work-packet issues
 
 ## 1. Problem
 
