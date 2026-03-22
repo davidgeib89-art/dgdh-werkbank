@@ -36,6 +36,7 @@ Hosting: Cloudflare Pages Free Tier. Kunde zahlt nur ~5€/Jahr fuer Domain.
 - Revenue Lane soll als Packet-Kette laufen: CEO -> Image Preprocessing -> Content Extraction/Draft -> Schema Fill -> Review
 - Fehlende Namen, Texte oder Fakten werden als `[NEEDS INPUT]` / Platzhalter behandelt, nicht halluziniert
 - Der erste zu produktisierende Revenue-Lane-Packet-Typ ist Bild-Preprocessing / Asset-Optimierung
+- Sprint E ist geliefert: deterministische `sharp`-Pipeline plus reviewbares Manifest fuer den Kundenordner `shared/Kunde/Unbekannt Bamberger Tante/processed`
 
 ### Content-Modell (alles statische Textdateien, keine DB!)
 ```
@@ -134,7 +135,7 @@ handoff-faehig. Ref: `github.com/microsoft/markitdown`
 | 1 | Worker Abort bei Loop-Stop | `git checkout .` + strukturierter Blocked-Handoff bei 5x stop | Klein |
 | 2 | Reviewer Simplicity Criterion | Prompt-Tweak in `reviewer.json` — direkt in Sprint 1 rein | Minimal |
 | 3 | CEO Auto-Retrigger | Engine triggert CEO automatisch nach Reviewer accepted — kein manuelles Unassign/Reassign | Mittel |
-| 4 | Revenue Lane Foundation | Image Packet Pipeline zuerst; Content-Fill spaeter und nur mit Platzhaltern / `[NEEDS INPUT]` | Mittel |
+| 4 | Revenue Lane Foundation | Image Packet Pipeline geliefert; Content Extraction Worker (Flash-Lite) als naechstes | Mittel |
 - **Bekannte System-Gaps:** Issue-Kommentare nicht zuverlaessig als Kontext fuer Reviewer/CEO — kritische Infos immer in `doneWhen` / Description
 - **Onboarding-Prompts:** Fuer alle 4 Rollen fertig (Planer/Coder/Reviewer/Researcher) — in Claude-Session erarbeitet
 
@@ -166,6 +167,7 @@ Worker→Reviewer→done Flows laufen ohne Claude-Unterbrechung durch.
 - **MiniMax spaeter** - erst nach stabiler Gemini-Lane und Firmenbetrieb
 - **Free-Lane-Strategie.** Paid-Quota nur fuer Worker/Reviewer/CEO-Hauptarbeit. Freie/guenstige Tier fuer Preprocessing, Drafts, Scans. Tier-2-Modelle werden besser → immer mehr Arbeit wandert nach unten. Trigger: Task ist Vorstufe (Ingestion, Scan, Draft) oder Quota knapp.
 - **Revenue-Lane-Produktisierung vor Einzelfall-Delivery.** Wenn ein Auftrag wie "baue diese eine Kundenseite" aussieht, ist zuerst zu pruefen welcher wiederverwendbare Packet-Typ oder Tool-Pfad der Werkbank noch fehlt. Erst die Produktionsfaehigkeit, dann der Einzelfall.
+- **Image Packet Pipeline ist deterministic_tool, nicht LLM.** Route: `POST /api/companies/:companyId/revenue-lane/image-pipeline/process`. Service verarbeitet repo-relative Kundenordner mit `sharp`, erzeugt `hero/gallery/thumb` in `webp+jpg`, schreibt `manifest.json`, nutzt `sharp.strategy.attention`, und haelt pro Output das 200-KB-Ziel.
 - **Dual-Gemini-Failover ist live.** Account 1 exhausted / 429 / `RESOURCE_EXHAUSTED` -> automatisch Account 2 via `GEMINI_OAUTH_CREDS_2_PATH`; `accountLabel` zeigt `account_1` / `account_2`, Wechsel wird geloggt.
 - **CEO Aggregation: MUST-Sprache eingebaut.** `ceo.json` haelt jetzt: "MUST execute GET API call. Do not trust injected context. tool_calls: 0 is a failure." (Fix aus Run `5ecaa84f`)
 - **git_worktree aktiv fuer Projekt Astro/Keystatic (2026-03-22).** `enabled: true`, `defaultMode: "isolated"`, `workspaceStrategy.type: "git_worktree"`, `allowIssueOverride: true`. Neue Issue-Runs laufen jetzt in isolierten Checkouts. Teardown/PR/Auto-Rollback bewusst noch nicht aktiviert (Phase 5).
@@ -205,5 +207,4 @@ PATCH /api/issues/{id}  Body: {"assigneeAgentId": "<agent-id>"}
 # Worker:   fe5d3d60-9e8a-4e0c-b494-087d3518755c
 # Reviewer: 9e721036-35b7-446e-a752-2df7a1a8caad
 ```
-
 

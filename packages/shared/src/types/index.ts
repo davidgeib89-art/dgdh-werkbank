@@ -9,7 +9,14 @@ export type {
   AdapterEnvironmentCheck,
   AdapterEnvironmentTestResult,
 } from "./agent.js";
-export type { AssetImage } from "./asset.js";
+export type {
+  AssetImage,
+  RevenueImageOutputFormat,
+  RevenueImagePipelineAsset,
+  RevenueImagePipelineOutput,
+  RevenueImagePipelineResult,
+  RevenueImageVariantName,
+} from "./asset.js";
 export type { Project, ProjectGoalRef, ProjectWorkspace } from "./project.js";
 export type {
   WorkspaceRuntimeService,

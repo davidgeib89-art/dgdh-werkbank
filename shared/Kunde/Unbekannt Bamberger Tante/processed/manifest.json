@@ -1,0 +1,451 @@
+{
+  "sourceDir": "shared/Kunde/Unbekannt Bamberger Tante",
+  "outputDir": "shared/Kunde/Unbekannt Bamberger Tante/processed",
+  "manifestPath": "shared/Kunde/Unbekannt Bamberger Tante/processed/manifest.json",
+  "imageCount": 7,
+  "targetBytes": 200000,
+  "generatedAt": "2026-03-22T14:08:08.440Z",
+  "assets": [
+    {
+      "id": "image-01",
+      "sourceFilename": "098cd8a2-a742-4a85-82d7-633a9360603b.jpg",
+      "sourcePath": "shared/Kunde/Unbekannt Bamberger Tante/098cd8a2-a742-4a85-82d7-633a9360603b.jpg",
+      "sourceWidth": 2000,
+      "sourceHeight": 1500,
+      "outputs": [
+        {
+          "variant": "hero",
+          "format": "webp",
+          "path": "shared/Kunde/Unbekannt Bamberger Tante/processed/image-01-hero.webp",
+          "width": 1600,
+          "height": 900,
+          "byteSize": 191776,
+          "quality": 16
+        },
+        {
+          "variant": "hero",
+          "format": "jpg",
+          "path": "shared/Kunde/Unbekannt Bamberger Tante/processed/image-01-hero.jpg",
+          "width": 1600,
+          "height": 900,
+          "byteSize": 183181,
+          "quality": 34
+        },
+        {
+          "variant": "gallery",
+          "format": "webp",
+          "path": "shared/Kunde/Unbekannt Bamberger Tante/processed/image-01-gallery.webp",
+          "width": 1200,
+          "height": 900,
+          "byteSize": 184856,
+          "quality": 28
+        },
+        {
+          "variant": "gallery",
+          "format": "jpg",
+          "path": "shared/Kunde/Unbekannt Bamberger Tante/processed/image-01-gallery.jpg",
+          "width": 1200,
+          "height": 900,
+          "byteSize": 184505,
+          "quality": 52
+        },
+        {
+          "variant": "thumb",
+          "format": "webp",
+          "path": "shared/Kunde/Unbekannt Bamberger Tante/processed/image-01-thumb.webp",
+          "width": 600,
+          "height": 600,
+          "byteSize": 150194,
+          "quality": 82
+        },
+        {
+          "variant": "thumb",
+          "format": "jpg",
+          "path": "shared/Kunde/Unbekannt Bamberger Tante/processed/image-01-thumb.jpg",
+          "width": 600,
+          "height": 600,
+          "byteSize": 123410,
+          "quality": 82
+        }
+      ]
+    },
+    {
+      "id": "image-02",
+      "sourceFilename": "3610c53a-d123-4075-84a4-92e5417bdbc4.jpg",
+      "sourcePath": "shared/Kunde/Unbekannt Bamberger Tante/3610c53a-d123-4075-84a4-92e5417bdbc4.jpg",
+      "sourceWidth": 2000,
+      "sourceHeight": 1500,
+      "outputs": [
+        {
+          "variant": "hero",
+          "format": "webp",
+          "path": "shared/Kunde/Unbekannt Bamberger Tante/processed/image-02-hero.webp",
+          "width": 1600,
+          "height": 900,
+          "byteSize": 180434,
+          "quality": 28
+        },
+        {
+          "variant": "hero",
+          "format": "jpg",
+          "path": "shared/Kunde/Unbekannt Bamberger Tante/processed/image-02-hero.jpg",
+          "width": 1600,
+          "height": 900,
+          "byteSize": 190170,
+          "quality": 52
+        },
+        {
+          "variant": "gallery",
+          "format": "webp",
+          "path": "shared/Kunde/Unbekannt Bamberger Tante/processed/image-02-gallery.webp",
+          "width": 1200,
+          "height": 900,
+          "byteSize": 193540,
+          "quality": 58
+        },
+        {
+          "variant": "gallery",
+          "format": "jpg",
+          "path": "shared/Kunde/Unbekannt Bamberger Tante/processed/image-02-gallery.jpg",
+          "width": 1200,
+          "height": 900,
+          "byteSize": 177329,
+          "quality": 70
+        },
+        {
+          "variant": "thumb",
+          "format": "webp",
+          "path": "shared/Kunde/Unbekannt Bamberger Tante/processed/image-02-thumb.webp",
+          "width": 600,
+          "height": 600,
+          "byteSize": 86280,
+          "quality": 82
+        },
+        {
+          "variant": "thumb",
+          "format": "jpg",
+          "path": "shared/Kunde/Unbekannt Bamberger Tante/processed/image-02-thumb.jpg",
+          "width": 600,
+          "height": 600,
+          "byteSize": 73627,
+          "quality": 82
+        }
+      ]
+    },
+    {
+      "id": "image-03",
+      "sourceFilename": "381948b4-d72b-4c4a-962e-33b853c14cac.jpg",
+      "sourcePath": "shared/Kunde/Unbekannt Bamberger Tante/381948b4-d72b-4c4a-962e-33b853c14cac.jpg",
+      "sourceWidth": 2000,
+      "sourceHeight": 1500,
+      "outputs": [
+        {
+          "variant": "hero",
+          "format": "webp",
+          "path": "shared/Kunde/Unbekannt Bamberger Tante/processed/image-03-hero.webp",
+          "width": 1600,
+          "height": 900,
+          "byteSize": 181742,
+          "quality": 16
+        },
+        {
+          "variant": "hero",
+          "format": "jpg",
+          "path": "shared/Kunde/Unbekannt Bamberger Tante/processed/image-03-hero.jpg",
+          "width": 1600,
+          "height": 900,
+          "byteSize": 198750,
+          "quality": 40
+        },
+        {
+          "variant": "gallery",
+          "format": "webp",
+          "path": "shared/Kunde/Unbekannt Bamberger Tante/processed/image-03-gallery.webp",
+          "width": 1200,
+          "height": 900,
+          "byteSize": 182544,
+          "quality": 28
+        },
+        {
+          "variant": "gallery",
+          "format": "jpg",
+          "path": "shared/Kunde/Unbekannt Bamberger Tante/processed/image-03-gallery.jpg",
+          "width": 1200,
+          "height": 900,
+          "byteSize": 197837,
+          "quality": 58
+        },
+        {
+          "variant": "thumb",
+          "format": "webp",
+          "path": "shared/Kunde/Unbekannt Bamberger Tante/processed/image-03-thumb.webp",
+          "width": 600,
+          "height": 600,
+          "byteSize": 145290,
+          "quality": 82
+        },
+        {
+          "variant": "thumb",
+          "format": "jpg",
+          "path": "shared/Kunde/Unbekannt Bamberger Tante/processed/image-03-thumb.jpg",
+          "width": 600,
+          "height": 600,
+          "byteSize": 119339,
+          "quality": 82
+        }
+      ]
+    },
+    {
+      "id": "image-04",
+      "sourceFilename": "4687a476-4f19-498f-99dc-31866635a773.jpg",
+      "sourcePath": "shared/Kunde/Unbekannt Bamberger Tante/4687a476-4f19-498f-99dc-31866635a773.jpg",
+      "sourceWidth": 2000,
+      "sourceHeight": 1500,
+      "outputs": [
+        {
+          "variant": "hero",
+          "format": "webp",
+          "path": "shared/Kunde/Unbekannt Bamberger Tante/processed/image-04-hero.webp",
+          "width": 1600,
+          "height": 900,
+          "byteSize": 188412,
+          "quality": 16
+        },
+        {
+          "variant": "hero",
+          "format": "jpg",
+          "path": "shared/Kunde/Unbekannt Bamberger Tante/processed/image-04-hero.jpg",
+          "width": 1600,
+          "height": 900,
+          "byteSize": 180623,
+          "quality": 34
+        },
+        {
+          "variant": "gallery",
+          "format": "webp",
+          "path": "shared/Kunde/Unbekannt Bamberger Tante/processed/image-04-gallery.webp",
+          "width": 1200,
+          "height": 900,
+          "byteSize": 183898,
+          "quality": 28
+        },
+        {
+          "variant": "gallery",
+          "format": "jpg",
+          "path": "shared/Kunde/Unbekannt Bamberger Tante/processed/image-04-gallery.jpg",
+          "width": 1200,
+          "height": 900,
+          "byteSize": 182812,
+          "quality": 52
+        },
+        {
+          "variant": "thumb",
+          "format": "webp",
+          "path": "shared/Kunde/Unbekannt Bamberger Tante/processed/image-04-thumb.webp",
+          "width": 600,
+          "height": 600,
+          "byteSize": 142654,
+          "quality": 82
+        },
+        {
+          "variant": "thumb",
+          "format": "jpg",
+          "path": "shared/Kunde/Unbekannt Bamberger Tante/processed/image-04-thumb.jpg",
+          "width": 600,
+          "height": 600,
+          "byteSize": 119977,
+          "quality": 82
+        }
+      ]
+    },
+    {
+      "id": "image-05",
+      "sourceFilename": "5a202047-bf34-493b-828f-fb4c9b39fc78.jpg",
+      "sourcePath": "shared/Kunde/Unbekannt Bamberger Tante/5a202047-bf34-493b-828f-fb4c9b39fc78.jpg",
+      "sourceWidth": 2000,
+      "sourceHeight": 1500,
+      "outputs": [
+        {
+          "variant": "hero",
+          "format": "webp",
+          "path": "shared/Kunde/Unbekannt Bamberger Tante/processed/image-05-hero.webp",
+          "width": 1600,
+          "height": 900,
+          "byteSize": 181742,
+          "quality": 16
+        },
+        {
+          "variant": "hero",
+          "format": "jpg",
+          "path": "shared/Kunde/Unbekannt Bamberger Tante/processed/image-05-hero.jpg",
+          "width": 1600,
+          "height": 900,
+          "byteSize": 198750,
+          "quality": 40
+        },
+        {
+          "variant": "gallery",
+          "format": "webp",
+          "path": "shared/Kunde/Unbekannt Bamberger Tante/processed/image-05-gallery.webp",
+          "width": 1200,
+          "height": 900,
+          "byteSize": 182544,
+          "quality": 28
+        },
+        {
+          "variant": "gallery",
+          "format": "jpg",
+          "path": "shared/Kunde/Unbekannt Bamberger Tante/processed/image-05-gallery.jpg",
+          "width": 1200,
+          "height": 900,
+          "byteSize": 197837,
+          "quality": 58
+        },
+        {
+          "variant": "thumb",
+          "format": "webp",
+          "path": "shared/Kunde/Unbekannt Bamberger Tante/processed/image-05-thumb.webp",
+          "width": 600,
+          "height": 600,
+          "byteSize": 145290,
+          "quality": 82
+        },
+        {
+          "variant": "thumb",
+          "format": "jpg",
+          "path": "shared/Kunde/Unbekannt Bamberger Tante/processed/image-05-thumb.jpg",
+          "width": 600,
+          "height": 600,
+          "byteSize": 119339,
+          "quality": 82
+        }
+      ]
+    },
+    {
+      "id": "image-06",
+      "sourceFilename": "c4c82874-04ba-4a8a-b0e4-a6f66a4084ac.jpg",
+      "sourcePath": "shared/Kunde/Unbekannt Bamberger Tante/c4c82874-04ba-4a8a-b0e4-a6f66a4084ac.jpg",
+      "sourceWidth": 2000,
+      "sourceHeight": 1500,
+      "outputs": [
+        {
+          "variant": "hero",
+          "format": "webp",
+          "path": "shared/Kunde/Unbekannt Bamberger Tante/processed/image-06-hero.webp",
+          "width": 1600,
+          "height": 900,
+          "byteSize": 183320,
+          "quality": 28
+        },
+        {
+          "variant": "hero",
+          "format": "jpg",
+          "path": "shared/Kunde/Unbekannt Bamberger Tante/processed/image-06-hero.jpg",
+          "width": 1600,
+          "height": 900,
+          "byteSize": 192144,
+          "quality": 46
+        },
+        {
+          "variant": "gallery",
+          "format": "webp",
+          "path": "shared/Kunde/Unbekannt Bamberger Tante/processed/image-06-gallery.webp",
+          "width": 1200,
+          "height": 900,
+          "byteSize": 196876,
+          "quality": 40
+        },
+        {
+          "variant": "gallery",
+          "format": "jpg",
+          "path": "shared/Kunde/Unbekannt Bamberger Tante/processed/image-06-gallery.jpg",
+          "width": 1200,
+          "height": 900,
+          "byteSize": 181955,
+          "quality": 58
+        },
+        {
+          "variant": "thumb",
+          "format": "webp",
+          "path": "shared/Kunde/Unbekannt Bamberger Tante/processed/image-06-thumb.webp",
+          "width": 600,
+          "height": 600,
+          "byteSize": 119388,
+          "quality": 82
+        },
+        {
+          "variant": "thumb",
+          "format": "jpg",
+          "path": "shared/Kunde/Unbekannt Bamberger Tante/processed/image-06-thumb.jpg",
+          "width": 600,
+          "height": 600,
+          "byteSize": 103683,
+          "quality": 82
+        }
+      ]
+    },
+    {
+      "id": "image-07",
+      "sourceFilename": "e3bb265c-dfb3-413b-ae57-92c79a4cf5f8.jpg",
+      "sourcePath": "shared/Kunde/Unbekannt Bamberger Tante/e3bb265c-dfb3-413b-ae57-92c79a4cf5f8.jpg",
+      "sourceWidth": 2000,
+      "sourceHeight": 1500,
+      "outputs": [
+        {
+          "variant": "hero",
+          "format": "webp",
+          "path": "shared/Kunde/Unbekannt Bamberger Tante/processed/image-07-hero.webp",
+          "width": 1600,
+          "height": 900,
+          "byteSize": 198158,
+          "quality": 34
+        },
+        {
+          "variant": "hero",
+          "format": "jpg",
+          "path": "shared/Kunde/Unbekannt Bamberger Tante/processed/image-07-hero.jpg",
+          "width": 1600,
+          "height": 900,
+          "byteSize": 185912,
+          "quality": 46
+        },
+        {
+          "variant": "gallery",
+          "format": "webp",
+          "path": "shared/Kunde/Unbekannt Bamberger Tante/processed/image-07-gallery.webp",
+          "width": 1200,
+          "height": 900,
+          "byteSize": 192844,
+          "quality": 46
+        },
+        {
+          "variant": "gallery",
+          "format": "jpg",
+          "path": "shared/Kunde/Unbekannt Bamberger Tante/processed/image-07-gallery.jpg",
+          "width": 1200,
+          "height": 900,
+          "byteSize": 183043,
+          "quality": 64
+        },
+        {
+          "variant": "thumb",
+          "format": "webp",
+          "path": "shared/Kunde/Unbekannt Bamberger Tante/processed/image-07-thumb.webp",
+          "width": 600,
+          "height": 600,
+          "byteSize": 116310,
+          "quality": 82
+        },
+        {
+          "variant": "thumb",
+          "format": "jpg",
+          "path": "shared/Kunde/Unbekannt Bamberger Tante/processed/image-07-thumb.jpg",
+          "width": 600,
+          "height": 600,
+          "byteSize": 97073,
+          "quality": 82
+        }
+      ]
+    }
+  ]
+}

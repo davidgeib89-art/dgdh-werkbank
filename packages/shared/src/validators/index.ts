@@ -123,7 +123,9 @@ export {
 
 export {
   createAssetImageMetadataSchema,
+  runImagePacketPipelineSchema,
   type CreateAssetImageMetadata,
+  type RunImagePacketPipeline,
 } from "./asset.js";
 
 export {
