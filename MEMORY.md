@@ -2,7 +2,7 @@
 
 > Diese Datei wird von JEDER AI gelesen und gepflegt die in diesem Repo arbeitet.
 > Halte sie aktuell. Die naechste AI (oder du selbst nach /compact) ist darauf angewiesen.
-> Max ~150 Zeilen. Fakten, keine Prosa. Stabile Infos, keine Session-Details.
+> Max ~333 Zeilen (Davids Lieblingszahl). Fakten, keine Prosa. Stabile Infos, keine Session-Details.
 
 ---
 
@@ -86,57 +86,36 @@ handoff-faehig. Ref: `github.com/microsoft/markitdown`
 **Phase:** Engine bewiesen + Worker und Reviewer in echten Runs bewiesen. CEO V1 ist live als Planungs- und Delegationsrolle bewiesen, und die erste vollstaendige Kette ist geschafft: `Mission -> CEO -> Child-Issue -> Worker -> Reviewer -> done`.
 
 ### Was funktioniert (bewiesen in echten Runs)
-- **Live Quota:** Echte Google-Quota-Daten fliessen ins Routing
-- **Engine Thinking Layer:** Flash als Thinking-Modell; Modellwahl, Skills, Budget, Risk, doneWhen
-- **Model Override:** `resolvedConfig.model = effectiveModelLane` wenn `applyModelLane=true`
-- **Context Injection:** `doneWhen`, `executionIntent`, `targetFolder` als "Engine directive" im Gemini-Prompt
-- **Enforced Routing:** `soft_enforced` -> Thinking-Layer steuert welches Modell laeuft
-- **Token Cap = Warning only:** Kein Run-Kill bei Ueberschreitung, nur warn-Log
-- **Issue Runs:** Starten sauber via `PATCH /api/issues/{id}` mit `assigneeAgentId`
-- **Heartbeat-Gate:** Kein Run ohne zugewiesenes Issue
-- **Routine-Approval deaktiviert:** Normale bounded Tasks laufen ohne manuelles Approval (North-Star-konform)
-- **Evidence-Fallback:** Server-seitiger `tool.evidence` Event wenn Gemini `read_file` mit leerem Output liefert (sha256, preview, byte count)
-- **Path-Normalization:** `trimIssueText()` bereinigt HTML-Entities und Markdown-Escaping vor Agent-Prompt
-- **Role Template Registry:** `GET /api/role-templates` listet kanonische Templates fuer das Dashboard
-- **Agent PATCH support:** `adapterConfig.roleTemplateId` + `roleAppendPrompt` koennen ueber `PATCH /api/agents/:id` gesetzt werden
-- **Dashboard-Bruecke:** Agent-Edit-UI hat Rollen-Dropdown + Operator-Prompt und speichert ueber den bestehenden Save-Flow
-- **Create-Flow gefixt:** Rollen-Dropdown + Operator-Prompt persistieren jetzt auch beim Neuanlegen eines Agents
-- **Neue Agents erlauben On-Demand-Wakeups standardmaessig:** `wakeOnDemand=true`, damit Issue-Zuweisungen sofort Runs ausloesen koennen
-- **Erste 3 Templates vorhanden:** `worker.json`, `ceo.json`, `reviewer.json`
-- **Erster echter Worker-Beweis geschafft:** Run `720183d5-38f4-4407-a6c9-f09e5b6b9522` lief mit injiziertem `worker`-Template, Operator-Prompt, Quota-aware Routing und erfolgreicher Dateierstellung in sicherem Test-Repo
-- **Routing/Quota im Worker-Beweis sinnvoll:** Thinking via Flash-Lite/Router, Execution auf `gemini-3-flash-preview` (`flash`-Bucket), Quota-Snapshot frisch und genutzt
-- **Sandbox-Learning:** Gemini-Sandbox blockierte zunaechst lokal; fuer den Worker-Smoke-Test wurde `sandbox=false` genutzt. Sicherheit kam ueber sicheres Repo + Test-Branch, nicht ueber CLI-Sandbox
-- **Minimaler Reviewer-Pfad gebaut:** Wenn ein `reviewer`-Agent ein Issue uebernimmt, bekommt er im Prompt automatisch den letzten non-reviewer Run desselben Issues als Review-Ziel (Run-ID, Worker-Agent, Summary, read-file evidence paths)
-- **Reviewer blockt sauber ohne Ziel:** Wenn noch kein Worker-Run fuer das Issue existiert, wird der Reviewer-Prompt explizit auf `blocked` statt auf Ausfuehrung des Pakets gelenkt
-- **Reviewer gehaertet:** `accepted` soll nur noch bei erfuelltem `doneWhen`, sauberem Scope und ohne unsupported claims/source drift vergeben werden; bei materiellen Zweifeln lieber `needs_revision`
-- **Worker-Loop gehaertet:** `worker.json` fuehrt jetzt explizit einen `locate -> hypothesize -> patch -> validate` Default-Loop und verlangt ein kurzes strukturiertes Handoff (`Goal`, `Result`, `Files Changed`, `Validation`, `Blockers`, `Next`)
-- **Reviewer in echten Runs bewiesen:** Erstlauf war zu weich, nach Haertung ist ein `accepted`-Urteil auf dem echten Test-Artefakt vertretbar; Review passiert wirklich statt Re-Implementation
-- **Reviewer-Matrix gehaertet:** `reviewer.json` prueft jetzt entlang `Scope`, `Correctness`, `Evidence`, `Safety/Readiness` und soll vor `accepted` wenn sinnvoll schnelle Checks wie readback/lint/test/build nutzen
-- **Reviewer-Matrix jetzt parseable:** Output-Format ist als feste Tabelle definiert (`Dimension | Status | Note`), damit spaeter CEO/Parser die Review-Dimensionen zuverlaessig lesen koennen
-- **CEO V1 Template gebaut:** `ceo.json` enthaelt jetzt Constitution-Check, fixes Packet-Schema (`Titel`, `Ziel`, `Scope`, `doneWhen`, `targetFolder`, `Annahmen`, `[NEEDS INPUT]`) und festen Abschluss-Handoff
-- **`[NEEDS INPUT]` jetzt im Dashboard sichtbar:** Issue-Detail erkennt Marker direkt aus `issue.description`, zeigt die exakten Zeilen, markiert das Packet als nicht worker-ready und bietet CTAs zum bestehenden Description-Edit- und Kommentar-Flow
-- **CEO auf Token-Disziplin geschaerft:** Kontextbudget jetzt explizit im Template (`max. 3-5 direkt relevante Dateien`, kein Codebase-Exploration-Loop, keine spekulativen/missing-file Suchen)
-- **Minimale CEO-Delegationsbruecke vorbereitet:** Kein neues Tool noetig; Gemini bekommt schon Paperclip API Zugang. `execute.ts` injiziert jetzt auch `PAPERCLIP_PROJECT_ID`, und der API-Hinweis enthaelt ein PowerShell-sicheres Beispiel zum Erstellen unzugewiesener Child-Issues ueber `run_shell_command`
-- **CEO-Delegation nachgeschaerft:** Nach dem ersten Rerun sucht der CEO nicht mehr nach `pc`/`paperclip`-CLI oder Subagent-Hilfe, sondern soll direkt `Invoke-RestMethod` gegen die bestehende Paperclip-HTTP-API verwenden
-- **CEO-Live-Beweis geschafft:** Run `e204fe77-639d-4a3e-a2d3-4fd140a1331b` hat im richtigen Projekt/Workspace 4 echte unzugewiesene Child-Issues unter `DGD-32` erzeugt (`DGD-33` bis `DGD-36`) statt nur Prosa auszugeben
-- **CEO-Budget deutlich verbessert:** Erster CEO-Planungsrun lag bei ~345k Input-Tokens; der echte Delegations-Beweis lag bei `61,877` Total-Tokens (`54,712` Input, `2,308` Output) mit 5 Tool-Calls
-- **CEO braucht API-Hinweis automatisch:** `execute.ts` schaltet den Paperclip-API-Hinweis fuer `roleTemplateId=ceo` jetzt automatisch ein; der Live-Agent wurde zusaetzlich auf `includeApiAccessNote=true` gesetzt
-- **Erste komplette Firmenkette bewiesen:** `DGD-32 -> DGD-33` lief als echte `CEO -> Worker -> Reviewer`-Kette durch. Worker-Run `63f52e05-3d6c-4518-900e-24c7902526f1` erzeugte `docs/schema-refinement-recommendations.md`, Reviewer-Run `fca4fe60-13a3-4348-b040-2aedc53d4fd7` akzeptierte, `DGD-33` ging automatisch auf `done`
-- **Zweite CEO-Kette ebenfalls bewiesen:** `DGD-32 -> DGD-35` lief ebenfalls sauber als `CEO -> Worker -> Reviewer -> done`. Das zeigt Reproduzierbarkeit und nicht nur einen Einzelfall
-- **Reviewer-Kontext-Fix gebaut:** Reviewer bekam anfangs nur Run-Metadaten und blockte deshalb trotz vorhandenem Artefakt. `heartbeat.ts` liefert jetzt zusaetzlich Worker-Handoff und erzeugte Artefaktpfade in den Review-Prompt
-- **Issue-Lifecycle jetzt automatisch:** Erfolgreicher `worker`-Run zieht ein Issue im normalen Assignment-Flow auf `in_review` (auch wenn es vorher noch `todo` war); erfolgreicher `reviewer`-Run mit `Verdict: accepted` zieht auf `done`
-- **Reviewer-Verdict-Parser gefixt:** `stdoutExcerpt` liegt bei Gemini als NDJSON/stream-json vor; `extractReviewerVerdict()` rekonstruiert jetzt Assistant-Content aus den JSON-Linien, damit `Verdict: accepted` auch in echten Run-Logs erkannt und `Issue -> done` wirklich ausgelost wird
-- **Geschlossene Issues promoten keine alten deferred Runs mehr:** Nach `done`/`cancelled` werden deferred issue-execution wakes nicht mehr neu gestartet
+
+**Engine-Schicht:**
+- Live Quota, Enforced Routing (`soft_enforced`), Context Injection, Token Cap = Warning, Heartbeat-Gate, Routine-Approval deaktiviert
+
+**Rollen (alle 3 Templates bewiesen):**
+- `worker.json`: `locate → hypothesize → patch → validate` Loop + strukturierter Handoff
+- `reviewer.json`: 4 Dimensionen (Scope/Correctness/Evidence/Safety), parseable Matrix-Tabelle, Pre-Accept-Rules
+- `ceo.json`: Constitution-Check, Packet-Schema mit `[NEEDS INPUT]`, Token-Budget max 3-5 Dateien, API-Hinweis automatisch aktiv
+
+**Infrastruktur:**
+- Role Template Registry (`GET /api/role-templates`), Agent PATCH support, Dashboard Rollen-Dropdown + Create-Flow
+- Evidence-Fallback, Path-Normalization, `wakeOnDemand=true` fuer neue Agents
+- PowerShell `&&`→`;` Normalisierung; Loop-Detection 3x=warn / 5x=stop (`errorCode: loop_detected`)
+- `[NEEDS INPUT]` Dashboard: Marker aus `issue.description` → gelber Hinweis-Block + Edit/Comment-CTAs
+
+**Kette bewiesen (reproduzierbar):**
+- `DGD-32 → DGD-33` und `DGD-32 → DGD-35` liefen als `CEO → Worker → Reviewer → done`
+- CEO-Budget: ~345k Tokens (erster Run) → 61,877 Tokens (nach Haertung)
+- Reviewer-Kontext-Fix: `heartbeat.ts` liefert Worker-Handoff + Artefaktpfade in Review-Prompt
+- Issue-Lifecycle automatisch: Worker → `in_review`; Reviewer `accepted` → `done`
 
 ### Was noch fehlt
-- **Kein automatischer Worker -> Reviewer Chain:** Der minimale Reviewer ist nutzbar, aber noch nicht automatisch nach Worker-Abschluss verdrahtet
-- **Rollen noch nicht voll ausgereift:** Reviewer urteilt jetzt brauchbar, aber operative Effizienz ist noch nicht ideal (z. B. PowerShell-`&&`-Fehlversuche)
-- **Quota-Observability weiter schaerfen:** Snapshot wird gespeichert + wiederverwendet, aber fruehere `0%`-Drift zeigt, dass Refresh-/Darstellungslogik noch weiter verifiziert werden sollte
+- **Kein automatischer Worker → Reviewer Chain:** Manuell zuweisen noetig
+- **CEO Parent-Aggregation fehlt:** DGD-32 bleibt `todo` bis Child-Issues manuell aggregiert werden
+- **Quota-Observability:** Refresh-/Darstellungslogik noch nicht voll verifiziert
 
 ### Naechste Schritte (Prioritaet)
-1. **PowerShell-/Tooling-Fix ziehen:** `&&`-Fehlversuche und `node-pty/AttachConsole`-Laerm sind jetzt der naechste direkte Kosten-/Stabilitaetshebel
-2. **Parent-Issue-Aggregation spaeter schneiden:** `DGD-32` bleibt bewusst offen, bis Child-Issues aggregiert/abgenommen werden; das ist ein eigenes Packet
-3. **Tool-/Guardrail-Loop spaeter ziehen:** nach den zwei CEO-basierten Packet-Runs MCP-/policy-aehnlicher machen und Checks tiefer in den Loop zurueckfuehren
+1. **`ceo.json` [NEEDS INPUT]-Feinschliff:** Eine Zeile ergaenzen — Marker soll durch echte Antwort ersetzt, nicht nur geloescht werden
+2. **CEO Parent-Aggregation:** DGD-32 schliessen wenn Children done — CEO-Review-Run der Child-Verdicts aggregiert
+3. **Tool-/Guardrail-Loop:** MCP-aehnlicher, Checks tiefer in den Loop — erst nach Parent-Aggregation
 
 ---
 
@@ -144,11 +123,8 @@ handoff-faehig. Ref: `github.com/microsoft/markitdown`
 
 - **Engine ≠ CEO.** Engine = Infrastruktur (Modellwahl, Budget, Kontext). CEO = Agent-Rolle (plant, delegiert, reviewed).
 - **Rollen = kanonische Templates.** Feste systemdefinierte Rollen (`CEO`, `Worker`, `Reviewer`) in `server/config/role-templates/*.json`. Nicht vom Agenten selbst mutierbar. Details: `doc/plans/2026-03-21-role-template-architecture.md`.
-- **Packets 1+2 fertig.** Template-System definiert + drei Rollen spezifiziert. Packets 3-6 erst nach Beweis.
-- **Paper-Review schaerft die Reihenfolge.** Erst Worker-Loop haerten, dann Reviewer-Matrix, dann CEO V1; grosser Tool-/Guardrail-Ausbau erst danach.
-- **Beweis vor Infrastruktur.** Smoke-Test mit echter worker.json vor DB-Migration/UI-Dropdown.
-- **Smoke-Test-Pfad existiert bereits im Code.** `server/config/role-templates/worker.json` ist angelegt; `adapterConfig.roleTemplateId = "worker"` und optional `roleAppendPrompt` werden in `heartbeat.ts` aufgeloest und als `paperclipRoleTemplatePrompt` in Gemini-Prompts injiziert.
-- **Dashboard kann Rollen jetzt bedienen.** Rolle + Operator-Prompt laufen ueber bestehendes `adapterConfig` JSON; kein neues DB-Schema, keine Migration.
+- **Beweis vor Infrastruktur.** Kette bewiesen (2x reproduziert) bevor neue Infrastruktur.
+- **Dashboard bedient Rollen.** Rolle + Operator-Prompt ueber `adapterConfig` JSON; kein DB-Schema, keine Migration.
 - **Keine Mikro-Approvals.** David = CEO-Entscheidungen, nicht Klick-Dispatcher fuer Routine.
 - **Heartbeats = Ausfuehrungspuls.** Genau ein autorisiertes Work Packet, nicht Autonomie-Loop.
 - **Gemini zuerst.** Engine-Core provider-agnostisch, aber Phase 1 nur Gemini.
@@ -193,4 +169,4 @@ PATCH /api/issues/{id}  Body: {"assigneeAgentId": "9e721036-..."}
 
 ---
 
-> Zuletzt aktualisiert: 2026-03-22 von Codex (Dashboard-Needs-Input-Hinweis ergaenzt und veralteten CEO-Stand bereinigt)
+> Zuletzt aktualisiert: 2026-03-22 von Claude Code (PowerShell-Fix + Loop-Detection + [NEEDS INPUT]-Dashboard ergaenzt, veraltete Eintraege bereinigt, unter 150 Zeilen)
