@@ -1081,8 +1081,10 @@ Fester Shared Core + variable Branchenprofile:
 ### Operative Klarstellung gegen Drift
 
 - Revenue Lane ist nicht "eine zufaellige Kundenseite jetzt irgendwie fertig machen", sondern eine wiederverwendbare Produktionsfaehigkeit der Werkbank
+- Jeder Kundenordner ist primaer Rohmaterial fuer wiederverwendbare Packet-Typen, Tools und Review-Artefakte; der Einzelfall ist Beweis, nicht Endziel
 - Der erste Fokus ist der naechste stabile Packet-Typ oder Tool-Pfad, nicht der vollstaendige Einzelfall-Abschluss
 - Fuer Revenue Lane ist die aktuelle Reihenfolge: Image Preprocessing -> Content Extraction/Draft -> Schema Fill -> Review
+- Nach dieser Foundation ist der naechste Architektur-Schritt: kontrollierter Template-Apply plus `Packet -> Lane Routing`, damit die Engine pro Packet bewusst zwischen `deterministic_tool`, `free_api`, `premium_model` und spaeter `local_model` waehlt
 - Fehlende Kundennamen, Texte oder Fakten werden als `[NEEDS INPUT]` / Platzhalter markiert, nicht halluziniert
 - Spezialisierte Worker oder Subagent-artige Tools sind gut, aber nur als CEO-gesteuerte, sauber begrenzte Packets mit klarem Input/Output
 - Kontrollierte Parallelisierung ist sinnvoll, sobald Packets wirklich unabhaengig sind (z. B. Bilder vs. Text), aber nicht davor

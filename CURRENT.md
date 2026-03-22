@@ -1,15 +1,16 @@
 # CURRENT - Live Baton
 
-focus: Sprint G abgeschlossen - Revenue Lane Schema Fill Worker
+focus: Sprint H abgeschlossen - Memory Verdichtung und Sprint-Archiv
 active_issue: none
 next:
-  1) Sprint H: Template-Apply Worker, der `processed/site-output/` kontrolliert in das Astro/Keystatic-Template uebertraegt
-  2) Spaeter: Packet-Type -> Lane Routing fuer deterministic_tool / free_api / premium_model / local_model weiter haerten
+  1) Sprint I: Template-Apply Worker, der `processed/site-output/` kontrolliert in das Astro/Keystatic-Template uebertraegt
+  2) Danach: Packet-Type -> Lane Routing fuer deterministic_tool / free_api / premium_model / local_model haerten
 blockers: none
 notes:
 - Arbeitsmodell ab 2026-03-22: Planer = Perplexity via Chat. Codex = grosse Operator-Sprints mit eigenem Debug-Loop, Console-Watch und aktiver Bedienung von Paperclip/Werkbank. Reviewer/Researcher = Gemini CLI. Claude = nur wenn wirklich noetig, um Quota zu schonen.
 - Codex committed und pusht selbst. Commit-Hash im Statusbericht ist Pflicht. Planer reviewed den Diff direkt.
-- Revenue-Lane-Richtung korrigiert: zuerst DGDH-Faehigkeit bauen, nicht einen einzelnen Kundenfall zu Ende improvisieren.
+- Sprint H geliefert: `MEMORY.md` ist jetzt Stable-Facts-only; datierte Sprint-Historie lebt in `doc/archive/sprint-log.md`.
+- Revenue-Lane-Richtung: zuerst DGDH-Faehigkeit bauen, nicht einen einzelnen Kundenfall zu Ende improvisieren.
 - Sprint E geliefert: deterministische `sharp`-Pipeline per API-Route `/api/companies/:companyId/revenue-lane/image-pipeline/process`.
 - Sprint F geliefert: Flash-Lite-basierter Content-Extractor per API-Route `/api/companies/:companyId/revenue-lane/content-extractor/process`.
 - Sprint G geliefert: deterministischer Schema-Fill per API-Route `/api/companies/:companyId/revenue-lane/schema-fill/process`.

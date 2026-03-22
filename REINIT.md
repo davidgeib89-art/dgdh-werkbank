@@ -25,6 +25,7 @@ Das reicht normalerweise, um sofort weiterzuarbeiten.
 
 `INIT.md` musst du **nicht standardmaessig** neu lesen.
 Wenn etwas unklar, widerspruechlich oder driftig wirkt, geh zur Sicherheit auf `INIT.md` zurueck.
+`MEMORY.md` ist dabei bewusst kurz gehalten: stabile Facts only, Zielgroesse unter 80 Zeilen. Datierten Sprint-/Run-Verlauf findest du in `doc/archive/sprint-log.md`.
 
 ## Wo wir stehen
 
@@ -41,6 +42,8 @@ Lies sofort in dieser Reihenfolge:
    - Architektur-Entscheidungen
    - wichtige IDs
    - stabile Regeln
+
+Wenn du historische Sprint-Details brauchst, lies danach `doc/archive/sprint-log.md` statt `MEMORY.md` wieder aufzublaehen.
 
 ## Was du vor dem Sprint klaeren musst
 

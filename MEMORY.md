@@ -1,217 +1,56 @@
 # MEMORY - Geteilter Zustand aller AIs
 
-> Diese Datei wird von JEDER AI gelesen und gepflegt die in diesem Repo arbeitet.
-> Halte sie aktuell. Die naechste AI (oder du selbst nach /compact) ist darauf angewiesen.
-> Halte sie knapp. Fakten, keine Prosa. Stabile Infos, keine Session-Details. Live Baton steht in `CURRENT.md`, nicht hier.
+> Stable facts only. Unter 80 Zeilen halten.
+> Live Baton steht in `CURRENT.md`.
+> Datierten Sprint-/Run-Verlauf in `doc/archive/sprint-log.md` auslagern.
 
----
+## Pflicht-Dokumente
+- `CURRENT.md` - live baton
+- `doc/plans/2026-03-21-dgdh-north-star-roadmap.md` - kanonische operative Richtung
+- `doc/plans/2026-03-21-role-template-architecture.md` - Rollen-/Packet-Architektur
+- `doc/plans/2026-03-21-gemini-engine-to-role-architecture-progress-report.md` - juengster Engine-Beweisstand
+- `doc/archive/sprint-log.md` - datierte Sprint-Historie
 
-## Aktive Arbeitsdokumente
-
-> **PFLICHT:** Lies diese Dokumente fuer den vollen aktuellen Kontext. Diese MEMORY.md ist nur eine Zusammenfassung.
-
-| Dokument | Was drin steht |
-|----------|----------------|
-| `doc/plans/2026-03-21-dgdh-north-star-roadmap.md` | Aktuelle Leitlinie — Zielbild, Rollen, Engine vs Agent Layer |
-| `doc/plans/2026-03-21-role-template-architecture.md` | Role-Template-System — Packets 1+2 fertig (Design + Rollendefinitionen) |
-| `doc/plans/2026-03-21-gemini-engine-to-role-architecture-progress-report.md` | Was zuletzt gebaut/gefixt wurde — Bruecke von Engine zu Rollen |
-
----
-
-## DGDH Revenue Lane #1 — Web Design Produkt
-
-**Das ist Davids erstes echtes Produkt und die Origin Story von DGDH.**
-
-### Was ist es?
-Astro 5 + Keystatic CMS OnePager-Template fuer kleine Unternehmen.
-Hosting: Cloudflare Pages Free Tier. Kunde zahlt nur ~5€/Jahr fuer Domain.
-
-### Repo & erster Kunde
-- Aktiver Agenten-/Paperclip-Workspace fuer Astro/Keystatic: `C:\Users\holyd\DGDH\worktrees\astro-keystatic-template-geib`
-- Ursprungs-Template-Repo ausserhalb des Agenten-Bereichs: `C:\Users\holyd\Documents\Websites\general\astro-keystatic-template-geib`
-- Kunden-Git fuer den bestehenden Live-Kunden liegt bewusst ausserhalb des Agenten-Bereichs: `C:\Users\holyd\Documents\Websites\kunden-archive\ferienwohnung-bamberger`
-- Erster Kunde live: https://urlaub-bei-bambergers.de/ (Ferienwohnung Bamberger)
-- Naechster Fokus: Revenue-Lane-Produktisierung fuer wiederverwendbare Kundenordner-Pipelines; konkreter Kunde ist zweitrangig bis die Packet-Foundation steht
-
-### Aktuelle operative Richtung (Anti-Drift)
-- Ziel ist nicht der schnelle Abschluss eines einzelnen Kundenprojekts, sondern die wiederverwendbare Werkbank-Faehigkeit fuer diese Auftragsart
-- Revenue Lane soll als Packet-Kette laufen: CEO -> Image Preprocessing -> Content Extraction/Draft -> Schema Fill -> Review
-- Fehlende Namen, Texte oder Fakten werden als `[NEEDS INPUT]` / Platzhalter behandelt, nicht halluziniert
-- Project-Workspaces fuer Agenten duerfen nie direkt auf ein Kunden-Git zeigen; fuer Astro/Keystatic ist der kanonische sichere Workspace `C:\Users\holyd\DGDH\worktrees\astro-keystatic-template-geib`
-- Der erste zu produktisierende Revenue-Lane-Packet-Typ ist Bild-Preprocessing / Asset-Optimierung
-- Sprint E ist geliefert: deterministische `sharp`-Pipeline plus reviewbares Manifest fuer den Kundenordner `shared/Kunde/Unbekannt Bamberger Tante/processed`
-- Sprint F ist geliefert: Flash-Lite-Content-Extraction schreibt `processed/content-draft.json` mit strukturiertem Draft oder `source: "no_input"` wenn kein Textmaterial vorliegt
-- Sprint G ist geliefert: Schema Fill schreibt `processed/site-output/` mit `src/content/...` plus kopierten Assets unter `src/assets/images/...`; fehlende Felder werden mit expliziten Platzhaltern statt Leerwerten gefuellt
-
-### Content-Modell (alles statische Textdateien, keine DB!)
-```
-src/content/settings/site.json     → Branding, SEO, Theme, Kontakt
-src/content/settings/profile.json  → Branchentyp (ferienwohnung | verein | other)
-src/content/sections/*/            → Sections: showcase, highlights, pricing,
-                                      testimonials, location, faq, poi, contact-form
-twilight.config.yaml               → YAML-Fallback, Config via getResolvedSettings()
-```
-
-### Die Grosse Vision (AI-Workflow)
-1. David legt Kundendaten in einen Ordner (Texte, Bilder, Logo, PDFs, Word-Dokumente)
-2. **Preprocessing-Schritt:** Assets + Dokumente werden normalisiert (Image-Crops/Formate, Markdown-Ingestion)
-3. CEO zerlegt den Auftrag in wiederverwendbare Work Packets
-4. Spezialisierte Worker/Tools bearbeiten unabhaengige Packets (erst Bilder, dann Content/Schema)
-5. DGDH-System forkt Template-Repo und schreibt die Inhalte strukturiert hinein
-6. Push zu GitHub → Cloudflare deployt automatisch
-7. David reviewed kurz → fertig
-
-**Warum das perfekt fuer AI ist:** Kein Backend, keine DB — nur strukturierte Textdateien.
-Gemini kennt das Schema (keystatic.config.ts + content.config.ts) und weiss exakt was zu befuellen ist.
-
-**Ingestion-Pattern (markitdown-inspiriert):** Kundenordner enthaelt oft PDFs, Word-Dokumente,
-Bilder mit Text. Vor dem Worker-Run alles → Markdown normalisieren. Token-effizienter, reviewbar,
-handoff-faehig. Ref: `github.com/microsoft/markitdown`
-
-### Branchenprofile (geplant)
-`ferienwohnung` ✅ | `verein` | `friseur` | `restaurant` | `handwerker` | ...
-
----
-
-## CEO Profil
-
-- **Name:** David Geib, geb. 29.10.1989, Meddersheim
-- **Status:** Aktuell arbeitslos (~650 EUR/Monat), arbeitet Vollzeit an DGDH
-- **Neurodivergent:** IQ ~133, wahrscheinlich ADHS + Autismus / Hochbegabung — maximale Mustererkennung
-- **Motivation:** Geld verdienen → AI-Abos/Kontingente skalieren → Welt verbessern (Ziel: Psychologie studieren, Kinder foerdern)
-- **Zeithorizont:** Wichtiges Gespraech 30.06 → danach 6-8 Wochen nicht verfuegbar. Bis dahin muss DGDH laufen.
-- **Leitfrage:** Entlastet das David real oder verschoenert es nur die Maschine?
-
-### AI Stack & Budget (~100 EUR/Monat)
-| Tool | Kosten | Rolle |
-|------|--------|-------|
-| Claude Code | ~20 EUR | Builder, Architekt, CLI |
-| Codex (OpenAI) | ~20 EUR | CLI Worker |
-| Gemini AI Pro x2 | ~40 EUR | Primaere Worker-Lane (Quotas resetten taeglich) |
-| MiniMax Coding Plan | ~20 EUR | Arbeitsbiene fuer guenstige Massenarbeit (2.7M Context) |
-
-**Regel:** Jeder Euro muss sich in echter Entlastung oder Einnahmen niederschlagen.
-
----
-
-## Bewiesener Stand (2026-03-22)
-
-**Phase:** Vollstaendige Kette `Mission → CEO → Child-Issue → Worker → Reviewer → done` bewiesen. CEO Aggregation Mode bewiesen (Run `371ee72a`): CEO erkennt vorhandene Children, aggregiert Verdicts, schliesst Parent NICHT blind bei Luecken, erstellt Follow-up.
-
-### Was funktioniert (bewiesen in echten Runs)
-
-**Engine-Schicht:**
-- Live Quota, Enforced Routing (`soft_enforced`), Context Injection, Token Cap = Warning, Heartbeat-Gate, Routine-Approval deaktiviert
-
-**Rollen (alle 3 Templates bewiesen):**
-- `worker.json`: `locate → hypothesize → patch → validate` Loop + strukturierter Handoff
-- `reviewer.json`: 4 Dimensionen (Scope/Correctness/Evidence/Safety), parseable Matrix-Tabelle, Pre-Accept-Rules
-- `ceo.json`: Planning Mode + Aggregation Mode, Constitution-Check, Packet-Schema mit `[NEEDS INPUT]`, Token-Budget max 3-5 Dateien, API-Hinweis automatisch aktiv
-
-**Infrastruktur:**
-- Role Template Registry (`GET /api/role-templates`), Agent PATCH support, Dashboard Rollen-Dropdown + Create-Flow
-- Evidence-Fallback, Path-Normalization, `wakeOnDemand=true` fuer neue Agents
-- PowerShell `&&`→`;` Normalisierung; Loop-Detection 3x=warn / 5x=stop (`errorCode: loop_detected`)
-- Loop-Detection 5x fuehrt jetzt zusaetzlich zu Workspace-Cleanup via `git checkout -- .` und blocked Issue-Transition
-- `reviewer.json` hat die Simplicity Criterion als explizite Pre-Accept-Rule
-- Reviewer-accepted Child-Issues retriggern den CEO-Parent automatisch via Unassign/Reassign + Wakeup
-- Gemini quota failover wechselt bei exhausted/RESOURCE_EXHAUSTED automatisch von Account 1 auf Account 2 und setzt `accountLabel` auf `account_1` / `account_2`
-- `[NEEDS INPUT]` Dashboard: Marker aus `issue.description` → gelber Hinweis-Block + Edit/Comment-CTAs
-- CURRENT.md / MEMORY.md Sync-Split: stable facts vs. live baton getrennt
-
-**Kette bewiesen (reproduzierbar):**
-- `DGD-32 → DGD-33` und `DGD-32 → DGD-35` liefen als `CEO → Worker → Reviewer → done`
-- CEO Aggregation Mode: DGD-32 Run erkannte DGD-34 (blockiert) + DGD-36 ([NEEDS INPUT]) als Luecken → DGD-37 Follow-up erstellt, Parent korrekt offen gelassen
-- CEO-Budget: ~345k Tokens (erster Run) → 61,877 Tokens (nach Haertung)
-- Reviewer-Kontext-Fix: `heartbeat.ts` liefert Worker-Handoff + Artefaktpfade in Review-Prompt
-- Issue-Lifecycle automatisch: Worker → `in_review`; Reviewer `accepted` → `done`
-
-**Stand 2026-03-22 — DGD-38/39/36 done, DGD-32 done:**
-- DGD-33, DGD-35, DGD-37, DGD-34 `done` (Reviewer accepted)
-- DGD-38 `done`: vier Legal-Felder in keystatic.config.ts + content.config.ts + Keystatic UI-Persistenz bewiesen
-- DGD-39 `done`: Footer + Impressum rendern Legal-Felder aus site.json konditional
-- DGD-36 `done`: content.config.ts um highlights.image/link + testimonials.authorImage/link erweitert; Renderer angepasst
-- DGD-32 `done`: CEO-Aggregation retrigger lief durch und der Parent wurde geschlossen
-
-**Freigegebene Sprint-Reihenfolge (Planer-Entscheidung 2026-03-22):**
-
-| Prio | Sprint | Scope | Aufwand |
-|------|--------|-------|---------|
-| 1 | Worker Abort bei Loop-Stop | `git checkout .` + strukturierter Blocked-Handoff bei 5x stop | Klein |
-| 2 | Reviewer Simplicity Criterion | Prompt-Tweak in `reviewer.json` — direkt in Sprint 1 rein | Minimal |
-| 3 | CEO Auto-Retrigger | Engine triggert CEO automatisch nach Reviewer accepted — kein manuelles Unassign/Reassign | Mittel |
-| 4 | Revenue Lane Foundation | Image Packet Pipeline + Content Extraction Worker + Schema Fill Worker geliefert; Template-Apply als naechstes | Mittel |
-- **Bekannte System-Gaps:** Issue-Kommentare nicht zuverlaessig als Kontext fuer Reviewer/CEO — kritische Infos immer in `doneWhen` / Description
-- **Onboarding-Prompts:** Fuer alle 4 Rollen fertig (Planer/Coder/Reviewer/Researcher) — in Claude-Session erarbeitet
-
-## Koordinations-Prinzip (Claude als Chief of Staff)
-
-Claude koordiniert nicht jeden einzelnen Run-Status. Codex/Gemini arbeiten in Sprints durch.
-Claude kommt rein bei: echten Blockern, Scope-/Architektur-Entscheidungen, Sprint-Retrospektiven.
-Worker→Reviewer→done Flows laufen ohne Claude-Unterbrechung durch.
-
-## Architektur-Entscheidungen (gefestigt)
-
-- **Engine ≠ CEO.** Engine = Infrastruktur (Modellwahl, Budget, Kontext). CEO = Agent-Rolle (plant, delegiert, reviewed).
-- **Rollen = kanonische Templates.** Feste systemdefinierte Rollen (`CEO`, `Worker`, `Reviewer`) in `server/config/role-templates/*.json`. Nicht vom Agenten selbst mutierbar. Details: `doc/plans/2026-03-21-role-template-architecture.md`.
-- **Beweis vor Infrastruktur.** Kette bewiesen (2x reproduziert) bevor neue Infrastruktur.
-- **Dashboard bedient Rollen.** Rolle + Operator-Prompt ueber `adapterConfig` JSON; kein DB-Schema, keine Migration.
-- **Keine Mikro-Approvals.** David = CEO-Entscheidungen, nicht Klick-Dispatcher fuer Routine.
-- **Heartbeats = Ausfuehrungspuls.** Genau ein autorisiertes Work Packet, nicht Autonomie-Loop.
-- **Gemini zuerst.** Engine-Core provider-agnostisch, aber Phase 1 nur Gemini.
-- **Strukturierte Handoff-Summaries (inspiriert von ReMe).** Worker/Reviewer/CEO sollen Ergebnisse in festem Schema liefern: Goal, Result, Files Changed, Blockers, Next. Macht Handoffs maschinell auswertbar. Zuerst als Prompt-Anweisung, spaeter parsed Output. Ref: `github.com/agentscope-ai/ReMe`
-- **Shared Memory soll strikt scoped sein (inspiriert von supermemory).** Nicht globales Profil-Memory, sondern kleine Slices pro `company -> project -> issue/work-packet`; spaeter mit Relations wie `updates|extends|derives` zwischen Handoffs. Ref: `github.com/supermemoryai/supermemory`
-- **Loop-Detection im Adapter (inspiriert von PentAGI).** Wenn Gemini denselben fehlerhaften Command 3x wiederholt (z.B. PowerShell-`&&`), soll der Adapter warnen/stoppen statt Tokens zu verbrennen. PentAGI nutzt Schwelle 5x identische Tool-Calls + max 10 Gesamt. Unser Ansatz: deterministische Regel im Adapter, kein separater Agent.
-- **`complete_task` Barrier-Tool (inspiriert von PentAGI).** Worker/Reviewer sollen am Run-Ende ein explizites Tool aufrufen das strukturiertes Ergebnis erzwingt (statt einfach aufzuhoeren). Verbindet Handoff-Summaries mit klarem Run-Ende. PentAGI: `FinalyTool`/`CodeResult`/`HackResult`. Ref: `github.com/vxcontrol/pentagi`
-- **Token-Budgets pro Rolle (inspiriert von PentAGI).** CEO bekommt hoeheres Token-Budget (plant, braucht Kontext), Worker mittel, Reviewer klein. In Role-Templates als Feld, nicht hardcoded. PentAGI: Generator 4096, Coder 2048, Searcher 1024.
-- **CEO-Output als strukturiertes Packet-Template (inspiriert von Spec-Kit).** CEO soll Work Packets nicht frei formulieren sondern in festem Format: Titel, Ziel, Scope, doneWhen, targetFolder, Annahmen, `[NEEDS INPUT]`-Marker fuer Unklarheiten. `[NEEDS INPUT]` ist besser als raten — David sieht sofort was Klaerung braucht. Ref: `github.com/github/spec-kit` (Specify → Plan → Tasks → Implement = Mission → CEO → Packets → Worker → Review). Gemeinsam in den `ceo.json` systemPrompt.
-- **Constitution-Check im CEO-Prompt (inspiriert von Spec-Kit).** Kompakter Pruefblock bevor Packets erstellt werden: Entlastet es David real? Scope klar genug fuer Worker? Passt ins Budget? Braucht Review? Kein separates File, rein als Prompt-Anweisung.
-- **CEO braucht API-Hinweis automatisch.** Der erste CEO-Delegationslauf blieb bei Prosa/Snippets stehen, weil `includeApiAccessNote` im Agent-Config fehlte. Fix-Richtung: fuer `roleTemplateId=ceo` den Paperclip-API-Hinweis im Gemini-Adapter automatisch einschalten und explizit sagen: echte `run_shell_command`-POSTs ausfuehren, keine Demo-Kommandos ausgeben.
-- **Issues IMMER mit projectId erstellen** - sonst kein Workspace-Lookup
-- **Token Caps = Warnings** - timeoutSec ist der echte Guard
-- **MiniMax spaeter** - erst nach stabiler Gemini-Lane und Firmenbetrieb
-- **Free-Lane-Strategie.** Paid-Quota nur fuer Worker/Reviewer/CEO-Hauptarbeit. Freie/guenstige Tier fuer Preprocessing, Drafts, Scans. Tier-2-Modelle werden besser → immer mehr Arbeit wandert nach unten. Trigger: Task ist Vorstufe (Ingestion, Scan, Draft) oder Quota knapp.
-- **Revenue-Lane-Produktisierung vor Einzelfall-Delivery.** Wenn ein Auftrag wie "baue diese eine Kundenseite" aussieht, ist zuerst zu pruefen welcher wiederverwendbare Packet-Typ oder Tool-Pfad der Werkbank noch fehlt. Erst die Produktionsfaehigkeit, dann der Einzelfall.
-- **Image Packet Pipeline ist deterministic_tool, nicht LLM.** Route: `POST /api/companies/:companyId/revenue-lane/image-pipeline/process`. Service verarbeitet repo-relative Kundenordner mit `sharp`, erzeugt `hero/gallery/thumb` in `webp+jpg`, schreibt `manifest.json`, nutzt `sharp.strategy.attention`, und haelt pro Output das 200-KB-Ziel.
-- **Content Extraction Worker ist free_api auf Gemini Flash-Lite.** Route: `POST /api/companies/:companyId/revenue-lane/content-extractor/process`. Service liest repo-relative Textquellen (`.txt`, `.md`, `.markdown`, `.json`) plus `manifest.json`, schreibt `processed/content-draft.json` und markiert fehlendes Material strikt mit `null` bzw. `source: "no_input"` statt zu halluzinieren.
-- **Schema Fill Worker ist deterministic_tool.** Route: `POST /api/companies/:companyId/revenue-lane/schema-fill/process`. Service liest `manifest.json` + `content-draft.json` + Template-Repo-Pfad, kopiert referenzierte Hero/Gallery/Thumb-Assets nach `processed/site-output/src/assets/images/...`, erzeugt `src/content/settings/*.json` plus Section-Markdown unter `processed/site-output/src/content/...`, und ersetzt fehlende Inhalte durch explizite Platzhalter statt leere Felder oder Halluzinationen.
-- **Workspace-Sicherheitsregel fuer Revenue Lane:** Paperclip-Projekt `0bce43aa-2bb9-4572-9938-f556a3279149` zeigt live auf `C:\Users\holyd\DGDH\worktrees\astro-keystatic-template-geib`; Kunden-Git liegt absichtlich ausserhalb von `C:\Users\holyd\DGDH\worktrees`, damit Agenten nicht versehentlich direkt auf Kundenrepos arbeiten.
-- **Dual-Gemini-Failover ist live.** Account 1 exhausted / 429 / `RESOURCE_EXHAUSTED` -> automatisch Account 2 via `GEMINI_OAUTH_CREDS_2_PATH`; `accountLabel` zeigt `account_1` / `account_2`, Wechsel wird geloggt.
-- **CEO Aggregation: MUST-Sprache eingebaut.** `ceo.json` haelt jetzt: "MUST execute GET API call. Do not trust injected context. tool_calls: 0 is a failure." (Fix aus Run `5ecaa84f`)
-- **git_worktree aktiv fuer Projekt Astro/Keystatic (2026-03-22).** `enabled: true`, `defaultMode: "isolated"`, `workspaceStrategy.type: "git_worktree"`, `allowIssueOverride: true`. Neue Issue-Runs laufen jetzt in isolierten Checkouts. Teardown/PR/Auto-Rollback bewusst noch nicht aktiviert (Phase 5).
-- **Codex-CLI-Arbeit ausserhalb Paperclip.** Wenn Codex direkt im Workspace implementiert (kein Paperclip-Worker-Run), braucht es danach einen formalen Worker-"Abholrunner" bevor Review moeglich ist. Reviewer blockiert sonst korrekt auf fehlendem Execution-Record.
-
----
+## DGDH Kern
+- DGDH = David Geib - Digitales Handwerk; David ist der einzige menschliche Operator.
+- Leitfrage: Entlastet das David real oder verschoenert es nur die Maschine?
+- Planer = Perplexity im Chat; Codex = grosser Operator-Sprint-Coder; Reviewer/Researcher = Gemini CLI; Claude nur wenn wirklich noetig.
+- Coder committen und pushen vor dem Bericht; Statusberichte beginnen mit `CODEX STATUSBERICHT`, `Von: Codex`, `An: Planer`.
 
 ## Wichtige IDs
+- Company: `45b3b93e-8a30-4078-acc6-1c721b29b2ff`
+- CEO-Agent: `4e93472c-78f6-409a-9adf-dc57454ea17c`
+- Reviewer-Agent: `9e721036-35b7-446e-a752-2df7a1a8caad`
+- Worker-Agent: `fe5d3d60-9e8a-4e0c-b494-087d3518755c`
+- Projekt Astro/Keystatic: `0bce43aa-2bb9-4572-9938-f556a3279149`
+- Projekt Gemini Benchmark: `8534a922-eaf2-4495-a250-648b0d1ca96b`
 
-| Was | ID |
-|-----|-----|
-| Company | `45b3b93e-8a30-4078-acc6-1c721b29b2ff` |
-| CEO-Agent | `4e93472c-78f6-409a-9adf-dc57454ea17c` |
-| Reviewer-Agent | `9e721036-35b7-446e-a752-2df7a1a8caad` |
-| Worker-Agent | `fe5d3d60-9e8a-4e0c-b494-087d3518755c` |
-| Projekt Astro/Keystatic | `0bce43aa-2bb9-4572-9938-f556a3279149` |
-| Projekt Gemini Benchmark | `8534a922-eaf2-4495-a250-648b0d1ca96b` |
+## Stabile Arbeitsregeln
+- `CURRENT.md` traegt Fokus, naechsten Schritt und Blocker; `MEMORY.md` bleibt kompakt und stabil.
+- Wenn du stabile Facts oder Architektur aenderst, update `MEMORY.md` vor Handoff.
+- High-Risk-Lokalops an DB, Workspace-Routing oder Ordnerstruktur bekommen vor Ausfuehrung einen kurzen Heads-up an den Planer, wenn es zeitlich geht.
+- Issues immer mit `projectId` anlegen, sonst kein Workspace-Lookup.
+- Direkte Codex-CLI-Arbeit ausserhalb eines Paperclip-Worker-Runs braucht spaeter einen formalen Worker-Abholrunner vor Review.
 
----
+## Astro/Keystatic Workspace-Sicherheit
+- Live Primary Workspace fuer Projekt `0bce43aa-2bb9-4572-9938-f556a3279149`: `C:\Users\holyd\DGDH\worktrees\astro-keystatic-template-geib`
+- Ursprungs-Template ausserhalb des Agenten-Bereichs: `C:\Users\holyd\Documents\Websites\general\astro-keystatic-template-geib`
+- Kunden-Git ausserhalb des Agenten-Bereichs: `C:\Users\holyd\Documents\Websites\kunden-archive\ferienwohnung-bamberger`
+- Agenten duerfen nie direkt ein Kunden-Git als Primary Workspace verwenden.
 
-## Wie Issue-Run starten
+## Bewiesener Systemstand
+- `Mission -> CEO -> Child-Issue -> Worker -> Reviewer -> done` ist reproduzierbar bewiesen.
+- CEO Aggregation Mode ist bewiesen; Parent bleibt bei Luecken offen und erzeugt Follow-up statt blind zu schliessen.
+- `reviewer accepted` retriggert den CEO-Parent automatisch.
+- Loop-Detection `5x stop` macht Workspace-Cleanup (`git checkout -- .`) plus blocked Handoff.
+- Reviewer-Simplicity-Criterion ist live.
+- Dual-Gemini-Failover schaltet bei exhausted / `429` / `RESOURCE_EXHAUSTED` von `account_1` auf `account_2`.
+- `git_worktree` ist fuer Astro/Keystatic aktiv (`isolated`, `allowIssueOverride=true`).
 
-```txt
-# Assign (triggert sofort einen Run):
-PATCH /api/issues/{id}
-Body: {"assigneeAgentId": "<agent-id>"}
-
-# Re-trigger (unassign + reassign):
-PATCH /api/issues/{id}  Body: {"assigneeAgentId": null}
-# warten
-PATCH /api/issues/{id}  Body: {"assigneeAgentId": "<agent-id>"}
-
-# NICHT: POST /api/agents/{id}/wakeup - das ist Heartbeat ohne Kontext!
-
-# Agenten-IDs:
-# CEO:      4e93472c-78f6-409a-9adf-dc57454ea17c
-# Worker:   fe5d3d60-9e8a-4e0c-b494-087d3518755c
-# Reviewer: 9e721036-35b7-446e-a752-2df7a1a8caad
-```
+## Revenue Lane Foundation
+- Revenue Lane baut wiederverwendbare DGDH-Faehigkeiten, nicht Einzelfall-Abschluesse.
+- Packet-Kette: `CEO -> Image Preprocessing -> Content Extraction/Draft -> Schema Fill -> Review`.
+- Image Packet Pipeline = `deterministic_tool`, Route `/api/companies/:companyId/revenue-lane/image-pipeline/process`.
+- Content Extraction Worker = `free_api` auf Gemini Flash-Lite, Route `/api/companies/:companyId/revenue-lane/content-extractor/process`.
+- Schema Fill Worker = `deterministic_tool`, Route `/api/companies/:companyId/revenue-lane/schema-fill/process`.
+- Naechster Architektur-Schritt: kontrollierter Template-Apply plus `Packet -> Lane Routing` fuer `deterministic_tool / free_api / premium_model / local_model`.

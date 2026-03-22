@@ -16,8 +16,10 @@ Lies **sofort** `MEMORY.md` im Repo-Root. Das ist der geteilte stabile Zustand a
 - Technische Quick-Reference
 
 **MEMORY.md ist deine Pflicht.** Wenn du stabile Facts, Architektur oder proven state aenderst: update MEMORY.md BEVOR du die Session beendest. Die naechste AI (oder du selbst nach /compact) ist darauf angewiesen.
+Halte `MEMORY.md` dabei als verdichtete Stable-Facts-Karte: Zielgroesse unter 80 Zeilen, keine datierte Sprint-Historie, kein Live-Baton.
 
 Lies **direkt danach** `CURRENT.md`, wenn die Datei existiert. Das ist der Live Baton zwischen den CLIs: aktueller Fokus, aktives Issue, naechster Schritt, Blocker, letzte schreibende AI.
+Wenn du aeltere Sprint-/Run-Historie brauchst, lies `doc/archive/sprint-log.md` statt `MEMORY.md` aufzublaehen.
 
 ---
 
