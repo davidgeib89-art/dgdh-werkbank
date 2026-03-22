@@ -9,6 +9,10 @@ interface LinkActor {
   userId?: string | null;
 }
 
+type ReviewerVerdict = "accepted" | "changes_requested";
+
+const REVIEWER_VERDICT_APPROVAL_TYPE = "reviewer_packet_verdict";
+
 export function issueApprovalService(db: Db) {
   async function getIssue(issueId: string) {
     return db
@@ -169,6 +173,74 @@ export function issueApprovalService(db: Db) {
           })),
         )
         .onConflictDoNothing();
+    },
+
+    recordReviewerVerdictForIssue: async (input: {
+      issueId: string;
+      reviewerAgentId: string;
+      reviewerRunId?: string | null;
+      verdict: ReviewerVerdict;
+      packet?: string | null;
+      doneWhenCheck?: string | null;
+      evidence?: string | null;
+      requiredFixes?: string[];
+      next?: string | null;
+    }) => {
+      const issue = await getIssue(input.issueId);
+      if (!issue) throw notFound("Issue not found");
+
+      const now = new Date();
+      const verdictStatus =
+        input.verdict === "accepted" ? "approved" : "changes_requested";
+      const fixes = (input.requiredFixes ?? []).filter((entry) => entry.trim().length > 0);
+      const decisionNote =
+        input.verdict === "accepted"
+          ? "Reviewer accepted packet against doneWhen."
+          : fixes.length > 0
+            ? `Reviewer requested changes:\n- ${fixes.join("\n- ")}`
+            : "Reviewer requested changes.";
+
+      const approval = await db
+        .insert(approvals)
+        .values({
+          companyId: issue.companyId,
+          type: REVIEWER_VERDICT_APPROVAL_TYPE,
+          requestedByAgentId: input.reviewerAgentId,
+          requestedByUserId: null,
+          status: verdictStatus,
+          payload: {
+            issueId: input.issueId,
+            reviewerAgentId: input.reviewerAgentId,
+            reviewerRunId: input.reviewerRunId ?? null,
+            verdict: input.verdict,
+            packet: input.packet ?? null,
+            doneWhenCheck: input.doneWhenCheck ?? null,
+            evidence: input.evidence ?? null,
+            requiredFixes: fixes,
+            next: input.next ?? null,
+          },
+          decisionNote,
+          decidedByUserId: null,
+          decidedAt: now,
+          updatedAt: now,
+        })
+        .returning()
+        .then((rows) => rows[0] ?? null);
+
+      if (!approval) throw notFound("Approval could not be created");
+
+      await db
+        .insert(issueApprovals)
+        .values({
+          companyId: issue.companyId,
+          issueId: input.issueId,
+          approvalId: approval.id,
+          linkedByAgentId: input.reviewerAgentId,
+          linkedByUserId: null,
+        })
+        .onConflictDoNothing();
+
+      return approval;
     },
   };
 }

@@ -90,11 +90,23 @@ describe("resolveAssignedRoleTemplate", () => {
     expect(result.assigned?.prompt).toContain(
       "For changes_requested, provide at most 3 concrete fix points.",
     );
+    expect(result.assigned?.prompt).toContain(
+      "After final verdict, call POST /api/issues/PAPERCLIP_TASK_ID/reviewer-verdict.",
+    );
+    expect(result.assigned?.prompt).toContain(
+      "accepted -> approved",
+    );
+    expect(result.assigned?.prompt).toContain(
+      "changes_requested -> changes_requested",
+    );
     expect(result.assigned?.template.constraints).toContain(
       "Do not accept results with unsupported claims, source drift, or scope drift.",
     );
     expect(result.assigned?.template.constraints).toContain(
       "For changes_requested, provide no more than 3 concrete and actionable fixes.",
+    );
+    expect(result.assigned?.template.constraints).toContain(
+      "Persist the reviewer verdict via POST /api/issues/:id/reviewer-verdict.",
     );
   });
 

@@ -1,0 +1,140 @@
+import express from "express";
+import request from "supertest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { issueRoutes } from "../routes/issues.js";
+import { errorHandler } from "../middleware/index.js";
+
+const mockIssueService = vi.hoisted(() => ({
+  getById: vi.fn(),
+  getByIdentifier: vi.fn(),
+}));
+
+const mockAgentService = vi.hoisted(() => ({
+  getById: vi.fn(),
+}));
+
+const mockIssueApprovalService = vi.hoisted(() => ({
+  recordReviewerVerdictForIssue: vi.fn(),
+}));
+
+const mockLogActivity = vi.hoisted(() => vi.fn());
+
+vi.mock("../services/index.js", () => ({
+  accessService: () => ({}),
+  agentService: () => mockAgentService,
+  goalService: () => ({}),
+  heartbeatService: () => ({}),
+  issueApprovalService: () => mockIssueApprovalService,
+  issueService: () => mockIssueService,
+  documentService: () => ({}),
+  logActivity: mockLogActivity,
+  projectService: () => ({}),
+}));
+
+function createApp(actorRoleTemplateId = "reviewer", actorRole = "reviewer") {
+  const app = express();
+  app.use(express.json());
+  app.use((req, _res, next) => {
+    (req as any).actor = {
+      type: "agent",
+      agentId: "agent-reviewer-1",
+      companyId: "company-1",
+      runId: "run-1",
+    };
+    next();
+  });
+  mockAgentService.getById.mockResolvedValue({
+    id: "agent-reviewer-1",
+    companyId: "company-1",
+    role: actorRole,
+    adapterConfig: {
+      roleTemplateId: actorRoleTemplateId,
+    },
+  });
+  app.use("/api", issueRoutes({} as any, {} as any));
+  app.use(errorHandler);
+  return app;
+}
+
+describe("issues reviewer verdict route", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockIssueService.getById.mockResolvedValue({
+      id: "issue-1",
+      companyId: "company-1",
+      identifier: "DGD-77",
+    });
+    mockIssueApprovalService.recordReviewerVerdictForIssue.mockResolvedValue({
+      id: "approval-1",
+      status: "changes_requested",
+      type: "reviewer_packet_verdict",
+    });
+    mockLogActivity.mockResolvedValue(undefined);
+  });
+
+  it("records changes_requested verdicts and persists approval consequence", async () => {
+    const res = await request(createApp())
+      .post("/api/issues/issue-1/reviewer-verdict")
+      .send({
+        verdict: "changes_requested",
+        packet: "Schema Fill Worker",
+        doneWhenCheck: "Gallery image refs mismatch in 2 files.",
+        evidence: "manifest.json and site-output diff checked.",
+        requiredFixes: [
+          "Fix gallery image path in showcase section.",
+          "Fix thumbnail fallback path in profile section.",
+        ],
+        next: "Worker should patch and resubmit for review.",
+      });
+
+    expect(res.status).toBe(201);
+    expect(mockIssueApprovalService.recordReviewerVerdictForIssue).toHaveBeenCalledWith(
+      expect.objectContaining({
+        issueId: "issue-1",
+        reviewerAgentId: "agent-reviewer-1",
+        reviewerRunId: "run-1",
+        verdict: "changes_requested",
+      }),
+    );
+    expect(res.body.approval.status).toBe("changes_requested");
+    expect(mockLogActivity).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        action: "issue.reviewer_verdict_recorded",
+        entityType: "issue",
+        entityId: "issue-1",
+      }),
+    );
+  });
+
+  it("rejects verdict submission from non-reviewer agents", async () => {
+    const res = await request(createApp("worker", "worker"))
+      .post("/api/issues/issue-1/reviewer-verdict")
+      .send({
+        verdict: "accepted",
+        doneWhenCheck: "All criteria met.",
+        evidence: "Artifacts verified.",
+        requiredFixes: [],
+        next: "Mark packet complete.",
+      });
+
+    expect(res.status).toBe(403);
+    expect(res.body.error).toContain("Only reviewer agents");
+    expect(mockIssueApprovalService.recordReviewerVerdictForIssue).not.toHaveBeenCalled();
+  });
+
+  it("validates requiredFixes contract for accepted verdict", async () => {
+    const res = await request(createApp())
+      .post("/api/issues/issue-1/reviewer-verdict")
+      .send({
+        verdict: "accepted",
+        doneWhenCheck: "All criteria met.",
+        evidence: "Artifacts verified.",
+        requiredFixes: ["This should not be present."],
+        next: "Done.",
+      });
+
+    expect(res.status).toBe(400);
+    expect(mockIssueApprovalService.recordReviewerVerdictForIssue).not.toHaveBeenCalled();
+  });
+});

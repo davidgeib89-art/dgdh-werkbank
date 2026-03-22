@@ -82,6 +82,40 @@ export const linkIssueApprovalSchema = z.object({
 
 export type LinkIssueApproval = z.infer<typeof linkIssueApprovalSchema>;
 
+export const submitReviewerVerdictSchema = z
+  .object({
+    verdict: z.enum(["accepted", "changes_requested"]),
+    packet: z.string().trim().min(1).max(500).optional().nullable(),
+    doneWhenCheck: z.string().trim().min(1).max(4_000).optional().nullable(),
+    evidence: z.string().trim().min(1).max(4_000).optional().nullable(),
+    requiredFixes: z
+      .array(z.string().trim().min(1).max(500))
+      .max(3)
+      .optional()
+      .default([]),
+    next: z.string().trim().min(1).max(2_000).optional().nullable(),
+  })
+  .superRefine((value, ctx) => {
+    const fixCount = value.requiredFixes.length;
+    if (value.verdict === "accepted" && fixCount > 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["requiredFixes"],
+        message: "requiredFixes must be empty when verdict is accepted",
+      });
+    }
+    if (value.verdict === "changes_requested" && fixCount === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["requiredFixes"],
+        message:
+          "requiredFixes must include 1-3 concrete fixes when verdict is changes_requested",
+      });
+    }
+  });
+
+export type SubmitReviewerVerdict = z.infer<typeof submitReviewerVerdictSchema>;
+
 export const createIssueAttachmentMetadataSchema = z.object({
   issueCommentId: z.string().uuid().optional().nullable(),
 });

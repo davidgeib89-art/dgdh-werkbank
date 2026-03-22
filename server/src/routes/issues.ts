@@ -8,6 +8,7 @@ import {
   checkoutIssueSchema,
   createIssueSchema,
   linkIssueApprovalSchema,
+  submitReviewerVerdictSchema,
   issueDocumentKeySchema,
   upsertIssueDocumentSchema,
   updateIssueSchema,
@@ -593,6 +594,77 @@ export function issueRoutes(db: Db, storage: StorageService) {
     const approvals = await issueApprovalsSvc.listApprovalsForIssue(id);
     res.json(approvals);
   });
+
+  router.post(
+    "/issues/:id/reviewer-verdict",
+    validate(submitReviewerVerdictSchema),
+    async (req, res) => {
+      const id = req.params.id as string;
+      const issue = await svc.getById(id);
+      if (!issue) {
+        res.status(404).json({ error: "Issue not found" });
+        return;
+      }
+      assertCompanyAccess(req, issue.companyId);
+
+      if (req.actor.type !== "agent" || !req.actor.agentId) {
+        res.status(403).json({ error: "Reviewer agent authentication required" });
+        return;
+      }
+
+      const reviewerAgent = await agentsSvc.getById(req.actor.agentId);
+      if (!reviewerAgent || reviewerAgent.companyId !== issue.companyId) {
+        res.status(403).json({ error: "Forbidden" });
+        return;
+      }
+
+      const isReviewer =
+        reviewerAgent.role.toLowerCase() === "reviewer" ||
+        hasRoleTemplateLegacy(reviewerAgent, "reviewer");
+      if (!isReviewer) {
+        res.status(403).json({ error: "Only reviewer agents can submit reviewer verdicts" });
+        return;
+      }
+
+      const approval = await issueApprovalsSvc.recordReviewerVerdictForIssue({
+        issueId: id,
+        reviewerAgentId: reviewerAgent.id,
+        reviewerRunId: req.actor.runId ?? null,
+        verdict: req.body.verdict,
+        packet: req.body.packet ?? null,
+        doneWhenCheck: req.body.doneWhenCheck ?? null,
+        evidence: req.body.evidence ?? null,
+        requiredFixes: req.body.requiredFixes,
+        next: req.body.next ?? null,
+      });
+
+      const actor = getActorInfo(req);
+      await logActivity(db, {
+        companyId: issue.companyId,
+        actorType: actor.actorType,
+        actorId: actor.actorId,
+        agentId: actor.agentId,
+        runId: actor.runId,
+        action: "issue.reviewer_verdict_recorded",
+        entityType: "issue",
+        entityId: issue.id,
+        details: {
+          identifier: issue.identifier,
+          verdict: req.body.verdict,
+          approvalId: approval.id,
+          approvalStatus: approval.status,
+          requiredFixesCount: (req.body.requiredFixes ?? []).length,
+        },
+      });
+
+      res.status(201).json({
+        issueId: issue.id,
+        issueIdentifier: issue.identifier,
+        verdict: req.body.verdict,
+        approval,
+      });
+    },
+  );
 
   router.post("/issues/:id/approvals", validate(linkIssueApprovalSchema), async (req, res) => {
     const id = req.params.id as string;
