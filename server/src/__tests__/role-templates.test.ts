@@ -1,3 +1,6 @@
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import {
   listRoleTemplateSummaries,
@@ -9,6 +12,11 @@ describe("resolveAssignedRoleTemplate", () => {
     const result = listRoleTemplateSummaries();
 
     expect(result).toEqual([
+      expect.objectContaining({
+        id: "assistant",
+        version: "v1",
+        label: "Assistant",
+      }),
       expect.objectContaining({ id: "ceo", version: "v1", label: "CEO" }),
       expect.objectContaining({
         id: "reviewer",
@@ -116,6 +124,50 @@ describe("resolveAssignedRoleTemplate", () => {
     expect(result.assigned?.template.constraints).toContain(
       "Aggregation Mode: MUST execute GET /api/companies/.../issues?parentId=... before any decision. Do not trust injected context for child statuses. The API call is mandatory and non-optional. Do not create new packets if all children are already done.",
     );
+  });
+
+  it("loads the canonical assistant template with bounded packet planning handoff", () => {
+    const result = resolveAssignedRoleTemplate({
+      roleTemplateId: "assistant",
+    });
+
+    expect(result.error).toBeNull();
+    expect(result.assigned?.template.id).toBe("assistant");
+    expect(result.assigned?.template.operatingMode).toBe("planning");
+    expect(result.assigned?.template.defaultExecutionIntent).toBe("plan");
+    expect(result.assigned?.template.defaultNeedsReview).toBe(false);
+    expect(result.assigned?.prompt).toContain(
+      "You are the Assistant role for David Geib Digitales Handwerk",
+    );
+    expect(result.assigned?.prompt).toContain(
+      "Read at most 5 directly relevant files.",
+    );
+    expect(result.assigned?.prompt).toContain(
+      "Decompose into exactly 2-4 worker packets.",
+    );
+    expect(result.assigned?.prompt).toContain(
+      "No issue creation. CEO creates issues after your handoff.",
+    );
+    expect(result.assigned?.prompt).toContain(
+      "Finish every run with this exact handoff format:",
+    );
+    expect(result.assigned?.prompt).toContain("1. Delegation:");
+    expect(result.assigned?.prompt).toContain("3. packetType je Packet:");
+    expect(result.assigned?.prompt).toContain("packetType: free_api");
+    expect(result.assigned?.prompt).toContain("needsReview: true");
+  });
+
+  it("assistant template file declares premium_model packetType", () => {
+    const testDir = path.dirname(fileURLToPath(import.meta.url));
+    const templatePath = path.resolve(
+      testDir,
+      "../../config/role-templates/assistant.json",
+    );
+    const parsed = JSON.parse(fs.readFileSync(templatePath, "utf8")) as {
+      packetType?: string;
+    };
+
+    expect(parsed.packetType).toBe("premium_model");
   });
 
   it("reviewer matrix format is structured in the prompt", () => {
