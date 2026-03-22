@@ -16,3 +16,4 @@ Stabile Regeln und Fakten gehoeren in `MEMORY.md`, der Live-Baton in `CURRENT.md
 - Runtime-Check - `GET /api/health` = `200`, Workspace-API bestaetigt den sicheren Astro/Keystatic-Primary-Workspace. Kein Commit.
 - Sprint H - Memory-Verdichtung: `MEMORY.md` komprimiert, Sprint-Historie archiviert, Verdichtungsregeln in Onboarding-Dokus verankert.
 - Sprint I - Revenue Lane Template-Apply Worker geliefert. Reale Anwendung in den sicheren Template-Workspace: `34` Pfade angewendet, `3` veraltete Managed-Pfade geloescht. Echter `npm ci` + `npm run build` im sicheren Template-Workspace gruen.
+- Sprint J - Zielausrichtung und Doku-Klarzug fuer Prototyping-Phase: North Star um Autonomie-Vision erweitert, Revenue-Lane-Capabilities/Gaps dokumentiert, CURRENT/MEMORY auf Prototyp->Plattform-Reifestufe gesetzt.

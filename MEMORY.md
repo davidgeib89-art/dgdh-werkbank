@@ -14,6 +14,7 @@
 ## DGDH Kern
 - DGDH = David Geib - Digitales Handwerk; David ist der einzige menschliche Operator.
 - Leitfrage: Entlastet das David real oder verschoenert es nur die Maschine?
+- Langfristige Richtung: David gibt die Richtung, die Maschine uebernimmt mit wachsender Modellfaehigkeit immer mehr Entscheidungen und Lieferung.
 - Planer = Perplexity im Chat; Codex = grosser Operator-Sprint-Coder; Reviewer/Researcher = Gemini CLI; Claude nur wenn wirklich noetig.
 - Coder committen und pushen vor dem Bericht; Statusberichte beginnen mit `CODEX STATUSBERICHT`, `Von: Codex`, `An: Planer`.
 

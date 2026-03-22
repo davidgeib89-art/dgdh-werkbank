@@ -1,10 +1,10 @@
 # CURRENT - Live Baton
 
-focus: Sprint I abgeschlossen - Template-Apply Worker und sicherer Template-Build bewiesen
+focus: Sprint J abgeschlossen - Zielausrichtung geschaerft (Prototyp -> wiederverwendbare Plattform)
 active_issue: none
 next:
-  1) Packet-Type -> Lane Routing fuer deterministic_tool / free_api / premium_model / local_model haerten
-  2) Wenn echter Kundentext vorliegt: Revenue Lane End-to-End per API/Paperclip gegen den sicheren Template-Workspace fahren
+  1) Von Prototyp zu Plattform: Packet-Type -> Lane Routing fuer deterministic_tool / free_api / premium_model / local_model haerten
+  2) Branchenharten der Revenue-Lane-Faehigkeiten (Friseur, Restaurant, Handwerk) auf Basis der neuen Capability-Gap-Analyse
 blockers: none
 notes:
 - Arbeitsmodell ab 2026-03-22: Planer = Perplexity via Chat. Codex = grosse Operator-Sprints mit eigenem Debug-Loop, Console-Watch und aktiver Bedienung von Paperclip/Werkbank. Reviewer/Researcher = Gemini CLI. Claude = nur wenn wirklich noetig, um Quota zu schonen.
@@ -18,6 +18,8 @@ notes:
 - Output ist reviewbar: `processed/manifest.json` fuer Bilder, `processed/content-draft.json` fuer strukturierten Content-Draft, `processed/site-output/` als Template-Stand und danach kontrollierter Apply in den sicheren Template-Workspace.
 - Realer Sprint-I-Lauf gegen `shared/Kunde/Unbekannt Bamberger Tante/processed/site-output` hat in `C:\Users\holyd\DGDH\worktrees\astro-keystatic-template-geib` `34` Pfade angewendet und `3` veraltete Managed-Pfade geloescht.
 - Echter `npm run build` im sicheren Template-Workspace ist nach lokalem `npm ci` gruen; damit ist die Revenue-Lane-Foundation bis zum deploy-faehigen Template-Build bewiesen.
+- Sprint J liefert die Zielausrichtung als Prototyp-zu-Plattform-Richtung: heutige Kundenarbeit ist Sandkasten fuer generische Agent-Faehigkeiten, die spaeter fuer viele Kunden wiederverwendbar laufen.
+- Prototyping-Phase bleibt explizit: schneller iterieren, ehrlich Gaps markieren, Fundament richtig bauen statt Einzelfall-Perfektion.
 - Fuer Projekt Astro/Keystatic zeigt der Project-Workspace auf den sicheren Template-only-Workspace `C:\Users\holyd\DGDH\worktrees\astro-keystatic-template-geib`.
 - Kein Kunden-Git mehr unter `C:\Users\holyd\DGDH\worktrees\ferienwohnung-bamberger`; der bisherige Kunden-Stand wurde aus dem Agenten-Bereich nach `C:\Users\holyd\Documents\Websites\kunden-archive\ferienwohnung-bamberger` verschoben.
 last_updated_by: Codex (Coder)

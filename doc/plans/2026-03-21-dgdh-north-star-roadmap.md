@@ -1171,3 +1171,24 @@ Spaeteres Zielbild:
 - Bestehende Firmenrichtung: `company-hq/ROADMAP.md`
 - CEO-Kontext: `company-hq/DGDH-CEO-CONTEXT.md`
 - Vision: `company-hq/VISION.md`
+
+## 19. Langfristige Autonomie-Vision
+
+Diese Firma ist bewusst als Prototyp gestartet. Einzelfaelle wie "Bamberger Tante" sind nicht das Ziel, sondern der Sandkasten, in dem wir robuste Faehigkeiten bauen.
+
+Zeithorizonte:
+- Heute: Prototyping. Schnell lernen, ehrlich Gaps markieren, saubere Grundbausteine liefern.
+- Mittelfristig: generische Agent-Faehigkeiten (Image Pipeline, Content Extraction, Schema Fill, Template Apply), die fuer viele Kundenprofile wiederverwendbar laufen.
+- Langfristig: David gibt Richtung und Prioritaeten; die Maschine plant, entscheidet im Rahmen der Governance und liefert den operativen Grossteil.
+
+Kernprinzip:
+- `go with the flow` bedeutet nicht zufaellig bauen, sondern mit realen Faellen organisch lernen und gleichzeitig das Fundament so bauen, dass Autonomie monatlich messbar steigt.
+- Die Weiterentwicklung der LLMs wird genutzt, aber nicht blind vorausgesetzt: jede neue Modellfaehigkeit wird als stabiler Packet-Typ in die Werkbank integriert.
+
+Messrichtung:
+- Die Leitfrage "Entlastet das David real?" bleibt.
+- Zusaetzliche Steuerfrage fuer die naechsten Monate: "Wie viel weniger muss David diesen Monat entscheiden als im letzten Monat?"
+
+Architektur-Folge:
+- Revenue Lane bleibt Capability-Builder, nicht Einzelfall-Fabrik.
+- Naechster Fokus ist `Packet -> Lane Routing`, damit dieselbe Firma-Engine fuer verschiedene Aufgaben und Branchen automatisch die passende Lane waehlt.
