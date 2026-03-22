@@ -1,11 +1,20 @@
 # CURRENT - Live Baton
 
-focus: Sprint K abgeschlossen - Lane Routing V1 mit packetType/role-Hints bewiesen
-active_issue: none
+focus: Sprint P (Assignment-Logik) laeuft — Codex arbeitet
+active_issue: Verdrahtung der Multi-Agent-Kette
 next:
-  1) CEO-Run-Kontext schaerfen: Rollenprompt fuer `ceo` auf Packet-Spec-Erzeugung haerten (ohne Loop-Umbau)
-  2) Branchenharten der Revenue-Lane-Faehigkeiten (Friseur, Restaurant, Handwerk) auf Basis der Capability-Gap-Analyse
+  1) Sprint P: Assignment-Logik (erstellte Issues landen bei Workern)
+  2) Sprint Q: Reviewer-Feedback-Loop
+  3) Sprint R: CEO-Aggregation
+  4) Sprint S: Smoke Customer Run (erster End-to-End-Lauf)
 blockers: none
+brainstorm_backlog (2026-03-22, David + Perplexity + Claude):
+  - CEO Prompt Hardening: 4 Tweaks gebuendelt nach Sprint P → `doc/backlog/ceo-prompt-hardening.md`
+    (flexible Packet-Zahl, Mission-Typen, Direkt-vs-Kette, Selbst-Reflection)
+  - Reflect-Skill als horizontales Tool fuer alle Rollen (spaeter, nach Smoke Run)
+  - Skill-Creation Engine (spaeter, nach Sprint S) → `doc/backlog/skill-creation-engine.md`
+  - Smoke Customer Run Konzept → `doc/backlog/smoke-customer-run.md` (noch nicht erstellt)
+  - Agent Architecture kanonisch dokumentiert → `doc/architecture/dgdh-agent-architecture.md`
 notes:
 - Arbeitsmodell ab 2026-03-22: Planer = Perplexity via Chat. Codex = grosse Operator-Sprints mit eigenem Debug-Loop, Console-Watch und aktiver Bedienung von Paperclip/Werkbank. Reviewer/Researcher = Gemini CLI. Claude = nur wenn wirklich noetig, um Quota zu schonen.
 - Codex committed und pusht selbst. Commit-Hash im Statusbericht ist Pflicht. Planer reviewed den Diff direkt.
@@ -24,5 +33,5 @@ notes:
 - Routing-Entscheidungen sind jetzt transparent im `routingReason` sichtbar (Lane, Quelle, packetType, Rolle, Bucket, Modell, Grund).
 - Fuer Projekt Astro/Keystatic zeigt der Project-Workspace auf den sicheren Template-only-Workspace `C:\Users\holyd\DGDH\worktrees\astro-keystatic-template-geib`.
 - Kein Kunden-Git mehr unter `C:\Users\holyd\DGDH\worktrees\ferienwohnung-bamberger`; der bisherige Kunden-Stand wurde aus dem Agenten-Bereich nach `C:\Users\holyd\Documents\Websites\kunden-archive\ferienwohnung-bamberger` verschoben.
-last_updated_by: Codex (Coder)
+last_updated_by: Claude (Planer)
 updated_at: 2026-03-22

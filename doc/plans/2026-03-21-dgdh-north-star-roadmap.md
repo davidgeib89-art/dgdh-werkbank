@@ -1192,3 +1192,8 @@ Messrichtung:
 Architektur-Folge:
 - Revenue Lane bleibt Capability-Builder, nicht Einzelfall-Fabrik.
 - Naechster Fokus ist `Packet -> Lane Routing`, damit dieselbe Firma-Engine fuer verschiedene Aufgaben und Branchen automatisch die passende Lane waehlt.
+
+## 20. Backlog (nicht priorisiert, nur Notizen)
+
+- **Heartbeat Modular Refactor** — heartbeat.ts ist zu gross, CEO-Logik und Engine-Thinking rausziehen. Erst nach CEO V1 stabil. Details: `doc/backlog/heartbeat-modular-refactor.md`
+- **Skill-Creation Engine** — Reflexive Skill-Registrierung via Git Snapshot, Skill-Komposition, Skill-Creation als Meta-Skill. Erst nach Sprint O (CEO + Assistent + Reviewer stabil). Details: `doc/backlog/skill-creation-engine.md`
