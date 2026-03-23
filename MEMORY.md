@@ -9,6 +9,7 @@
 - `doc/plans/2026-03-21-dgdh-north-star-roadmap.md` - kanonische operative Richtung
 - `doc/plans/2026-03-23-focus-freeze.md` - aktiver Kurzfrist-Fokus gegen Drift
 - `doc/plans/2026-03-23-dgdh-leitdokument.md` - lebendige CEO-nahe Richtungsbeschreibung; hoehere Lesart fuer die aktuelle Phase
+- `doc/plans/2026-03-23-research-and-skills-direction.md` - kanonische Richtung fuer Skills, Guardrails und OSS-Adaption
 - `doc/plans/2026-03-23-chat-ai-docking-prompt.md` - neutrales Andock-Briefing fuer neue Chat-AI-Fenster
 - `doc/plans/2026-03-23-working-triad.md` - kurze visuelle Referenz fuer David -> Planner -> Coder
 - `doc/plans/2026-03-21-role-template-architecture.md` - Rollen-/Packet-Architektur
@@ -20,6 +21,9 @@
 - Leitfragen: "Entlastet das David real?" UND "Wird die Firma faehiger - oder nur groesser?"
 - Langfristige Richtung: David gibt die Richtung, die Maschine uebernimmt mit wachsender Modellfaehigkeit immer mehr Entscheidungen und Lieferung.
 - Planer = Perplexity im Chat; Codex = grosser Operator-Sprint-Coder; Reviewer/Researcher = Gemini CLI; Claude nur wenn wirklich noetig.
+- Researcher-Haltung: DGDH sucht aktiv OSS-Muster (wie Drop-box Handoffs, Skills), kopiert aber nur bei echtem Firmenhebel.
+- Guardrail-Logik: Asymmetrisch. CEO/Planer agieren offener und strategischer; Worker eng gefuehrt; Spezialaufgaben landen kuenftig in fixierten Skills (Progressive Disclosure).
+- CEO-Modell-Richtung: Gemini Pro bevorzugt -> Flash -> Flash-Lite. (Claude/Codex mittelfristig als CEO plausibel).
 
 ## Phase und Prioritaet (Korrektur 2026-03-22)
 - DGDH ist in der PROTOTYPING-PHASE. Wir bauen an einer grossen Zukunft.
@@ -67,8 +71,6 @@
 - Reviewer-Simplicity-Criterion ist live.
 - Worker-Abschluss hat jetzt ein hartes API-Gate: `POST /api/issues/:id/worker-done` mit Pflichtfeldern `prUrl`, `branch`, `commitHash`, `summary`.
 - Worker kann GitHub-PRs direkt via REST API erstellen (`POST /api/issues/:id/worker-pr` -> `createGitHubPR`), ohne `gh` CLI-Abhaengigkeit.
-- `worker-pr` toleriert jetzt wie `worker-done`/`reviewer-verdict` nicht-persistierte API-Run-IDs; freie `runId`s landen in `details.apiRunId` statt am `activity_log.run_id`-FK zu crashen.
-- GitHub-PR/Merge-Service faellt jetzt bei fehlenden Prozess-Env-Variablen auf vorhandene Git-Credentials und den `origin`-Remote-Slug zurueck; `worker-pr`, Merge und CEO-Summary laufen damit auch in lokalem Dev-Setup ohne explizites `GITHUB_TOKEN`/`GITHUB_REPOSITORY` im Serverprozess.
 - Prompt-Scope-Firewall V1 ist aktiv: Worker blockt ausserhalb `targetFolder`, Reviewer fordert bei Scope-Verstoss Revision.
 - Harte Code-Firewall (Option B) bleibt Backlog und wird erst bei dokumentiertem Trigger aktiviert (`doc/backlog/scope-firewall-code.md`).
 - Dual-Gemini-Failover schaltet bei exhausted / `429` / `RESOURCE_EXHAUSTED` von `account_1` auf `account_2`.

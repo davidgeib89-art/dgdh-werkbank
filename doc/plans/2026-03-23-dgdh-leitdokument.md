@@ -218,7 +218,22 @@ Heute gilt:
 - Revenue nicht zum Gott machen
 - Vision gross halten, den naechsten Schritt aber sauber schneiden
 
-## 14. Schluss
+## 14. Guardrail-Logik und Researcher-Haltung (Kanonisiert am 23.03.2026)
+
+**Guardrails sind asymmetrisch:**
+- **CEO / Planer:** Offen, strategisch, mehr Urteilsraum fuer Abwaegung und Richtung. Das groesste Denkmodell sitzt oben.
+- **Worker:** Enger gefuehrt, fester Aufgabenrahmen, strikte Ausfuehrung.
+- **Skills (spaeter):** Komplett standardisierte Spezialaufgaben mit festen Guardrails, um den allgemeinen Worker-Prompt zu entlasten (Progressive Disclosure).
+
+**CEO-Modell-Prioritaet:**
+- Bevorzugt **Gemini Pro**, Fallback auf Flash, dann Flash-Lite. 
+- Mittelfristig ist es absolut plausibel und gewollt, Claude oder Codex als CEO einzusetzen, sobald das System provider-unabhaengig genug ist.
+
+**Die Researcher-Haltung:**
+- DGDH erfindet das Rad nicht neu. Wir scannen aktiv Open-Source-Muster (wie GitHub Agentic Workflows, HuggingFace Skills, Drop-box Pattern) auf echten Firmenhebel.
+- Wir kopieren nicht blind, sondern uebernehmen nur das, was echte Zuverlaessigkeit bringt oder Zeit spart. Semantische Codebase-Intelligenz (z.B. SocratiCode-Muster) ist als spaeterer Hebel auf dem Radar.
+
+## 15. Schluss
 
 David ist die Wurzel der Firma.
 Die Modelle sind nicht die Wurzel, aber sie sind auch nicht nur stumpfe Tools.
