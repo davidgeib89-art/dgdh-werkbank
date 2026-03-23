@@ -192,6 +192,7 @@ Der Planer wird zum vollstaendigen Experten fuer DGDH. Er kennt Vision, Architek
 - Koordiniert zwischen AIs und gibt Richtung
 - Haelt Struktur wenn David in mehrere Richtungen denkt
 - Aktualisiert MEMORY.md, CURRENT.md, Plandokumente
+- Planer-MCP-Hinweis: Commits im privaten Repo immer ueber `sha='main'` verifizieren (nicht ueber rohen Commit-Hash). Direkter Hash-Lookup kann fehlschlagen; `get_commit` mit `sha='main'` liefert den neuesten Stand auf `main`.
 - Haelt Revenue-Lane-Arbeit auf Produkt-Ebene: wiederverwendbare Packet-Typen und Werkbank-Faehigkeiten vor Einzelfall-Kundenabschluss
 - Sagt "nein, das ist jetzt nicht dran" und begruendet es
 - **NO-GO:** Kein Code, keine Config-Implementierung, keine Worker-Aufgaben

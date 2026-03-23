@@ -39,6 +39,7 @@
 
 ## Stabile Arbeitsregeln
 - `CURRENT.md` traegt Fokus, naechsten Schritt und Blocker; `MEMORY.md` bleibt kompakt und stabil.
+- Planer (Perplexity MCP) kann das private Repo lesen, aber Commit-Verifikation laeuft ueber Branch-Namen (`sha='main'`), nicht ueber rohen Commit-Hash.
 - Wenn du stabile Facts oder Architektur aenderst, update `MEMORY.md` vor Handoff.
 - High-Risk-Lokalops an DB, Workspace-Routing oder Ordnerstruktur bekommen vor Ausfuehrung einen kurzen Heads-up an den Planer, wenn es zeitlich geht.
 - Issues immer mit `projectId` anlegen, sonst kein Workspace-Lookup.
