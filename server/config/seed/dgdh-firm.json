@@ -1,0 +1,36 @@
+{
+  "company": {
+    "name": "David Geib Digitales Handwerk",
+    "status": "active",
+    "budgetMonthlyCents": 0
+  },
+  "agents": [
+    {
+      "name": "CEO Agent",
+      "role": "general",
+      "adapterType": "gemini_local",
+      "adapterConfig": {
+        "model": "auto",
+        "roleTemplateId": "ceo"
+      }
+    },
+    {
+      "name": "Worker Agent",
+      "role": "general",
+      "adapterType": "gemini_local",
+      "adapterConfig": {
+        "model": "auto",
+        "roleTemplateId": "worker"
+      }
+    },
+    {
+      "name": "Reviewer Agent",
+      "role": "general",
+      "adapterType": "gemini_local",
+      "adapterConfig": {
+        "model": "auto",
+        "roleTemplateId": "reviewer"
+      }
+    }
+  ]
+}
