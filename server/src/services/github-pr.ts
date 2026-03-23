@@ -26,6 +26,27 @@ export interface CreateGitHubPROutput {
   base: string;
 }
 
+export interface GitHubPullRequestDetails {
+  prNumber: number;
+  prUrl: string | null;
+  branch: string | null;
+  base: string | null;
+  state: string | null;
+  merged: boolean;
+}
+
+export type MergeGitHubPullRequestResult =
+  | {
+      outcome: "merged";
+      sha: string | null;
+      message: string | null;
+    }
+  | {
+      outcome: "merge_conflict";
+      statusCode: number;
+      message: string;
+    };
+
 type GitHubRepoRef = {
   owner: string;
   repo: string;
@@ -231,8 +252,206 @@ export async function createGitHubPR(
   throw unprocessable(`GitHub PR creation failed (${response.status}): ${message}`);
 }
 
+function parsePullRequestDetails(payload: unknown): GitHubPullRequestDetails | null {
+  const record = asRecord(payload);
+  if (!record) return null;
+
+  const number = record.number;
+  if (typeof number !== "number" || !Number.isFinite(number)) return null;
+
+  const htmlUrl = typeof record.html_url === "string" ? record.html_url : null;
+  const state = typeof record.state === "string" ? record.state : null;
+  const merged = record.merged === true;
+  const head = asRecord(record.head);
+  const base = asRecord(record.base);
+  const branch = typeof head?.ref === "string" ? head.ref : null;
+  const baseBranch = typeof base?.ref === "string" ? base.ref : null;
+
+  return {
+    prNumber: Number(number),
+    prUrl: htmlUrl,
+    branch,
+    base: baseBranch,
+    state,
+    merged,
+  };
+}
+
+export async function getGitHubPullRequest(input: {
+  owner?: string | null;
+  repo?: string | null;
+  prNumber: number;
+}): Promise<GitHubPullRequestDetails> {
+  if (!Number.isInteger(input.prNumber) || input.prNumber <= 0) {
+    throw badRequest("prNumber must be a positive integer");
+  }
+
+  const token = resolveGitHubToken();
+  const repoRef = resolveGitHubRepo(input);
+
+  const response = await fetch(
+    `${DEFAULT_GITHUB_API_BASE_URL}/repos/${repoRef.owner}/${repoRef.repo}/pulls/${input.prNumber}`,
+    {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: DEFAULT_GITHUB_ACCEPT_HEADER,
+        "X-GitHub-Api-Version": DEFAULT_GITHUB_API_VERSION,
+        "User-Agent": "paperclip-github-pr-service",
+      },
+      signal: AbortSignal.timeout(15_000),
+    },
+  );
+
+  const payload = (await response.json().catch(() => null)) as unknown;
+  const parsed = parsePullRequestDetails(payload);
+  if (response.ok && parsed) return parsed;
+
+  const message = parseGitHubErrorMessage(payload) ?? response.statusText;
+  throw unprocessable(`GitHub pull request lookup failed (${response.status}): ${message}`);
+}
+
+export async function mergeGitHubPullRequest(input: {
+  owner?: string | null;
+  repo?: string | null;
+  prNumber: number;
+  commitTitle: string;
+  mergeMethod?: "merge" | "squash" | "rebase";
+}): Promise<MergeGitHubPullRequestResult> {
+  if (!Number.isInteger(input.prNumber) || input.prNumber <= 0) {
+    throw badRequest("prNumber must be a positive integer");
+  }
+
+  const token = resolveGitHubToken();
+  const repoRef = resolveGitHubRepo(input);
+  const commitTitle = input.commitTitle.trim();
+  if (!commitTitle) throw badRequest("commitTitle is required");
+  const mergeMethod = input.mergeMethod ?? "squash";
+
+  const response = await fetch(
+    `${DEFAULT_GITHUB_API_BASE_URL}/repos/${repoRef.owner}/${repoRef.repo}/pulls/${input.prNumber}/merge`,
+    {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: DEFAULT_GITHUB_ACCEPT_HEADER,
+        "X-GitHub-Api-Version": DEFAULT_GITHUB_API_VERSION,
+        "Content-Type": "application/json",
+        "User-Agent": "paperclip-github-pr-service",
+      },
+      body: JSON.stringify({
+        merge_method: mergeMethod,
+        commit_title: commitTitle,
+      }),
+      signal: AbortSignal.timeout(15_000),
+    },
+  );
+
+  const payload = (await response.json().catch(() => null)) as unknown;
+  const record = asRecord(payload);
+  if (response.ok) {
+    const sha = typeof record?.sha === "string" ? record.sha : null;
+    const message = typeof record?.message === "string" ? record.message : null;
+    return { outcome: "merged", sha, message };
+  }
+
+  const message = parseGitHubErrorMessage(payload) ?? response.statusText;
+  if (response.status === 405 || response.status === 409) {
+    return {
+      outcome: "merge_conflict",
+      statusCode: response.status,
+      message,
+    };
+  }
+  throw unprocessable(`GitHub PR merge failed (${response.status}): ${message}`);
+}
+
+export async function deleteGitHubBranch(input: {
+  owner?: string | null;
+  repo?: string | null;
+  branch: string;
+}): Promise<{ deleted: boolean }> {
+  const branch = input.branch.trim();
+  if (!branch) throw badRequest("branch is required");
+
+  const token = resolveGitHubToken();
+  const repoRef = resolveGitHubRepo(input);
+  const encodedBranch = branch
+    .split("/")
+    .map((segment) => encodeURIComponent(segment))
+    .join("/");
+
+  const response = await fetch(
+    `${DEFAULT_GITHUB_API_BASE_URL}/repos/${repoRef.owner}/${repoRef.repo}/git/refs/heads/${encodedBranch}`,
+    {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: DEFAULT_GITHUB_ACCEPT_HEADER,
+        "X-GitHub-Api-Version": DEFAULT_GITHUB_API_VERSION,
+        "User-Agent": "paperclip-github-pr-service",
+      },
+      signal: AbortSignal.timeout(15_000),
+    },
+  );
+
+  if (response.status === 204) return { deleted: true };
+  if (response.status === 404) return { deleted: false };
+
+  const payload = (await response.json().catch(() => null)) as unknown;
+  const message = parseGitHubErrorMessage(payload) ?? response.statusText;
+  throw unprocessable(`GitHub branch delete failed (${response.status}): ${message}`);
+}
+
+export async function createGitHubIssueComment(input: {
+  owner?: string | null;
+  repo?: string | null;
+  issueNumber: number;
+  body: string;
+}): Promise<{ id: number; url: string | null }> {
+  if (!Number.isInteger(input.issueNumber) || input.issueNumber <= 0) {
+    throw badRequest("issueNumber must be a positive integer");
+  }
+  const body = input.body.trim();
+  if (!body) throw badRequest("body is required");
+
+  const token = resolveGitHubToken();
+  const repoRef = resolveGitHubRepo(input);
+
+  const response = await fetch(
+    `${DEFAULT_GITHUB_API_BASE_URL}/repos/${repoRef.owner}/${repoRef.repo}/issues/${input.issueNumber}/comments`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: DEFAULT_GITHUB_ACCEPT_HEADER,
+        "X-GitHub-Api-Version": DEFAULT_GITHUB_API_VERSION,
+        "Content-Type": "application/json",
+        "User-Agent": "paperclip-github-pr-service",
+      },
+      body: JSON.stringify({ body }),
+      signal: AbortSignal.timeout(15_000),
+    },
+  );
+
+  const payload = (await response.json().catch(() => null)) as unknown;
+  const record = asRecord(payload);
+  if (response.ok) {
+    const id = typeof record?.id === "number" ? Number(record.id) : 0;
+    const url = typeof record?.html_url === "string" ? record.html_url : null;
+    return { id, url };
+  }
+
+  const message = parseGitHubErrorMessage(payload) ?? response.statusText;
+  throw unprocessable(`GitHub issue comment failed (${response.status}): ${message}`);
+}
+
 export function githubPrService() {
   return {
     createGitHubPR,
+    getGitHubPullRequest,
+    mergeGitHubPullRequest,
+    deleteGitHubBranch,
+    createGitHubIssueComment,
   };
 }

@@ -30,6 +30,7 @@ export { secretService } from "./secrets.js";
 export { costService } from "./costs.js";
 export { heartbeatService } from "./heartbeat.js";
 export { githubPrService, createGitHubPR } from "./github-pr.js";
+export { ceoService, maybeRunCeoMergeOrchestratorAfterReviewerVerdict } from "./ceo.js";
 export { dashboardService } from "./dashboard.js";
 export {
   summarizePromptShadowTelemetry,

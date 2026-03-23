@@ -36,6 +36,9 @@ const ALL_ISSUE_STATUSES = [
   "todo",
   "in_progress",
   "in_review",
+  "reviewer_accepted",
+  "merged",
+  "merge_conflict",
   "blocked",
   "done",
   "cancelled",
@@ -58,7 +61,7 @@ function applyStatusSideEffects(
   if (status === "in_progress" && !patch.startedAt) {
     patch.startedAt = new Date();
   }
-  if (status === "done") {
+  if (status === "done" || status === "merged") {
     patch.completedAt = new Date();
   }
   if (status === "cancelled") {
