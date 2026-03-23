@@ -65,6 +65,7 @@ notes:
 - Delegation Guardrails V1: CEO-Template unterscheidet jetzt explizit Direct Answer Mode vs Delegation Mode; reine Denk-/Entscheidungs-/Aggregationsarbeit darf direkt beantwortet werden, operative Umsetzung muss delegiert werden.
 - Review Policy V1: Packet-Metadaten `executionIntent` + `reviewPolicy` sind kanonisch; Aggregation behandelt review-optionale Packets nur bei Status `done` als komplett, waehrend Umsetzungs-/Artefakt-Arbeit weiter Approval braucht.
 - Leitdokument-Update: Firmenfaehigkeit zuerst; `verein` ist jetzt optionaler Proof-Usecase statt Pflichtanker.
+- Neue spaetere Richtungsabsicherung: `doc/plans/2026-03-23-dgdh-evolution-lane-werkbank-baut-werkbank.md` setzt Self-Learning als replay-/benchmark-getriebene Evolution-Lane, nicht als Live-Produktionssprint.
 - Revenue-Lane-Richtung: zuerst DGDH-Faehigkeit bauen, nicht einen einzelnen Kundenfall zu Ende improvisieren.
 - Sprint E geliefert: deterministische `sharp`-Pipeline per API-Route `/api/companies/:companyId/revenue-lane/image-pipeline/process`.
 - Sprint F geliefert: Flash-Lite-basierter Content-Extractor per API-Route `/api/companies/:companyId/revenue-lane/content-extractor/process`.

@@ -11,6 +11,7 @@
 - `doc/plans/2026-03-23-dgdh-leitdokument.md` - lebendige CEO-nahe Richtungsbeschreibung; hoehere Lesart fuer die aktuelle Phase
 - `doc/plans/2026-03-23-firmenlauf-ux-direction.md` - spaetere UX-Richtung: Firmenlauf lesbar machen statt Library-Wechsel
 - `doc/plans/2026-03-23-research-and-skills-direction.md` - kanonische Richtung fuer Skills, Guardrails und OSS-Adaption
+- `doc/plans/2026-03-23-dgdh-evolution-lane-werkbank-baut-werkbank.md` - spaetere Evolution-Lane: kontrollierte replay-/benchmark-getriebene Selbstverbesserung statt freier Live-Selbstoptimierung
 - `doc/plans/2026-03-23-research-role-and-skill-invocation-direction.md` - Researcher als spaeterer Spezialpfad; klare Trennung Rolle vs Skill
 - `doc/plans/2026-03-23-chat-ai-docking-prompt.md` - neutrales Andock-Briefing fuer neue Chat-AI-Fenster
 - `doc/plans/2026-03-23-working-triad.md` - kurze visuelle Referenz fuer David -> Planner -> Coder
@@ -85,6 +86,7 @@
 - Das Worker-Role-Template erzwingt jetzt fuer kanonische PR/Handoffs den Paperclip-Pfad `worker-pr` -> `worker-done` statt `gh pr create`.
 - Delegation Guardrails V1 sind live: CEO darf direkt nur Denk-/Entscheidungs-/Aggregationsarbeit erledigen; operative Umsetzung, Code, Datei-, Git-, PR- und Merge-Arbeit muss delegiert werden.
 - Review Policy V1 ist kanonisch: review-optionale Packets sind nur fuer reine Denk-/Plan-/Aggregationsarbeit mit expliziter Packet-Policy erlaubt; alles mit Umsetzung, Datei-Aenderung, Code, Git/PR/Merge oder konkretem Artefakt bleibt review-required/default-on.
+- Evolution Lane ist kanonisch als spaetere Richtung gesetzt: kontrollierte Selbstverbesserung laeuft replay-/benchmark-getrieben, PR-basiert und mit Human-Merge, nicht als freie Live-Selbstoptimierung.
 - Naechster Fokus fuer Produktionsreife: Merge-Orchestrator, harte Review-Gates, Scope-Firewall.
 
 ## Revenue Lane Foundation (langfristige Capability, nicht aktueller Fokus)
