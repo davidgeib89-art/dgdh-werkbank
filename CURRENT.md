@@ -1,19 +1,28 @@
 # CURRENT - Live Baton
 
-focus: Focus Freeze aktiv - 1) E2E-Firmenloop boringly reliable, 2) primitive `verein`-Capability
+focus: Firmenfaehigkeit zuerst - E2E-Firmenloop weiter verdichten; `verein` nur optionaler Proof-Usecase
 active_issue: E2E-Testrun - CEO -> Worker (PR) -> Reviewer -> CEO Merge -> Summary
 next:
   1) E2E-Testrun: Kette einmal vollstaendig durchlaufen lassen, Ergebnis beobachten
   2) Nur echte Loop-Blocker fixen bis der Firmenloop boringly reliable ist
-  3) Danach: `verein`-Profil-Layer / Mapping / primitive Vereinswebsite als naechste vertikale Capability
+  3) Danach: staerksten naechsten Faehigkeitssprint waehlen; `verein` ist erlaubt, aber nicht Pflicht
 blockers: keiner (T, T.1, U und Merge-Orchestrator sind implementiert und verifiziert)
+
+leitdokument_update (2026-03-23):
+  doc: `doc/plans/2026-03-23-dgdh-leitdokument.md`
+  operative_lesart:
+    - Firmenfaehigkeit und reale Entlastung stehen ueber einem einzelnen Website-Usecase
+    - `verein` bleibt ein guter moeglicher Proof, ist aber kein heiliges Pflichtziel
+    - Open-Source-Inspiration und organische North-Star-Entwicklung sind erlaubt
+    - Der naechste Schritt bleibt trotzdem klar, bounded und reviewbar
+    - Grosse, klare Coder-Sprints sind explizit erlaubt
 
 focus_freeze (2026-03-23 bis ca. 2026-04-02):
   doc: `doc/plans/2026-03-23-focus-freeze.md`
   allowed_priorities:
     - E2E-Firmenloop boringly reliable
-    - primitive `verein`-Capability
-  anti_drift_rule: Erhoeht das direkt Loop-Zuverlaessigkeit oder `verein`-Capability? Wenn nein -> Backlog.
+    - naechster echter Faehigkeits-Beweis (`verein` ist optional)
+  anti_drift_rule: Erhoeht das direkt Loop-Zuverlaessigkeit, Firmenfaehigkeit oder echte Vorarbeit? Wenn nein -> Backlog.
   metrics:
     - Abschlussrate
     - Manual Minutes Saved
@@ -47,7 +56,7 @@ notes:
 - Arbeitsmodell ab 2026-03-22: Planer = Perplexity via Chat. Codex = grosse Operator-Sprints mit eigenem Debug-Loop, Console-Watch und aktiver Bedienung von Paperclip/Werkbank. Reviewer/Researcher = Gemini CLI. Claude = nur wenn wirklich noetig, um Quota zu schonen.
 - Codex committed und pusht selbst. Commit-Hash im Statusbericht ist Pflicht. Planer reviewed den Diff direkt.
 - `MEMORY.md` bleibt Stable-Facts-only; datierte Sprint-Historie lebt in `doc/archive/sprint-log.md`.
-- Fokus-Freeze fuer die naechsten Tage: erst Firmenloop haerten, dann `verein`-Capability. Kein Seitensprung in Zukunfts-Backlogs.
+- Leitdokument-Update: Firmenfaehigkeit zuerst; `verein` ist jetzt optionaler Proof-Usecase statt Pflichtanker.
 - Revenue-Lane-Richtung: zuerst DGDH-Faehigkeit bauen, nicht einen einzelnen Kundenfall zu Ende improvisieren.
 - Sprint E geliefert: deterministische `sharp`-Pipeline per API-Route `/api/companies/:companyId/revenue-lane/image-pipeline/process`.
 - Sprint F geliefert: Flash-Lite-basierter Content-Extractor per API-Route `/api/companies/:companyId/revenue-lane/content-extractor/process`.
@@ -61,5 +70,5 @@ notes:
 - Option B (Code-Firewall) ist als Backlog dokumentiert: `doc/backlog/scope-firewall-code.md`.
 - Fuer Projekt Astro/Keystatic zeigt der Project-Workspace auf den sicheren Template-only-Workspace `C:\Users\holyd\DGDH\worktrees\astro-keystatic-template-geib`.
 - Kein Kunden-Git mehr unter `C:\Users\holyd\DGDH\worktrees\ferienwohnung-bamberger`; der bisherige Kunden-Stand wurde aus dem Agenten-Bereich nach `C:\Users\holyd\Documents\Websites\kunden-archive\ferienwohnung-bamberger` verschoben.
-last_updated_by: Codex (Strategy Freeze)
+last_updated_by: Codex (Leitdokument Sync)
 updated_at: 2026-03-23

@@ -8,6 +8,7 @@
 - `CURRENT.md` - live baton
 - `doc/plans/2026-03-21-dgdh-north-star-roadmap.md` - kanonische operative Richtung
 - `doc/plans/2026-03-23-focus-freeze.md` - aktiver Kurzfrist-Fokus gegen Drift
+- `doc/plans/2026-03-23-dgdh-leitdokument.md` - lebendige CEO-nahe Richtungsbeschreibung; hoehere Lesart fuer die aktuelle Phase
 - `doc/plans/2026-03-23-chat-ai-docking-prompt.md` - neutrales Andock-Briefing fuer neue Chat-AI-Fenster
 - `doc/plans/2026-03-21-role-template-architecture.md` - Rollen-/Packet-Architektur
 - `doc/plans/2026-03-21-gemini-engine-to-role-architecture-progress-report.md` - juengster Engine-Beweisstand
@@ -21,7 +22,7 @@
 
 ## Phase und Prioritaet (Korrektur 2026-03-22)
 - DGDH ist in der PROTOTYPING-PHASE. Wir bauen an einer grossen Zukunft.
-- Aktiver Fokus-Freeze bis ca. 2026-04-02: erst Firmenloop boringly reliable, dann primitive `verein`-Capability.
+- Aktive Lesart: Firmenfaehigkeit zuerst, `verein` nur optionaler Proof-Usecase; Details stehen im Leitdokument.
 - Revenue ist NICHT der aktuelle Fokus. Revenue ist Teil der langfristigen Vision - es kommt wenn die Maschine wirklich faehig ist.
 - Solange Abokosten unter ~100 EUR/Monat bleiben, koennen wir gross denken ohne Revenue-Druck.
 - Die Multi-Agent-Kette (CEO -> Assistent -> Worker -> Reviewer) IST der richtige Fokus - das ist die Kernfaehigkeit die DGDH ausmacht.
@@ -30,6 +31,8 @@
 - AIs sollen KEINEN Revenue-Druck auf David ausueben. Grosse Vision > kurzfristiger Output.
 - Neue Provider testen wenn sie Mehrwert versprechen ist erlaubt (z.B. MiniMax 2.7M Coding Plan als Experiment).
 - Solange Gemini-Quoten nicht ausgenutzt werden, kein Druck neue Provider anzubinden - aber im Hinterkopf behalten.
+- Open-Source-Inspiration, neue Ideen und organische North-Star-Entwicklung sind erlaubt; der naechste Schritt bleibt trotzdem klar und bounded.
+- Grosse, zusammenhaengende Coder-Sprints sind explizit erlaubt, wenn Scope und Reviewbarkeit klar genug sind.
 - Coder committen und pushen vor dem Bericht; Statusberichte beginnen mit `CODEX STATUSBERICHT`, `Von: Codex`, `An: Planer`.
 
 ## Wichtige IDs

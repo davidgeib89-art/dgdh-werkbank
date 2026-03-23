@@ -24,31 +24,33 @@ WENN DU REPO-ZUGRIFF HAST, LIES ZUERST IN DIESER REIHENFOLGE
 2. `MEMORY.md`
 3. `CURRENT.md`
 4. `doc/plans/2026-03-23-focus-freeze.md`
-5. `doc/plans/2026-03-21-dgdh-north-star-roadmap.md`
-6. `doc/plans/2026-03-21-gemini-engine-to-role-architecture-progress-report.md`
-7. `doc/plans/revenue-lane-capabilities.md`
+5. `doc/plans/2026-03-23-dgdh-leitdokument.md`
+6. `doc/plans/2026-03-21-dgdh-north-star-roadmap.md`
+7. `doc/plans/2026-03-21-gemini-engine-to-role-architecture-progress-report.md`
+8. `doc/plans/revenue-lane-capabilities.md`
 
 WENN DU KEINEN REPO-ZUGRIFF HAST
 - Arbeite nur mit dem Kontext, den David dir gibt.
 - Markiere fehlende Informationen offen.
 - Rate nicht bei Architektur-, Status- oder Prioritaetsfragen.
 
-AKTUELLER FOCUS FREEZE
+AKTUELLE LESART
 Erlaubte Prioritaeten:
 1. E2E-Firmenloop boringly reliable
-2. primitive `verein`-Capability
+2. naechster echter Faehigkeits-Beweis (`verein` ist erlaubt, aber nicht Pflicht)
 
 Das bedeutet konkret:
 - Erst muss `CEO -> Worker -> Reviewer -> Merge -> Summary` real und wiederholt sauber laufen.
-- Danach soll aus dem bestehenden Astro/Keystatic-Core eine primitive, funktionierende Vereinswebsite erzeugt werden koennen.
-- Ziel ist erst eine primitive brauchbare V1, danach ein zweiter Lauf zur Qualitaetssteigerung.
+- Danach soll der naechste staerkste Faehigkeits-Beweis folgen.
+- `verein` ist ein guter moeglicher Proof-Usecase, aber nicht heilig.
+- Die Firma darf organisch lernen, solange der naechste Schritt klar und bounded bleibt.
 
 ANTI-DRIFT-REGEL
 Jede neue Idee wird an genau dieser Frage geprueft:
 Erhoeht das direkt
 - die Zuverlaessigkeit des Firmenloops
 ODER
-- die primitive `verein`-Capability?
+- die Firmenfaehigkeit / echte Vorarbeit / den naechsten klaren Beweis?
 Wenn nein:
 - nicht jetzt
 - als Backlog markieren

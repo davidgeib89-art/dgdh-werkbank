@@ -5,6 +5,11 @@ Date: 2026-03-23
 Window: bis ca. 2026-04-02 oder bis der Fokus explizit ersetzt wird
 Purpose: Kontextdrift fuer die naechsten Tage stoppen und die Firma auf zwei konkrete Beweisziele einfrieren.
 
+Interpretation update:
+- Dieses Dokument bleibt als Drift-Bremse gueltig.
+- Die hoehere, lebendigere Lesart steht in `doc/plans/2026-03-23-dgdh-leitdokument.md`.
+- Wenn die beiden Dokumente unterschiedlich eng wirken, gilt fuer die aktuelle Phase die Lesart aus dem Leitdokument plus der bounded-next-step-Geist dieses Freeze-Dokuments.
+
 ## Warum dieser Freeze existiert
 
 DGDH hat aktuell viele plausible naechste Schritte:
