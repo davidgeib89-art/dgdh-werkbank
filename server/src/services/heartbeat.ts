@@ -862,6 +862,10 @@ function deriveCommentId(
 
 type IssuePromptContext = {
   id: string;
+  companyId?: string | null;
+  projectId?: string | null;
+  goalId?: string | null;
+  parentId?: string | null;
   identifier: string | null;
   title: string | null;
   description: string | null;
@@ -919,10 +923,23 @@ function buildIssueTaskPrompt(issue: IssuePromptContext) {
   const title = trimIssueText(issue.title);
   const description = trimIssueText(issue.description);
   const summary = title ? `${ref} - ${title}` : ref;
+  const apiUrl = trimIssueText(process.env.PAPERCLIP_API_URL);
+  const companyId = trimIssueText(issue.companyId);
+  const projectId = trimIssueText(issue.projectId);
+  const goalId = trimIssueText(issue.goalId);
+  const parentId = trimIssueText(issue.parentId);
 
   return [
     "Paperclip issue assignment:",
     summary,
+    "",
+    "Paperclip API context:",
+    `- PAPERCLIP_API_URL: ${apiUrl ?? "none"}`,
+    `- PAPERCLIP_TASK_ID: ${issue.id}`,
+    `- PAPERCLIP_COMPANY_ID: ${companyId ?? "none"}`,
+    `- PROJECT_ID: ${projectId ?? "none"}`,
+    `- GOAL_ID: ${goalId ?? "none"}`,
+    `- PARENT_ID: ${parentId ?? "none"}`,
     ...(description ? ["", description] : []),
   ].join("\n");
 }
@@ -1436,6 +1453,10 @@ export function applyIssuePromptContext(
 
   const normalizedIssue = {
     id: issue.id,
+    companyId: trimIssueText(issue.companyId),
+    projectId: trimIssueText(issue.projectId),
+    goalId: trimIssueText(issue.goalId),
+    parentId: trimIssueText(issue.parentId),
     identifier: trimIssueText(issue.identifier),
     title: trimIssueText(issue.title),
     description: trimIssueText(issue.description),
@@ -3515,6 +3536,10 @@ export function heartbeatService(db: Db) {
         ? await db
             .select({
               id: issues.id,
+              companyId: issues.companyId,
+              projectId: issues.projectId,
+              goalId: issues.goalId,
+              parentId: issues.parentId,
               identifier: issues.identifier,
               title: issues.title,
               description: issues.description,
@@ -5925,7 +5950,13 @@ export function heartbeatService(db: Db) {
     cancelRun: async (runId: string) => {
       const run = await getRun(runId);
       if (!run) throw notFound("Heartbeat run not found");
-      if (run.status !== "running" && run.status !== "queued") return run;
+      if (
+        run.status !== "running" &&
+        run.status !== "queued" &&
+        run.status !== "recovering"
+      ) {
+        return run;
+      }
 
       const running = runningProcesses.get(run.id);
       if (running) {

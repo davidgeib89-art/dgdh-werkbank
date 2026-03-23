@@ -1,5 +1,6 @@
-import { createHmac, timingSafeEqual } from "node:crypto";
-import { existsSync, readFileSync } from "node:fs";
+import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import path from "node:path";
 import { parse as parseEnvFileContents } from "dotenv";
 import { resolvePaperclipEnvPath } from "./paths.js";
 
@@ -63,8 +64,35 @@ function maybeLoadJwtEnvFromPaperclipEnvFile() {
   }
 }
 
+function ensureLocalJwtSecret() {
+  if (hasOwnEnvKey("PAPERCLIP_AGENT_JWT_SECRET")) return;
+
+  maybeLoadJwtEnvFromPaperclipEnvFile();
+  const current = process.env.PAPERCLIP_AGENT_JWT_SECRET?.trim();
+  if (current) return;
+
+  const envPath = resolvePaperclipEnvPath();
+  const generated = randomBytes(32).toString("hex");
+
+  try {
+    mkdirSync(path.dirname(envPath), { recursive: true });
+  } catch {
+    // Fall through and try writing the env file directly below.
+  }
+
+  try {
+    const existing = existsSync(envPath) ? readFileSync(envPath, "utf8") : "";
+    const next = existing.endsWith("\n") || existing.length === 0 ? existing : `${existing}\n`;
+    writeFileSync(envPath, `${next}PAPERCLIP_AGENT_JWT_SECRET=${generated}\n`, "utf8");
+    process.env.PAPERCLIP_AGENT_JWT_SECRET = generated;
+  } catch {
+    // If persistence fails, keep behavior stable and fall back to current env only.
+  }
+}
+
 function jwtConfig() {
   maybeLoadJwtEnvFromPaperclipEnvFile();
+  ensureLocalJwtSecret();
   const secret = process.env.PAPERCLIP_AGENT_JWT_SECRET;
   if (!secret) return null;
 
