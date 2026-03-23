@@ -9,6 +9,7 @@
 - `doc/plans/2026-03-21-dgdh-north-star-roadmap.md` - kanonische operative Richtung
 - `doc/plans/2026-03-23-focus-freeze.md` - aktiver Kurzfrist-Fokus gegen Drift
 - `doc/plans/2026-03-23-dgdh-leitdokument.md` - lebendige CEO-nahe Richtungsbeschreibung; hoehere Lesart fuer die aktuelle Phase
+- `doc/plans/2026-03-23-firmenlauf-ux-direction.md` - spaetere UX-Richtung: Firmenlauf lesbar machen statt Library-Wechsel
 - `doc/plans/2026-03-23-research-and-skills-direction.md` - kanonische Richtung fuer Skills, Guardrails und OSS-Adaption
 - `doc/plans/2026-03-23-research-role-and-skill-invocation-direction.md` - Researcher als spaeterer Spezialpfad; klare Trennung Rolle vs Skill
 - `doc/plans/2026-03-23-chat-ai-docking-prompt.md` - neutrales Andock-Briefing fuer neue Chat-AI-Fenster
@@ -39,6 +40,7 @@
 - Neue Provider testen wenn sie Mehrwert versprechen ist erlaubt (z.B. MiniMax 2.7M Coding Plan als Experiment).
 - Solange Gemini-Quoten nicht ausgenutzt werden, kein Druck neue Provider anzubinden - aber im Hinterkopf behalten.
 - Open-Source-Inspiration, neue Ideen und organische North-Star-Entwicklung sind erlaubt; der naechste Schritt bleibt trotzdem klar und bounded.
+- Fuer spaetere Run-UI gilt: Lesestruktur und Operator-Orientierung sind wichtiger als ein Library-Wechsel; `Firmenlauf lesbar machen` ist der richtige Sprinttitel, nicht `ArrowJS testen`.
 - Grosse, zusammenhaengende Coder-Sprints sind explizit erlaubt, wenn Scope und Reviewbarkeit klar genug sind.
 - Coder committen und pushen vor dem Bericht; Statusberichte beginnen mit `CODEX STATUSBERICHT`, `Von: Codex`, `An: Planer`.
 
