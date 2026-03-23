@@ -1,12 +1,12 @@
 # CURRENT - Live Baton
 
 focus: Firmenfaehigkeit zuerst - E2E-Firmenloop weiter verdichten; `verein` nur optionaler Proof-Usecase
-active_issue: E2E-Testrun - Konfliktfall auf `PR #4` wurde real erkannt und sauber auf `DAV-1` / `DAV-2` reported
+active_issue: E2E-Testrun 2026-03-23 - Konfliktfall auf `PR #4` ist historisch abgeschlossen; Replay ueber `PR #5` lief sauber bis Merge + Summary
 next:
-  1) David entscheidet den realen Konflikt auf `PR #4` (manuell aufloesen, anpassen oder schliessen)
-  2) Danach denselben E2E-Lauf erneut auf `clean merge + summary` fahren
-  3) Bis dahin nur echte neue Loop-Blocker anfassen
-blockers: `PR #4` ist auf GitHub `mergeable=false` / `dirty`; Konflikt ist jetzt korrekt reported, aber nicht automatisch loesbar
+  1) Diesen sauberen Replay als kanonischen Happy-Path-Beweis behandeln (`DAV-1` done, `DAV-2` merged, `PR #5` merged)
+  2) Naechsten bounded Firmenloop-Run waehlen, ohne neue Meta-Schichten zu starten
+  3) Nur echte neue Loop-Blocker oder der naechste klare Faehigkeits-Beweis anfassen
+blockers: aktuell kein offener Blocker im E2E-Firmenloop; `PR #4` bleibt nur als historischer Konfliktfall dokumentiert
 
 leitdokument_update (2026-03-23):
   doc: `doc/plans/2026-03-23-dgdh-leitdokument.md`
@@ -56,6 +56,7 @@ notes:
 - Arbeitsmodell ab 2026-03-22: Planer = Perplexity via Chat. Codex = grosse Operator-Sprints mit eigenem Debug-Loop, Console-Watch und aktiver Bedienung von Paperclip/Werkbank. Reviewer/Researcher = Gemini CLI. Claude = nur wenn wirklich noetig, um Quota zu schonen.
 - Codex committed und pusht selbst. Commit-Hash im Statusbericht ist Pflicht. Planer reviewed den Diff direkt.
 - `MEMORY.md` bleibt Stable-Facts-only; datierte Sprint-Historie lebt in `doc/archive/sprint-log.md`.
+- Realzustand 2026-03-23: `PR #4` wurde von David geschlossen; Replay ueber `PR #5` lief sauber durch bis `Worker -> Reviewer -> CEO merge -> Summary`.
 - Leitdokument-Update: Firmenfaehigkeit zuerst; `verein` ist jetzt optionaler Proof-Usecase statt Pflichtanker.
 - Revenue-Lane-Richtung: zuerst DGDH-Faehigkeit bauen, nicht einen einzelnen Kundenfall zu Ende improvisieren.
 - Sprint E geliefert: deterministische `sharp`-Pipeline per API-Route `/api/companies/:companyId/revenue-lane/image-pipeline/process`.
@@ -70,5 +71,5 @@ notes:
 - Option B (Code-Firewall) ist als Backlog dokumentiert: `doc/backlog/scope-firewall-code.md`.
 - Fuer Projekt Astro/Keystatic zeigt der Project-Workspace auf den sicheren Template-only-Workspace `C:\Users\holyd\DGDH\worktrees\astro-keystatic-template-geib`.
 - Kein Kunden-Git mehr unter `C:\Users\holyd\DGDH\worktrees\ferienwohnung-bamberger`; der bisherige Kunden-Stand wurde aus dem Agenten-Bereich nach `C:\Users\holyd\Documents\Websites\kunden-archive\ferienwohnung-bamberger` verschoben.
-last_updated_by: Codex (E2E conflict replay + ceo runId fix)
+last_updated_by: Codex (E2E happy-path replay + GitHub fallback fixes)
 updated_at: 2026-03-23

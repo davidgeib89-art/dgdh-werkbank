@@ -18,6 +18,10 @@ const mockGithubPrService = vi.hoisted(() => ({
   createGitHubPR: vi.fn(),
 }));
 
+const mockHeartbeatService = vi.hoisted(() => ({
+  getRun: vi.fn(),
+}));
+
 const mockLogActivity = vi.hoisted(() => vi.fn());
 
 vi.mock("../services/index.js", () => ({
@@ -29,7 +33,7 @@ vi.mock("../services/index.js", () => ({
     listChildrenByParentId: vi.fn(),
   }),
   goalService: () => ({}),
-  heartbeatService: () => ({}),
+  heartbeatService: () => mockHeartbeatService,
   githubPrService: () => mockGithubPrService,
   issueApprovalService: () => ({}),
   issueService: () => mockIssueService,
@@ -86,6 +90,7 @@ describe("issues worker PR route", () => {
       branch: "dgdh/issue-DGD-120-worker-pr",
       base: "main",
     });
+    mockHeartbeatService.getRun.mockResolvedValue(null);
     mockLogActivity.mockResolvedValue(undefined);
   });
 
@@ -115,6 +120,10 @@ describe("issues worker PR route", () => {
         action: "issue.worker_pull_request_created",
         entityType: "issue",
         entityId: "issue-1",
+        runId: null,
+        details: expect.objectContaining({
+          apiRunId: "run-worker-pr-1",
+        }),
       }),
     );
   });

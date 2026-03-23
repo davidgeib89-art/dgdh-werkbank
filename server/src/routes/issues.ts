@@ -824,25 +824,30 @@ export function issueRoutes(db: Db, storage: StorageService) {
       });
 
       const actor = getActorInfo(req);
+      const activityRunId = await resolvePersistedActivityRunId(actor.runId);
       await logActivity(db, {
         companyId: issue.companyId,
         actorType: actor.actorType,
         actorId: actor.actorId,
         agentId: actor.agentId,
-        runId: actor.runId,
+        runId: activityRunId,
         action: "issue.worker_pull_request_created",
         entityType: "issue",
         entityId: issue.id,
-        details: {
-          identifier: issue.identifier,
-          prUrl: createdPr.prUrl,
-          prNumber: createdPr.prNumber,
-          owner: createdPr.owner,
-          repo: createdPr.repo,
-          branch: createdPr.branch,
-          base: createdPr.base,
-          roleTemplateId: "worker",
-        },
+        details: withApiRunIdFallbackDetails(
+          {
+            identifier: issue.identifier,
+            prUrl: createdPr.prUrl,
+            prNumber: createdPr.prNumber,
+            owner: createdPr.owner,
+            repo: createdPr.repo,
+            branch: createdPr.branch,
+            base: createdPr.base,
+            roleTemplateId: "worker",
+          },
+          actor.runId,
+          activityRunId,
+        ),
       });
 
       res.status(201).json({

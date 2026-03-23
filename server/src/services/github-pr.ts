@@ -1,7 +1,9 @@
+import * as childProcess from "node:child_process";
 import { badRequest, unprocessable } from "../errors.js";
 import { logger } from "../middleware/logger.js";
 
 const DEFAULT_GITHUB_API_BASE_URL = "https://api.github.com";
+const DEFAULT_GITHUB_WEB_BASE_URL = "https://github.com";
 const DEFAULT_GITHUB_API_VERSION = "2022-11-28";
 const DEFAULT_GITHUB_ACCEPT_HEADER = "application/vnd.github+json";
 const DEFAULT_GITHUB_BASE_BRANCH = "main";
@@ -59,10 +61,53 @@ function readEnvString(name: string): string | null {
   return trimmed.length > 0 ? trimmed : null;
 }
 
+function resolveGitHubCredentialHost(): string {
+  const raw =
+    readEnvString("GITHUB_SERVER_URL") ??
+    readEnvString("GITHUB_WEB_URL") ??
+    DEFAULT_GITHUB_WEB_BASE_URL;
+  try {
+    return new URL(raw).hostname;
+  } catch {
+    return "github.com";
+  }
+}
+
+function resolveGitHubTokenFromGitCredentialStore(): string | null {
+  const host = resolveGitHubCredentialHost();
+  const input = `protocol=https\nhost=${host}\n\n`;
+
+  try {
+    const result = childProcess.spawnSync("git", ["credential", "fill"], {
+      input,
+      encoding: "utf8",
+      windowsHide: true,
+      timeout: 5_000,
+    });
+
+    if (result.error || result.status !== 0) return null;
+
+    for (const line of result.stdout.split(/\r?\n/)) {
+      if (!line.startsWith("password=")) continue;
+      const token = line.slice("password=".length).trim();
+      if (token) return token;
+    }
+  } catch {
+    return null;
+  }
+
+  return null;
+}
+
 function resolveGitHubToken(): string {
-  const token = readEnvString("GITHUB_TOKEN") ?? readEnvString("GH_TOKEN");
+  const token =
+    readEnvString("GITHUB_TOKEN") ??
+    readEnvString("GH_TOKEN") ??
+    resolveGitHubTokenFromGitCredentialStore();
   if (token) return token;
-  throw badRequest("Missing GitHub token. Set GITHUB_TOKEN or GH_TOKEN.");
+  throw badRequest(
+    "Missing GitHub token. Set GITHUB_TOKEN or GH_TOKEN, or configure git credentials for GitHub.",
+  );
 }
 
 function parseRepositorySlug(raw: string | null): GitHubRepoRef | null {
@@ -76,21 +121,64 @@ function parseRepositorySlug(raw: string | null): GitHubRepoRef | null {
   return { owner, repo };
 }
 
+function parseRepositorySlugFromGitRemote(raw: string | null): GitHubRepoRef | null {
+  if (!raw) return null;
+  const trimmed = raw.trim();
+  if (!trimmed) return null;
+
+  const httpsMatch = trimmed.match(/^https?:\/\/[^/]+\/([^/]+)\/([^/]+?)(?:\.git)?$/i);
+  if (httpsMatch) return { owner: httpsMatch[1]!, repo: httpsMatch[2]! };
+
+  const sshMatch = trimmed.match(/^[^@]+@[^:]+:([^/]+)\/([^/]+?)(?:\.git)?$/i);
+  if (sshMatch) return { owner: sshMatch[1]!, repo: sshMatch[2]! };
+
+  const sshUrlMatch = trimmed.match(/^ssh:\/\/[^/]+\/([^/]+)\/([^/]+?)(?:\.git)?$/i);
+  if (sshUrlMatch) return { owner: sshUrlMatch[1]!, repo: sshUrlMatch[2]! };
+
+  return null;
+}
+
+function resolveGitHubRepoFromGitRemote(): GitHubRepoRef | null {
+  try {
+    const result = childProcess.spawnSync("git", ["remote", "get-url", "origin"], {
+      encoding: "utf8",
+      windowsHide: true,
+      timeout: 5_000,
+    });
+
+    if (result.error || result.status !== 0) return null;
+    return parseRepositorySlugFromGitRemote(result.stdout);
+  } catch {
+    return null;
+  }
+}
+
 function resolveGitHubRepo(input: {
   owner?: string | null;
   repo?: string | null;
 }): GitHubRepoRef {
   const envRepository = parseRepositorySlug(readEnvString("GITHUB_REPOSITORY"));
+  const needsGitRemoteFallback =
+    !input.owner?.trim() &&
+    !input.repo?.trim() &&
+    !readEnvString("GITHUB_REPO_OWNER") &&
+    !readEnvString("GITHUB_OWNER") &&
+    !readEnvString("GITHUB_REPO_NAME") &&
+    !readEnvString("GITHUB_REPO") &&
+    !envRepository;
+  const gitRemoteRepository = needsGitRemoteFallback ? resolveGitHubRepoFromGitRemote() : null;
   const owner =
     input.owner?.trim() ||
     readEnvString("GITHUB_REPO_OWNER") ||
     readEnvString("GITHUB_OWNER") ||
-    envRepository?.owner;
+    envRepository?.owner ||
+    gitRemoteRepository?.owner;
   const repo =
     input.repo?.trim() ||
     readEnvString("GITHUB_REPO_NAME") ||
     readEnvString("GITHUB_REPO") ||
-    envRepository?.repo;
+    envRepository?.repo ||
+    gitRemoteRepository?.repo;
 
   if (!owner || !repo) {
     throw badRequest(
