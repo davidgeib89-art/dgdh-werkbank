@@ -10,6 +10,7 @@
 - `doc/plans/2026-03-23-focus-freeze.md` - aktiver Kurzfrist-Fokus gegen Drift
 - `doc/plans/2026-03-23-dgdh-leitdokument.md` - lebendige CEO-nahe Richtungsbeschreibung; hoehere Lesart fuer die aktuelle Phase
 - `doc/plans/2026-03-23-research-and-skills-direction.md` - kanonische Richtung fuer Skills, Guardrails und OSS-Adaption
+- `doc/plans/2026-03-23-research-role-and-skill-invocation-direction.md` - Researcher als spaeterer Spezialpfad; klare Trennung Rolle vs Skill
 - `doc/plans/2026-03-23-chat-ai-docking-prompt.md` - neutrales Andock-Briefing fuer neue Chat-AI-Fenster
 - `doc/plans/2026-03-23-working-triad.md` - kurze visuelle Referenz fuer David -> Planner -> Coder
 - `doc/plans/2026-03-21-role-template-architecture.md` - Rollen-/Packet-Architektur
@@ -22,6 +23,7 @@
 - Langfristige Richtung: David gibt die Richtung, die Maschine uebernimmt mit wachsender Modellfaehigkeit immer mehr Entscheidungen und Lieferung.
 - Planer = Perplexity im Chat; Codex = grosser Operator-Sprint-Coder; Reviewer/Researcher = Gemini CLI; Claude nur wenn wirklich noetig.
 - Researcher-Haltung: DGDH sucht aktiv OSS-Muster (wie Drop-box Handoffs, Skills), kopiert aber nur bei echtem Firmenhebel.
+- Research ist spaeter wahrscheinlich nicht nur Haltung, sondern auch ein bewusst nutzbarer Spezialpfad / Spezialmitarbeiter; Skills standardisieren spaeter wiederkehrende Teile dieses Pfads.
 - Guardrail-Logik: Asymmetrisch. CEO/Planer agieren offener und strategischer; Worker eng gefuehrt; Spezialaufgaben landen kuenftig in fixierten Skills (Progressive Disclosure).
 - CEO-Modell-Richtung: Gemini Pro bevorzugt -> Flash -> Flash-Lite. (Claude/Codex mittelfristig als CEO plausibel).
 

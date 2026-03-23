@@ -214,6 +214,7 @@ Heute gilt:
 - nicht uebertesten
 - Planner-/CEO-Qualitaet hochziehen
 - Coder groessere klare Sprints erlauben
+- den allgemeinen Worker nicht mit jeder Spezialwelt ueberladen
 - `verein` als moeglichen, aber nicht verpflichtenden Proof-Usecase behandeln
 - Revenue nicht zum Gott machen
 - Vision gross halten, den naechsten Schritt aber sauber schneiden
@@ -232,6 +233,13 @@ Heute gilt:
 **Die Researcher-Haltung:**
 - DGDH erfindet das Rad nicht neu. Wir scannen aktiv Open-Source-Muster (wie GitHub Agentic Workflows, HuggingFace Skills, Drop-box Pattern) auf echten Firmenhebel.
 - Wir kopieren nicht blind, sondern uebernehmen nur das, was echte Zuverlaessigkeit bringt oder Zeit spart. Semantische Codebase-Intelligenz (z.B. SocratiCode-Muster) ist als spaeterer Hebel auf dem Radar.
+
+**Research spaeter als bewusster Spezialpfad:**
+- Nicht jede Rolle muss alles selbst recherchieren oder alle Spezialmuster im Hauptprompt tragen.
+- Spaeter ist ein bewusster `Researcher` / `Research-Pfad` plausibel: offener als ein enger Worker-Skill, aber gezielter als der allgemeine Worker.
+- Andere Rollen sollen wissen, dass Research bewusst einschaltbar ist, wenn externe Muster, Quellen, OSS oder offene Spezialfragen sauber verdichtet werden muessen.
+- Skills bleiben das spaetere Mittel, um Teile dieses Spezialwissens und dieser Spezialablaeufe zu standardisieren.
+- Das ist eingeplant, aber ausdruecklich nicht der aktuelle Hauptsprint.
 
 ## 15. Schluss
 
