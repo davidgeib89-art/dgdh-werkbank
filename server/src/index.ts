@@ -35,6 +35,7 @@ import {
   getBoardClaimWarningUrl,
   initializeBoardClaimChallenge,
 } from "./board-claim.js";
+import { ensureSeedData } from "./services/ensure-seed-data.js";
 
 type BetterAuthSessionUser = {
   id: string;
@@ -463,6 +464,8 @@ export async function startServer(): Promise<StartedServer> {
     activeDatabaseConnectionString = embeddedConnectionString;
     startupDbInfo = { mode: "embedded-postgres", dataDir, port };
   }
+
+  await ensureSeedData(db as any);
 
   if (
     config.deploymentMode === "local_trusted" &&
