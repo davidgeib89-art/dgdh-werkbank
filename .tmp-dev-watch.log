@@ -12859,3 +12859,76 @@ Node.js v24.13.1
 [16:55:49] [32mINFO[39m: [36mGET /heartbeat-runs/228e3f1a-6061-473d-a2f2-7fe5c175ac63/log?offset=72522&limitBytes=256000 304[39m
 [16:55:49] [32mINFO[39m: [36mGET /heartbeat-runs/75a7aacf-2d01-422f-8eec-36cc4dd9d1a9/log?offset=32052&limitBytes=256000 304[39m
 [16:55:49] [32mINFO[39m: [36mGET /heartbeat-runs/a2ad78cf-2e00-4b57-a775-8b53d2b32cfb/log?offset=97686&limitBytes=256000 304[39m
+[16:56:49] [32mINFO[39m: [36mGET /heartbeat-runs/9fe4b879-e37d-442b-a1e7-cc3de7a120bd/log?offset=29863&limitBytes=256000 304[39m
+[16:56:49] [32mINFO[39m: [36mGET /heartbeat-runs/228e3f1a-6061-473d-a2f2-7fe5c175ac63/log?offset=72522&limitBytes=256000 304[39m
+[16:56:49] [32mINFO[39m: [36mGET /heartbeat-runs/a2ad78cf-2e00-4b57-a775-8b53d2b32cfb/log?offset=97686&limitBytes=256000 304[39m
+[16:56:49] [32mINFO[39m: [36mGET /heartbeat-runs/75a7aacf-2d01-422f-8eec-36cc4dd9d1a9/log?offset=32052&limitBytes=256000 304[39m
+[16:57:42] [32mINFO[39m: [36mheartbeat timer tick enqueued runs[39m [90m{"checked":1,"enqueued":1,"skipped":0}[39m
+[16:57:42] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/live-runs 304[39m
+[16:57:42] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[16:57:42] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/live-runs 304[39m
+[16:57:42] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/heartbeat-runs 200[39m
+[16:57:42] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 304[39m
+[16:57:42] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/live-runs 304[39m
+[16:57:42] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/live-runs?minCount=4 200[39m
+[16:57:42] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/heartbeat-runs 304[39m
+[16:57:42] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 304[39m
+[16:57:42] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/dashboard 304[39m
+[16:57:42] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 304[39m
+[16:57:42] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/heartbeat-runs 304[39m
+[16:57:42] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/live-runs?minCount=4 304[39m
+[16:57:42] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/live-runs?minCount=4 304[39m
+[16:57:42] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/sidebar-badges 304[39m
+[16:57:42] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/dashboard 304[39m
+[16:57:42] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/dashboard 304[39m
+[16:57:42] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/sidebar-badges 304[39m
+[16:57:42] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/dashboard 304[39m
+[16:57:42] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/sidebar-badges 304[39m
+[16:57:42] [33mWARN[39m: [36mGET /api/heartbeat-runs/67bf647a-f86d-4fdb-a299-ae7b97aeda3d/log?offset=0&limitBytes=256000 404[39m [90m{"reqQuery":{"offset":"0","limitBytes":"256000"},"routePath":"/heartbeat-runs/:runId/log"}[39m
+[16:57:42] [32mINFO[39m: [36mGET /heartbeat-runs/228e3f1a-6061-473d-a2f2-7fe5c175ac63/log?offset=72522&limitBytes=256000 304[39m
+[16:57:42] [32mINFO[39m: [36mGET /heartbeat-runs/a2ad78cf-2e00-4b57-a775-8b53d2b32cfb/log?offset=97686&limitBytes=256000 304[39m
+[16:57:42] [32mINFO[39m: [36mGET /heartbeat-runs/9fe4b879-e37d-442b-a1e7-cc3de7a120bd/log?offset=29863&limitBytes=256000 304[39m
+[16:57:44] [33mWARN[39m: [36mGET /api/heartbeat-runs/67bf647a-f86d-4fdb-a299-ae7b97aeda3d/log?offset=0&limitBytes=256000 404[39m [90m{"reqQuery":{"offset":"0","limitBytes":"256000"},"routePath":"/heartbeat-runs/:runId/log"}[39m
+[16:57:44] [32mINFO[39m: [36mGET /heartbeat-runs/228e3f1a-6061-473d-a2f2-7fe5c175ac63/log?offset=72522&limitBytes=256000 304[39m
+[16:57:44] [32mINFO[39m: [36mGET /heartbeat-runs/a2ad78cf-2e00-4b57-a775-8b53d2b32cfb/log?offset=97686&limitBytes=256000 304[39m
+[16:57:44] [32mINFO[39m: [36mGET /heartbeat-runs/9fe4b879-e37d-442b-a1e7-cc3de7a120bd/log?offset=29863&limitBytes=256000 304[39m
+[16:57:46] [33mWARN[39m: [36mGET /api/heartbeat-runs/67bf647a-f86d-4fdb-a299-ae7b97aeda3d/log?offset=0&limitBytes=256000 404[39m [90m{"reqQuery":{"offset":"0","limitBytes":"256000"},"routePath":"/heartbeat-runs/:runId/log"}[39m
+[16:57:46] [32mINFO[39m: [36mGET /heartbeat-runs/228e3f1a-6061-473d-a2f2-7fe5c175ac63/log?offset=72522&limitBytes=256000 304[39m
+[16:57:46] [32mINFO[39m: [36mGET /heartbeat-runs/a2ad78cf-2e00-4b57-a775-8b53d2b32cfb/log?offset=97686&limitBytes=256000 304[39m
+[16:57:46] [32mINFO[39m: [36mGET /heartbeat-runs/9fe4b879-e37d-442b-a1e7-cc3de7a120bd/log?offset=29863&limitBytes=256000 304[39m
+[16:57:48] [33mWARN[39m: [36mGET /api/heartbeat-runs/67bf647a-f86d-4fdb-a299-ae7b97aeda3d/log?offset=0&limitBytes=256000 404[39m [90m{"reqQuery":{"offset":"0","limitBytes":"256000"},"routePath":"/heartbeat-runs/:runId/log"}[39m
+[16:57:48] [32mINFO[39m: [36mGET /heartbeat-runs/228e3f1a-6061-473d-a2f2-7fe5c175ac63/log?offset=72522&limitBytes=256000 304[39m
+[16:57:48] [32mINFO[39m: [36mGET /heartbeat-runs/a2ad78cf-2e00-4b57-a775-8b53d2b32cfb/log?offset=97686&limitBytes=256000 304[39m
+[16:57:48] [32mINFO[39m: [36mGET /heartbeat-runs/9fe4b879-e37d-442b-a1e7-cc3de7a120bd/log?offset=29863&limitBytes=256000 304[39m
+[16:57:50] [33mWARN[39m: [36mGET /api/heartbeat-runs/67bf647a-f86d-4fdb-a299-ae7b97aeda3d/log?offset=0&limitBytes=256000 404[39m [90m{"reqQuery":{"offset":"0","limitBytes":"256000"},"routePath":"/heartbeat-runs/:runId/log"}[39m
+[16:57:50] [32mINFO[39m: [36mGET /heartbeat-runs/a2ad78cf-2e00-4b57-a775-8b53d2b32cfb/log?offset=97686&limitBytes=256000 304[39m
+[16:57:50] [32mINFO[39m: [36mGET /heartbeat-runs/228e3f1a-6061-473d-a2f2-7fe5c175ac63/log?offset=72522&limitBytes=256000 304[39m
+[16:57:50] [32mINFO[39m: [36mGET /heartbeat-runs/9fe4b879-e37d-442b-a1e7-cc3de7a120bd/log?offset=29863&limitBytes=256000 304[39m
+[16:57:52] [33mWARN[39m: [36mGET /api/heartbeat-runs/67bf647a-f86d-4fdb-a299-ae7b97aeda3d/log?offset=0&limitBytes=256000 404[39m [90m{"reqQuery":{"offset":"0","limitBytes":"256000"},"routePath":"/heartbeat-runs/:runId/log"}[39m
+[16:57:52] [32mINFO[39m: [36mGET /heartbeat-runs/228e3f1a-6061-473d-a2f2-7fe5c175ac63/log?offset=72522&limitBytes=256000 304[39m
+[16:57:52] [32mINFO[39m: [36mGET /heartbeat-runs/a2ad78cf-2e00-4b57-a775-8b53d2b32cfb/log?offset=97686&limitBytes=256000 304[39m
+[16:57:52] [32mINFO[39m: [36mGET /heartbeat-runs/9fe4b879-e37d-442b-a1e7-cc3de7a120bd/log?offset=29863&limitBytes=256000 304[39m
+[16:58:49] [33mWARN[39m: [36mGET /api/heartbeat-runs/67bf647a-f86d-4fdb-a299-ae7b97aeda3d/log?offset=0&limitBytes=256000 404[39m [90m{"reqQuery":{"offset":"0","limitBytes":"256000"},"routePath":"/heartbeat-runs/:runId/log"}[39m
+[16:58:49] [32mINFO[39m: [36mGET /heartbeat-runs/228e3f1a-6061-473d-a2f2-7fe5c175ac63/log?offset=72522&limitBytes=256000 304[39m
+[16:58:49] [32mINFO[39m: [36mGET /heartbeat-runs/a2ad78cf-2e00-4b57-a775-8b53d2b32cfb/log?offset=97686&limitBytes=256000 304[39m
+[16:58:49] [32mINFO[39m: [36mGET /heartbeat-runs/9fe4b879-e37d-442b-a1e7-cc3de7a120bd/log?offset=29863&limitBytes=256000 304[39m
+[16:59:50] [33mWARN[39m: [36mGET /api/heartbeat-runs/67bf647a-f86d-4fdb-a299-ae7b97aeda3d/log?offset=0&limitBytes=256000 404[39m [90m{"reqQuery":{"offset":"0","limitBytes":"256000"},"routePath":"/heartbeat-runs/:runId/log"}[39m
+[16:59:50] [32mINFO[39m: [36mGET /heartbeat-runs/228e3f1a-6061-473d-a2f2-7fe5c175ac63/log?offset=72522&limitBytes=256000 304[39m
+[16:59:50] [32mINFO[39m: [36mGET /heartbeat-runs/9fe4b879-e37d-442b-a1e7-cc3de7a120bd/log?offset=29863&limitBytes=256000 304[39m
+[16:59:50] [32mINFO[39m: [36mGET /heartbeat-runs/a2ad78cf-2e00-4b57-a775-8b53d2b32cfb/log?offset=97686&limitBytes=256000 304[39m
+[17:00:49] [33mWARN[39m: [36mGET /api/heartbeat-runs/67bf647a-f86d-4fdb-a299-ae7b97aeda3d/log?offset=0&limitBytes=256000 404[39m [90m{"reqQuery":{"offset":"0","limitBytes":"256000"},"routePath":"/heartbeat-runs/:runId/log"}[39m
+[17:00:49] [32mINFO[39m: [36mGET /heartbeat-runs/9fe4b879-e37d-442b-a1e7-cc3de7a120bd/log?offset=29863&limitBytes=256000 304[39m
+[17:00:49] [32mINFO[39m: [36mGET /heartbeat-runs/228e3f1a-6061-473d-a2f2-7fe5c175ac63/log?offset=72522&limitBytes=256000 304[39m
+[17:00:49] [32mINFO[39m: [36mGET /heartbeat-runs/a2ad78cf-2e00-4b57-a775-8b53d2b32cfb/log?offset=97686&limitBytes=256000 304[39m
+[17:01:49] [33mWARN[39m: [36mGET /api/heartbeat-runs/67bf647a-f86d-4fdb-a299-ae7b97aeda3d/log?offset=0&limitBytes=256000 404[39m [90m{"reqQuery":{"offset":"0","limitBytes":"256000"},"routePath":"/heartbeat-runs/:runId/log"}[39m
+[17:01:49] [32mINFO[39m: [36mGET /heartbeat-runs/228e3f1a-6061-473d-a2f2-7fe5c175ac63/log?offset=72522&limitBytes=256000 304[39m
+[17:01:49] [32mINFO[39m: [36mGET /heartbeat-runs/9fe4b879-e37d-442b-a1e7-cc3de7a120bd/log?offset=29863&limitBytes=256000 304[39m
+[17:01:49] [32mINFO[39m: [36mGET /heartbeat-runs/a2ad78cf-2e00-4b57-a775-8b53d2b32cfb/log?offset=97686&limitBytes=256000 304[39m
+[17:02:49] [33mWARN[39m: [36mGET /api/heartbeat-runs/67bf647a-f86d-4fdb-a299-ae7b97aeda3d/log?offset=0&limitBytes=256000 404[39m [90m{"reqQuery":{"offset":"0","limitBytes":"256000"},"routePath":"/heartbeat-runs/:runId/log"}[39m
+[17:02:49] [32mINFO[39m: [36mGET /heartbeat-runs/228e3f1a-6061-473d-a2f2-7fe5c175ac63/log?offset=72522&limitBytes=256000 304[39m
+[17:02:49] [32mINFO[39m: [36mGET /heartbeat-runs/9fe4b879-e37d-442b-a1e7-cc3de7a120bd/log?offset=29863&limitBytes=256000 304[39m
+[17:02:49] [32mINFO[39m: [36mGET /heartbeat-runs/a2ad78cf-2e00-4b57-a775-8b53d2b32cfb/log?offset=97686&limitBytes=256000 304[39m
+[17:03:49] [33mWARN[39m: [36mGET /api/heartbeat-runs/67bf647a-f86d-4fdb-a299-ae7b97aeda3d/log?offset=0&limitBytes=256000 404[39m [90m{"reqQuery":{"offset":"0","limitBytes":"256000"},"routePath":"/heartbeat-runs/:runId/log"}[39m
+[17:03:49] [32mINFO[39m: [36mGET /heartbeat-runs/228e3f1a-6061-473d-a2f2-7fe5c175ac63/log?offset=72522&limitBytes=256000 304[39m
+[17:03:49] [32mINFO[39m: [36mGET /heartbeat-runs/9fe4b879-e37d-442b-a1e7-cc3de7a120bd/log?offset=29863&limitBytes=256000 304[39m
+[17:03:50] [32mINFO[39m: [36mGET /heartbeat-runs/a2ad78cf-2e00-4b57-a775-8b53d2b32cfb/log?offset=97686&limitBytes=256000 304[39m
