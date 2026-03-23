@@ -7,26 +7,29 @@
 ## Pflicht-Dokumente
 - `CURRENT.md` - live baton
 - `doc/plans/2026-03-21-dgdh-north-star-roadmap.md` - kanonische operative Richtung
+- `doc/plans/2026-03-23-focus-freeze.md` - aktiver Kurzfrist-Fokus gegen Drift
+- `doc/plans/2026-03-23-chat-ai-docking-prompt.md` - neutrales Andock-Briefing fuer neue Chat-AI-Fenster
 - `doc/plans/2026-03-21-role-template-architecture.md` - Rollen-/Packet-Architektur
 - `doc/plans/2026-03-21-gemini-engine-to-role-architecture-progress-report.md` - juengster Engine-Beweisstand
 - `doc/archive/sprint-log.md` - datierte Sprint-Historie
 
 ## DGDH Kern
 - DGDH = David Geib - Digitales Handwerk; David ist der einzige menschliche Operator.
-- Leitfragen: "Entlastet das David real?" UND "Wird die Firma faehiger — oder nur groesser?"
+- Leitfragen: "Entlastet das David real?" UND "Wird die Firma faehiger - oder nur groesser?"
 - Langfristige Richtung: David gibt die Richtung, die Maschine uebernimmt mit wachsender Modellfaehigkeit immer mehr Entscheidungen und Lieferung.
 - Planer = Perplexity im Chat; Codex = grosser Operator-Sprint-Coder; Reviewer/Researcher = Gemini CLI; Claude nur wenn wirklich noetig.
 
 ## Phase und Prioritaet (Korrektur 2026-03-22)
 - DGDH ist in der PROTOTYPING-PHASE. Wir bauen an einer grossen Zukunft.
-- Revenue ist NICHT der aktuelle Fokus. Revenue ist Teil der langfristigen Vision — es kommt wenn die Maschine wirklich faehig ist.
+- Aktiver Fokus-Freeze bis ca. 2026-04-02: erst Firmenloop boringly reliable, dann primitive `verein`-Capability.
+- Revenue ist NICHT der aktuelle Fokus. Revenue ist Teil der langfristigen Vision - es kommt wenn die Maschine wirklich faehig ist.
 - Solange Abokosten unter ~100 EUR/Monat bleiben, koennen wir gross denken ohne Revenue-Druck.
-- Die Multi-Agent-Kette (CEO → Assistent → Worker → Reviewer) IST der richtige Fokus — das ist die Kernfaehigkeit die DGDH ausmacht.
-- Kleine Usecases fuer aufkommende Projekte (Kunden, eigene Ideen) sind Gelegenheiten die Maschine zu testen — nicht das Hauptziel.
+- Die Multi-Agent-Kette (CEO -> Assistent -> Worker -> Reviewer) IST der richtige Fokus - das ist die Kernfaehigkeit die DGDH ausmacht.
+- Kleine Usecases fuer aufkommende Projekte (Kunden, eigene Ideen) sind Gelegenheiten die Maschine zu testen - nicht das Hauptziel.
 - FALSCH: "Wir muessen jetzt Revenue-Kunden durch die Pipeline schicken". RICHTIG: "Wir bauen die Maschine die das irgendwann automatisch kann."
 - AIs sollen KEINEN Revenue-Druck auf David ausueben. Grosse Vision > kurzfristiger Output.
 - Neue Provider testen wenn sie Mehrwert versprechen ist erlaubt (z.B. MiniMax 2.7M Coding Plan als Experiment).
-- Solange Gemini-Quoten nicht ausgenutzt werden, kein Druck neue Provider anzubinden — aber im Hinterkopf behalten.
+- Solange Gemini-Quoten nicht ausgenutzt werden, kein Druck neue Provider anzubinden - aber im Hinterkopf behalten.
 - Coder committen und pushen vor dem Bericht; Statusberichte beginnen mit `CODEX STATUSBERICHT`, `Von: Codex`, `An: Planer`.
 
 ## Wichtige IDs
@@ -69,7 +72,7 @@
 ## Revenue Lane Foundation (langfristige Capability, nicht aktueller Fokus)
 - Revenue Lane baut wiederverwendbare DGDH-Faehigkeiten, nicht Einzelfall-Abschluesse.
 - Revenue-Pipelines sind funktional (Sprint E-I) aber NICHT der aktuelle Sprint-Fokus.
-- Revenue kommt organisch wenn die Agent-Kette reif genug ist — kein kuenstlicher Druck.
+- Revenue kommt organisch wenn die Agent-Kette reif genug ist - kein kuenstlicher Druck.
 - Packet-Kette: `CEO -> Image Preprocessing -> Content Extraction/Draft -> Schema Fill -> Review`.
 - Image Packet Pipeline = `deterministic_tool`, Route `/api/companies/:companyId/revenue-lane/image-pipeline/process`.
 - Content Extraction Worker = `free_api` auf Gemini Flash-Lite, Route `/api/companies/:companyId/revenue-lane/content-extractor/process`.
