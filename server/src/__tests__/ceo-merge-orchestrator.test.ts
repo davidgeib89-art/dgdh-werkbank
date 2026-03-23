@@ -7,6 +7,7 @@ function buildIssue(input: Partial<{
   parentId: string | null;
   status: string;
   title: string;
+  description: string | null;
   identifier: string | null;
   issueNumber: number | null;
   createdAt: Date;
@@ -18,6 +19,9 @@ function buildIssue(input: Partial<{
     parentId: input.parentId ?? null,
     status: input.status ?? "reviewer_accepted",
     title: input.title ?? "title",
+    description:
+      input.description ??
+      "executionIntent: implement\nreviewPolicy: required\nneedsReview: true\ntargetFolder: server/src",
     identifier: input.identifier ?? "DGD-1",
     issueNumber: input.issueNumber ?? 1,
     createdAt: input.createdAt ?? new Date("2026-03-23T10:00:00.000Z"),
@@ -54,6 +58,51 @@ describe("maybeRunCeoMergeOrchestratorAfterReviewerVerdict", () => {
 
     expect(result.triggered).toBe(false);
     expect(result.reason).toBe("children_not_ready");
+  });
+
+  it("treats optional-review done children as already complete", async () => {
+    const childAccepted = buildIssue({ id: "child-1", parentId: "parent-1" });
+    const childOptionalDone = buildIssue({
+      id: "child-2",
+      parentId: "parent-1",
+      status: "done",
+      description:
+        "executionIntent: plan\nreviewPolicy: optional\nneedsReview: false\ntargetFolder: n/a",
+    });
+    const parent = buildIssue({ id: "parent-1", parentId: null, status: "in_progress" });
+
+    const result = await maybeRunCeoMergeOrchestratorAfterReviewerVerdict(
+      { childIssueId: "child-1", reviewerVerdict: "accepted" },
+      {
+        getIssueById: vi
+          .fn()
+          .mockResolvedValueOnce(childAccepted)
+          .mockResolvedValueOnce(parent),
+        listChildrenByParentId: vi
+          .fn()
+          .mockResolvedValue([childAccepted, childOptionalDone]),
+        isParentAssignedToCeo: vi.fn().mockResolvedValue(true),
+        getPullRequestRefForChildIssue: vi.fn().mockResolvedValue({
+          prNumber: 11,
+          prUrl: "https://github.com/x/y/pull/11",
+          branch: "dgdh/issue-11",
+        }),
+        mergeChildIssuePullRequest: vi.fn().mockResolvedValue({
+          outcome: "merged",
+          prNumber: 11,
+          prUrl: "https://github.com/x/y/pull/11",
+          branch: "dgdh/issue-11",
+        }),
+        setIssueStatus: vi.fn().mockImplementation(async (issueId, status) =>
+          buildIssue({ id: issueId, status }),
+        ),
+        postParentSummaryComment: vi.fn(),
+        postParentConflictComment: vi.fn(),
+      },
+    );
+
+    expect(result.triggered).toBe(true);
+    expect(result.outcome).toBe("merged_all");
   });
 
   it("merges reviewer_accepted children in created_at ascending order and posts summary", async () => {

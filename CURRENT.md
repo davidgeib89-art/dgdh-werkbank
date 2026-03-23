@@ -1,12 +1,12 @@
 # CURRENT - Live Baton
 
-focus: Firmenfaehigkeit zuerst - sichtbarer CEO/Worker-Assignment-Run ist real wieder da; den kanonischen Worker->Reviewer->Merge-Pfad weiter boringly reliable machen
-active_issue: CEO-Assignment-Run DAV-6 / DAV-7 ueber normalen Pfad; Heartbeat-Gate gefixt, Worker-Handoff jetzt der naechste Engpass
+focus: Firmenfaehigkeit zuerst - Delegation Guardrails V1 fuer CEO direct-vs-delegate und policy-basiertes Review im kanonischen Firmenlauf haerten
+active_issue: Delegation Guardrails V1; CEO darf Denken/Entscheiden direkt, operative Umsetzung muss delegiert bleiben; review-optionale Packets nur fuer reine Denk-/Aggregationsarbeit
 next:
-  1) DAV-7 auf sauberem Worker-Handoff-Pfad erneut durchlaufen lassen (`worker-pr` -> `worker-done`)
-  2) danach Reviewer ueber normalen Assignment-Pfad starten und CEO-Auto-Retrigger bis Merge pruefen
-  3) nur noch echte Glue-Blocker im kanonischen Firmenpfad anfassen
-blockers: CEO/Worker-Assignment-Start ist gefixt; aktueller Realblocker fuer DAV-7 war der Worker-Handoff ueber `gh pr create` statt `worker-pr`/`worker-done`
+  1) den naechsten Firmenlauf mit geschaerftem CEO-Template und Review-Policy V1 gegen echte Direct-vs-Delegate-Fehler fahren
+  2) policy-basierten `done`-Pfad fuer review-optionale Denk-/Aggregationsarbeit im echten Run beobachten
+  3) nur noch reale Glue-Blocker zwischen Worker -> Reviewer -> Merge anfassen
+blockers: kein neuer Meta-Blocker; offener Produktionsbeweis bleibt der naechste reale Firmenlauf mit den neuen Guardrails
 
 leitdokument_update (2026-03-23):
   doc: `doc/plans/2026-03-23-dgdh-leitdokument.md`
@@ -62,6 +62,8 @@ notes:
 - Neuer Proof 2026-03-23: `DAV-6` (CEO) und `DAV-7` (Worker) liefen real ueber den normalen Assignment-/Automation-Pfad sichtbar in `live-runs`; CEO-Run `2c9bec50-8bf4-4c42-9996-330a293d8db5` aggregierte sauber und setzte den Parent auf `blocked/waiting`, solange `DAV-7` noch keine Approval hatte.
 - Root-Cause-Fix 2026-03-23: DGDH-Seed und Heartbeat-Gate respektieren jetzt `wakeOnAssignment`/`wakeOnAutomation`, sodass normale Issue-Zuweisungen wieder echte Runs erzeugen.
 - Worker-Realstand 2026-03-23: Run `efecc4d2-72c0-4d01-be96-89a1a8907e73` erzeugte real Datei, Branch, Commit und Push fuer `DAV-7`, blieb aber beim Handoff am falschen PR-Pfad (`gh pr create`) haengen; Worker-Template wurde direkt auf `worker-pr` + `worker-done` gehaertet.
+- Delegation Guardrails V1: CEO-Template unterscheidet jetzt explizit Direct Answer Mode vs Delegation Mode; reine Denk-/Entscheidungs-/Aggregationsarbeit darf direkt beantwortet werden, operative Umsetzung muss delegiert werden.
+- Review Policy V1: Packet-Metadaten `executionIntent` + `reviewPolicy` sind kanonisch; Aggregation behandelt review-optionale Packets nur bei Status `done` als komplett, waehrend Umsetzungs-/Artefakt-Arbeit weiter Approval braucht.
 - Leitdokument-Update: Firmenfaehigkeit zuerst; `verein` ist jetzt optionaler Proof-Usecase statt Pflichtanker.
 - Revenue-Lane-Richtung: zuerst DGDH-Faehigkeit bauen, nicht einen einzelnen Kundenfall zu Ende improvisieren.
 - Sprint E geliefert: deterministische `sharp`-Pipeline per API-Route `/api/companies/:companyId/revenue-lane/image-pipeline/process`.

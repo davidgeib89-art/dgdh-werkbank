@@ -139,6 +139,12 @@ describe("resolveAssignedRoleTemplate", () => {
       "adapterConfig.roleTemplateId == \"worker\" and status == \"idle\"",
     );
     expect(result.assigned?.prompt).toContain("[NEEDS WORKER]");
+    expect(result.assigned?.prompt).toContain("Direct Answer Mode");
+    expect(result.assigned?.prompt).toContain(
+      "If the mission stays inside thinking, deciding, delegating, or aggregating",
+    );
+    expect(result.assigned?.prompt).toContain("executionIntent: implement");
+    expect(result.assigned?.prompt).toContain("reviewPolicy: required");
   });
 
   it("ceo template contains aggregation mode instructions", () => {
@@ -159,22 +165,28 @@ describe("resolveAssignedRoleTemplate", () => {
       "latest review approval status is approved",
     );
     expect(result.assigned?.prompt).toContain(
-      "All packets accepted. Mission complete.",
+      "review-optional child is complete only when its issue status is done",
     );
     expect(result.assigned?.template.constraints).toContain(
       "Aggregation Mode: MUST execute GET /api/companies/.../issues?parentId=... before any decision. Do not trust injected context for child statuses. The API call is mandatory and non-optional. Do not create new packets if all children are already done.",
     );
     expect(result.assigned?.template.constraints).toContain(
-      "Aggregation Mode: For each child issue, fetch /api/issues/{childIssueId}/approvals and treat only latest status=approved as complete. changes_requested or no approval keeps parent open.",
+      "Aggregation Mode: A child with reviewPolicy optional is complete only when status=done; review-required children still require latest approval status=approved.",
     );
     expect(result.assigned?.template.constraints).toContain(
-      "If and only if all child approvals are approved, PATCH parent issue status to done and report: All packets accepted. Mission complete.",
+      "If and only if all child packets are complete under policy, PATCH parent issue status to done and report the mission complete.",
     );
     expect(result.assigned?.template.constraints).toContain(
       "After creating child issues, fetch /api/companies/{companyId}/agents and assign each packet to an idle worker (adapterConfig.roleTemplateId == worker) when available.",
     );
     expect(result.assigned?.template.constraints).toContain(
       "If no idle worker is available, keep packet unassigned and report [NEEDS WORKER] in the handoff.",
+    );
+    expect(result.assigned?.template.constraints).toContain(
+      "Direct Answer Mode is allowed only for thinking, deciding, prioritizing, packetizing, or aggregating work with no code, file, git, PR, merge, or implementation artifact.",
+    );
+    expect(result.assigned?.template.constraints).toContain(
+      "Implementation, file-change, code, git, PR, merge, or concrete artifact work must be delegated and stays review-required by default.",
     );
   });
 

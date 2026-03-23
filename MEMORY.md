@@ -81,6 +81,8 @@
 - DGDH-Seed-Agenten tragen jetzt eine explizite Heartbeat-Runtime-Policy fuer `wakeOnAssignment`/`wakeOnAutomation`; der bisherige Seed ohne diese Flags erzeugte trotz korrekter Issue-Zuweisung keine echten Runs.
 - Der Heartbeat-Gate unterscheidet jetzt wieder source-spezifisch zwischen `assignment`, `automation` und `on_demand`, statt alle Nicht-Timer-Wege unter einem gemeinsamen `wakeOnDemand`-Schalter zu blocken.
 - Das Worker-Role-Template erzwingt jetzt fuer kanonische PR/Handoffs den Paperclip-Pfad `worker-pr` -> `worker-done` statt `gh pr create`.
+- Delegation Guardrails V1 sind live: CEO darf direkt nur Denk-/Entscheidungs-/Aggregationsarbeit erledigen; operative Umsetzung, Code, Datei-, Git-, PR- und Merge-Arbeit muss delegiert werden.
+- Review Policy V1 ist kanonisch: review-optionale Packets sind nur fuer reine Denk-/Plan-/Aggregationsarbeit mit expliziter Packet-Policy erlaubt; alles mit Umsetzung, Datei-Aenderung, Code, Git/PR/Merge oder konkretem Artefakt bleibt review-required/default-on.
 - Naechster Fokus fuer Produktionsreife: Merge-Orchestrator, harte Review-Gates, Scope-Firewall.
 
 ## Revenue Lane Foundation (langfristige Capability, nicht aktueller Fokus)

@@ -8,6 +8,7 @@ import { parseObject } from "../adapters/utils.js";
 import { issueService } from "./issues.js";
 import { logActivity } from "./activity-log.js";
 import { githubPrService } from "./github-pr.js";
+import { isIssueCompleteForParent } from "./issue-review-policy.js";
 import { resolveAssignedRoleTemplate } from "./role-templates.js";
 
 const REVIEWER_ACCEPTED_STATUS = "reviewer_accepted";
@@ -33,6 +34,7 @@ export type CeoIssueRecord = {
   parentId: string | null;
   status: string;
   title: string;
+  description: string | null;
   identifier: string | null;
   issueNumber: number | null;
   createdAt: Date;
@@ -191,7 +193,7 @@ function buildSummaryComment(input: {
     `**Parent:** #${input.parentIssue.identifier ?? input.parentIssue.id} ${input.parentIssue.title}`,
     "**Gemergte Packets:**",
     mergedList.length > 0 ? mergedList : "- none",
-    "**Ergebnis:** Alle reviewer_accepted Child-Issues wurden in Reihenfolge gemergt.",
+    "**Ergebnis:** Alle review-pflichtigen Packets wurden in Reihenfolge gemergt; review-optionale Packets waren bereits abgeschlossen.",
     `**Merge-Zeitpunkt:** ${input.mergedAt}`,
   ].join("\n");
 }
@@ -240,8 +242,10 @@ export async function maybeRunCeoMergeOrchestratorAfterReviewerVerdict(
   );
 
   const openChildren = children.filter((child) => {
-    const status = normalizeStatus(child.status);
-    return status !== REVIEWER_ACCEPTED_STATUS && status !== MERGED_STATUS;
+    return !isIssueCompleteForParent({
+      status: child.status,
+      description: child.description,
+    });
   });
 
   if (openChildren.length > 0) {
@@ -392,6 +396,7 @@ export function ceoService(db: Db) {
       parentId: issue.parentId ?? null,
       status: issue.status,
       title: issue.title,
+      description: issue.description ?? null,
       identifier: issue.identifier ?? null,
       issueNumber: issue.issueNumber ?? null,
       createdAt: issue.createdAt,
@@ -410,6 +415,7 @@ export function ceoService(db: Db) {
         parentId: issues.parentId,
         status: issues.status,
         title: issues.title,
+        description: issues.description,
         identifier: issues.identifier,
         issueNumber: issues.issueNumber,
         createdAt: issues.createdAt,
@@ -425,6 +431,7 @@ export function ceoService(db: Db) {
       parentId: child.parentId ?? null,
       status: child.status,
       title: child.title,
+      description: child.description ?? null,
       identifier: child.identifier ?? null,
       issueNumber: child.issueNumber ?? null,
       createdAt: child.createdAt,
@@ -742,6 +749,7 @@ export function ceoService(db: Db) {
                   parentId: issue.parentId ?? null,
                   status: issue.status,
                   title: issue.title,
+                  description: issue.description ?? null,
                   identifier: issue.identifier ?? null,
                   issueNumber: issue.issueNumber ?? null,
                   createdAt: issue.createdAt,
