@@ -7,12 +7,15 @@ import { errorHandler } from "../middleware/index.js";
 const mockIssueService = vi.hoisted(() => ({
   getById: vi.fn(),
   getByIdentifier: vi.fn(),
-  update: vi.fn(),
   assertCheckoutOwner: vi.fn(),
 }));
 
 const mockAgentService = vi.hoisted(() => ({
   getById: vi.fn(),
+}));
+
+const mockGithubPrService = vi.hoisted(() => ({
+  createGitHubPR: vi.fn(),
 }));
 
 const mockLogActivity = vi.hoisted(() => vi.fn());
@@ -22,7 +25,7 @@ vi.mock("../services/index.js", () => ({
   agentService: () => mockAgentService,
   goalService: () => ({}),
   heartbeatService: () => ({}),
-  githubPrService: () => ({ createGitHubPR: vi.fn() }),
+  githubPrService: () => mockGithubPrService,
   issueApprovalService: () => ({}),
   issueService: () => mockIssueService,
   documentService: () => ({}),
@@ -38,7 +41,7 @@ function createApp(actorRoleTemplateId = "worker", actorRole = "worker") {
       type: "agent",
       agentId: "agent-worker-1",
       companyId: "company-1",
-      runId: "run-worker-1",
+      runId: "run-worker-pr-1",
     };
     next();
   });
@@ -57,95 +60,87 @@ function createApp(actorRoleTemplateId = "worker", actorRole = "worker") {
   return app;
 }
 
-describe("issues worker done route", () => {
+describe("issues worker PR route", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockIssueService.getById.mockResolvedValue({
       id: "issue-1",
       companyId: "company-1",
       identifier: "DGD-120",
-      status: "todo",
+      status: "in_progress",
       assigneeAgentId: "agent-worker-1",
     });
-    mockIssueService.update.mockResolvedValue({
-      id: "issue-1",
-      companyId: "company-1",
-      identifier: "DGD-120",
-      status: "in_review",
-      assigneeAgentId: "agent-worker-1",
+    mockIssueService.assertCheckoutOwner.mockResolvedValue({
+      adoptedFromRunId: null,
+    });
+    mockGithubPrService.createGitHubPR.mockResolvedValue({
+      prUrl: "https://github.com/davidgeib89-art/dgdh-werkbank/pull/456",
+      prNumber: 456,
+      owner: "davidgeib89-art",
+      repo: "dgdh-werkbank",
+      branch: "dgdh/issue-DGD-120-worker-pr",
+      base: "main",
     });
     mockLogActivity.mockResolvedValue(undefined);
   });
 
-  it("records worker done handoff and moves issue into in_review", async () => {
+  it("creates a worker pull request and returns prUrl", async () => {
     const res = await request(createApp())
-      .post("/api/issues/issue-1/worker-done")
+      .post("/api/issues/issue-1/worker-pr")
       .send({
-        prUrl: "https://github.com/davidgeib89-art/dgdh-werkbank/pull/123",
-        branch: "dgdh/issue-DGD-120-worker-done",
-        commitHash: "a1b2c3d4e5f6a7b8c9d0",
-        summary: {
-          goal: "Implement worker-done endpoint",
-          result: "Endpoint implemented and validated",
-          files: ["server/src/routes/issues.ts", "packages/shared/src/validators/issue.ts"],
-          blockers: "none",
-          next: "handoff to reviewer",
-        },
+        owner: "davidgeib89-art",
+        repo: "dgdh-werkbank",
+        branch: "dgdh/issue-DGD-120-worker-pr",
+        title: "[DGD-120] Worker PR smoke",
+        body: "Goal: do x\nResult: done y\nFiles Changed: a,b\nBlockers: none\nNext: reviewer",
       });
 
     expect(res.status).toBe(201);
-    expect(mockIssueService.update).toHaveBeenCalledWith("issue-1", {
-      status: "in_review",
-    });
+    expect(mockGithubPrService.createGitHubPR).toHaveBeenCalledWith(
+      expect.objectContaining({
+        owner: "davidgeib89-art",
+        repo: "dgdh-werkbank",
+        branch: "dgdh/issue-DGD-120-worker-pr",
+      }),
+    );
+    expect(res.body.prUrl).toContain("/pull/456");
     expect(mockLogActivity).toHaveBeenCalledWith(
       expect.anything(),
       expect.objectContaining({
-        action: "issue.worker_done_recorded",
+        action: "issue.worker_pull_request_created",
         entityType: "issue",
         entityId: "issue-1",
       }),
     );
-    expect(res.body.status).toBe("in_review");
-    expect(res.body.handoff.prUrl).toContain("/pull/123");
   });
 
   it("rejects submissions from non-worker agents", async () => {
     const res = await request(createApp("reviewer", "reviewer"))
-      .post("/api/issues/issue-1/worker-done")
+      .post("/api/issues/issue-1/worker-pr")
       .send({
-        prUrl: "https://github.com/davidgeib89-art/dgdh-werkbank/pull/123",
-        branch: "dgdh/issue-DGD-120-worker-done",
-        commitHash: "a1b2c3d4e5f6a7b8c9d0",
-        summary: {
-          goal: "x",
-          result: "y",
-          files: ["a"],
-          blockers: "none",
-          next: "review",
-        },
+        owner: "davidgeib89-art",
+        repo: "dgdh-werkbank",
+        branch: "dgdh/issue-DGD-120-worker-pr",
+        title: "[DGD-120] Worker PR smoke",
+        body: "Goal: do x\nResult: done y\nFiles Changed: a,b\nBlockers: none\nNext: reviewer",
       });
 
     expect(res.status).toBe(403);
-    expect(res.body.error).toContain("Only worker agents");
-    expect(mockIssueService.update).not.toHaveBeenCalled();
+    expect(mockGithubPrService.createGitHubPR).not.toHaveBeenCalled();
   });
 
-  it("validates mandatory prUrl and branch format", async () => {
+  it("validates required PR body sections", async () => {
     const res = await request(createApp())
-      .post("/api/issues/issue-1/worker-done")
+      .post("/api/issues/issue-1/worker-pr")
       .send({
-        branch: "feature/invalid-branch",
-        commitHash: "a1b2c3d4e5f6a7b8c9d0",
-        summary: {
-          goal: "x",
-          result: "y",
-          files: ["a"],
-          blockers: "none",
-          next: "review",
-        },
+        owner: "davidgeib89-art",
+        repo: "dgdh-werkbank",
+        branch: "dgdh/issue-DGD-120-worker-pr",
+        title: "[DGD-120] Worker PR smoke",
+        body: "Goal: do x\nResult: done y\nBlockers: none\nNext: reviewer",
       });
 
     expect(res.status).toBe(400);
-    expect(mockIssueService.update).not.toHaveBeenCalled();
+    expect(mockGithubPrService.createGitHubPR).not.toHaveBeenCalled();
   });
 });

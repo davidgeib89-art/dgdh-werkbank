@@ -1,6 +1,7 @@
 import { Router, type Request, type Response } from "express";
 import multer from "multer";
 import type { Db } from "@paperclipai/db";
+import { z } from "zod";
 import {
   addIssueCommentSchema,
   createIssueAttachmentMetadataSchema,
@@ -21,6 +22,7 @@ import {
   agentService,
   goalService,
   heartbeatService,
+  githubPrService,
   issueApprovalService,
   issueService,
   documentService,
@@ -34,6 +36,44 @@ import { shouldWakeAssigneeOnCheckout } from "./issues-checkout-wakeup.js";
 import { isAllowedContentType, MAX_ATTACHMENT_BYTES } from "../attachment-types.js";
 
 const MAX_ISSUE_COMMENT_LIMIT = 500;
+const WORKER_BRANCH_PREFIX = "dgdh/issue-";
+const REQUIRED_PR_BODY_SECTIONS = [
+  "Goal",
+  "Result",
+  "Files Changed",
+  "Blockers",
+  "Next",
+] as const;
+
+const createWorkerPullRequestSchema = z
+  .object({
+    owner: z.string().trim().min(1).max(120).optional(),
+    repo: z.string().trim().min(1).max(200).optional(),
+    branch: z.string().trim().min(1).max(200),
+    title: z.string().trim().min(1).max(300),
+    body: z.string().trim().min(1).max(20_000),
+    base: z.string().trim().min(1).max(200).optional(),
+    draft: z.boolean().optional(),
+  })
+  .superRefine((value, ctx) => {
+    if (!value.branch.toLowerCase().startsWith(WORKER_BRANCH_PREFIX)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["branch"],
+        message: `branch must start with ${WORKER_BRANCH_PREFIX}`,
+      });
+    }
+
+    const body = value.body;
+    for (const section of REQUIRED_PR_BODY_SECTIONS) {
+      if (new RegExp(`(^|\\n)\\s*${section}\\s*:`, "i").test(body)) continue;
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["body"],
+        message: `body must include section: ${section}:`,
+      });
+    }
+  });
 
 export function issueRoutes(db: Db, storage: StorageService) {
   const router = Router();
@@ -43,6 +83,7 @@ export function issueRoutes(db: Db, storage: StorageService) {
   const agentsSvc = agentService(db);
   const projectsSvc = projectService(db);
   const goalsSvc = goalService(db);
+  const githubPrSvc = githubPrService();
   const issueApprovalsSvc = issueApprovalService(db);
   const documentsSvc = documentService(db);
   const upload = multer({
@@ -595,6 +636,98 @@ export function issueRoutes(db: Db, storage: StorageService) {
     const approvals = await issueApprovalsSvc.listApprovalsForIssue(id);
     res.json(approvals);
   });
+
+  router.post(
+    "/issues/:id/worker-pr",
+    validate(createWorkerPullRequestSchema),
+    async (req, res) => {
+      const id = req.params.id as string;
+      const issue = await svc.getById(id);
+      if (!issue) {
+        res.status(404).json({ error: "Issue not found" });
+        return;
+      }
+      assertCompanyAccess(req, issue.companyId);
+
+      if (req.actor.type !== "agent" || !req.actor.agentId) {
+        res.status(403).json({ error: "Worker agent authentication required" });
+        return;
+      }
+
+      const workerRunId = requireAgentRunId(req, res);
+      if (!workerRunId) return;
+
+      const workerAgent = await agentsSvc.getById(req.actor.agentId);
+      if (!workerAgent || workerAgent.companyId !== issue.companyId) {
+        res.status(403).json({ error: "Forbidden" });
+        return;
+      }
+
+      const isWorker =
+        workerAgent.role.toLowerCase() === "worker" ||
+        hasRoleTemplateLegacy(workerAgent, "worker");
+      if (!isWorker) {
+        res.status(403).json({ error: "Only worker agents can create worker PR handoffs" });
+        return;
+      }
+
+      if (issue.status === "done" || issue.status === "cancelled") {
+        res.status(409).json({ error: `Cannot create worker PR for ${issue.status} issues` });
+        return;
+      }
+
+      if (!issue.assigneeAgentId || issue.assigneeAgentId !== workerAgent.id) {
+        res.status(409).json({ error: "Issue must be assigned to the submitting worker" });
+        return;
+      }
+
+      if (!(await assertAgentRunCheckoutOwnership(req, res, issue))) return;
+
+      const createdPr = await githubPrSvc.createGitHubPR({
+        owner: req.body.owner ?? null,
+        repo: req.body.repo ?? null,
+        branch: req.body.branch,
+        title: req.body.title,
+        body: req.body.body,
+        base: req.body.base ?? null,
+        draft: req.body.draft ?? false,
+      });
+
+      const actor = getActorInfo(req);
+      await logActivity(db, {
+        companyId: issue.companyId,
+        actorType: actor.actorType,
+        actorId: actor.actorId,
+        agentId: actor.agentId,
+        runId: actor.runId,
+        action: "issue.worker_pull_request_created",
+        entityType: "issue",
+        entityId: issue.id,
+        details: {
+          identifier: issue.identifier,
+          prUrl: createdPr.prUrl,
+          prNumber: createdPr.prNumber,
+          owner: createdPr.owner,
+          repo: createdPr.repo,
+          branch: createdPr.branch,
+          base: createdPr.base,
+          roleTemplateId: "worker",
+        },
+      });
+
+      res.status(201).json({
+        issueId: issue.id,
+        issueIdentifier: issue.identifier,
+        prUrl: createdPr.prUrl,
+        prNumber: createdPr.prNumber,
+        owner: createdPr.owner,
+        repo: createdPr.repo,
+        branch: createdPr.branch,
+        base: createdPr.base,
+        workerRunId,
+      });
+    },
+  );
 
   router.post(
     "/issues/:id/worker-done",

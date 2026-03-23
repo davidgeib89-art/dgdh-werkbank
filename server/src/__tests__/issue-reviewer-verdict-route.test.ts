@@ -24,6 +24,7 @@ vi.mock("../services/index.js", () => ({
   agentService: () => mockAgentService,
   goalService: () => ({}),
   heartbeatService: () => ({}),
+  githubPrService: () => ({ createGitHubPR: vi.fn() }),
   issueApprovalService: () => mockIssueApprovalService,
   issueService: () => mockIssueService,
   documentService: () => ({}),

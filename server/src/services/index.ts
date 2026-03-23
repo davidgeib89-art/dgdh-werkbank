@@ -29,6 +29,7 @@ export { approvalService } from "./approvals.js";
 export { secretService } from "./secrets.js";
 export { costService } from "./costs.js";
 export { heartbeatService } from "./heartbeat.js";
+export { githubPrService, createGitHubPR } from "./github-pr.js";
 export { dashboardService } from "./dashboard.js";
 export {
   summarizePromptShadowTelemetry,
