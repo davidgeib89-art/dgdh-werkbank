@@ -1,12 +1,12 @@
 # CURRENT - Live Baton
 
 focus: Firmenfaehigkeit zuerst - E2E-Firmenloop weiter verdichten; `verein` nur optionaler Proof-Usecase
-active_issue: E2E-Testrun - Konfliktfall auf `PR #4` wurde real erkannt und sauber auf `DAV-1` / `DAV-2` reported
+active_issue: E2E-Testrun - Konfliktfall auf `PR #4` historisch abgeschlossen; Replay ueber `PR #5` lief real sauber durch bis Merge + Summary
 next:
-  1) David entscheidet den realen Konflikt auf `PR #4` (manuell aufloesen, anpassen oder schliessen)
-  2) Danach denselben E2E-Lauf erneut auf `clean merge + summary` fahren
-  3) Bis dahin nur echte neue Loop-Blocker anfassen
-blockers: `PR #4` ist auf GitHub `mergeable=false` / `dirty`; Konflikt ist jetzt korrekt reported, aber nicht automatisch loesbar
+  1) diesen sauberen Replay ueber `PR #5` als kanonischen Happy-Path-Beweis behandeln
+  2) naechsten bounded Firmenloop-Run waehlen, ohne neue Meta-Schichten zu starten
+  3) nur echte neue Loop-Blocker oder den naechsten klaren Faehigkeits-Beweis anfassen
+blockers: aktuell kein offener Blocker im E2E-Firmenloop; `PR #4` bleibt nur als historischer Konfliktfall dokumentiert
 
 leitdokument_update (2026-03-23):
   doc: `doc/plans/2026-03-23-dgdh-leitdokument.md`

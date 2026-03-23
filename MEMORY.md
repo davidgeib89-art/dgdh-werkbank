@@ -71,6 +71,8 @@
 - Reviewer-Simplicity-Criterion ist live.
 - Worker-Abschluss hat jetzt ein hartes API-Gate: `POST /api/issues/:id/worker-done` mit Pflichtfeldern `prUrl`, `branch`, `commitHash`, `summary`.
 - Worker kann GitHub-PRs direkt via REST API erstellen (`POST /api/issues/:id/worker-pr` -> `createGitHubPR`), ohne `gh` CLI-Abhaengigkeit.
+- `worker-pr` toleriert jetzt wie `worker-done`/`reviewer-verdict` nicht-persistierte API-Run-IDs; freie `runId`s landen in `details.apiRunId` statt am `activity_log.run_id`-FK zu crashen.
+- GitHub-PR/Merge-Service faellt jetzt bei fehlenden Prozess-Env-Variablen auf vorhandene Git-Credentials und den `origin`-Remote-Slug zurueck; `worker-pr`, Merge und CEO-Summary laufen damit auch in lokalem Dev-Setup ohne explizites `GITHUB_TOKEN`/`GITHUB_REPOSITORY` im Serverprozess.
 - Prompt-Scope-Firewall V1 ist aktiv: Worker blockt ausserhalb `targetFolder`, Reviewer fordert bei Scope-Verstoss Revision.
 - Harte Code-Firewall (Option B) bleibt Backlog und wird erst bei dokumentiertem Trigger aktiviert (`doc/backlog/scope-firewall-code.md`).
 - Dual-Gemini-Failover schaltet bei exhausted / `429` / `RESOURCE_EXHAUSTED` von `account_1` auf `account_2`.
