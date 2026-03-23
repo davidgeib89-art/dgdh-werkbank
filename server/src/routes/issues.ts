@@ -9,6 +9,7 @@ import {
   createIssueSchema,
   linkIssueApprovalSchema,
   submitReviewerVerdictSchema,
+  submitWorkerDoneSchema,
   issueDocumentKeySchema,
   upsertIssueDocumentSchema,
   updateIssueSchema,
@@ -594,6 +595,95 @@ export function issueRoutes(db: Db, storage: StorageService) {
     const approvals = await issueApprovalsSvc.listApprovalsForIssue(id);
     res.json(approvals);
   });
+
+  router.post(
+    "/issues/:id/worker-done",
+    validate(submitWorkerDoneSchema),
+    async (req, res) => {
+      const id = req.params.id as string;
+      const issue = await svc.getById(id);
+      if (!issue) {
+        res.status(404).json({ error: "Issue not found" });
+        return;
+      }
+      assertCompanyAccess(req, issue.companyId);
+
+      if (req.actor.type !== "agent" || !req.actor.agentId) {
+        res.status(403).json({ error: "Worker agent authentication required" });
+        return;
+      }
+
+      const workerRunId = requireAgentRunId(req, res);
+      if (!workerRunId) return;
+
+      const workerAgent = await agentsSvc.getById(req.actor.agentId);
+      if (!workerAgent || workerAgent.companyId !== issue.companyId) {
+        res.status(403).json({ error: "Forbidden" });
+        return;
+      }
+
+      const isWorker =
+        workerAgent.role.toLowerCase() === "worker" ||
+        hasRoleTemplateLegacy(workerAgent, "worker");
+      if (!isWorker) {
+        res.status(403).json({ error: "Only worker agents can submit worker handoffs" });
+        return;
+      }
+
+      if (issue.status === "done" || issue.status === "cancelled") {
+        res.status(409).json({ error: `Cannot record worker handoff for ${issue.status} issues` });
+        return;
+      }
+
+      if (!issue.assigneeAgentId || issue.assigneeAgentId !== workerAgent.id) {
+        res.status(409).json({ error: "Issue must be assigned to the submitting worker" });
+        return;
+      }
+
+      if (!(await assertAgentRunCheckoutOwnership(req, res, issue))) return;
+
+      const updatedIssue = await svc.update(issue.id, {
+        status: "in_review",
+      });
+      if (!updatedIssue) {
+        res.status(404).json({ error: "Issue not found" });
+        return;
+      }
+
+      const actor = getActorInfo(req);
+      await logActivity(db, {
+        companyId: updatedIssue.companyId,
+        actorType: actor.actorType,
+        actorId: actor.actorId,
+        agentId: actor.agentId,
+        runId: actor.runId,
+        action: "issue.worker_done_recorded",
+        entityType: "issue",
+        entityId: updatedIssue.id,
+        details: {
+          identifier: updatedIssue.identifier,
+          autoTransition: true,
+          transitionReason: "worker_done_handoff",
+          roleTemplateId: "worker",
+          prUrl: req.body.prUrl,
+          branch: req.body.branch,
+          commitHash: req.body.commitHash,
+          summary: req.body.summary,
+          _previous: {
+            status: issue.status,
+          },
+        },
+      });
+
+      res.status(201).json({
+        issueId: updatedIssue.id,
+        issueIdentifier: updatedIssue.identifier,
+        status: updatedIssue.status,
+        handoff: req.body,
+        workerRunId,
+      });
+    },
+  );
 
   router.post(
     "/issues/:id/reviewer-verdict",

@@ -1132,7 +1132,6 @@ export function determineIssueStatusAfterRun(input: {
   nextStatus: "blocked" | "in_review" | "done" | null;
   reason:
     | "worker_loop_detected"
-    | "worker_completed_waiting_for_review"
     | "reviewer_accepted"
     | null;
   reviewerVerdict: ReviewerVerdict | null;
@@ -1172,18 +1171,11 @@ export function determineIssueStatusAfterRun(input: {
     return { nextStatus: null, reason: null, reviewerVerdict };
   }
 
-  const workerLikeRole =
-    roleTemplateId === "worker" || roleTemplateId == null;
-  if (
-    workerLikeRole &&
-    issueStatus !== "in_review"
-  ) {
-    return {
-      nextStatus: "in_review",
-      reason: "worker_completed_waiting_for_review",
-      reviewerVerdict: null,
-    };
-  }
+  // Worker completion is now explicit via POST /api/issues/:id/worker-done.
+  // Keep heartbeat free from implicit worker->in_review transitions to avoid
+  // double-transition races and split sources of truth.
+  const workerLikeRole = roleTemplateId === "worker" || roleTemplateId == null;
+  if (workerLikeRole) return { nextStatus: null, reason: null, reviewerVerdict: null };
 
   return { nextStatus: null, reason: null, reviewerVerdict: null };
 }

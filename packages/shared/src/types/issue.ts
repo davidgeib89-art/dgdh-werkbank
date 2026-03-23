@@ -148,6 +148,21 @@ export interface IssueComment {
   updatedAt: Date;
 }
 
+export interface WorkerHandoffSummary {
+  goal: string;
+  result: string;
+  files: string[];
+  blockers: string;
+  next: string;
+}
+
+export interface WorkerHandoff {
+  prUrl: string;
+  branch: string;
+  commitHash: string;
+  summary: WorkerHandoffSummary;
+}
+
 export interface IssueAttachment {
   id: string;
   companyId: string;

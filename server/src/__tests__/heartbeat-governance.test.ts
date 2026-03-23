@@ -291,7 +291,7 @@ describe("heartbeat governance helpers", () => {
     expect(extractReviewerVerdict(output)).toBe("accepted");
   });
 
-  it("moves succeeded worker runs into in_review", () => {
+  it("does not auto-transition succeeded worker runs into in_review", () => {
     expect(
       determineIssueStatusAfterRun({
         runStatus: "succeeded",
@@ -300,13 +300,13 @@ describe("heartbeat governance helpers", () => {
         stdoutExcerpt: "done",
       }),
     ).toMatchObject({
-      nextStatus: "in_review",
-      reason: "worker_completed_waiting_for_review",
+      nextStatus: null,
+      reason: null,
       reviewerVerdict: null,
     });
   });
 
-  it("moves succeeded worker runs from todo into in_review in the assignment flow", () => {
+  it("does not auto-transition succeeded worker runs from todo in assignment flow", () => {
     expect(
       determineIssueStatusAfterRun({
         runStatus: "succeeded",
@@ -315,8 +315,8 @@ describe("heartbeat governance helpers", () => {
         stdoutExcerpt: "done",
       }),
     ).toMatchObject({
-      nextStatus: "in_review",
-      reason: "worker_completed_waiting_for_review",
+      nextStatus: null,
+      reason: null,
       reviewerVerdict: null,
     });
   });

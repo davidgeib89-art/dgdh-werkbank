@@ -116,6 +116,46 @@ export const submitReviewerVerdictSchema = z
 
 export type SubmitReviewerVerdict = z.infer<typeof submitReviewerVerdictSchema>;
 
+export const workerHandoffSummarySchema = z
+  .object({
+    goal: z.string().trim().min(1).max(2_000),
+    result: z.string().trim().min(1).max(4_000),
+    files: z.array(z.string().trim().min(1).max(500)).min(1).max(200),
+    blockers: z.string().trim().min(1).max(2_000),
+    next: z.string().trim().min(1).max(2_000),
+  })
+  .strict();
+
+export const submitWorkerDoneSchema = z
+  .object({
+    prUrl: z.string().trim().url().max(2_000),
+    branch: z.string().trim().min(1).max(200),
+    commitHash: z
+      .string()
+      .trim()
+      .regex(/^[0-9a-f]{7,40}$/i, "commitHash must be a valid git commit hash"),
+    summary: workerHandoffSummarySchema,
+  })
+  .superRefine((value, ctx) => {
+    if (!value.prUrl.includes("/pull/")) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["prUrl"],
+        message: "prUrl must point to a pull request URL",
+      });
+    }
+    if (!value.branch.toLowerCase().startsWith("dgdh/issue-")) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["branch"],
+        message: "branch must start with dgdh/issue-",
+      });
+    }
+  });
+
+export type WorkerHandoffSummary = z.infer<typeof workerHandoffSummarySchema>;
+export type SubmitWorkerDone = z.infer<typeof submitWorkerDoneSchema>;
+
 export const createIssueAttachmentMetadataSchema = z.object({
   issueCommentId: z.string().uuid().optional().nullable(),
 });

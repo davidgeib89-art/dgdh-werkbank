@@ -48,6 +48,8 @@ export type {
   IssueAncestor,
   IssueAncestorProject,
   IssueAncestorGoal,
+  WorkerHandoff,
+  WorkerHandoffSummary,
   IssueAttachment,
   IssueLabel,
 } from "./issue.js";
