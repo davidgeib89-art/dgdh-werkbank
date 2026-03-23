@@ -51,6 +51,9 @@ describe("resolveAssignedRoleTemplate", () => {
     expect(result.assigned?.prompt).toContain("4. Validate");
     expect(result.assigned?.prompt).toContain("3. Evidence");
     expect(result.assigned?.prompt).toContain("7. Next");
+    expect(result.assigned?.prompt).toContain(
+      "summary.files must be a JSON array of changed file paths, even if there is only one file.",
+    );
   });
 
   it("appends the operator add-on prompt without replacing the template", () => {

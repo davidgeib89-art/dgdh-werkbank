@@ -161,4 +161,24 @@ describe("issues worker done route", () => {
     expect(res.status).toBe(400);
     expect(mockIssueService.update).not.toHaveBeenCalled();
   });
+
+  it("rejects worker handoff when summary.files is not an array", async () => {
+    const res = await request(createApp())
+      .post("/api/issues/issue-1/worker-done")
+      .send({
+        prUrl: "https://github.com/davidgeib89-art/dgdh-werkbank/pull/123",
+        branch: "dgdh/issue-DGD-120-worker-done",
+        commitHash: "a1b2c3d4e5f6a7b8c9d0",
+        summary: {
+          goal: "Implement worker-done endpoint",
+          result: "Endpoint implemented and validated",
+          files: "server/src/routes/issues.ts",
+          blockers: "none",
+          next: "handoff to reviewer",
+        },
+      });
+
+    expect(res.status).toBe(400);
+    expect(mockIssueService.update).not.toHaveBeenCalled();
+  });
 });
