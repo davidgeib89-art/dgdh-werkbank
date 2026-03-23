@@ -87,6 +87,10 @@
 - Delegation Guardrails V1 sind live: CEO darf direkt nur Denk-/Entscheidungs-/Aggregationsarbeit erledigen; operative Umsetzung, Code, Datei-, Git-, PR- und Merge-Arbeit muss delegiert werden.
 - Review Policy V1 ist kanonisch: review-optionale Packets sind nur fuer reine Denk-/Plan-/Aggregationsarbeit mit expliziter Packet-Policy erlaubt; alles mit Umsetzung, Datei-Aenderung, Code, Git/PR/Merge oder konkretem Artefakt bleibt review-required/default-on.
 - Reviewer Semantic Acceptance Guardrail V1 ist live: Reviewer-Prompt verlangt semantische Punkt-fuer-Punkt-Pruefung; `POST /api/issues/:id/reviewer-verdict` verlangt jetzt substantive `doneWhenCheck` + `evidence`, sodass oberflaechliche oder fehlende Begruendungen nicht mehr accepted durchrutschen.
+- Der reale DAV-12/DAV-13-Baton-Pfad ist bewiesen: `changes_requested -> worker revision -> reviewer re-review -> merge -> summary` lief fachlich durch.
+- Isolierte Git-Worktree-Ausfuehrung ist im DGDH-Repo real bewiesen: DAV-13 lief in `C:\Users\holyd\DGDH\worktrees\dgdh-werkbank\.paperclip\worktrees\DAV-13-reviewer-semantic-truth-artifact-implementation`; der Human-Main-Worktree blieb separat.
+- Windows-Glue-Fact: fuer tiefe isolierte Git-Worktrees in diesem Repo ist lokal `git config core.longpaths true` noetig.
+- Merge-Hygiene-Fact: alte Issue-Branch-Historie kann versehentlich branch baggage auf `main` ziehen; die fremden `hyperagents.pdf`-Artefakte wurden danach bounded wieder aus `main` entfernt.
 - Evolution Lane ist kanonisch als spaetere Richtung gesetzt: kontrollierte Selbstverbesserung laeuft replay-/benchmark-getrieben, PR-basiert und mit Human-Merge, nicht als freie Live-Selbstoptimierung.
 - Naechster Fokus fuer Produktionsreife: Merge-Orchestrator, harte Review-Gates, Scope-Firewall.
 

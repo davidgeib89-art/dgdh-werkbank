@@ -1,12 +1,12 @@
 # CURRENT - Live Baton
 
-focus: Firmenfaehigkeit zuerst - Reviewer Semantic Acceptance Guardrail V1 geschlossen; naechsten echten Firmenlauf unter gehaertetem Review fahren
-active_issue: Reviewer Semantic Acceptance Guardrail V1; semantische Review-Wahrheit statt formaler Acceptance, danach naechster echter Firmenlauf
+focus: Firmenfaehigkeit zuerst - realer DAV-12/DAV-13 Reviewer-Pfad inkl. changes_requested -> revision -> re-review -> merge -> summary ist bewiesen; Merge-Hygiene auf main wurde nachgezogen
+active_issue: Baton Sync nach dem realen DAV-12/DAV-13-Beweis; naechster Sprint soll den Merge-Pfad boringly reliable machen, bevor der naechste Firmenlauf startet
 next:
-  1) naechsten echten Firmenlauf unter gehaertetem Reviewer fahren und auf False-Positive-Rueckfall pruefen
-  2) policy-basierten `done`-Pfad fuer review-optionale Denk-/Aggregationsarbeit im echten Run beobachten
-  3) nur noch reale Glue-Blocker zwischen Worker -> Reviewer -> Merge anfassen
-blockers: kein neuer Meta-Blocker; naechster Realbeweis bleibt ein weiterer Firmenlauf mit semantisch gehaertetem Reviewer
+  1) Merge-Vorpruefung gegen branch baggage haerten, damit nur gewollter Issue-Scope auf main landet
+  2) lokalen Branch-Cleanup unter Worktree-Bindung boringly reliable machen oder klar dokumentieren
+  3) erst danach den naechsten echten Firmenlauf starten
+blockers: kein Produktblocker; offener Reliability-Punkt ist Merge-Hygiene bei alten Issue-Branch-Historien
 
 leitdokument_update (2026-03-23):
   doc: `doc/plans/2026-03-23-dgdh-leitdokument.md`
@@ -65,6 +65,8 @@ notes:
 - Delegation Guardrails V1: CEO-Template unterscheidet jetzt explizit Direct Answer Mode vs Delegation Mode; reine Denk-/Entscheidungs-/Aggregationsarbeit darf direkt beantwortet werden, operative Umsetzung muss delegiert werden.
 - Review Policy V1: Packet-Metadaten `executionIntent` + `reviewPolicy` sind kanonisch; Aggregation behandelt review-optionale Packets nur bei Status `done` als komplett, waehrend Umsetzungs-/Artefakt-Arbeit weiter Approval braucht.
 - Reviewer Semantic Acceptance Guardrail V1: Reviewer-Prompt fordert jetzt Semantic Compliance + Point-by-point verification; das Verdict-API blockt fehlende oder oberflaechliche `doneWhenCheck`-/`evidence`-Felder.
+- Realbeweis 2026-03-23: DAV-12/DAV-13 lief real durch `changes_requested -> worker revision -> reviewer re-review -> merge -> summary`; DAV-13 wurde im isolierten Worktree `C:\Users\holyd\DGDH\worktrees\dgdh-werkbank\.paperclip\worktrees\DAV-13-reviewer-semantic-truth-artifact-implementation` bearbeitet und `dgdh/issue-dav-13` danach nach `origin/main` gemerged.
+- Merge-Hygiene-Lektion 2026-03-23: alte Issue-Branch-Historie kann branch baggage auf `main` tragen; der bounded Cleanup entfernt die versehentlich mitgemergten `hyperagents.pdf`-Artefakte wieder aus `main`.
 - Leitdokument-Update: Firmenfaehigkeit zuerst; `verein` ist jetzt optionaler Proof-Usecase statt Pflichtanker.
 - Neue spaetere Richtungsabsicherung: `doc/plans/2026-03-23-dgdh-evolution-lane-werkbank-baut-werkbank.md` setzt Self-Learning als replay-/benchmark-getriebene Evolution-Lane, nicht als Live-Produktionssprint.
 - Handoff: Copilot uebernimmt ab dem naechsten Sprint die Coder-Rolle; erster Zielkontext ist der naechste reale Firmenlauf unter gehaertetem Review.
