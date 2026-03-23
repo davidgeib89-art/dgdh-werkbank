@@ -87,8 +87,6 @@
 - Delegation Guardrails V1 sind live: CEO darf direkt nur Denk-/Entscheidungs-/Aggregationsarbeit erledigen; operative Umsetzung, Code, Datei-, Git-, PR- und Merge-Arbeit muss delegiert werden.
 - Review Policy V1 ist kanonisch: review-optionale Packets sind nur fuer reine Denk-/Plan-/Aggregationsarbeit mit expliziter Packet-Policy erlaubt; alles mit Umsetzung, Datei-Aenderung, Code, Git/PR/Merge oder konkretem Artefakt bleibt review-required/default-on.
 - Reviewer Semantic Acceptance Guardrail V1 ist live: Reviewer-Prompt verlangt semantische Punkt-fuer-Punkt-Pruefung; `POST /api/issues/:id/reviewer-verdict` verlangt jetzt substantive `doneWhenCheck` + `evidence`, sodass oberflaechliche oder fehlende Begruendungen nicht mehr accepted durchrutschen.
-- Realer Review-Wahrheits-Beweis 2026-03-23: DAV-12 -> DAV-13 lief ueber CEO -> Worker -> Reviewer; der Reviewer gab `changes_requested`, weil im Artefakt ein geforderter semantischer Punkt fehlte. Der gehaertete Reviewer liess die inhaltliche Luecke nicht mehr als formal akzeptiert durch.
-- Worker-Handoff-Contract ist nach Real-Run gehaertet: Der Worker-Prompt sagt jetzt explizit, dass `worker-done.summary.files` immer ein JSON-Array von Dateipfaden sein muss, auch bei nur einer Datei.
 - Evolution Lane ist kanonisch als spaetere Richtung gesetzt: kontrollierte Selbstverbesserung laeuft replay-/benchmark-getrieben, PR-basiert und mit Human-Merge, nicht als freie Live-Selbstoptimierung.
 - Naechster Fokus fuer Produktionsreife: Merge-Orchestrator, harte Review-Gates, Scope-Firewall.
 

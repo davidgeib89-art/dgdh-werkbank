@@ -3,10 +3,10 @@
 focus: Firmenfaehigkeit zuerst - Reviewer Semantic Acceptance Guardrail V1 geschlossen; naechsten echten Firmenlauf unter gehaertetem Review fahren
 active_issue: Reviewer Semantic Acceptance Guardrail V1; semantische Review-Wahrheit statt formaler Acceptance, danach naechster echter Firmenlauf
 next:
-  1) Revision-/Re-Review-Schleife nach echtem `changes_requested` auf DAV-13 sauber durchfahren
+  1) naechsten echten Firmenlauf unter gehaertetem Reviewer fahren und auf False-Positive-Rueckfall pruefen
   2) policy-basierten `done`-Pfad fuer review-optionale Denk-/Aggregationsarbeit im echten Run beobachten
   3) nur noch reale Glue-Blocker zwischen Worker -> Reviewer -> Merge anfassen
-blockers: kein neuer Meta-Blocker; naechster Produktionsschmerz liegt jetzt in der sauberen Revision-/Reviewer-/Merge-Fortsetzung nach realem semantischem `changes_requested`
+blockers: kein neuer Meta-Blocker; naechster Realbeweis bleibt ein weiterer Firmenlauf mit semantisch gehaertetem Reviewer
 
 leitdokument_update (2026-03-23):
   doc: `doc/plans/2026-03-23-dgdh-leitdokument.md`
@@ -65,8 +65,6 @@ notes:
 - Delegation Guardrails V1: CEO-Template unterscheidet jetzt explizit Direct Answer Mode vs Delegation Mode; reine Denk-/Entscheidungs-/Aggregationsarbeit darf direkt beantwortet werden, operative Umsetzung muss delegiert werden.
 - Review Policy V1: Packet-Metadaten `executionIntent` + `reviewPolicy` sind kanonisch; Aggregation behandelt review-optionale Packets nur bei Status `done` als komplett, waehrend Umsetzungs-/Artefakt-Arbeit weiter Approval braucht.
 - Reviewer Semantic Acceptance Guardrail V1: Reviewer-Prompt fordert jetzt Semantic Compliance + Point-by-point verification; das Verdict-API blockt fehlende oder oberflaechliche `doneWhenCheck`-/`evidence`-Felder.
-- Neuer Realbeweis 2026-03-23: DAV-12 -> DAV-13 lief real ueber CEO assignment -> Worker assignment -> Reviewer assignment; Reviewer gab fuer DAV-13 `changes_requested`, weil im Artefakt der Punkt `Semantic Truth Test` inhaltlich fehlte. Der False-Positive-Schmerz reproduzierte sich damit NICHT.
-- Direkter Glue-Fix 2026-03-23: Worker-Prompt wurde nach realem `POST /api/issues/:id/worker-done`-400 gehaertet; `summary.files` muss jetzt explizit als JSON-Array gesendet werden, nicht als String.
 - Leitdokument-Update: Firmenfaehigkeit zuerst; `verein` ist jetzt optionaler Proof-Usecase statt Pflichtanker.
 - Neue spaetere Richtungsabsicherung: `doc/plans/2026-03-23-dgdh-evolution-lane-werkbank-baut-werkbank.md` setzt Self-Learning als replay-/benchmark-getriebene Evolution-Lane, nicht als Live-Produktionssprint.
 - Handoff: Copilot uebernimmt ab dem naechsten Sprint die Coder-Rolle; erster Zielkontext ist der naechste reale Firmenlauf unter gehaertetem Review.
