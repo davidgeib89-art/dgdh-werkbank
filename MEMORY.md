@@ -76,6 +76,9 @@
 - End-to-End Multi-Agent-Kette (Sprint S) laeuft durch (Prototyp-Reife), produziert aber isolierte Worktree-Inseln.
 - Dashboard-Sichtbarkeit fuer echte Agenten-Runs ist lokal bewiesen: ein zugewiesenes Issue triggert einen sichtbaren `codex_local`-Run im Dashboard/`live-runs` mit laufendem Transcript und Abschluss.
 - Ein manueller Heartbeat ohne zugewiesenes Issue blockt erwartbar am Gate `no_assigned_issue`; fuer sichtbare reale Runs muss der bestehende Issue-Assignment-Pfad genutzt werden.
+- DGDH-Seed-Agenten tragen jetzt eine explizite Heartbeat-Runtime-Policy fuer `wakeOnAssignment`/`wakeOnAutomation`; der bisherige Seed ohne diese Flags erzeugte trotz korrekter Issue-Zuweisung keine echten Runs.
+- Der Heartbeat-Gate unterscheidet jetzt wieder source-spezifisch zwischen `assignment`, `automation` und `on_demand`, statt alle Nicht-Timer-Wege unter einem gemeinsamen `wakeOnDemand`-Schalter zu blocken.
+- Das Worker-Role-Template erzwingt jetzt fuer kanonische PR/Handoffs den Paperclip-Pfad `worker-pr` -> `worker-done` statt `gh pr create`.
 - Naechster Fokus fuer Produktionsreife: Merge-Orchestrator, harte Review-Gates, Scope-Firewall.
 
 ## Revenue Lane Foundation (langfristige Capability, nicht aktueller Fokus)

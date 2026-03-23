@@ -12,6 +12,15 @@
       "adapterConfig": {
         "model": "auto",
         "roleTemplateId": "ceo"
+      },
+      "runtimeConfig": {
+        "heartbeat": {
+          "enabled": true,
+          "intervalSec": 0,
+          "wakeOnAssignment": true,
+          "wakeOnAutomation": true,
+          "maxConcurrentRuns": 1
+        }
       }
     },
     {
@@ -21,6 +30,15 @@
       "adapterConfig": {
         "model": "auto",
         "roleTemplateId": "worker"
+      },
+      "runtimeConfig": {
+        "heartbeat": {
+          "enabled": true,
+          "intervalSec": 0,
+          "wakeOnAssignment": true,
+          "wakeOnAutomation": true,
+          "maxConcurrentRuns": 1
+        }
       }
     },
     {
@@ -30,6 +48,15 @@
       "adapterConfig": {
         "model": "auto",
         "roleTemplateId": "reviewer"
+      },
+      "runtimeConfig": {
+        "heartbeat": {
+          "enabled": true,
+          "intervalSec": 0,
+          "wakeOnAssignment": true,
+          "wakeOnAutomation": true,
+          "maxConcurrentRuns": 1
+        }
       }
     }
   ]

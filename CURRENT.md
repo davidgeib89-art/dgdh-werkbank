@@ -1,12 +1,12 @@
 # CURRENT - Live Baton
 
-focus: Firmenfaehigkeit zuerst - sichtbare operative Lebendigkeit im Dashboard ist jetzt real bewiesen; Firmenloop weiter verdichten
-active_issue: Dashboard-Sichtbarkeits-Beweis fuer echten Agenten-Run auf aktiver lokaler DGDH-Company
+focus: Firmenfaehigkeit zuerst - sichtbarer CEO/Worker-Assignment-Run ist real wieder da; den kanonischen Worker->Reviewer->Merge-Pfad weiter boringly reliable machen
+active_issue: CEO-Assignment-Run DAV-6 / DAV-7 ueber normalen Pfad; Heartbeat-Gate gefixt, Worker-Handoff jetzt der naechste Engpass
 next:
-  1) den sichtbaren Dashboard-Run als operativen Proof behandeln und bei Bedarf fuer David reproduzieren
-  2) den naechsten bounded Firmenloop-Run auf demselben sichtbaren UI-Pfad starten, nicht nur unter der Haube
-  3) nur echte neue Loop- oder Sichtbarkeits-Blocker anfassen
-blockers: kein UI-Sichtbarkeits-Blocker fuer echte Runs; bekannter Gate: manueller Heartbeat ohne zugewiesenes Issue blockt mit `no_assigned_issue`
+  1) DAV-7 auf sauberem Worker-Handoff-Pfad erneut durchlaufen lassen (`worker-pr` -> `worker-done`)
+  2) danach Reviewer ueber normalen Assignment-Pfad starten und CEO-Auto-Retrigger bis Merge pruefen
+  3) nur noch echte Glue-Blocker im kanonischen Firmenpfad anfassen
+blockers: CEO/Worker-Assignment-Start ist gefixt; aktueller Realblocker fuer DAV-7 war der Worker-Handoff ueber `gh pr create` statt `worker-pr`/`worker-done`
 
 leitdokument_update (2026-03-23):
   doc: `doc/plans/2026-03-23-dgdh-leitdokument.md`
@@ -59,6 +59,9 @@ notes:
 - Sichtbarkeits-Beweis 2026-03-23: aktiver Watcher `pnpm dev:watch` lief real; auf der aktiven lokalen DGDH-Company wurde Agent `Codex Dashboard Proof` erstellt und Issue `DAV-5` zugewiesen.
 - Echter sichtbarer Run: `bbb60863-4be0-4207-bd47-c1cdbd5d33a2` lief ueber `assignment` von `14:56:26Z` bis `14:56:45Z`, war im Company-`live-runs`/Dashboard sichtbar und schrieb Transcript-Output plus Abschluss.
 - Vorlauf-Gate bestaetigt: manueller Run `dd016ffa-1f69-479c-b4d1-cf9e42cc8c5d` blockte korrekt mit `Heartbeat gate: no issue assigned. Assign an issue before waking the agent.`
+- Neuer Proof 2026-03-23: `DAV-6` (CEO) und `DAV-7` (Worker) liefen real ueber den normalen Assignment-/Automation-Pfad sichtbar in `live-runs`; CEO-Run `2c9bec50-8bf4-4c42-9996-330a293d8db5` aggregierte sauber und setzte den Parent auf `blocked/waiting`, solange `DAV-7` noch keine Approval hatte.
+- Root-Cause-Fix 2026-03-23: DGDH-Seed und Heartbeat-Gate respektieren jetzt `wakeOnAssignment`/`wakeOnAutomation`, sodass normale Issue-Zuweisungen wieder echte Runs erzeugen.
+- Worker-Realstand 2026-03-23: Run `efecc4d2-72c0-4d01-be96-89a1a8907e73` erzeugte real Datei, Branch, Commit und Push fuer `DAV-7`, blieb aber beim Handoff am falschen PR-Pfad (`gh pr create`) haengen; Worker-Template wurde direkt auf `worker-pr` + `worker-done` gehaertet.
 - Leitdokument-Update: Firmenfaehigkeit zuerst; `verein` ist jetzt optionaler Proof-Usecase statt Pflichtanker.
 - Revenue-Lane-Richtung: zuerst DGDH-Faehigkeit bauen, nicht einen einzelnen Kundenfall zu Ende improvisieren.
 - Sprint E geliefert: deterministische `sharp`-Pipeline per API-Route `/api/companies/:companyId/revenue-lane/image-pipeline/process`.

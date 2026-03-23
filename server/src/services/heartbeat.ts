@@ -2869,24 +2869,63 @@ export function heartbeatService(db: Db) {
     });
   }
 
-  function parseHeartbeatPolicy(agent: typeof agents.$inferSelect) {
+  type ParsedHeartbeatPolicy = {
+    enabled: boolean;
+    intervalSec: number;
+    wakeOnAssignment: boolean;
+    wakeOnOnDemand: boolean;
+    wakeOnAutomation: boolean;
+    maxConcurrentRuns: number;
+  };
+
+  function parseHeartbeatPolicy(
+    agent: typeof agents.$inferSelect,
+  ): ParsedHeartbeatPolicy {
     const runtimeConfig = parseObject(agent.runtimeConfig);
     const heartbeat = parseObject(runtimeConfig.heartbeat);
+    const legacyWakeOnDemand = asBoolean(heartbeat.wakeOnDemand, false);
 
     return {
       enabled: asBoolean(heartbeat.enabled, true),
       intervalSec: Math.max(0, asNumber(heartbeat.intervalSec, 0)),
-      wakeOnDemand: asBoolean(
-        heartbeat.wakeOnDemand ??
-          heartbeat.wakeOnAssignment ??
-          heartbeat.wakeOnOnDemand ??
-          heartbeat.wakeOnAutomation,
-        false,
+      wakeOnAssignment: asBoolean(
+        heartbeat.wakeOnAssignment,
+        legacyWakeOnDemand,
+      ),
+      wakeOnOnDemand: asBoolean(
+        heartbeat.wakeOnOnDemand,
+        legacyWakeOnDemand,
+      ),
+      wakeOnAutomation: asBoolean(
+        heartbeat.wakeOnAutomation,
+        legacyWakeOnDemand,
       ),
       maxConcurrentRuns: normalizeMaxConcurrentRuns(
         heartbeat.maxConcurrentRuns,
       ),
     };
+  }
+
+  function resolveWakeupDisabledReason(
+    source: WakeupSource | undefined,
+  ): string {
+    if (source === "timer") return "heartbeat.disabled";
+    if (source === "assignment") return "heartbeat.wakeOnAssignment.disabled";
+    if (source === "automation") return "heartbeat.wakeOnAutomation.disabled";
+    return "heartbeat.wakeOnOnDemand.disabled";
+  }
+
+  function isWakeSourceEnabled(
+    policy: Pick<
+      ParsedHeartbeatPolicy,
+      "enabled" | "wakeOnAssignment" | "wakeOnOnDemand" | "wakeOnAutomation"
+    >,
+    source: WakeupSource | undefined,
+  ) {
+    if (source === "timer") return policy.enabled;
+    if (source === "assignment") return policy.wakeOnAssignment;
+    if (source === "automation") return policy.wakeOnAutomation;
+    return policy.wakeOnOnDemand;
   }
 
   async function countRunningRunsForAgent(agentId: string) {
@@ -5189,12 +5228,8 @@ export function heartbeatService(db: Db) {
       });
     };
 
-    if (source === "timer" && !policy.enabled) {
-      await writeSkippedRequest("heartbeat.disabled");
-      return null;
-    }
-    if (source !== "timer" && !policy.wakeOnDemand) {
-      await writeSkippedRequest("heartbeat.wakeOnDemand.disabled");
+    if (!isWakeSourceEnabled(policy, source)) {
+      await writeSkippedRequest(resolveWakeupDisabledReason(source));
       return null;
     }
 
