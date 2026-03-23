@@ -1,6 +1,7 @@
 import { and, asc, desc, eq, inArray } from "drizzle-orm";
 import type { Db } from "@paperclipai/db";
-import { activityLog, agents, issues } from "@paperclipai/db";
+import { activityLog, agents, heartbeatRuns, issues } from "@paperclipai/db";
+import { z } from "zod";
 import { badRequest } from "../errors.js";
 import { logger } from "../middleware/logger.js";
 import { parseObject } from "../adapters/utils.js";
@@ -353,6 +354,35 @@ export function ceoService(db: Db) {
   const issuesSvc = issueService(db);
   const githubSvc = githubPrService();
 
+  async function resolvePersistedActivityRunId(
+    actorRunId: string | null | undefined,
+  ): Promise<string | null> {
+    const runId = actorRunId?.trim();
+    if (!runId) return null;
+    const parsed = z.string().uuid().safeParse(runId);
+    if (!parsed.success) return null;
+    const run = await db
+      .select({ id: heartbeatRuns.id })
+      .from(heartbeatRuns)
+      .where(eq(heartbeatRuns.id, parsed.data))
+      .then((rows) => rows[0] ?? null)
+      .catch(() => null);
+    return run?.id ?? null;
+  }
+
+  function withApiRunIdFallbackDetails(
+    details: Record<string, unknown>,
+    actorRunId: string | null | undefined,
+    activityRunId: string | null,
+  ) {
+    const runId = actorRunId?.trim();
+    if (!runId || runId === activityRunId) return details;
+    return {
+      ...details,
+      apiRunId: runId,
+    };
+  }
+
   async function getIssueById(issueId: string): Promise<CeoIssueRecord | null> {
     const issue = await issuesSvc.getById(issueId);
     if (!issue) return null;
@@ -455,23 +485,30 @@ export function ceoService(db: Db) {
     });
 
     if (mergeResult.outcome === "merge_conflict") {
+      const activityRunId = await resolvePersistedActivityRunId(
+        input.requestedBy.runId,
+      );
       await issuesSvc.update(issue.id, { status: MERGE_CONFLICT_STATUS });
       await logActivity(db, {
         companyId: issue.companyId,
         actorType: input.requestedBy.actorType,
         actorId: input.requestedBy.actorId,
         agentId: input.requestedBy.agentId ?? null,
-        runId: input.requestedBy.runId ?? null,
+        runId: activityRunId,
         action: "issue.merge_conflict_detected",
         entityType: "issue",
         entityId: issue.id,
-        details: {
-          identifier: issue.identifier,
-          prNumber: input.prNumber,
-          prUrl: prDetails.prUrl,
-          branch: prDetails.branch,
-          message: mergeResult.message,
-        },
+        details: withApiRunIdFallbackDetails(
+          {
+            identifier: issue.identifier,
+            prNumber: input.prNumber,
+            prUrl: prDetails.prUrl,
+            branch: prDetails.branch,
+            message: mergeResult.message,
+          },
+          input.requestedBy.runId,
+          activityRunId,
+        ),
       });
       return {
         outcome: "merge_conflict",
@@ -487,24 +524,31 @@ export function ceoService(db: Db) {
         branch: prDetails.branch,
       });
     }
+    const activityRunId = await resolvePersistedActivityRunId(
+      input.requestedBy.runId,
+    );
     await issuesSvc.update(issue.id, { status: MERGED_STATUS });
     await logActivity(db, {
       companyId: issue.companyId,
       actorType: input.requestedBy.actorType,
       actorId: input.requestedBy.actorId,
       agentId: input.requestedBy.agentId ?? null,
-      runId: input.requestedBy.runId ?? null,
+      runId: activityRunId,
       action: "issue.pr_merged",
       entityType: "issue",
       entityId: issue.id,
-      details: {
-        identifier: issue.identifier,
-        prNumber: input.prNumber,
-        prUrl: prDetails.prUrl,
-        branch: prDetails.branch,
-        mergeMethod: "squash",
-        mergeSha: mergeResult.sha,
-      },
+      details: withApiRunIdFallbackDetails(
+        {
+          identifier: issue.identifier,
+          prNumber: input.prNumber,
+          prUrl: prDetails.prUrl,
+          branch: prDetails.branch,
+          mergeMethod: "squash",
+          mergeSha: mergeResult.sha,
+        },
+        input.requestedBy.runId,
+        activityRunId,
+      ),
     });
 
     return {
@@ -556,20 +600,25 @@ export function ceoService(db: Db) {
       }
     }
 
+    const activityRunId = await resolvePersistedActivityRunId(input.runId);
     await logActivity(db, {
       companyId: input.parentIssue.companyId,
       actorType: "agent",
       actorId: input.ceoAgentId ?? "system",
       agentId: input.ceoAgentId,
-      runId: input.runId,
+      runId: activityRunId,
       action: "issue.merge_summary_posted",
       entityType: "issue",
       entityId: input.parentIssue.id,
-      details: {
-        identifier: input.parentIssue.identifier,
-        mergedChildrenCount: input.mergedChildren.length,
-        mergedAt: input.mergedAt,
-      },
+      details: withApiRunIdFallbackDetails(
+        {
+          identifier: input.parentIssue.identifier,
+          mergedChildrenCount: input.mergedChildren.length,
+          mergedAt: input.mergedAt,
+        },
+        input.runId,
+        activityRunId,
+      ),
     });
   }
 
@@ -608,22 +657,27 @@ export function ceoService(db: Db) {
       }
     }
 
+    const activityRunId = await resolvePersistedActivityRunId(input.runId);
     await logActivity(db, {
       companyId: input.parentIssue.companyId,
       actorType: "agent",
       actorId: input.ceoAgentId ?? "system",
       agentId: input.ceoAgentId,
-      runId: input.runId,
+      runId: activityRunId,
       action: "issue.merge_conflict_detected",
       entityType: "issue",
       entityId: input.parentIssue.id,
-      details: {
-        identifier: input.parentIssue.identifier,
-        conflictChildIssueId: input.conflictChild.id,
-        conflictChildIdentifier: input.conflictChild.identifier,
-        prUrl: input.conflict.prUrl,
-        branch: input.conflict.branch,
-      },
+      details: withApiRunIdFallbackDetails(
+        {
+          identifier: input.parentIssue.identifier,
+          conflictChildIssueId: input.conflictChild.id,
+          conflictChildIdentifier: input.conflictChild.identifier,
+          prUrl: input.conflict.prUrl,
+          branch: input.conflict.branch,
+        },
+        input.runId,
+        activityRunId,
+      ),
     });
   }
 

@@ -62,6 +62,7 @@
 - `Mission -> CEO -> Child-Issue -> Worker -> Reviewer -> done` ist reproduzierbar bewiesen.
 - CEO Aggregation Mode ist bewiesen; Parent bleibt bei Luecken offen und erzeugt Follow-up statt blind zu schliessen.
 - `reviewer accepted` retriggert den CEO-Parent automatisch.
+- CEO-Merge-/Konflikt-Logging toleriert jetzt nicht-persistierte API-Run-IDs; freie `runId`s landen in `details.apiRunId` statt den Loop ueber `activity_log.run_id` (UUID-FK) zu crashen.
 - Loop-Detection `5x stop` macht Workspace-Cleanup (`git checkout -- .`) plus blocked Handoff.
 - Reviewer-Simplicity-Criterion ist live.
 - Worker-Abschluss hat jetzt ein hartes API-Gate: `POST /api/issues/:id/worker-done` mit Pflichtfeldern `prUrl`, `branch`, `commitHash`, `summary`.
