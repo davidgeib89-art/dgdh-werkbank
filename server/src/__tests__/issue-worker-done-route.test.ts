@@ -15,6 +15,10 @@ const mockAgentService = vi.hoisted(() => ({
   getById: vi.fn(),
 }));
 
+const mockHeartbeatService = vi.hoisted(() => ({
+  getRun: vi.fn(),
+}));
+
 const mockLogActivity = vi.hoisted(() => vi.fn());
 
 vi.mock("../services/index.js", () => ({
@@ -26,7 +30,7 @@ vi.mock("../services/index.js", () => ({
     listChildrenByParentId: vi.fn(),
   }),
   goalService: () => ({}),
-  heartbeatService: () => ({}),
+  heartbeatService: () => mockHeartbeatService,
   githubPrService: () => ({ createGitHubPR: vi.fn() }),
   issueApprovalService: () => ({}),
   issueService: () => mockIssueService,
@@ -57,7 +61,10 @@ function createApp(actorRoleTemplateId = "worker", actorRole = "worker") {
     },
   });
 
-  app.use("/api", issueRoutes({} as any, {} as any));
+  const db = {
+    transaction: async <T>(runner: (tx: unknown) => Promise<T>) => runner({}),
+  };
+  app.use("/api", issueRoutes(db as any, {} as any));
   app.use(errorHandler);
   return app;
 }
@@ -79,6 +86,7 @@ describe("issues worker done route", () => {
       status: "in_review",
       assigneeAgentId: "agent-worker-1",
     });
+    mockHeartbeatService.getRun.mockResolvedValue(null);
     mockLogActivity.mockResolvedValue(undefined);
   });
 
@@ -98,7 +106,7 @@ describe("issues worker done route", () => {
         },
       });
 
-    expect(res.status).toBe(201);
+    expect(res.status).toBe(200);
     expect(mockIssueService.update).toHaveBeenCalledWith("issue-1", {
       status: "in_review",
     });

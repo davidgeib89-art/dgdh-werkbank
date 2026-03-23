@@ -178,6 +178,30 @@ export function issueRoutes(db: Db, storage: StorageService) {
     return null;
   }
 
+  async function resolvePersistedActivityRunId(
+    actorRunId: string | null | undefined,
+  ): Promise<string | null> {
+    const runId = actorRunId?.trim();
+    if (!runId) return null;
+    const parsed = z.string().uuid().safeParse(runId);
+    if (!parsed.success) return null;
+    const run = await heartbeat.getRun(parsed.data).catch(() => null);
+    return run?.id ?? null;
+  }
+
+  function withApiRunIdFallbackDetails(
+    details: Record<string, unknown>,
+    actorRunId: string | null | undefined,
+    activityRunId: string | null,
+  ) {
+    const runId = actorRunId?.trim();
+    if (!runId || runId === activityRunId) return details;
+    return {
+      ...details,
+      apiRunId: runId,
+    };
+  }
+
   async function assertAgentRunCheckoutOwnership(
     req: Request,
     res: Response,
@@ -197,20 +221,25 @@ export function issueRoutes(db: Db, storage: StorageService) {
     const ownership = await svc.assertCheckoutOwner(issue.id, actorAgentId, runId);
     if (ownership.adoptedFromRunId) {
       const actor = getActorInfo(req);
+      const activityRunId = await resolvePersistedActivityRunId(actor.runId);
       await logActivity(db, {
         companyId: issue.companyId,
         actorType: actor.actorType,
         actorId: actor.actorId,
         agentId: actor.agentId,
-        runId: actor.runId,
+        runId: activityRunId,
         action: "issue.checkout_lock_adopted",
         entityType: "issue",
         entityId: issue.id,
-        details: {
-          previousCheckoutRunId: ownership.adoptedFromRunId,
-          checkoutRunId: runId,
-          reason: "stale_checkout_run",
-        },
+        details: withApiRunIdFallbackDetails(
+          {
+            previousCheckoutRunId: ownership.adoptedFromRunId,
+            checkoutRunId: runId,
+            reason: "stale_checkout_run",
+          },
+          actor.runId,
+          activityRunId,
+        ),
       });
     }
     return true;
@@ -876,40 +905,50 @@ export function issueRoutes(db: Db, storage: StorageService) {
 
       if (!(await assertAgentRunCheckoutOwnership(req, res, issue))) return;
 
-      const updatedIssue = await svc.update(issue.id, {
-        status: "in_review",
+      const actor = getActorInfo(req);
+      const activityRunId = await resolvePersistedActivityRunId(actor.runId);
+      const updatedIssue = await db.transaction(async (tx) => {
+        const txIssueSvc = issueService(tx);
+        const nextIssue = await txIssueSvc.update(issue.id, {
+          status: "in_review",
+        });
+        if (!nextIssue) return null;
+
+        await logActivity(tx, {
+          companyId: nextIssue.companyId,
+          actorType: actor.actorType,
+          actorId: actor.actorId,
+          agentId: actor.agentId,
+          runId: activityRunId,
+          action: "issue.worker_done_recorded",
+          entityType: "issue",
+          entityId: nextIssue.id,
+          details: withApiRunIdFallbackDetails(
+            {
+              identifier: nextIssue.identifier,
+              autoTransition: true,
+              transitionReason: "worker_done_handoff",
+              roleTemplateId: "worker",
+              prUrl: req.body.prUrl,
+              branch: req.body.branch,
+              commitHash: req.body.commitHash,
+              summary: req.body.summary,
+              _previous: {
+                status: issue.status,
+              },
+            },
+            actor.runId,
+            activityRunId,
+          ),
+        });
+        return nextIssue;
       });
       if (!updatedIssue) {
         res.status(404).json({ error: "Issue not found" });
         return;
       }
 
-      const actor = getActorInfo(req);
-      await logActivity(db, {
-        companyId: updatedIssue.companyId,
-        actorType: actor.actorType,
-        actorId: actor.actorId,
-        agentId: actor.agentId,
-        runId: actor.runId,
-        action: "issue.worker_done_recorded",
-        entityType: "issue",
-        entityId: updatedIssue.id,
-        details: {
-          identifier: updatedIssue.identifier,
-          autoTransition: true,
-          transitionReason: "worker_done_handoff",
-          roleTemplateId: "worker",
-          prUrl: req.body.prUrl,
-          branch: req.body.branch,
-          commitHash: req.body.commitHash,
-          summary: req.body.summary,
-          _previous: {
-            status: issue.status,
-          },
-        },
-      });
-
-      res.status(201).json({
+      res.status(200).json({
         issueId: updatedIssue.id,
         issueIdentifier: updatedIssue.identifier,
         status: updatedIssue.status,
@@ -950,74 +989,93 @@ export function issueRoutes(db: Db, storage: StorageService) {
         return;
       }
 
-      const approval = await issueApprovalsSvc.recordReviewerVerdictForIssue({
-        issueId: id,
-        reviewerAgentId: reviewerAgent.id,
-        reviewerRunId: req.actor.runId ?? null,
-        verdict: req.body.verdict,
-        packet: req.body.packet ?? null,
-        doneWhenCheck: req.body.doneWhenCheck ?? null,
-        evidence: req.body.evidence ?? null,
-        requiredFixes: req.body.requiredFixes,
-        next: req.body.next ?? null,
-      });
-
       const actor = getActorInfo(req);
-      await logActivity(db, {
-        companyId: issue.companyId,
-        actorType: actor.actorType,
-        actorId: actor.actorId,
-        agentId: actor.agentId,
-        runId: actor.runId,
-        action: "issue.reviewer_verdict_recorded",
-        entityType: "issue",
-        entityId: issue.id,
-        details: {
-          identifier: issue.identifier,
+      const activityRunId = await resolvePersistedActivityRunId(actor.runId);
+      const reviewerRunId = req.actor.runId ?? null;
+      const { approval, issueStatusAfterVerdict } = await db.transaction(async (tx) => {
+        const txIssueSvc = issueService(tx);
+        const txIssueApprovalsSvc = issueApprovalService(tx);
+        const approvalRecord = await txIssueApprovalsSvc.recordReviewerVerdictForIssue({
+          issueId: id,
+          reviewerAgentId: reviewerAgent.id,
+          reviewerRunId,
           verdict: req.body.verdict,
-          approvalId: approval.id,
-          approvalStatus: approval.status,
-        requiredFixesCount: (req.body.requiredFixes ?? []).length,
-      },
-      });
-
-      let issueStatusAfterVerdict = issue.status;
-      if (req.body.verdict === "accepted") {
-        const updatedIssue = await svc.update(issue.id, {
-          status: "reviewer_accepted",
+          packet: req.body.packet ?? null,
+          doneWhenCheck: req.body.doneWhenCheck ?? null,
+          evidence: req.body.evidence ?? null,
+          requiredFixes: req.body.requiredFixes,
+          next: req.body.next ?? null,
         });
-        if (updatedIssue) {
-          issueStatusAfterVerdict = updatedIssue.status;
-          await logActivity(db, {
-            companyId: issue.companyId,
-            actorType: actor.actorType,
-            actorId: actor.actorId,
-            agentId: actor.agentId,
-            runId: actor.runId,
-            action: "issue.updated",
-            entityType: "issue",
-            entityId: issue.id,
-            details: {
+
+        await logActivity(tx, {
+          companyId: issue.companyId,
+          actorType: actor.actorType,
+          actorId: actor.actorId,
+          agentId: actor.agentId,
+          runId: activityRunId,
+          action: "issue.reviewer_verdict_recorded",
+          entityType: "issue",
+          entityId: issue.id,
+          details: withApiRunIdFallbackDetails(
+            {
               identifier: issue.identifier,
-              status: updatedIssue.status,
-              autoTransition: true,
-              transitionReason: "reviewer_verdict_accepted",
-              _previous: {
-                status: issue.status,
-              },
+              verdict: req.body.verdict,
+              approvalId: approvalRecord.id,
+              approvalStatus: approvalRecord.status,
+              requiredFixesCount: (req.body.requiredFixes ?? []).length,
             },
+            actor.runId,
+            activityRunId,
+          ),
+        });
+
+        let nextIssueStatus = issue.status;
+        if (req.body.verdict === "accepted") {
+          const updatedIssue = await txIssueSvc.update(issue.id, {
+            status: "reviewer_accepted",
           });
+          if (updatedIssue) {
+            nextIssueStatus = updatedIssue.status;
+            await logActivity(tx, {
+              companyId: issue.companyId,
+              actorType: actor.actorType,
+              actorId: actor.actorId,
+              agentId: actor.agentId,
+              runId: activityRunId,
+              action: "issue.updated",
+              entityType: "issue",
+              entityId: issue.id,
+              details: withApiRunIdFallbackDetails(
+                {
+                  identifier: issue.identifier,
+                  status: updatedIssue.status,
+                  autoTransition: true,
+                  transitionReason: "reviewer_verdict_accepted",
+                  _previous: {
+                    status: issue.status,
+                  },
+                },
+                actor.runId,
+                activityRunId,
+              ),
+            });
+          }
         }
-      }
+
+        return {
+          approval: approvalRecord,
+          issueStatusAfterVerdict: nextIssueStatus,
+        };
+      });
 
       const ceoMerge = await ceoSvc.maybeRunMergeOrchestratorAfterReviewerVerdict({
         childIssueId: issue.id,
         reviewerVerdict: req.body.verdict,
         reviewerAgentId: reviewerAgent.id,
-        reviewerRunId: req.actor.runId ?? null,
+        reviewerRunId,
       });
 
-      res.status(201).json({
+      res.status(200).json({
         issueId: issue.id,
         issueIdentifier: issue.identifier,
         issueStatus: issueStatusAfterVerdict,

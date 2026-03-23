@@ -18,6 +18,10 @@ const mockIssueApprovalService = vi.hoisted(() => ({
   recordReviewerVerdictForIssue: vi.fn(),
 }));
 
+const mockHeartbeatService = vi.hoisted(() => ({
+  getRun: vi.fn(),
+}));
+
 const mockLogActivity = vi.hoisted(() => vi.fn());
 const mockCeoService = vi.hoisted(() => ({
   maybeRunMergeOrchestratorAfterReviewerVerdict: vi.fn(),
@@ -30,7 +34,7 @@ vi.mock("../services/index.js", () => ({
   agentService: () => mockAgentService,
   ceoService: () => mockCeoService,
   goalService: () => ({}),
-  heartbeatService: () => ({}),
+  heartbeatService: () => mockHeartbeatService,
   githubPrService: () => ({ createGitHubPR: vi.fn() }),
   issueApprovalService: () => mockIssueApprovalService,
   issueService: () => mockIssueService,
@@ -59,7 +63,10 @@ function createApp(actorRoleTemplateId = "reviewer", actorRole = "reviewer") {
       roleTemplateId: actorRoleTemplateId,
     },
   });
-  app.use("/api", issueRoutes({} as any, {} as any));
+  const db = {
+    transaction: async <T>(runner: (tx: unknown) => Promise<T>) => runner({}),
+  };
+  app.use("/api", issueRoutes(db as any, {} as any));
   app.use(errorHandler);
   return app;
 }
@@ -87,6 +94,7 @@ describe("issues reviewer verdict route", () => {
       triggered: false,
       reason: "verdict_not_accepted",
     });
+    mockHeartbeatService.getRun.mockResolvedValue(null);
     mockLogActivity.mockResolvedValue(undefined);
   });
 
@@ -105,7 +113,7 @@ describe("issues reviewer verdict route", () => {
         next: "Worker should patch and resubmit for review.",
       });
 
-    expect(res.status).toBe(201);
+    expect(res.status).toBe(200);
     expect(mockIssueApprovalService.recordReviewerVerdictForIssue).toHaveBeenCalledWith(
       expect.objectContaining({
         issueId: "issue-1",
