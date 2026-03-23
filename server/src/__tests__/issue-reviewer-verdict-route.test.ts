@@ -138,8 +138,8 @@ describe("issues reviewer verdict route", () => {
       .post("/api/issues/issue-1/reviewer-verdict")
       .send({
         verdict: "accepted",
-        doneWhenCheck: "All criteria met.",
-        evidence: "Artifacts verified.",
+        doneWhenCheck: "All criteria met according to semantic checks.",
+        evidence: "Artifacts verified with substantive results.",
         requiredFixes: [],
         next: "Mark packet complete.",
       });
@@ -149,13 +149,63 @@ describe("issues reviewer verdict route", () => {
     expect(mockIssueApprovalService.recordReviewerVerdictForIssue).not.toHaveBeenCalled();
   });
 
+  it("rejects superficial semantic validation (less than 20 characters) for doneWhenCheck or evidence", async () => {
+    const res = await request(createApp())
+      .post("/api/issues/issue-1/reviewer-verdict")
+      .send({
+        verdict: "accepted",
+        doneWhenCheck: "Looks good.",
+        evidence: "File read.",
+        requiredFixes: [],
+        next: "Done.",
+      });
+
+    expect(res.status).toBe(400);
+    const bodyStr = JSON.stringify(res.body);
+    expect(bodyStr).toContain("doneWhenCheck must contain a substantive semantic check");
+    expect(bodyStr).toContain("evidence must contain substantive validation details");
+    expect(mockIssueApprovalService.recordReviewerVerdictForIssue).not.toHaveBeenCalled();
+  });
+
+  it("requires doneWhenCheck and evidence for accepted verdicts", async () => {
+    const res = await request(createApp())
+      .post("/api/issues/issue-1/reviewer-verdict")
+      .send({
+        verdict: "accepted",
+        requiredFixes: [],
+        next: "Done.",
+      });
+
+    expect(res.status).toBe(400);
+    const bodyStr = JSON.stringify(res.body);
+    expect(bodyStr).toContain("doneWhenCheck is required for reviewer verdicts");
+    expect(bodyStr).toContain("evidence is required for reviewer verdicts");
+    expect(mockIssueApprovalService.recordReviewerVerdictForIssue).not.toHaveBeenCalled();
+  });
+
+  it("requires doneWhenCheck and evidence for changes_requested verdicts", async () => {
+    const res = await request(createApp())
+      .post("/api/issues/issue-1/reviewer-verdict")
+      .send({
+        verdict: "changes_requested",
+        requiredFixes: ["Add the missing mission point."],
+        next: "Worker should patch and resubmit.",
+      });
+
+    expect(res.status).toBe(400);
+    const bodyStr = JSON.stringify(res.body);
+    expect(bodyStr).toContain("doneWhenCheck is required for reviewer verdicts");
+    expect(bodyStr).toContain("evidence is required for reviewer verdicts");
+    expect(mockIssueApprovalService.recordReviewerVerdictForIssue).not.toHaveBeenCalled();
+  });
+
   it("validates requiredFixes contract for accepted verdict", async () => {
     const res = await request(createApp())
       .post("/api/issues/issue-1/reviewer-verdict")
       .send({
         verdict: "accepted",
-        doneWhenCheck: "All criteria met.",
-        evidence: "Artifacts verified.",
+        doneWhenCheck: "All criteria met according to semantic checks.",
+        evidence: "Artifacts verified with substantive results.",
         requiredFixes: ["This should not be present."],
         next: "Done.",
       });
