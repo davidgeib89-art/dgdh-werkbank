@@ -1,12 +1,12 @@
 # CURRENT - Live Baton
 
-focus: Firmenfaehigkeit zuerst - E2E-Firmenloop weiter verdichten; `verein` nur optionaler Proof-Usecase
-active_issue: E2E-Testrun - Konfliktfall auf `PR #4` historisch abgeschlossen; Replay ueber `PR #5` lief real sauber durch bis Merge + Summary
+focus: Firmenfaehigkeit zuerst - sichtbare operative Lebendigkeit im Dashboard ist jetzt real bewiesen; Firmenloop weiter verdichten
+active_issue: Dashboard-Sichtbarkeits-Beweis fuer echten Agenten-Run auf aktiver lokaler DGDH-Company
 next:
-  1) diesen sauberen Replay ueber `PR #5` als kanonischen Happy-Path-Beweis behandeln
-  2) naechsten bounded Firmenloop-Run waehlen, ohne neue Meta-Schichten zu starten
-  3) nur echte neue Loop-Blocker oder den naechsten klaren Faehigkeits-Beweis anfassen
-blockers: aktuell kein offener Blocker im E2E-Firmenloop; `PR #4` bleibt nur als historischer Konfliktfall dokumentiert
+  1) den sichtbaren Dashboard-Run als operativen Proof behandeln und bei Bedarf fuer David reproduzieren
+  2) den naechsten bounded Firmenloop-Run auf demselben sichtbaren UI-Pfad starten, nicht nur unter der Haube
+  3) nur echte neue Loop- oder Sichtbarkeits-Blocker anfassen
+blockers: kein UI-Sichtbarkeits-Blocker fuer echte Runs; bekannter Gate: manueller Heartbeat ohne zugewiesenes Issue blockt mit `no_assigned_issue`
 
 leitdokument_update (2026-03-23):
   doc: `doc/plans/2026-03-23-dgdh-leitdokument.md`
@@ -56,6 +56,9 @@ notes:
 - Arbeitsmodell ab 2026-03-22: Planer = Perplexity via Chat. Codex = grosse Operator-Sprints mit eigenem Debug-Loop, Console-Watch und aktiver Bedienung von Paperclip/Werkbank. Reviewer/Researcher = Gemini CLI. Claude = nur wenn wirklich noetig, um Quota zu schonen.
 - Codex committed und pusht selbst. Commit-Hash im Statusbericht ist Pflicht. Planer reviewed den Diff direkt.
 - `MEMORY.md` bleibt Stable-Facts-only; datierte Sprint-Historie lebt in `doc/archive/sprint-log.md`.
+- Sichtbarkeits-Beweis 2026-03-23: aktiver Watcher `pnpm dev:watch` lief real; auf der aktiven lokalen DGDH-Company wurde Agent `Codex Dashboard Proof` erstellt und Issue `DAV-5` zugewiesen.
+- Echter sichtbarer Run: `bbb60863-4be0-4207-bd47-c1cdbd5d33a2` lief ueber `assignment` von `14:56:26Z` bis `14:56:45Z`, war im Company-`live-runs`/Dashboard sichtbar und schrieb Transcript-Output plus Abschluss.
+- Vorlauf-Gate bestaetigt: manueller Run `dd016ffa-1f69-479c-b4d1-cf9e42cc8c5d` blockte korrekt mit `Heartbeat gate: no issue assigned. Assign an issue before waking the agent.`
 - Leitdokument-Update: Firmenfaehigkeit zuerst; `verein` ist jetzt optionaler Proof-Usecase statt Pflichtanker.
 - Revenue-Lane-Richtung: zuerst DGDH-Faehigkeit bauen, nicht einen einzelnen Kundenfall zu Ende improvisieren.
 - Sprint E geliefert: deterministische `sharp`-Pipeline per API-Route `/api/companies/:companyId/revenue-lane/image-pipeline/process`.
@@ -73,5 +76,5 @@ notes:
 - Neu 2026-03-23: `doc/plans/2026-03-23-research-and-skills-direction.md` dokumentiert gewollte spaetere Auslagerung in Skills (Progressive Disclosure) und asymmetrische Guardrails (CEO offen, Worker eng).
 - CEO-Modell-Prioritaet ist fixiert: Pro -> Flash -> Flash-Lite (Claude/Codex mittelfristig plausibel).
 - OSS-Researcher-Haltung ist aktiv, ordnet sich aber dem E2E-Loop-Fokus (Focus Freeze) unter.
-last_updated_by: Gemini CLI (Research & Skills Direction)
+last_updated_by: Codex
 updated_at: 2026-03-23

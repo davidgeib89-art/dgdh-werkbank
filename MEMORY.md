@@ -41,10 +41,6 @@
 - Coder committen und pushen vor dem Bericht; Statusberichte beginnen mit `CODEX STATUSBERICHT`, `Von: Codex`, `An: Planer`.
 
 ## Wichtige IDs
-- Company: `45b3b93e-8a30-4078-acc6-1c721b29b2ff`
-- CEO-Agent: `4e93472c-78f6-409a-9adf-dc57454ea17c`
-- Reviewer-Agent: `9e721036-35b7-446e-a752-2df7a1a8caad`
-- Worker-Agent: `fe5d3d60-9e8a-4e0c-b494-087d3518755c`
 - Projekt Astro/Keystatic: `0bce43aa-2bb9-4572-9938-f556a3279149`
 - Projekt Gemini Benchmark: `8534a922-eaf2-4495-a250-648b0d1ca96b`
 
@@ -78,6 +74,8 @@
 - Dual-Gemini-Failover schaltet bei exhausted / `429` / `RESOURCE_EXHAUSTED` von `account_1` auf `account_2`.
 - `git_worktree` ist fuer Astro/Keystatic aktiv (`isolated`, `allowIssueOverride=true`).
 - End-to-End Multi-Agent-Kette (Sprint S) laeuft durch (Prototyp-Reife), produziert aber isolierte Worktree-Inseln.
+- Dashboard-Sichtbarkeit fuer echte Agenten-Runs ist lokal bewiesen: ein zugewiesenes Issue triggert einen sichtbaren `codex_local`-Run im Dashboard/`live-runs` mit laufendem Transcript und Abschluss.
+- Ein manueller Heartbeat ohne zugewiesenes Issue blockt erwartbar am Gate `no_assigned_issue`; fuer sichtbare reale Runs muss der bestehende Issue-Assignment-Pfad genutzt werden.
 - Naechster Fokus fuer Produktionsreife: Merge-Orchestrator, harte Review-Gates, Scope-Firewall.
 
 ## Revenue Lane Foundation (langfristige Capability, nicht aktueller Fokus)
