@@ -1,12 +1,21 @@
 # CURRENT - Live Baton
 
-focus: End-to-End Kette mit echten Packets unter neuen Guardrails beweisen
-active_issue: Smoke-Run mit Worker-PR-Gate + Reviewer + CEO-Aggregation
+focus: Sprint V — CEO-gesteuerter Merge nach allen Children accepted
+active_issue: Merge-Orchestrator V1 (CEO merged PRs, kein Auto-Retry)
 next:
-  1) Echter Kettenlauf: Parent -> CEO -> Worker (PR) -> Reviewer -> CEO Aggregation
-  2) Scope-Firewall beobachten: Drift-Faelle sammeln und Trigger fuer Option B pruefen
-  3) Danach Sprint V: Worktree-Lifecycle-Management (nur falls weiter noetig)
+  1) Sprint V: CEO-Merge-Orchestrator (Perplexity schreibt Codex-Auftrag)
+  2) Sprint V.1: Echter End-to-End-Kettenlauf: CEO -> Worker (PR) -> Reviewer -> CEO Merge -> Summary
+  3) Sprint W (spaeter): Auto-Retry bei Merge-Konflikt — erst nach echten Konflikt-Daten
 blockers: keiner (T, T.1 und U sind implementiert und verifiziert)
+
+sprint_v_scope (2026-03-23, David + Perplexity + Claude):
+  Ziel: CEO merged alle accepted Children-PRs sauber durch
+  - CEO prueft: alle Children status=reviewer_accepted? -> Merge-Sequenz starten (created_at ASC)
+  - POST /api/issues/:id/merge-pr: GitHub REST merge -> Erfolg: Branch weg, Issue closed
+  - Konflikt: Issue status=merge_conflict, CEO meldet David — KEIN Auto-Retry (Sprint W)
+  - Nach Merge aller Children: CEO Summary als Comment auf Parent-Issue
+  doneWhen: echter Lauf merged sauber durch; Konflikt-Fall erkannt + reported, nicht gecrasht
+  Auto-Retry: explizit NICHT gebaut (kommt erst wenn echte Konflikt-Daten vorliegen)
 brainstorm_backlog (2026-03-22, David + Perplexity + Claude):
   - Planer-Reflexionen als Shared Memory (umgesetzt in North Star Section 10)
   - CEO Prompt Hardening: 4 Tweaks gebuendelt nach Sprint P -> `doc/backlog/ceo-prompt-hardening.md`
