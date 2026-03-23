@@ -2,7 +2,7 @@
 
 **Erstellt:** 2026-03-23
 **Quelle:** https://github.com/NousResearch/hermes-agent
-**Autor:** Claude (Planer)
+**Autoren:** Claude (Planer) + Perplexity (Planer, Ergaenzungen 2026-03-23)
 **Zweck:** Reflexion fuer David + Perplexity + Codex — was ist direkt uebertragbar, was ist Zukunftsvision
 
 ---
@@ -218,13 +218,18 @@ hier ist die Summary." Das ist das Gefuehl von echtem autonomem Betrieb.
 
 ## 4. Prioritaet der Transfers
 
+Perplexity-Korrektur (2026-03-23): Telegram steht hoeher als in der Claude-Erstliste,
+weil David der einzige menschliche Operator ist. "Nachts arbeitet die Maschine,
+morgens bekommt David eine Telegram-Nachricht: 3 PRs gemergt, hier die Summary"
+— das ist der Moment wo DGDH sich wie eine echte Firma anfuehlt.
+
 | # | Was | Wann | Sprint-Einordnung |
 |---|-----|------|--------------------|
-| 1 | Toolsets per Rolle (harte Tool-Grenzen) | Nach Sprint V | Sprint W |
-| 2 | Skills als User-Messages (Cache-Optimierung) | Nach Sprint V | Sprint X |
-| 3 | Session Search fuer CEO (Issue-History) | Nach Sprint V | Sprint Y |
-| 4 | Tool-Registry mit check_fn (Skill-Registry Basis) | Nach Smoke-Run | Skill-Creation Engine |
-| 5 | Telegram-Delivery fuer CEO-Summary | Nach erstem echten Lauf | Bonus-Sprint |
+| 1 | Toolsets per Rolle + Packet-Typ | Direkt nach erstem E2E-Lauf | Sprint W |
+| 2 | Skills als User-Messages (Cache) | Sobald Token-Kosten messbar werden | Sprint X |
+| 3 | Telegram-Delivery fuer CEO-Summary | Nach erstem echten Lauf | Sprint X parallel |
+| 4 | Session Search fuer CEO (Issue-History) | Erst wenn CEO redundante Packets erstellt | Sprint Y |
+| 5 | Tool-Registry mit check_fn (Skill-Registry Basis) | Nach Smoke-Run | Skill-Creation Engine |
 | 6 | Trajectory Generation | Wenn 1000+ Runs | Viel spaeter |
 
 ---
@@ -256,6 +261,41 @@ DGDH ist fuer eine Firma mit echtem Output gebaut.
 | `skill-creation-engine.md` | Closed Learning Loop + autonomous skill creation |
 | `stage1-classifier-rename.md` | Toolset-basiertes Routing (nicht Gemini-spezifisch) |
 | `heartbeat-modular-refactor.md` | Hermes' saubere Trennung: registry.py ← tools/*.py ← model_tools.py ← run_agent.py |
+
+---
+
+## 4.1 Perplexitys Key-Ergaenzung: Dynamische Toolset-Komposition
+
+**`toolset_distributions.py` — unterschaetzt in der Claude-Erstversion**
+
+Hermes hat nicht nur statische Toolsets per Rolle — es hat eine
+**probabilistische / dynamische Toolset-Komposition**: je nach Task-Typ
+bekommt ein Agent dynamisch ein anderes Toolset zusammengestellt.
+
+Das ist eine direkte Verbindung zum DGDH Stage-1-Classifier:
+
+```
+Stage-1 klassifiziert Packet: taskClass = "bounded-implementation"
+         ↓
+Toolset-Resolver waehlt: ["write_file", "git_commit", "create_pr", "terminal"]
+         ↓
+Worker startet mit exakt diesen Tools — kein Tool mehr, kein Tool weniger
+```
+
+Ein `deterministic_tool`-Worker benoetigt andere Tools als ein
+`heavy-architecture`-Worker. Der Stage-1-Classifier weiss das bereits —
+er muss nur noch das Toolset steuern, nicht nur den Bucket/das Modell.
+
+**Das macht den Stage-1-Classifier noch wertvoller als bisher beschrieben.**
+Er ist nicht nur ein Routing-Entscheider — er koennte der Toolset-Konfigurator
+fuer den nachgelagerten Worker sein.
+
+## 4.2 run_agent.py = 368KB — das Warnsignal
+
+Hermes hat alles in eine riesige Datei gepackt. DGDH hat `heartbeat.ts`
+als Parallelfall. Der Unterschied: wir haben das Warnsignal frueh erkannt
+(`doc/backlog/heartbeat-modular-refactor.md`) und handeln bevor es zum
+Problem wird. Hermes zeigt was passiert wenn man es nicht tut.
 
 ---
 
