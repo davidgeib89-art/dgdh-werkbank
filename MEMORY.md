@@ -10,6 +10,7 @@
 - `doc/plans/2026-03-23-focus-freeze.md` - aktiver Kurzfrist-Fokus gegen Drift
 - `doc/plans/2026-03-23-dgdh-leitdokument.md` - lebendige CEO-nahe Richtungsbeschreibung; hoehere Lesart fuer die aktuelle Phase
 - `doc/plans/2026-03-23-chat-ai-docking-prompt.md` - neutrales Andock-Briefing fuer neue Chat-AI-Fenster
+- `doc/plans/2026-03-23-working-triad.md` - kurze visuelle Referenz fuer David -> Planner -> Coder
 - `doc/plans/2026-03-21-role-template-architecture.md` - Rollen-/Packet-Architektur
 - `doc/plans/2026-03-21-gemini-engine-to-role-architecture-progress-report.md` - juengster Engine-Beweisstand
 - `doc/archive/sprint-log.md` - datierte Sprint-Historie
