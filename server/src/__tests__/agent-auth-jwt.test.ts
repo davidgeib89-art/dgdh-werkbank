@@ -126,4 +126,39 @@ describe("agent local JWT", () => {
       fs.rmSync(tempRoot, { recursive: true, force: true });
     }
   });
+
+  it("generates and persists a jwt secret when no runtime env or env file exists", () => {
+    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-jwt-generate-"));
+    const configPath = path.join(tempRoot, "config.json");
+    const envPath = path.join(tempRoot, ".env");
+
+    try {
+      fs.writeFileSync(configPath, "{}\n");
+
+      delete process.env[secretEnv];
+      delete process.env[ttlEnv];
+      delete process.env[issuerEnv];
+      delete process.env[audienceEnv];
+      process.env[configEnv] = configPath;
+
+      vi.setSystemTime(new Date("2026-01-01T00:00:00.000Z"));
+      const token = createLocalAgentJwt("agent-1", "company-1", "gemini_local", "run-1");
+
+      expect(typeof token).toBe("string");
+      expect(fs.existsSync(envPath)).toBe(true);
+      const envFile = fs.readFileSync(envPath, "utf8");
+      expect(envFile).toContain("PAPERCLIP_AGENT_JWT_SECRET=");
+      expect(process.env[secretEnv]).toBeTruthy();
+
+      const claims = verifyLocalAgentJwt(token!);
+      expect(claims).toMatchObject({
+        sub: "agent-1",
+        company_id: "company-1",
+        adapter_type: "gemini_local",
+        run_id: "run-1",
+      });
+    } finally {
+      fs.rmSync(tempRoot, { recursive: true, force: true });
+    }
+  });
 });

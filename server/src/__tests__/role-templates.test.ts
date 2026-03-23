@@ -138,6 +138,10 @@ describe("resolveAssignedRoleTemplate", () => {
     expect(result.assigned?.prompt).toContain(
       "adapterConfig.roleTemplateId == \"worker\" and status == \"idle\"",
     );
+    expect(result.assigned?.prompt).toContain(
+      "set status to \"todo\" in the create request body",
+    );
+    expect(result.assigned?.prompt).toContain("status: todo");
     expect(result.assigned?.prompt).toContain("[NEEDS WORKER]");
     expect(result.assigned?.prompt).toContain("Direct Answer Mode");
     expect(result.assigned?.prompt).toContain(
@@ -178,6 +182,9 @@ describe("resolveAssignedRoleTemplate", () => {
     );
     expect(result.assigned?.template.constraints).toContain(
       "After creating child issues, fetch /api/companies/{companyId}/agents and assign each packet to an idle worker (adapterConfig.roleTemplateId == worker) when available.",
+    );
+    expect(result.assigned?.template.constraints).toContain(
+      "If a packet should start immediately, create it with status=todo because backlog intentionally blocks assignment-triggered wakeup.",
     );
     expect(result.assigned?.template.constraints).toContain(
       "If no idle worker is available, keep packet unassigned and report [NEEDS WORKER] in the handoff.",
