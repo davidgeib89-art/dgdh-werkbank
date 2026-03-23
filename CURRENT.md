@@ -1,12 +1,12 @@
 # CURRENT - Live Baton
 
-focus: Sprint V — CEO-gesteuerter Merge nach allen Children accepted
-active_issue: Merge-Orchestrator V1 (CEO merged PRs, kein Auto-Retry)
+focus: Erster echter End-to-End-Lauf (kein offener Sprint-Buchstabe)
+active_issue: E2E-Testrun — CEO -> Worker (PR) -> Reviewer -> CEO Merge -> Summary
 next:
-  1) Sprint V: CEO-Merge-Orchestrator (Perplexity schreibt Codex-Auftrag)
-  2) Sprint V.1: Echter End-to-End-Kettenlauf: CEO -> Worker (PR) -> Reviewer -> CEO Merge -> Summary
+  1) E2E-Testrun: Kette einmal vollstaendig durchlaufen lassen, Ergebnis beobachten
+  2) Danach: Erkenntnisse aus echtem Lauf in naechsten Sprint einfliessen lassen
   3) Sprint W (spaeter): Auto-Retry bei Merge-Konflikt — erst nach echten Konflikt-Daten
-blockers: keiner (T, T.1 und U sind implementiert und verifiziert)
+blockers: keiner (T, T.1, U und Merge-Orchestrator sind implementiert und verifiziert)
 
 sprint_v_scope (2026-03-23, David + Perplexity + Claude):
   Ziel: CEO merged alle accepted Children-PRs sauber durch
