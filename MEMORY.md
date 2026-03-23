@@ -25,6 +25,8 @@
 - Kleine Usecases fuer aufkommende Projekte (Kunden, eigene Ideen) sind Gelegenheiten die Maschine zu testen — nicht das Hauptziel.
 - FALSCH: "Wir muessen jetzt Revenue-Kunden durch die Pipeline schicken". RICHTIG: "Wir bauen die Maschine die das irgendwann automatisch kann."
 - AIs sollen KEINEN Revenue-Druck auf David ausueben. Grosse Vision > kurzfristiger Output.
+- Neue Provider testen wenn sie Mehrwert versprechen ist erlaubt (z.B. MiniMax 2.7M Coding Plan als Experiment).
+- Solange Gemini-Quoten nicht ausgenutzt werden, kein Druck neue Provider anzubinden — aber im Hinterkopf behalten.
 - Coder committen und pushen vor dem Bericht; Statusberichte beginnen mit `CODEX STATUSBERICHT`, `Von: Codex`, `An: Planer`.
 
 ## Wichtige IDs

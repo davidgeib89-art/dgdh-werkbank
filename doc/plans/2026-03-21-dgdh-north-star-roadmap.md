@@ -961,15 +961,19 @@ Warum MiniMax fuer spaeter attraktiv ist:
 - sparsame, praezise Worker-Rolle koennte sehr gut passen
 - geeignet als starke Arbeiterbiene unter einem noch intelligenteren Entscheidungsmodell darueber
 
-Aktueller Repo-Stand heute:
+Aktueller Stand:
 
-- im aktuellen Repo gibt es **keine** erkennbare MiniMax-Adapter-/Provider-Spur
-- lokal wurde bei der Suche nach `MiniMax` / `minimax` nichts gefunden
+- Im Repo gibt es noch keinen MiniMax-Adapter.
+- David erwaegt MiniMax Coding Plan (~20 EUR/Monat, 2.7M Context) als naechstes Experiment.
+- MiniMax ist OpenAI-API-kompatibel — Anbindung waere ueber bestehende Adapter-Patterns machbar.
 
 Das bedeutet:
 
-- MiniMax ist **nicht jetzt**
-- aber MiniMax ist ein klarer spaeterer Ausbaukandidat
+- MiniMax kann opportunistisch getestet werden sobald David das Abo hat
+- Moegliche Testszenarien: alle Agenten temporaer auf MiniMax umstellen und Qualitaet vergleichen,
+  oder einen spezialisierten Agententyp bauen der MiniMax' 2.7M Context fuer etwas nutzt
+  was mit Gemini nicht geht (z.B. grosse Codebase-Analyse, lange Dokument-Verarbeitung)
+- Kein grosser Infrastruktur-Sprint noetig — eher ein Experiment-Tag
 
 ### 12.2.1 Browser Use CLI + MiniMax als externe Tool-Kombination
 
@@ -1116,13 +1120,19 @@ Fester Shared Core + variable Branchenprofile:
 - Spezialisierte Worker oder Subagent-artige Tools sind gut, aber nur als CEO-gesteuerte, sauber begrenzte Packets mit klarem Input/Output
 - Kontrollierte Parallelisierung ist sinnvoll, sobald Packets wirklich unabhaengig sind (z. B. Bilder vs. Text), aber nicht davor
 
-## 14. Was explizit noch nicht getan werden soll
+## 14. Was explizit noch nicht getan werden soll (gilt fuer die aktuelle Phase)
 
-- kein romantischer Multi-Agent-Ausbau bevor eine Lane stabil ist
-- keine Provider-Sammlung ohne echten Betriebsbeweis
+> Diese NO-GOs gelten fuer HEUTE. Section 19 beschreibt den langfristigen Horizont
+> in dem vieles davon (Multi-Agent, Selbstverbesserung, neue Provider) explizit gewollt ist.
+> Die Trennung ist zeitlich, nicht prinzipiell: erst Grundlagen beweisen, dann erweitern.
+
+- kein romantischer Multi-Agent-Ausbau bevor die Grundkette stabil ist
+- keine Provider-Sammlung ohne echten Qualitaetsbeweis
 - kein Shared-Memory-Ausbau als Selbstzweck
 - keine neue Meta-Architektur ohne direkten Nutzen
 - keine dogmatische Bindung an ein einziges billiges Router-Modell
+- aber: neue Provider testen wenn sie echten Mehrwert versprechen ist erlaubt und erwuenscht
+  (z.B. MiniMax 2.7M Coding Plan als Experiment — solange es nicht die Grundkette blockiert)
 
 ### 14.1 Paperclip-Branding jetzt nicht priorisieren
 
@@ -1189,7 +1199,7 @@ Spaeteres Zielbild:
 
 ## 17. Der wichtigste Satz in diesem Dokument
 
-> Erst Gemini sauber. Dann Firmenbetrieb sauber. Dann MiniMax als bevorzugte naechste Worker-Lane. Alles auf einer gemeinsamen Engine Thinking Layer, nicht auf drei Sonderwelten. Die Engine denkt ueber den Run nach. Die Agents denken ueber die Aufgabe nach.
+> Erst Gemini sauber. Dann Agenten-Qualitaet sauber. Dann Selbstverbesserung aktivieren. Neue Provider (MiniMax, etc.) kommen wenn sie echten Mehrwert bringen — nicht nach Revenue-Reife, sondern nach Agenten-Qualitaets-Reife. Alles auf einer gemeinsamen Engine Thinking Layer, nicht auf drei Sonderwelten. Die Engine denkt ueber den Run nach. Die Agents denken ueber die Aufgabe nach.
 
 ## 18. Verweise
 
@@ -1267,3 +1277,5 @@ Details: `doc/architecture/dgdh-agent-architecture.md` und `doc/backlog/skill-cr
 
 - **Heartbeat Modular Refactor** — heartbeat.ts ist zu gross, CEO-Logik und Engine-Thinking rausziehen. Erst nach CEO V1 stabil. Details: `doc/backlog/heartbeat-modular-refactor.md`
 - **Skill-Creation Engine** — Reflexive Skill-Registrierung via Git Snapshot, Skill-Komposition, Skill-Creation als Meta-Skill. Erst nach Sprint O (CEO + Assistent + Reviewer stabil). Details: `doc/backlog/skill-creation-engine.md`
+- **Stage-1-Skip fuer heavy-architecture** — `heavy-architecture`-Packets ueberspringen Stage-1-Classifier; Control Plane entscheidet deterministisch auf pro + always review. Verhindert systematisches Fehlrouting bei komplexen Packets. Nach Sprint T. Details: `doc/backlog/stage1-skip-heavy-architecture.md`
+- **Stage-1-Classifier Rename** — `gemini-flash-lite-router.ts` → `stage1-classifier.ts` mit Provider als Parameter. Architektur-Klarstellung fuer zukuenftige AIs, kein funktionales Refactor. Kann mit Stage-1-Skip gebuendelt werden. Nach Sprint T. Details: `doc/backlog/stage1-classifier-rename.md`
