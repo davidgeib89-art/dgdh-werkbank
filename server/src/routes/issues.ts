@@ -20,6 +20,7 @@ import { validate } from "../middleware/validate.js";
 import {
   accessService,
   agentService,
+  ceoService,
   goalService,
   heartbeatService,
   githubPrService,
@@ -75,6 +76,10 @@ const createWorkerPullRequestSchema = z
     }
   });
 
+const mergeIssuePullRequestSchema = z.object({
+  prNumber: z.number().int().positive(),
+});
+
 export function issueRoutes(db: Db, storage: StorageService) {
   const router = Router();
   const svc = issueService(db);
@@ -84,6 +89,7 @@ export function issueRoutes(db: Db, storage: StorageService) {
   const projectsSvc = projectService(db);
   const goalsSvc = goalService(db);
   const githubPrSvc = githubPrService();
+  const ceoSvc = ceoService(db);
   const issueApprovalsSvc = issueApprovalService(db);
   const documentsSvc = documentService(db);
   const upload = multer({
@@ -637,6 +643,101 @@ export function issueRoutes(db: Db, storage: StorageService) {
     res.json(approvals);
   });
 
+  router.get("/issues/:id/children", async (req, res) => {
+    const id = req.params.id as string;
+    const parentIssue = await svc.getById(id);
+    if (!parentIssue) {
+      res.status(404).json({ error: "Issue not found" });
+      return;
+    }
+    assertCompanyAccess(req, parentIssue.companyId);
+
+    const children = await ceoSvc.listChildrenByParentId(parentIssue.id);
+    res.json(
+      children.sort(
+        (left, right) =>
+          new Date(left.createdAt).getTime() - new Date(right.createdAt).getTime(),
+      ),
+    );
+  });
+
+  router.post(
+    "/issues/:id/merge-pr",
+    validate(mergeIssuePullRequestSchema),
+    async (req, res) => {
+      const id = req.params.id as string;
+      const issue = await svc.getById(id);
+      if (!issue) {
+        res.status(404).json({ error: "Issue not found" });
+        return;
+      }
+      assertCompanyAccess(req, issue.companyId);
+
+      let actorAgentId: string | null = null;
+      if (req.actor.type === "board") {
+        if (!req.actor.userId) {
+          res.status(403).json({ error: "Board user context required" });
+          return;
+        }
+      } else if (req.actor.type === "agent") {
+        if (!req.actor.agentId) {
+          res.status(403).json({ error: "Agent authentication required" });
+          return;
+        }
+        const actorAgent = await agentsSvc.getById(req.actor.agentId);
+        if (!actorAgent || actorAgent.companyId !== issue.companyId) {
+          res.status(403).json({ error: "Forbidden" });
+          return;
+        }
+        const isCeo =
+          actorAgent.role.toLowerCase() === "ceo" ||
+          hasRoleTemplateLegacy(actorAgent, "ceo");
+        if (!isCeo) {
+          res.status(403).json({ error: "Only CEO agents can trigger issue merges" });
+          return;
+        }
+        actorAgentId = actorAgent.id;
+      } else {
+        res.status(403).json({ error: "Forbidden" });
+        return;
+      }
+
+      const actor = getActorInfo(req);
+      const mergeResult = await ceoSvc.mergeIssuePullRequest({
+        issueId: issue.id,
+        prNumber: req.body.prNumber,
+        requestedBy: {
+          actorType: req.actor.type === "board" ? "user" : "agent",
+          actorId: actor.actorId,
+          agentId: actorAgentId,
+          runId: actor.runId,
+        },
+      });
+
+      if (mergeResult.outcome === "merge_conflict") {
+        res.status(409).json({
+          issueId: issue.id,
+          issueIdentifier: issue.identifier,
+          status: "merge_conflict",
+          prNumber: mergeResult.prNumber,
+          prUrl: mergeResult.prUrl,
+          branch: mergeResult.branch,
+          message: mergeResult.message,
+        });
+        return;
+      }
+
+      res.status(200).json({
+        issueId: issue.id,
+        issueIdentifier: issue.identifier,
+        status: "merged",
+        prNumber: mergeResult.prNumber,
+        prUrl: mergeResult.prUrl,
+        branch: mergeResult.branch,
+      });
+    },
+  );
+
   router.post(
     "/issues/:id/worker-pr",
     validate(createWorkerPullRequestSchema),
@@ -876,15 +977,53 @@ export function issueRoutes(db: Db, storage: StorageService) {
           verdict: req.body.verdict,
           approvalId: approval.id,
           approvalStatus: approval.status,
-          requiredFixesCount: (req.body.requiredFixes ?? []).length,
-        },
+        requiredFixesCount: (req.body.requiredFixes ?? []).length,
+      },
+      });
+
+      let issueStatusAfterVerdict = issue.status;
+      if (req.body.verdict === "accepted") {
+        const updatedIssue = await svc.update(issue.id, {
+          status: "reviewer_accepted",
+        });
+        if (updatedIssue) {
+          issueStatusAfterVerdict = updatedIssue.status;
+          await logActivity(db, {
+            companyId: issue.companyId,
+            actorType: actor.actorType,
+            actorId: actor.actorId,
+            agentId: actor.agentId,
+            runId: actor.runId,
+            action: "issue.updated",
+            entityType: "issue",
+            entityId: issue.id,
+            details: {
+              identifier: issue.identifier,
+              status: updatedIssue.status,
+              autoTransition: true,
+              transitionReason: "reviewer_verdict_accepted",
+              _previous: {
+                status: issue.status,
+              },
+            },
+          });
+        }
+      }
+
+      const ceoMerge = await ceoSvc.maybeRunMergeOrchestratorAfterReviewerVerdict({
+        childIssueId: issue.id,
+        reviewerVerdict: req.body.verdict,
+        reviewerAgentId: reviewerAgent.id,
+        reviewerRunId: req.actor.runId ?? null,
       });
 
       res.status(201).json({
         issueId: issue.id,
         issueIdentifier: issue.identifier,
+        issueStatus: issueStatusAfterVerdict,
         verdict: req.body.verdict,
         approval,
+        ceoMerge,
       });
     },
   );

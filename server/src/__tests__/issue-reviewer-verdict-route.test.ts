@@ -7,6 +7,7 @@ import { errorHandler } from "../middleware/index.js";
 const mockIssueService = vi.hoisted(() => ({
   getById: vi.fn(),
   getByIdentifier: vi.fn(),
+  update: vi.fn(),
 }));
 
 const mockAgentService = vi.hoisted(() => ({
@@ -18,10 +19,16 @@ const mockIssueApprovalService = vi.hoisted(() => ({
 }));
 
 const mockLogActivity = vi.hoisted(() => vi.fn());
+const mockCeoService = vi.hoisted(() => ({
+  maybeRunMergeOrchestratorAfterReviewerVerdict: vi.fn(),
+  mergeIssuePullRequest: vi.fn(),
+  listChildrenByParentId: vi.fn(),
+}));
 
 vi.mock("../services/index.js", () => ({
   accessService: () => ({}),
   agentService: () => mockAgentService,
+  ceoService: () => mockCeoService,
   goalService: () => ({}),
   heartbeatService: () => ({}),
   githubPrService: () => ({ createGitHubPR: vi.fn() }),
@@ -69,6 +76,16 @@ describe("issues reviewer verdict route", () => {
       id: "approval-1",
       status: "changes_requested",
       type: "reviewer_packet_verdict",
+    });
+    mockIssueService.update.mockResolvedValue({
+      id: "issue-1",
+      companyId: "company-1",
+      identifier: "DGD-77",
+      status: "reviewer_accepted",
+    });
+    mockCeoService.maybeRunMergeOrchestratorAfterReviewerVerdict.mockResolvedValue({
+      triggered: false,
+      reason: "verdict_not_accepted",
     });
     mockLogActivity.mockResolvedValue(undefined);
   });
