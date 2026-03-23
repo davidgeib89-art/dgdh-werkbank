@@ -86,8 +86,20 @@ export const submitReviewerVerdictSchema = z
   .object({
     verdict: z.enum(["accepted", "changes_requested"]),
     packet: z.string().trim().min(1).max(500).optional().nullable(),
-    doneWhenCheck: z.string().trim().min(1).max(4_000).optional().nullable(),
-    evidence: z.string().trim().min(1).max(4_000).optional().nullable(),
+    doneWhenCheck: z
+      .string()
+      .trim()
+      .min(20, "doneWhenCheck must contain a substantive semantic check (min 20 chars)")
+      .max(4_000)
+      .optional()
+      .nullable(),
+    evidence: z
+      .string()
+      .trim()
+      .min(20, "evidence must contain substantive validation details (min 20 chars)")
+      .max(4_000)
+      .optional()
+      .nullable(),
     requiredFixes: z
       .array(z.string().trim().min(1).max(500))
       .max(3)
@@ -97,6 +109,25 @@ export const submitReviewerVerdictSchema = z
   })
   .superRefine((value, ctx) => {
     const fixCount = value.requiredFixes.length;
+    const hasDoneWhenCheck =
+      typeof value.doneWhenCheck === "string" && value.doneWhenCheck.trim().length > 0;
+    const hasEvidence = typeof value.evidence === "string" && value.evidence.trim().length > 0;
+
+    if (!hasDoneWhenCheck) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["doneWhenCheck"],
+        message: "doneWhenCheck is required for reviewer verdicts",
+      });
+    }
+    if (!hasEvidence) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["evidence"],
+        message: "evidence is required for reviewer verdicts",
+      });
+    }
+
     if (value.verdict === "accepted" && fixCount > 0) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,

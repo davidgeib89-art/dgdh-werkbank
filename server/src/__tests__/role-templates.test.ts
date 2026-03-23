@@ -85,8 +85,13 @@ describe("resolveAssignedRoleTemplate", () => {
     expect(result.assigned?.prompt).toContain("- Ziel:");
     expect(result.assigned?.prompt).toContain("- Scope:");
     expect(result.assigned?.prompt).toContain("- doneWhen:");
+    expect(result.assigned?.prompt).toContain("- Semantic Compliance: Does the outcome truly and substantially hit the mission");
+    expect(result.assigned?.prompt).toContain("- Point-by-point verification: Are explicitly required points really implemented");
     expect(result.assigned?.prompt).toContain("- Evidence:");
     expect(result.assigned?.prompt).toContain("Simplicity criterion:");
+    expect(result.assigned?.prompt).toContain(
+      "accepted is allowed only when doneWhen is not just formally met, but semantically and substantially fulfilled.",
+    );
     expect(result.assigned?.prompt).toContain(
       "For changes_requested, provide at most 3 concrete fix points.",
     );
@@ -100,7 +105,10 @@ describe("resolveAssignedRoleTemplate", () => {
       "changes_requested -> changes_requested",
     );
     expect(result.assigned?.template.constraints).toContain(
-      "Do not accept results with unsupported claims, source drift, or scope drift.",
+      "Check semantic compliance point-by-point against the mission and doneWhen. Reject superficial compliance.",
+    );
+    expect(result.assigned?.template.constraints).toContain(
+      "Do not accept results with unsupported claims, source drift, scope drift, or weak/superficial substitute logic.",
     );
     expect(result.assigned?.template.constraints).toContain(
       "For changes_requested, provide no more than 3 concrete and actionable fixes.",

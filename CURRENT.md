@@ -1,12 +1,12 @@
 # CURRENT - Live Baton
 
-focus: Firmenfaehigkeit zuerst - Delegation Guardrails V1 fuer CEO direct-vs-delegate und policy-basiertes Review im kanonischen Firmenlauf haerten
-active_issue: Delegation Guardrails V1; CEO darf Denken/Entscheiden direkt, operative Umsetzung muss delegiert bleiben; review-optionale Packets nur fuer reine Denk-/Aggregationsarbeit
+focus: Firmenfaehigkeit zuerst - Reviewer Semantic Acceptance Guardrail V1 geschlossen; naechsten echten Firmenlauf unter gehaertetem Review fahren
+active_issue: Reviewer Semantic Acceptance Guardrail V1; semantische Review-Wahrheit statt formaler Acceptance, danach naechster echter Firmenlauf
 next:
-  1) den naechsten Firmenlauf mit geschaerftem CEO-Template und Review-Policy V1 gegen echte Direct-vs-Delegate-Fehler fahren
+  1) naechsten echten Firmenlauf unter gehaertetem Reviewer fahren und auf False-Positive-Rueckfall pruefen
   2) policy-basierten `done`-Pfad fuer review-optionale Denk-/Aggregationsarbeit im echten Run beobachten
   3) nur noch reale Glue-Blocker zwischen Worker -> Reviewer -> Merge anfassen
-blockers: kein neuer Meta-Blocker; offener Produktionsbeweis bleibt der naechste reale Firmenlauf mit den neuen Guardrails
+blockers: kein neuer Meta-Blocker; naechster Realbeweis bleibt ein weiterer Firmenlauf mit semantisch gehaertetem Reviewer
 
 leitdokument_update (2026-03-23):
   doc: `doc/plans/2026-03-23-dgdh-leitdokument.md`
@@ -64,8 +64,10 @@ notes:
 - Worker-Realstand 2026-03-23: Run `efecc4d2-72c0-4d01-be96-89a1a8907e73` erzeugte real Datei, Branch, Commit und Push fuer `DAV-7`, blieb aber beim Handoff am falschen PR-Pfad (`gh pr create`) haengen; Worker-Template wurde direkt auf `worker-pr` + `worker-done` gehaertet.
 - Delegation Guardrails V1: CEO-Template unterscheidet jetzt explizit Direct Answer Mode vs Delegation Mode; reine Denk-/Entscheidungs-/Aggregationsarbeit darf direkt beantwortet werden, operative Umsetzung muss delegiert werden.
 - Review Policy V1: Packet-Metadaten `executionIntent` + `reviewPolicy` sind kanonisch; Aggregation behandelt review-optionale Packets nur bei Status `done` als komplett, waehrend Umsetzungs-/Artefakt-Arbeit weiter Approval braucht.
+- Reviewer Semantic Acceptance Guardrail V1: Reviewer-Prompt fordert jetzt Semantic Compliance + Point-by-point verification; das Verdict-API blockt fehlende oder oberflaechliche `doneWhenCheck`-/`evidence`-Felder.
 - Leitdokument-Update: Firmenfaehigkeit zuerst; `verein` ist jetzt optionaler Proof-Usecase statt Pflichtanker.
 - Neue spaetere Richtungsabsicherung: `doc/plans/2026-03-23-dgdh-evolution-lane-werkbank-baut-werkbank.md` setzt Self-Learning als replay-/benchmark-getriebene Evolution-Lane, nicht als Live-Produktionssprint.
+- Handoff: Copilot uebernimmt ab dem naechsten Sprint die Coder-Rolle; erster Zielkontext ist der naechste reale Firmenlauf unter gehaertetem Review.
 - Revenue-Lane-Richtung: zuerst DGDH-Faehigkeit bauen, nicht einen einzelnen Kundenfall zu Ende improvisieren.
 - Sprint E geliefert: deterministische `sharp`-Pipeline per API-Route `/api/companies/:companyId/revenue-lane/image-pipeline/process`.
 - Sprint F geliefert: Flash-Lite-basierter Content-Extractor per API-Route `/api/companies/:companyId/revenue-lane/content-extractor/process`.
