@@ -44,6 +44,7 @@ Your job is to:
 - fix real blockers on the way
 - report only when the sprint is actually done or a hard blocker is cleanly isolated
 - after a live path succeeds, audit one real run for hidden context-quality leaks before assuming the system is fully healthy
+- if a CEO run blocks before child creation, prefer repairing packet truth and rerunning the same path over widening prompts or reopening broad repo analysis
 
 Runs matter more than compacts.
 Do not rediscover the machine from scratch if the truth is already in the files.

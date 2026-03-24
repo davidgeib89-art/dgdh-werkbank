@@ -54,6 +54,7 @@
 - Sobald der Firmenloop auf canonical `main` wiederholt boringly durchlaeuft, verschiebt sich der naechste Hebel von versteckter Bootstrap-Infra zu operator-facing Lesbarkeit: die richtige naechste Frage lautet dann nicht mehr "welcher Glue-Bug fehlt?", sondern "wie sieht David die Firmenwahrheit mit moeglichst wenig Minuten?"
 - Die Issue-Detail-Seite zeigt jetzt eine kompakte operator-facing Firmenwahrheit: `Issue`, `Company`, `Project`, `Active run`, `Context` plus die schmale `company-run-chain`.
 - Bei bounded Implementation-Packets ist explizite `target file`-/`target folder`-Wahrheit upstream noetig; sonst darf Routing-Preflight legitimerweise mit `missing_inputs` vor dem ersten Child-Handoff blocken.
+- Ein leeres `/instance/scheduler-heartbeats` beweist keinen kaputten Assignment-Pfad; bei `intervalSec = 0` fehlt dort nur Timer-Scheduler-Sichtbarkeit.
 - Self-Learning bedeutet spaeter governte Hypothesenbildung aus echten Firmenlaeufen; Self-Improving promoted bewaehrte Verbesserungen erst nach Replay/Benchmark/PR-Pruefung in den Standardbetrieb.
 - CEO-Modell-Richtung: Gemini Pro bevorzugt -> Flash -> Flash-Lite. (Claude/Codex mittelfristig als CEO plausibel).
 

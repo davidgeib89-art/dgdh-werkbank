@@ -163,6 +163,7 @@ Quality and token rule for real runs:
 - once the loop basically works, inspect one real assigned run for prompt identity completeness before calling the path truly learned
 - verify the run still carries `companyId`, `projectId`, `issueIdentifier`, and the expected task context, not just that the issue eventually merged
 - if that truth is thin or wrong, treat it as an upstream system defect at the issue/wakeup boundary
+- if routing preflight blocks with `missing_inputs`, treat that as packet-truth feedback, not as model failure; sharpen `target file` / `target folder` / concrete artifact truth upstream before rerunning
 - fix missing context before adding more prompt text, more repo reading, or more recovery logic
 - narrower truthful inputs beat larger ambiguous context windows
 
@@ -197,11 +198,16 @@ This distinguishes:
 - repo-read drift inside the CEO
 - later handoff failure
 
+If a parent looks inert and `/issues/:id/active-run` is already `null`, do not conclude that no run happened.
+Check `issue.executionRunId` and then read that exact heartbeat run.
+A blocked or finished parent run can already contain the first real cause, even when the issue surface looks quiet.
+
 Observed clean-main truth:
 - project/API truth may still point at a stale historical workspace path even when the current canonical worktree is correct
 - a fresh project on the proven worktree is the right repair, not old-worktree revival
 - for `gemini_local`, compare `adapter.invoke.commandArgs` against the agent API record
 - if the agent record says `model: auto` but `adapter.invoke` still passes explicit `--model ...`, treat that as a real routing/adapter blocker worth isolating
+- `/instance/scheduler-heartbeats` is only timer-scheduler truth; an empty list does not prove that assignment wakeups are broken when agents use `intervalSec = 0`
 - if a run is technically alive but reads as low-quality, slow, or token-wasteful, inspect its exact heartbeat/run context before reopening broad code paths; thin identity/context is usually cheaper to fix than prompt drift
 
 ---
@@ -252,6 +258,7 @@ If you need to re-anchor, do it quickly:
 - check `git status`
 - identify the intended worktree
 - verify the active server/process identity
+- once the path works, verify the product surface itself on the same runtime, not just the API payload
 - continue
 
 ---
