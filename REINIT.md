@@ -21,12 +21,21 @@ Standardfall nach Context-Verlust:
 1. `CURRENT.md`
 2. `MEMORY.md`
 3. `doc/DGDH-AI-OPERATOR-RUNBOOK.md` wenn du Runs, Instanzen, Worktrees oder echte Bedienpfade anfassen musst
+4. `doc/plans/2026-03-24-dgdh-first-principles-operating-doctrine.md` wenn du Richtung, Massstab oder Anti-Drift fuer den Sprint brauchst
 
 Das reicht normalerweise, um sofort weiterzuarbeiten.
 
 `INIT.md` musst du **nicht standardmaessig** neu lesen.
 Wenn etwas unklar, widerspruechlich oder driftig wirkt, geh zur Sicherheit auf `INIT.md` zurueck.
 `MEMORY.md` ist dabei bewusst kurz gehalten: stabile Facts only, Zielgroesse unter 80 Zeilen. Datierten Sprint-/Run-Verlauf findest du in `doc/archive/sprint-log.md`.
+
+## DGDH-Lesart in 30 Sekunden
+
+- DGDH ist eine governte David-Aufmerksamkeits-Kompressionsmaschine.
+- Primaerer Messwert in dieser Phase: sinkende David-Minuten pro Firmenlauf.
+- Review ist Gate und Sensor zugleich.
+- Reale Runs sind die bevorzugte Prototyping-Schleife; kein Test-Theater.
+- Invarianten gehoeren in Produktcode, Rollenverhalten in Role Templates, Spezialprozeduren spaeter in Skills, Bedienwissen ins Runbook.
 
 ## Wo wir stehen
 
@@ -50,6 +59,11 @@ Lies sofort in dieser Reihenfolge:
    - wie du Live-Runs, Inbox und Git zusammen liest
    - haeufige Bedienfehler und Standardbehandlung
 
+4. `doc/plans/2026-03-24-dgdh-first-principles-operating-doctrine.md`
+   - was in dieser Phase wirklich zaehlt
+   - warum wir grosse reale Sprints statt Test-Theater fahren
+   - wo Produktcode, Role Templates, Skills und Runbook jeweils hingehoeren
+
 Wenn du historische Sprint-Details brauchst, lies danach `doc/archive/sprint-log.md` statt `MEMORY.md` wieder aufzublaehen.
 
 ## Was du vor dem Sprint klaeren musst
@@ -68,6 +82,7 @@ Wenn das aus `CURRENT.md`, Issue-Text oder Arbeitskontext nicht sauber hervorgeh
 - Grosser Sprint statt Mikroschritte
 - Reale Runs sind aktive Prototyping-Schleifen, nicht nur Tests
 - Kein Test-Theater: nicht auf mehrere kuenstliche Proof-Runs warten, wenn ein echter Run schon den naechsten Lernhebel zeigt
+- Ein Lauf beweist: es geht. Wiederholte echte Laeufe beweisen: es traegt.
 - Dev-Server starten, Console beobachten, Fehler selbst fixen
 - API-Calls ausfuehren, Agents triggern, Status pruefen, wenn das zum Sprint gehoert
 - Paperclip/Werkbank wie ein echter Operator bedienen
@@ -77,6 +92,7 @@ Wenn das aus `CURRENT.md`, Issue-Text oder Arbeitskontext nicht sauber hervorgeh
 - Am Sprint-Ende committen und pushen
 - Statusbericht mit Commit-Hash und Push-Info an den Planer
 - Der Bericht beginnt mit `CODEX STATUSBERICHT`, nennt `Von: Codex` und ist direkt an den Planer adressiert
+- Kein Skill-/Prompt-Architektur-Umbau, solange ein echter operativer Firmenblocker offen ist
 
 ## Freestyle-Regel
 

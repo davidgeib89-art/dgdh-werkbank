@@ -51,6 +51,14 @@ Die Leitfragen:
 > Entlastet das David real oder verschoenert es nur die Maschine?
 > Wird die Firma faehiger — oder nur groesser?
 
+### First-Principles-Arbeitslesart (Update 2026-03-24)
+
+DGDH ist eine governte David-Aufmerksamkeits-Kompressionsmaschine.
+Die Firma nimmt Richtung von David auf und verwandelt sie mit minimalen David-Beruehrpunkten in reale, reviewte, gemergte Arbeit.
+Nicht bessere Prompts allein skalieren DGDH, sondern bessere Zustandsfuehrung, bessere Handoffs und bessere Rollenlogik.
+Review ist Gate und Sensor zugleich.
+Ein Lauf beweist, dass es geht; wiederholte echte Laeufe beweisen, dass es traegt.
+
 ## 3. Das Zielbild fuer die naechste echte Stufe
 
 Die richtige Form fuer DGDH ist kurzfristig nicht:
@@ -1203,6 +1211,7 @@ Spaeteres Zielbild:
 
 ## 18. Verweise
 
+- First-principles Verdichtung / Anti-Drift-Doktrin: `doc/plans/2026-03-24-dgdh-first-principles-operating-doctrine.md`
 - Fruehere Detailanalyse: `doc/plans/2026-03-21-heartbeat-ceo-worker-review-architecture-report.md`
 - Review-Beschleunigung / Blast-Radius-Research: `company-hq/research/2026-03-22-code-review-graph-review-research.md`
 - Bestehende Firmenrichtung: `company-hq/ROADMAP.md`

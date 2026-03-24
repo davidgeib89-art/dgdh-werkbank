@@ -33,6 +33,16 @@ Default operating rule:
 
 Do not rediscover the machine from scratch every run.
 
+### 2.1 First-Principles Operating Lens
+
+DGDH is a governed David-attention-compression machine.
+
+In practice this means:
+- optimize for fewer David minutes per real company run
+- prefer real runs over test theater
+- treat review as gate and sensor
+- do not open meta-architecture while an operational blocker is active
+
 ---
 
 ## 3. Read Order Before Acting
@@ -194,6 +204,18 @@ Interpretation:
 - fix the issue branch or the worker handoff so the expected scope is truthful again
 
 This is a protection against branch baggage leaking onto `main`.
+
+---
+
+## 10.1 Where Truth Belongs
+
+Keep the operating truth in the right layer:
+- workflow invariants and company-state truth belong in product code
+- CEO/Worker/Reviewer behavior belongs in role templates
+- narrow repeatable specialist procedures can become skills later
+- operator drive/recovery patterns belong in this runbook
+
+If one of these truths only exists as tribal knowledge in a prompt or chat, expect rediscovery cost later.
 
 ---
 

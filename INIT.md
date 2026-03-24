@@ -48,10 +48,11 @@ Die neuesten Dateien in `doc/plans/` nach Datum sortiert zeigen dir was zuletzt 
 
 Lies diese Docs in dieser Reihenfolge:
 
-1. `doc/plans/2026-03-21-dgdh-north-star-roadmap.md` - aktueller North Star; IMMER lesen
-2. `company-hq/ROADMAP.md` - Wo wir stehen, wo wir hinwollen, warum
-3. `company-hq/DGDH-CEO-CONTEXT.md` - Davids Prioritaeten und Entscheidungsregeln
-4. `company-hq/VISION.md` - Mission, Werte, Organisationsstruktur
+1. `doc/plans/2026-03-24-dgdh-first-principles-operating-doctrine.md` - kanonische Lesart: DGDH als governte David-Aufmerksamkeits-Kompressionsmaschine; primaere Metrik, Anti-Drift und Wissensverteilung
+2. `doc/plans/2026-03-21-dgdh-north-star-roadmap.md` - aktueller North Star; IMMER lesen
+3. `company-hq/ROADMAP.md` - Wo wir stehen, wo wir hinwollen, warum
+4. `company-hq/DGDH-CEO-CONTEXT.md` - Davids Prioritaeten und Entscheidungsregeln
+5. `company-hq/VISION.md` - Mission, Werte, Organisationsstruktur
 
 Wenn Dokumente sich widersprechen, gilt fuer die aktuelle operative Richtung zuerst:
 - `doc/plans/2026-03-21-dgdh-north-star-roadmap.md`
@@ -61,6 +62,14 @@ Nur bei Bedarf (wenn deine Aufgabe es erfordert):
 - `company-hq/DGDH-GEMINI-ENGINE-V1-2026-03-19.md` - Gemini Engine Spec
 - `CLAUDE.md` - Claude-spezifische Architektur-Details und Workflow
 - `doc/DGDH-AI-OPERATOR-RUNBOOK.md` - praktische Bedienungsanleitung fuer lokale Firmenruns und kanonische Run-Control
+
+### Stabile Arbeitslesart (2026-03-24)
+
+- DGDH ist eine governte David-Aufmerksamkeits-Kompressionsmaschine.
+- Primaerer Messwert in dieser Phase: sinkende David-Minuten pro Firmenlauf.
+- Review ist Gate und Sensor zugleich.
+- Nicht bessere Prompts allein skalieren die Firma, sondern bessere Zustandsfuehrung, Handoffs und Rollenlogik.
+- Invarianten gehoeren in Produktcode, Rollenverhalten in Role Templates, Spezialprozeduren spaeter in Skills, Bedienwissen in das Operator-Runbook.
 
 ---
 
@@ -283,12 +292,16 @@ Kein vollstaendiger North-Star-Tieftauchgang — aber MEMORY.md gibt dir genug u
 ### David-Prototyping-Maxime
 - Wir verbessern die Firma bevorzugt in echten Runs, nicht in endlosen Vorab-Testschleifen.
 - Ein echter Run darf gleichzeitig Beweis und Prototyping-Schleife sein.
+- Ein Lauf beweist: es geht. Wiederholte echte Laeufe beweisen: es traegt.
 - Wenn waehrend des Runs klare Schwaechen sichtbar werden, soll der Coder sie innerhalb des Sprint-Scope direkt fixen und weiterlaufen.
 - Diese Freestyle-Fixes werden am Ende transparent berichtet und danach vom Planer kontrolliert.
 - Leitmodus: vibe coding mit Verantwortung — go with the flow, `follow your highest excitement`, aber immer entlang des naechsten echten Firmenhebels.
 
 ### Leitfrage
 > *Entlastet das David real oder verschoenert es nur die Maschine?*
+
+### Primaermetrik
+> *Wie viele David-Minuten hat dieser Firmenlauf gekostet - und wie kommen wir naeher an null?*
 
 ### Anti-Drift-Regel fuer Revenue Lane
 - Die Werkbank soll wiederverwendbare Produktionsfaehigkeiten bauen, nicht einen einzelnen Kundenfall per Hand zu Ende tragen
@@ -334,10 +347,11 @@ Kein vollstaendiger North-Star-Tieftauchgang — aber MEMORY.md gibt dir genug u
 1. Lies diese INIT.md
 2. Lies MEMORY.md
 3. Lies CURRENT.md wenn vorhanden
-4. Lies die aktiven Arbeitsdokumente (verlinkt in MEMORY.md oder neueste in `doc/plans/`)
-5. Lies `doc/plans/2026-03-21-dgdh-north-star-roadmap.md`
-6. Du bist wieder auf Stand
-7. Arbeite weiter wo die letzte Session aufgehoert hat
+4. Lies `doc/plans/2026-03-24-dgdh-first-principles-operating-doctrine.md`
+5. Lies die aktiven Arbeitsdokumente (verlinkt in MEMORY.md oder neueste in `doc/plans/`)
+6. Lies `doc/plans/2026-03-21-dgdh-north-star-roadmap.md`
+7. Du bist wieder auf Stand
+8. Arbeite weiter wo die letzte Session aufgehoert hat
 
 ---
 
