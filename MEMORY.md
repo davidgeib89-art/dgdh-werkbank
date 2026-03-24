@@ -51,6 +51,7 @@
 - `EXECUTOR.md` ist die kompakte Execution-Schicht fuer Langlauf-Agenten: richtige Runtime-Identitaet vor API-Vertrauen, API vor Browser, Prozess vor Port und kein Completion-Loop-Theater.
 - OSS-Research wird fuer DGDH per Primitive-Filter gelesen: uebernehmen wollen wir Muster wie file-layered identity, visible primitives und spaetere firm-memory/diagnostics; nicht ganze assistant-first oder self-evolving Produktidentitaeten.
 - Retrieval ist fuer DGDH spaeter eine eigene Capability-Schicht, aber nicht die aktuelle Produktform: shared context/retrieval ja, Retrieval-Plattform- oder Integrationsbreiten-Sprint nein.
+- Sobald der Firmenloop auf canonical `main` wiederholt boringly durchlaeuft, verschiebt sich der naechste Hebel von versteckter Bootstrap-Infra zu operator-facing Lesbarkeit: die richtige naechste Frage lautet dann nicht mehr "welcher Glue-Bug fehlt?", sondern "wie sieht David die Firmenwahrheit mit moeglichst wenig Minuten?"
 - Self-Learning bedeutet spaeter governte Hypothesenbildung aus echten Firmenlaeufen; Self-Improving promoted bewaehrte Verbesserungen erst nach Replay/Benchmark/PR-Pruefung in den Standardbetrieb.
 - CEO-Modell-Richtung: Gemini Pro bevorzugt -> Flash -> Flash-Lite. (Claude/Codex mittelfristig als CEO plausibel).
 

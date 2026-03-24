@@ -1,13 +1,13 @@
 # CURRENT - Live Baton
 
-focus: der kanonische Clean-Main-Firmenlauf bootstrapt jetzt boringly ueber den Produktpfad; die Kettenwahrheit ist ueber einen einzigen API-Read sichtbar und ein frischer bounded Lauf auf `main` lief wieder bis Merge/Parent-Close
-active_issue: Productize Zero-Rescue Company Run Bootstrap geliefert und live validiert; der naechste Sprint kann wieder denselben kanonischen Pfad statt Runbook-Sonderwissen ziehen
+focus: der kanonische Clean-Main-Firmenlauf bootstrapt jetzt boringly ueber den Produktpfad; der naechste Engpass ist nicht mehr versteckte Bootstrapping-Infra, sondern operator-visible Firmenlauf-Wahrheit mit moeglichst wenig David-Minuten
+active_issue: der Kernpfad ist geliefert; der naechste grosse Sprint soll Firmenlauf-Lesbarkeit und operator-facing Truth auf derselben kanonischen Basis productizen
 
 next:
-  1) den naechsten echten Firmenpfad erneut ueber frische Projektanlage ohne Sonderpayload starten und nur neue echte Glue-Blocker anfassen
-  2) verbleibendes Operator-Wissen nur dann promoten, wenn es sich im naechsten Live-Lauf wieder als echter David-Minuten-Kostenpunkt zeigt
+  1) den naechsten grossen Sprint auf `main` auf operator-facing Firmenlauf-Lesbarkeit schneiden: die Kette soll fuer David sichtbar und schnell lesbar sein, nicht nur fuer API-Leser
+  2) den neuen UI-/Operator-Pfad wieder ueber einen echten bounded Firmenlauf validieren und nur neue echte Glue-Blocker anfassen
 blockers:
-  - fuer diesen Sprint kein offener Restblocker mehr: DAV-33 ist `done`, DAV-34 ist `merged`
+  - fuer den letzten Infra-/Bootstrap-Sprint kein offener Restblocker mehr: DAV-33 ist `done`, DAV-34 ist `merged`
 strategy_anchor:
   - `doc/plans/2026-03-24-dgdh-first-principles-operating-doctrine.md`
   - `doc/plans/2026-03-21-dgdh-north-star-roadmap.md`
@@ -15,6 +15,7 @@ strategy_anchor:
 notes:
   - Frische Projekte mit git-backed lokalem Primary-Workspace bootstrappen jetzt produktseitig automatisch auf `executionWorkspacePolicy = isolated` mit `workspaceStrategy.type = git_worktree`; der kanonische Create-Pfad braucht dafuer kein manuelles Sonderpayload mehr
   - `GET /api/issues/:id/company-run-chain` liefert jetzt die schmale Kettenwahrheit `assigned -> run started -> worker done -> reviewer assigned -> reviewer run -> merged -> parent done` fuer Parent-/Child-Laeufe an einer Stelle
+  - Die naechste Leverage-Frage ist nicht mehr "welcher Bootstrapping-Glue fehlt noch?", sondern "wie wird diese Kettenwahrheit fuer David selbst boringly lesbar und vertrauenswuerdig sichtbar?"
   - DAV-33/DAV-34 validieren den neuen Pfad live: Projekt `2651f46c-04cb-4433-a55c-8baee1ce1c84` wurde frisch ohne explizite `executionWorkspacePolicy` angelegt und kam trotzdem direkt mit isolierter `git_worktree`-Policy zurueck
   - Im frischen Validierungslauf endete Parent `DAV-33` `done`, Child `DAV-34` `merged`, PR `#16`, Branch `dgdh/issue-DAV-34-bootstrap-chain-proof`, Worker-Run `4b766419-02ce-4d62-aa73-4dd9152adea5`, Reviewer-Run `e03480b4-eabc-4032-9b8d-4cc10c9788e6`, Worker-Commit `0de480e4e67f879882ddd64ccfacbdc05e5bed80`
   - Der Produktisierungs-Commit auf canonical `main` / `origin/main` ist `84a7d8fbde54347a912bd0f2f51847cd64e53cdc` (`productize company run bootstrap defaults and chain visibility`)
