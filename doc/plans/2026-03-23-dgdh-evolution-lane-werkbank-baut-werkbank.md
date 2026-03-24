@@ -69,6 +69,14 @@ Kurz:
 
 > Nicht nur Journal. Operativer Lernkoerper.
 
+First-principles Nachschaerfung:
+
+- Firmengedachtnis ist gestufte Kompression, nicht Vollkontext
+- der haerteste Memory-Layer ist zuerst kanonischer Betriebszustand
+- episodische Laufdaten sind Rohmaterial, nicht schon Weisheit
+- semantische Muster muessen erst verdichtet werden, bevor sie Verhalten aendern
+- prozedurale Promotion landet spaeter in Guardrails, Templates oder Skills
+
 ### 3.3 Go with the flow nur mit Fitness-Funktion
 
 "Go with the flow" ist fuer DGDH nur dann sinnvoll, wenn ein neuer Weg in Replay oder Benchmark real gewinnt.
@@ -119,6 +127,10 @@ Sobald genug echte Firmenlaeufe existieren:
 Ziel:
 
 > nicht live lernen, sondern erst im Rueckspiegel besser werden
+
+Kompakte Lernformel:
+
+> Run -> Signal -> Verdichtung -> Promotion
 
 ### Phase 2 - Meta-PR Lane
 

@@ -49,10 +49,11 @@ Die neuesten Dateien in `doc/plans/` nach Datum sortiert zeigen dir was zuletzt 
 Lies diese Docs in dieser Reihenfolge:
 
 1. `doc/plans/2026-03-24-dgdh-first-principles-operating-doctrine.md` - kanonische Lesart: DGDH als governte David-Aufmerksamkeits-Kompressionsmaschine; primaere Metrik, Anti-Drift und Wissensverteilung
-2. `doc/plans/2026-03-21-dgdh-north-star-roadmap.md` - aktueller North Star; IMMER lesen
-3. `company-hq/ROADMAP.md` - Wo wir stehen, wo wir hinwollen, warum
-4. `company-hq/DGDH-CEO-CONTEXT.md` - Davids Prioritaeten und Entscheidungsregeln
-5. `company-hq/VISION.md` - Mission, Werte, Organisationsstruktur
+2. `doc/plans/2026-03-24-dgdh-memory-learning-self-improvement-first-principles.md` - wie Firmengedachtnis, Lernen, Self-Learning und Self-Improving fuer DGDH wirklich zu lesen sind
+3. `doc/plans/2026-03-21-dgdh-north-star-roadmap.md` - aktueller North Star; IMMER lesen
+4. `company-hq/ROADMAP.md` - Wo wir stehen, wo wir hinwollen, warum
+5. `company-hq/DGDH-CEO-CONTEXT.md` - Davids Prioritaeten und Entscheidungsregeln
+6. `company-hq/VISION.md` - Mission, Werte, Organisationsstruktur
 
 Wenn Dokumente sich widersprechen, gilt fuer die aktuelle operative Richtung zuerst:
 - `doc/plans/2026-03-21-dgdh-north-star-roadmap.md`
@@ -70,6 +71,8 @@ Nur bei Bedarf (wenn deine Aufgabe es erfordert):
 - Review ist Gate und Sensor zugleich.
 - Nicht bessere Prompts allein skalieren die Firma, sondern bessere Zustandsfuehrung, Handoffs und Rollenlogik.
 - Invarianten gehoeren in Produktcode, Rollenverhalten in Role Templates, Spezialprozeduren spaeter in Skills, Bedienwissen in das Operator-Runbook.
+- Firmengedachtnis ist keine Chat-History-Suppe, sondern gestufte Kompression: Betriebszustand -> episodisch -> semantisch -> prozedural -> strategisch.
+- Self-Learning heisst spaeter governte Hypothesenbildung aus echten Firmenlaeufen; Self-Improving heisst erst nach Replay/Benchmark/PR-Promotion den Standardbetrieb zu verbessern.
 
 ---
 

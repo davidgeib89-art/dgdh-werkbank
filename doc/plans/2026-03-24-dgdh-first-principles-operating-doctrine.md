@@ -15,6 +15,9 @@ Es ersetzt nicht:
 
 Es praezisiert, wie diese Dokumente gelesen werden sollen, damit kuenftige Sessions nicht wieder in geerbtes Denken oder unnoetige Meta-Sprints kippen.
 
+Companion deep dive fuer Memory, Lernen und spaetere Selbstverbesserung:
+- `doc/plans/2026-03-24-dgdh-memory-learning-self-improvement-first-principles.md`
+
 ## 2. Geerbte Annahmen, die wir bewusst entfernen
 
 Diese Annahmen tauchen schnell wieder auf, sind fuer die aktuelle Phase aber nicht fundamental wahr:

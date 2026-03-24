@@ -37,6 +37,7 @@ Wichtige Klarstellung:
 - Skills sind nicht dasselbe wie ein `Researcher`
 - ein `Researcher` waere spaeter eine Rolle / ein invokebarer Spezialpfad mit Urteilsraum
 - Skills sind das spaetere Zuhause fuer standardisierte Spezialprozeduren innerhalb dieses Pfads
+- Skills sind fuer DGDH spaeter vor allem prozedurale Promotion von bewaehrten Mustern - nicht das Lernen selbst und nicht Ersatz fuer Firmengedachtnis
 
 ## 3. Semantisches Codebase-Verstaendnis
 

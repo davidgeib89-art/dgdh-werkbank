@@ -8,6 +8,7 @@
 - `CURRENT.md` - live baton
 - `doc/DGDH-AI-OPERATOR-RUNBOOK.md` - stabile Bedienungsanleitung fuer lokale DGDH-/Paperclip-Firmenruns
 - `doc/plans/2026-03-24-dgdh-first-principles-operating-doctrine.md` - kanonische Verdichtung: DGDH als governte David-Aufmerksamkeits-Kompressionsmaschine
+- `doc/plans/2026-03-24-dgdh-memory-learning-self-improvement-first-principles.md` - kanonische Lesart fuer Firmengedachtnis, Lernen, Self-Learning und Self-Improving
 - `doc/plans/2026-03-21-dgdh-north-star-roadmap.md` - kanonische operative Richtung
 - `doc/plans/2026-03-23-focus-freeze.md` - aktiver Kurzfrist-Fokus gegen Drift
 - `doc/plans/2026-03-23-dgdh-leitdokument.md` - lebendige CEO-nahe Richtungsbeschreibung; hoehere Lesart fuer die aktuelle Phase
@@ -29,10 +30,13 @@
 - Langfristige Richtung: David gibt die Richtung, die Maschine uebernimmt mit wachsender Modellfaehigkeit immer mehr Entscheidungen und Lieferung.
 - Planer = Perplexity im Chat; Codex = grosser Operator-Sprint-Coder; Reviewer/Researcher = Gemini CLI; Claude nur wenn wirklich noetig.
 - Review ist Gate und Sensor zugleich: es schuetzt Qualitaet und liefert Drift-/Lernsignale fuer Packet, Handoff, Prompt und System.
+- Firmengedachtnis ist gestufte Kompression statt Vollkontext: Betriebszustand -> episodisch -> semantisch -> prozedural -> strategisch.
+- Lernen folgt fuer DGDH der Formel `Run -> Signal -> Verdichtung -> Promotion`.
 - Researcher-Haltung: DGDH sucht aktiv OSS-Muster (wie Drop-box Handoffs, Skills), kopiert aber nur bei echtem Firmenhebel.
 - Research ist spaeter wahrscheinlich nicht nur Haltung, sondern auch ein bewusst nutzbarer Spezialpfad / Spezialmitarbeiter; Skills standardisieren spaeter wiederkehrende Teile dieses Pfads.
 - Guardrail-Logik: Asymmetrisch. CEO/Planer agieren offener und strategischer; Worker eng gefuehrt; Spezialaufgaben landen kuenftig in fixierten Skills (Progressive Disclosure).
 - Wissensverteilung: Invarianten in Produktcode, Rollenverhalten in Role Templates, schmale wiederkehrende Spezialprozeduren spaeter in Skills, Bedienwissen im Operator-Runbook.
+- Self-Learning bedeutet spaeter governte Hypothesenbildung aus echten Firmenlaeufen; Self-Improving promoted bewaehrte Verbesserungen erst nach Replay/Benchmark/PR-Pruefung in den Standardbetrieb.
 - CEO-Modell-Richtung: Gemini Pro bevorzugt -> Flash -> Flash-Lite. (Claude/Codex mittelfristig als CEO plausibel).
 
 ## Phase und Prioritaet (Korrektur 2026-03-22)
@@ -102,6 +106,8 @@
 - Lokale Paperclip-Identity ist gehaertet: repo-lokale `.paperclip/.env` und `.paperclip/config.json` schlagen stale ambient `PAPERCLIP_HOME`/`PAPERCLIP_INSTANCE_ID`/`PAPERCLIP_CONFIG`; ohne lokalen Kontext faellt Paperclip auf `~/.paperclip/instances/default` zurueck.
 - Reviewer-Review-Target nutzt fuer Worker-Handoffs kanonisch `issue.worker_done_recorded` plus `issue.worker_pull_request_created`; rohes Worker-stdout ist nur Fallback.
 - Der reale DAV-16-Lauf ist geliefert: Worker -> Reviewer -> merge lief mit echten GitHub-Spuren; der Parent DAV-15 endete danach `done` mit Merge-Summary.
+- Der reale DAV-17/DAV-18-Lauf auf canonical `main` ist geliefert: Worker erstellte PR #10 fuer den Regressionstest zu `ensure-seed-data`, Reviewer validierte den Test real mit `npx vitest run src/__tests__/ensure-seed-data.test.ts`, `DAV-18` endete `merged`, Parent `DAV-17` endete `done`.
+- Reviewer-Verdict-Contract-Fact: `POST /api/issues/:id/reviewer-verdict` akzeptiert bei `accepted` nur `requiredFixes: []`; `"none"` oder `["none"]` werden vom Schema abgewiesen.
 - Evolution Lane ist kanonisch als spaetere Richtung gesetzt: kontrollierte Selbstverbesserung laeuft replay-/benchmark-getrieben, PR-basiert und mit Human-Merge, nicht als freie Live-Selbstoptimierung.
 
 ## Revenue Lane Foundation (langfristige Capability, nicht aktueller Fokus)

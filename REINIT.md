@@ -22,6 +22,7 @@ Standardfall nach Context-Verlust:
 2. `MEMORY.md`
 3. `doc/DGDH-AI-OPERATOR-RUNBOOK.md` wenn du Runs, Instanzen, Worktrees oder echte Bedienpfade anfassen musst
 4. `doc/plans/2026-03-24-dgdh-first-principles-operating-doctrine.md` wenn du Richtung, Massstab oder Anti-Drift fuer den Sprint brauchst
+5. `doc/plans/2026-03-24-dgdh-memory-learning-self-improvement-first-principles.md` wenn du ueber Firmengedachtnis, Lernen oder spaetere Selbstverbesserung nachdenkst
 
 Das reicht normalerweise, um sofort weiterzuarbeiten.
 
@@ -36,6 +37,8 @@ Wenn etwas unklar, widerspruechlich oder driftig wirkt, geh zur Sicherheit auf `
 - Review ist Gate und Sensor zugleich.
 - Reale Runs sind die bevorzugte Prototyping-Schleife; kein Test-Theater.
 - Invarianten gehoeren in Produktcode, Rollenverhalten in Role Templates, Spezialprozeduren spaeter in Skills, Bedienwissen ins Runbook.
+- Firmengedachtnis ist gestufte Kompression, nicht roher Vollkontext.
+- Self-Learning laeuft spaeter ueber Replay, Benchmark, PR und Promotion - nicht als freie Live-Mutation.
 
 ## Wo wir stehen
 
@@ -63,6 +66,11 @@ Lies sofort in dieser Reihenfolge:
    - was in dieser Phase wirklich zaehlt
    - warum wir grosse reale Sprints statt Test-Theater fahren
    - wo Produktcode, Role Templates, Skills und Runbook jeweils hingehoeren
+
+5. `doc/plans/2026-03-24-dgdh-memory-learning-self-improvement-first-principles.md`
+   - wie DGDH Firmengedachtnis von Rohhistorie trennt
+   - wie Lernen aus echten Firmenlaeufen verdichtet wird
+   - warum Self-Improving spaeter replay-/benchmark-getrieben statt frei live laeuft
 
 Wenn du historische Sprint-Details brauchst, lies danach `doc/archive/sprint-log.md` statt `MEMORY.md` wieder aufzublaehen.
 

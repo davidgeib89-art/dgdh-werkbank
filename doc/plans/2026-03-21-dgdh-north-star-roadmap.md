@@ -399,6 +399,13 @@ Die Zukunft soll sein:
 
 - kleine, governed, querybare Handoffs
 
+First-principles Korrektur:
+
+- Shared Memory ist nicht "mehr History", sondern bessere Kompression
+- nicht jede Episode verdient Erinnerung
+- nicht jede Erinnerung verdient sofortige Verhaltensaenderung
+- der haerteste Memory-Layer ist zuerst kanonischer Betriebszustand, nicht semantischer Luxus
+
 Das Zielbild fuer Shared Memory ist:
 
 - `mission memory`
@@ -407,6 +414,13 @@ Das Zielbild fuer Shared Memory ist:
 - `review memory`
 - `agent-local working memory`
 - `company policy memory`
+
+Praktische Lesart dazu:
+
+- `episodisch`: was in echten Firmenlaeufen passiert ist
+- `semantisch`: welche Muster sich daraus wiederholen
+- `prozedural`: was in Guardrails, Templates oder spaeter Skills promoted wurde
+- `strategisch`: welche Richtung North Star, Freeze und Leitdokument vorgeben
 
 Und die wichtigste Regel ist:
 
@@ -1212,6 +1226,7 @@ Spaeteres Zielbild:
 ## 18. Verweise
 
 - First-principles Verdichtung / Anti-Drift-Doktrin: `doc/plans/2026-03-24-dgdh-first-principles-operating-doctrine.md`
+- First-principles fuer Memory, Lernen und Selbstverbesserung: `doc/plans/2026-03-24-dgdh-memory-learning-self-improvement-first-principles.md`
 - Fruehere Detailanalyse: `doc/plans/2026-03-21-heartbeat-ceo-worker-review-architecture-report.md`
 - Review-Beschleunigung / Blast-Radius-Research: `company-hq/research/2026-03-22-code-review-graph-review-research.md`
 - Bestehende Firmenrichtung: `company-hq/ROADMAP.md`
@@ -1259,6 +1274,13 @@ Revenue-Scaling kommt als Konsequenz von Capability-Scaling, nicht umgekehrt.
 3. **Skill-Creation** — Agenten erkennen Muster und schlagen neue Skills vor
 4. **Core-Verbesserung** — Agenten schreiben eigene Engine-Logik, Prompts und Prozesse um
    (nur wenn sie schlau genug sind, mit hartem Review-Gate)
+
+First-principles Grenze:
+
+- Self-Learning ist zuerst governte Hypothesenbildung aus echten Firmenlaeufen
+- Self-Improving ist erst dann echt, wenn eine Verbesserung gegen Replay, Benchmark oder klare Folgefaelle gewinnt
+- keine freie Live-Selbstmutation als Default
+- Promotion in den Standardbetrieb erst ueber PR, Review und Human-Merge
 
 Git Snapshot Engine als Grundlage: jede Aenderung ist versioniert, reversibel, auditierbar.
 Spezialisierte Agenten/Subagenten/Skills zur Selbstverbesserung — nicht generisch, sondern gezielt.
