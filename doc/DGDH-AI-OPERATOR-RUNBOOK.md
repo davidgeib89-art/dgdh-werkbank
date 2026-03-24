@@ -337,6 +337,22 @@ Do not use it as a substitute for:
 - `/api/issues/:id/live-runs`
 - `/api/issues/:id/active-run`
 
+### 7.4 Execution Packet Readiness Standards
+
+To ensure a smooth transition from CEO to Worker and avoid `missing_inputs` stalls, execution packets (child issues) should follow a formal readiness structure. The CEO is responsible for defining these fields clearly in the description:
+
+- **Titel**: A concise, descriptive name for the task.
+- **Ziel**: The intended outcome or "why" of the task.
+- **Scope**: Explicit boundaries of the work to prevent scope creep.
+- **targetFile**: The primary file to be created or modified (if known).
+- **targetFolder**: The directory context for the execution.
+- **artifactKind**: The nature of the output (e.g., `code_patch`, `doc_update`, `config_change`).
+- **doneWhen**: Clear, verifiable criteria that must be met for the task to be considered finished.
+- **Annahmen**: Relevant assumptions or constraints.
+- **[NEEDS INPUT]**: Must be explicitly set to `none` for the packet to be "ready". If not `none`, the worker may block until the input is provided.
+
+Adhering to this format allows the routing and execution engines to proceed autonomously without pausing for manual clarification.
+
 ---
 
 ## 8. Observing a Real Run
