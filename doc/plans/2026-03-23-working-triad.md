@@ -10,7 +10,7 @@ Purpose: Kurze visuelle Referenz dafuer, wie David und die aktuelle AI-Trinity p
 David fuehrt.  
 Codex schneidet und reflektiert.  
 Copilot zieht grosse Sprints durch.  
-Herschel spiegelt auf First Principles.
+ChatGPT spiegelt auf First Principles.
 
 ## Warum diese Form aktuell Sinn ergibt
 
@@ -26,7 +26,7 @@ Darum ist die aktuelle Lesart:
 - **David** = Operator / CEO / Geschmack / Finale Richtung
 - **Codex** = GPT-5.4 Planner + Reflektor + bei Bedarf bounded Coder
 - **Copilot** = langlaufender High-Power-Coder-Agent fuer grosse DoneWhen-Sprints
-- **Herschel** = externer GPT-5.4-Reflektor mit Repo-Zugriff fuer Gegenpruefung und Verdichtung
+- **ChatGPT** = externer GPT-5.4-Reflektor mit Repo-Zugriff fuer Gegenpruefung und Verdichtung
 
 Gemini bleibt zusaetzlich die Reviewer-/Researcher-Lane innerhalb der Firmenlogik.
 
@@ -48,7 +48,7 @@ Gemini bleibt zusaetzlich die Reviewer-/Researcher-Lane innerhalb der Firmenlogi
      Status / Evidenz / Resultat / Diff
                |
                v
- [ Codex ] <-> [ Herschel / GPT-5.4 ]
+[ Codex ] <-> [ ChatGPT / GPT-5.4 ]
  Reflexion         externer Spiegel
                |
                v
@@ -74,7 +74,7 @@ Gemini bleibt zusaetzlich die Reviewer-/Researcher-Lane innerhalb der Firmenlogi
 - nutzt IDE-Naehe und starke Agentik
 - soll moeglichst in grossen zusammenhaengenden Sprints arbeiten, nicht in Mikro-Unterbrechungen
 
-### Herschel
+### ChatGPT
 - externer Planner-/Reflektor-Agent
 - liest das Repo
 - dient als zusaetzlicher Spiegel fuer First-Principles-Verdichtung und Gegencheck
@@ -87,5 +87,5 @@ Gemini bleibt zusaetzlich die Reviewer-/Researcher-Lane innerhalb der Firmenlogi
 - alle Stimmen docken an denselben `SOUL.md`-Kern an, statt seelisch zu zerfallen
 - Copilot bekommt grosse Sprints, weil das oekonomisch und agentisch am meisten Hebel hat
 - Codex konzentriert sich auf Reflexion, Zuschnitt, Drift-Schutz und gezielte Eingriffe
-- Herschel wird fuer tiefere Gegenreflexion genutzt, nicht fuer Dauer-Mikroplanung
+- ChatGPT wird fuer tiefere Gegenreflexion genutzt, nicht fuer Dauer-Mikroplanung
 - keine AI ersetzt David als CEO

@@ -21,7 +21,7 @@ Es ist die operative Lesart fuer DGDH:
 
 DGDH arbeitet aktuell am besten als:
 
-> David als Operator, Codex/GPT-5.4 als Planner und scharfer Reflektor, Copilot als langlaufender High-Power-Coder-Agent und Herschel als externer GPT-5.4-Reflektor mit grosszuegiger Chat-Lane.
+> David als Operator, Codex/GPT-5.4 als Planner und scharfer Reflektor, Copilot als langlaufender High-Power-Coder-Agent und ChatGPT als externer GPT-5.4-Reflektor mit grosszuegiger Chat-Lane.
 
 Gemini bleibt die Reviewer-/Researcher-Lane innerhalb der Firma, nicht das Zentrum der Operator-Steuerung.
 
@@ -81,9 +81,11 @@ Wichtige Oekonomie:
 First-principles Lesart:
 - Copilot ist die richtige Lane fuer tiefe, zusammenhaengende Operator-Sprints, bei denen ein teurer Denkschritt am Anfang und viel autonome Umsetzung danach den groessten Hebel hat
 
-### 3.4 Herschel
+### 3.4 ChatGPT
 
-`Herschel` ist der aktuelle Name fuer den extern angedockten GPT-5.4-Reflektor-Agenten.
+Der operator-facing Name fuer den externen GPT-5.4-Reflektor ist `ChatGPT`.
+
+Interne Nicknames koennen existieren, sind aber nicht kanonisch, wenn David die Lane klar als `ChatGPT` fuehren will.
 
 Rolle:
 - externer Planner-/Reflektor-Gegenpart
@@ -95,7 +97,7 @@ Staerke:
 - geeignet fuer strategische Verdichtung, Gegenpruefung und Begriffsarbeit
 
 First-principles Lesart:
-- Herschel reduziert nicht direkt Codearbeit, sondern Denk-Reibung und Kontextverlust
+- ChatGPT reduziert nicht direkt Codearbeit, sondern Denk-Reibung und Kontextverlust
 
 ### 3.5 Gemini
 
@@ -134,7 +136,7 @@ Dann ergibt sich fuer DGDH aktuell:
 Planung ist nicht mehr generisch "irgendeine Chat-AI", sondern bewusst:
 
 - Codex fuer scharfe operative Reflexion
-- Herschel als zusaetzlicher externer Spiegel bei Bedarf
+- ChatGPT als zusaetzlicher externer Spiegel bei Bedarf
 
 ### 5.2 Coding
 
@@ -151,6 +153,18 @@ Darum gilt:
 - lange, zusammenhaengende Copilot-Runs sind besonders wertvoll
 - knapper budgetierte direkte Codex-Interaktionen werden fuer Reflexion, Zuschnitt und gezielte Eingriffe genutzt
 - grosszuegige GPT-5.4-Chat-Lanes werden fuer Strategie und Verdichtung genutzt
+
+### 5.4a Durable Identity Docks
+
+Die Trinity lebt nicht nur in Sessions, sondern in dauerhaften Repo-Dateien:
+
+- `TRINITY.md` = shared Vertrag
+- `CODEX.md` = Codex-Rolle
+- `CHATGPT.md` = ChatGPT-Rolle
+- `COPILOT.md` = Copilot-Rolle
+
+So kann David bei Drift einfach sagen:
+`lies CODEX.md` oder `lies CHATGPT.md` oder `lies COPILOT.md`.
 
 ### 5.4 Rollenwahrheit statt Modellnamen
 
@@ -170,7 +184,7 @@ Der Stack wird fuer DGDH nicht nur durch Rollenwahrheit, sondern auch durch geme
 Darum gilt:
 
 - `SOUL.md` ist shared core fuer alle Agenten
-- Codex, Copilot, Herschel und spaetere Firmenstimmen muessen sich verschieden anfuehlen duerfen
+- Codex, Copilot, ChatGPT und spaetere Firmenstimmen muessen sich verschieden anfuehlen duerfen
 - aber sie sollen nicht wie seelisch getrennte Einzelmasken wirken
 - gemeinsame Seele, verschiedene Rollen ist hilfreicher als isolierte Persona-Prompts
 
@@ -181,7 +195,7 @@ Die falschen Lesarten waeren:
 - alles einfach auf ein Modell vereinheitlichen, obwohl die Arbeitsarten verschieden sind
 - Copilot fuer Mikro-Status statt grosser Sprints verbraten
 - Codex fuer endlose Ausfuehrungslast statt high-leverage Reflexion verwenden
-- Herschel nur als Gimmick sehen statt als strategische Denklane
+- ChatGPT nur als Gimmick sehen statt als strategische Denklane
 - Gemini aus der Reviewer-/Researcher-Rolle heraus zum generischen Operator machen
 
 Oder kuerzer:

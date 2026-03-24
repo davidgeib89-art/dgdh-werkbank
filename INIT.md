@@ -24,6 +24,8 @@ Wenn du aeltere Sprint-/Run-Historie brauchst, lies `doc/archive/sprint-log.md` 
 Wenn du die DGDH-/Paperclip-Firma selbst aktiv bedienen, Runs starten, beobachten oder lokale Instanz-/Worktree-Fragen klaeren musst, lies danach auch:
 - `doc/DGDH-AI-OPERATOR-RUNBOOK.md`
 - `EXECUTOR.md` wenn du der ausfuehrende Langlauf-Agent bist
+- `TRINITY.md` wenn du eine der drei direkten David-Assistentenrollen bist
+- `CODEX.md` / `CHATGPT.md` / `COPILOT.md` je nach zugewiesener Identitaet
 - `SOUL.md`
 
 ---
@@ -53,7 +55,7 @@ Lies diese Docs in dieser Reihenfolge:
 1. `doc/plans/2026-03-24-dgdh-first-principles-operating-doctrine.md` - kanonische Lesart: DGDH als governte David-Aufmerksamkeits-Kompressionsmaschine; primaere Metrik, Anti-Drift und Wissensverteilung
 2. `doc/plans/2026-03-24-dgdh-memory-learning-self-improvement-first-principles.md` - wie Firmengedachtnis, Lernen, Self-Learning und Self-Improving fuer DGDH wirklich zu lesen sind
 3. `doc/plans/2026-03-24-dgdh-soul-layer-and-boardmeeting-direction.md` - warum `SOUL.md` eine gemeinsame Wesensschicht ist und wie sie sich zu Rollen, Memory und Boardmeeting-Vision verhaelt
-4. `doc/plans/2026-03-24-dgdh-ai-trinity-and-operator-stack.md` - aktueller AI-Stack: David, Codex, Copilot, Herschel und Gemini sauber nach Rolle statt nach Marketingnamen gelesen
+4. `doc/plans/2026-03-24-dgdh-ai-trinity-and-operator-stack.md` - aktueller AI-Stack: David, Codex, Copilot, ChatGPT und Gemini sauber nach Rolle statt nach Marketingnamen gelesen
 5. `doc/plans/2026-03-21-dgdh-north-star-roadmap.md` - aktueller North Star; IMMER lesen
 6. `company-hq/ROADMAP.md` - Wo wir stehen, wo wir hinwollen, warum
 7. `company-hq/DGDH-CEO-CONTEXT.md` - Davids Prioritaeten und Entscheidungsregeln
@@ -69,6 +71,8 @@ Nur bei Bedarf (wenn deine Aufgabe es erfordert):
 - `CLAUDE.md` - Claude-spezifische Architektur-Details und Workflow
 - `doc/DGDH-AI-OPERATOR-RUNBOOK.md` - praktische Bedienungsanleitung fuer lokale Firmenruns und kanonische Run-Control
 - `EXECUTOR.md` - kompakter Regelkern fuer Copilot und andere ausfuehrende Langlauf-Agenten: Runtime-Truth, Port-/Process-Checks, Real-Run-Protokoll, Anti-Drift und Anti-`task_complete`-Loop
+- `TRINITY.md` - shared Vertrag fuer Davids direkte Assistenten: Codex, ChatGPT und Copilot
+- `CODEX.md` / `CHATGPT.md` / `COPILOT.md` - duenne, dauerhafte Identitaets-Docks fuer die drei Trinity-Rollen
 
 ### Stabile Arbeitslesart (2026-03-24)
 
@@ -79,7 +83,8 @@ Nur bei Bedarf (wenn deine Aufgabe es erfordert):
 - Invarianten gehoeren in Produktcode, Rollenverhalten in Role Templates, Spezialprozeduren spaeter in Skills, Bedienwissen in das Operator-Runbook.
 - Firmengedachtnis ist keine Chat-History-Suppe, sondern gestufte Kompression: Betriebszustand -> episodisch -> semantisch -> prozedural -> strategisch.
 - Self-Learning heisst spaeter governte Hypothesenbildung aus echten Firmenlaeufen; Self-Improving heisst erst nach Replay/Benchmark/PR-Promotion den Standardbetrieb zu verbessern.
-- Die aktuelle AI-Trinity ist aus First Principles geschnitten: Codex/GPT-5.4 fuer Reflexion und Zuschnitt, Copilot fuer lange Coding-Sprints, Herschel fuer externe Gegenreflexion, Gemini fuer Reviewer-/Researcher-Arbeit.
+- Die aktuelle AI-Trinity ist aus First Principles geschnitten: Codex/GPT-5.4 fuer Reflexion und Zuschnitt, Copilot fuer lange Coding-Sprints, ChatGPT fuer externe Gegenreflexion, Gemini fuer Reviewer-/Researcher-Arbeit.
+- Die direkte David-Trinity hat jetzt durable Docks: `TRINITY.md` als shared Vertrag, dazu `CODEX.md`, `CHATGPT.md` und `COPILOT.md` als rollenscharfe Wiedereinstiege.
 - `SOUL.md` ist die gemeinsame Wesens- und Beziehungsschicht der Firma: warm, wahr, resonant, bounded und David-nah, ohne Rollenlogik oder Governance zu ersetzen.
 
 ---

@@ -7,6 +7,10 @@
 ## Pflicht-Dokumente
 - `CURRENT.md` - live baton
 - `SOUL.md` - gemeinsamer Wesensvertrag der DGDH-Agentenwelt
+- `TRINITY.md` - shared Vertrag fuer Davids direkte Assistenten `Codex`, `ChatGPT` und `Copilot`
+- `CODEX.md` - rollenscharfer Wiedereinstieg fuer Codex als Planner/Reviewer/Fallback-Coder
+- `CHATGPT.md` - rollenscharfer Wiedereinstieg fuer ChatGPT als externer Planner/Reflektor
+- `COPILOT.md` - duenne Copilot-Docking-Datei ueber `EXECUTOR.md`
 - `EXECUTOR.md` - kompakter Regelkern fuer Copilot und andere ausfuehrende Langlauf-Agenten
 - `doc/DGDH-AI-OPERATOR-RUNBOOK.md` - stabile Bedienungsanleitung fuer lokale DGDH-/Paperclip-Firmenruns
 - `doc/plans/2026-03-24-dgdh-first-principles-operating-doctrine.md` - kanonische Verdichtung: DGDH als governte David-Aufmerksamkeits-Kompressionsmaschine
@@ -32,7 +36,7 @@
 - Leitfragen: "Entlastet das David real?" UND "Wird die Firma faehiger - oder nur groesser?"
 - Primaerer Messwert in dieser Phase: sinkende David-Minuten pro Firmenlauf; Revenue bleibt Lagging Indicator von Capability.
 - Langfristige Richtung: David gibt die Richtung, die Maschine uebernimmt mit wachsender Modellfaehigkeit immer mehr Entscheidungen und Lieferung.
-- Aktuelle Operator-Realitaet: David als Operator; Codex/GPT-5.4 als Planner/Reflektor und bei Bedarf bounded Coder; Copilot als langlaufender High-Power-Coder-Agent; Herschel als externer GPT-5.4-Reflektor; Gemini bleibt Reviewer/Researcher-Lane.
+- Aktuelle Operator-Realitaet: David als Operator; Codex/GPT-5.4 als Planner/Reflektor und bei Bedarf bounded Coder; Copilot als langlaufender High-Power-Coder-Agent; ChatGPT als externer GPT-5.4-Reflektor; Gemini bleibt Reviewer/Researcher-Lane.
 - Review ist Gate und Sensor zugleich: es schuetzt Qualitaet und liefert Drift-/Lernsignale fuer Packet, Handoff, Prompt und System.
 - Firmengedachtnis ist gestufte Kompression statt Vollkontext: Betriebszustand -> episodisch -> semantisch -> prozedural -> strategisch.
 - Lernen folgt fuer DGDH der Formel `Run -> Signal -> Verdichtung -> Promotion`.
@@ -41,6 +45,7 @@
 - Guardrail-Logik: Asymmetrisch. CEO/Planer agieren offener und strategischer; Worker eng gefuehrt; Spezialaufgaben landen kuenftig in fixierten Skills (Progressive Disclosure).
 - Wissensverteilung: Invarianten in Produktcode, Rollenverhalten in Role Templates, schmale wiederkehrende Spezialprozeduren spaeter in Skills, Bedienwissen im Operator-Runbook.
 - `SOUL.md` ist die gemeinsame Wesens- und Beziehungsschicht der Firma: shared core ueber Rollen, aber unter Governance; sie ersetzt weder Memory noch Rollenlogik noch Skills.
+- `TRINITY.md` plus `CODEX.md` / `CHATGPT.md` / `COPILOT.md` sind die durable Identity-Docks der direkten David-Assistenten; wenn einer driftet, soll David ihn ueber genau diese Datei wieder einklinken koennen.
 - `EXECUTOR.md` ist die kompakte Execution-Schicht fuer Langlauf-Agenten: richtige Runtime-Identitaet vor API-Vertrauen, API vor Browser, Prozess vor Port und kein Completion-Loop-Theater.
 - Self-Learning bedeutet spaeter governte Hypothesenbildung aus echten Firmenlaeufen; Self-Improving promoted bewaehrte Verbesserungen erst nach Replay/Benchmark/PR-Pruefung in den Standardbetrieb.
 - CEO-Modell-Richtung: Gemini Pro bevorzugt -> Flash -> Flash-Lite. (Claude/Codex mittelfristig als CEO plausibel).
