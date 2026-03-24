@@ -54,6 +54,12 @@ describe("resolveAssignedRoleTemplate", () => {
     expect(result.assigned?.prompt).toContain(
       "summary.files must be a JSON array of changed file paths, even if there is only one file.",
     );
+    expect(result.assigned?.prompt).toContain(
+      "Ensure `summary.files`, your Files Changed section, and the actual changed files in the issue branch all agree before you call worker-done.",
+    );
+    expect(result.assigned?.template.constraints).toContain(
+      "Before worker-done, verify that summary.files matches the real changed-file set in the issue branch.",
+    );
   });
 
   it("appends the operator add-on prompt without replacing the template", () => {
@@ -88,6 +94,7 @@ describe("resolveAssignedRoleTemplate", () => {
     expect(result.assigned?.prompt).toContain("- Ziel:");
     expect(result.assigned?.prompt).toContain("- Scope:");
     expect(result.assigned?.prompt).toContain("- doneWhen:");
+    expect(result.assigned?.prompt).toContain("- Merge-scope hygiene: verify that worker handoff metadata (`summary.files`), the changed-file set, and PR file scope agree.");
     expect(result.assigned?.prompt).toContain("- Semantic Compliance: Does the outcome truly and substantially hit the mission");
     expect(result.assigned?.prompt).toContain("- Point-by-point verification: Are explicitly required points really implemented");
     expect(result.assigned?.prompt).toContain("- Evidence:");
@@ -111,7 +118,7 @@ describe("resolveAssignedRoleTemplate", () => {
       "Check semantic compliance point-by-point against the mission and doneWhen. Reject superficial compliance.",
     );
     expect(result.assigned?.template.constraints).toContain(
-      "Do not accept results with unsupported claims, source drift, scope drift, or weak/superficial substitute logic.",
+      "Do not accept results with unsupported claims, source drift, scope drift, weak/superficial substitute logic, or file-scope mismatch between worker metadata and the actual PR.",
     );
     expect(result.assigned?.template.constraints).toContain(
       "For changes_requested, provide no more than 3 concrete and actionable fixes.",
