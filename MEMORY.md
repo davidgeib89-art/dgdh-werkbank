@@ -107,7 +107,9 @@
 - Ein manueller Heartbeat ohne zugewiesenes Issue blockt erwartbar am Gate `no_assigned_issue`; fuer sichtbare reale Runs muss der bestehende Issue-Assignment-Pfad genutzt werden.
 - DGDH-Seed-Agenten tragen jetzt eine explizite Heartbeat-Runtime-Policy fuer `wakeOnAssignment`/`wakeOnAutomation`; der bisherige Seed ohne diese Flags erzeugte trotz korrekter Issue-Zuweisung keine echten Runs.
 - Der Heartbeat-Gate unterscheidet jetzt wieder source-spezifisch zwischen `assignment`, `automation` und `on_demand`, statt alle Nicht-Timer-Wege unter einem gemeinsamen `wakeOnDemand`-Schalter zu blocken.
+- `gemini_local` haelt jetzt `adapterConfig.model = auto` auch unter `applyModelLane` stabil; die Routing-Preflight-Lane darf weiter gerechnet werden, aber der CLI-Adapter bekommt in diesem Fall kein erzwungenes explizites `--model` mehr.
 - Das Worker-Role-Template erzwingt jetzt fuer kanonische PR/Handoffs den Paperclip-Pfad `worker-pr` -> `worker-done` statt `gh pr create`.
+- Das CEO-Role-Template erzwingt fuer execution-lastige Parent-Issues jetzt API-first statt Repo-Read-Drift: Child-Status-Check zuerst, dann Agent-Read, dann direkte Packetisierung statt breiter Repo-Lektuere.
 - Delegation Guardrails V1 sind live: CEO darf direkt nur Denk-/Entscheidungs-/Aggregationsarbeit erledigen; operative Umsetzung, Code, Datei-, Git-, PR- und Merge-Arbeit muss delegiert werden.
 - Review Policy V1 ist kanonisch: review-optionale Packets sind nur fuer reine Denk-/Plan-/Aggregationsarbeit mit expliziter Packet-Policy erlaubt; alles mit Umsetzung, Datei-Aenderung, Code, Git/PR/Merge oder konkretem Artefakt bleibt review-required/default-on.
 - Reviewer Semantic Acceptance Guardrail V1 ist live: Reviewer-Prompt verlangt semantische Punkt-fuer-Punkt-Pruefung; `POST /api/issues/:id/reviewer-verdict` verlangt jetzt substantive `doneWhenCheck` + `evidence`, sodass oberflaechliche oder fehlende Begruendungen nicht mehr accepted durchrutschen.
@@ -119,6 +121,7 @@
 - Reviewer-Review-Target nutzt fuer Worker-Handoffs kanonisch `issue.worker_done_recorded` plus `issue.worker_pull_request_created`; rohes Worker-stdout ist nur Fallback.
 - Der reale DAV-16-Lauf ist geliefert: Worker -> Reviewer -> merge lief mit echten GitHub-Spuren; der Parent DAV-15 endete danach `done` mit Merge-Summary.
 - Der reale DAV-17/DAV-18-Lauf auf canonical `main` ist geliefert: Worker erstellte PR #10 fuer den Regressionstest zu `ensure-seed-data`, Reviewer validierte den Test real mit `npx vitest run src/__tests__/ensure-seed-data.test.ts`, `DAV-18` endete `merged`, Parent `DAV-17` endete `done`.
+- Der reale DAV-24/DAV-25-Schlusspfad ist geliefert: nach Fix des `model=auto`-Routing-Leaks erzeugte der CEO auf sauberem `main` wieder echte Child-Issues, `DAV-25` lief durch Worker -> Reviewer -> Merge bis `merged`, `DAV-24` endete danach `done`.
 - Reviewer-Verdict-Contract-Fact: `POST /api/issues/:id/reviewer-verdict` akzeptiert bei `accepted` nur `requiredFixes: []`; `"none"` oder `["none"]` werden vom Schema abgewiesen.
 - Evolution Lane ist kanonisch als spaetere Richtung gesetzt: kontrollierte Selbstverbesserung laeuft replay-/benchmark-getrieben, PR-basiert und mit Human-Merge, nicht als freie Live-Selbstoptimierung.
 
