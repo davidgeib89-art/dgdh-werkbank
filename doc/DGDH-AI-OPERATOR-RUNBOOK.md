@@ -341,7 +341,7 @@ Do not use it as a substitute for:
 When a run is live, read multiple surfaces together:
 
 - dashboard / company live-runs
-- issue page and issue comments
+- issue page and issue comments (includes a compact **company run truth strip** visualizing the path: `assigned -> run started -> worker done -> reviewer assigned -> reviewer run -> merged -> parent done`)
 - inbox for human-action blockers
 - git state / worktree state
 
