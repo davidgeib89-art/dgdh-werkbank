@@ -118,6 +118,33 @@ describe("issues merge-pr route", () => {
     expect(res.body.status).toBe("merge_conflict");
   });
 
+  it("returns 409 on merge scope block", async () => {
+    mockCeoService.mergeIssuePullRequest.mockResolvedValueOnce({
+      outcome: "merge_blocked",
+      prNumber: 202,
+      prUrl: "https://github.com/davidgeib89-art/dgdh-werkbank/pull/202",
+      branch: "dgdh/issue-DGD-202-scope",
+      message: "Merge blocked: unexpected files would reach main.",
+      unexpectedFiles: ["doc/unexpected.md"],
+      missingFiles: [],
+    });
+
+    const app = createApp({
+      type: "agent",
+      companyId: "company-1",
+      agentId: "agent-ceo-1",
+      runId: "run-ceo-1",
+    });
+
+    const res = await request(app).post("/api/issues/issue-1/merge-pr").send({
+      prNumber: 202,
+    });
+
+    expect(res.status).toBe(409);
+    expect(res.body.status).toBe("merge_blocked");
+    expect(res.body.unexpectedFiles).toEqual(["doc/unexpected.md"]);
+  });
+
   it("rejects non-ceo agents", async () => {
     const app = createApp({
       type: "agent",

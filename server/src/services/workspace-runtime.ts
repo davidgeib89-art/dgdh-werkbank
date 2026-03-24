@@ -232,6 +232,41 @@ async function runGit(args: string[], cwd: string): Promise<string> {
   return proc.stdout.trim();
 }
 
+async function runGitWithResult(args: string[], cwd: string): Promise<{
+  ok: boolean;
+  stdout: string;
+  stderr: string;
+}> {
+  const proc = await new Promise<{ stdout: string; stderr: string; code: number | null }>((resolve, reject) => {
+    const child = spawn("git", args, {
+      cwd,
+      stdio: ["ignore", "pipe", "pipe"],
+      env: process.env,
+    });
+    let stdout = "";
+    let stderr = "";
+    child.stdout?.on("data", (chunk) => {
+      stdout += String(chunk);
+    });
+    child.stderr?.on("data", (chunk) => {
+      stderr += String(chunk);
+    });
+    child.on("error", reject);
+    child.on("close", (code) => resolve({ stdout, stderr, code }));
+  });
+
+  return {
+    ok: proc.code === 0,
+    stdout: proc.stdout.trim(),
+    stderr: proc.stderr.trim(),
+  };
+}
+
+async function configureGitLongpathsIfNeeded(cwd: string) {
+  if (process.platform !== "win32") return;
+  await runGitWithResult(["config", "core.longpaths", "true"], cwd).catch(() => undefined);
+}
+
 async function directoryExists(value: string) {
   return fs.stat(value).then((stats) => stats.isDirectory()).catch(() => false);
 }
@@ -366,6 +401,7 @@ export async function realizeExecutionWorkspace(input: {
   }
 
   const repoRoot = await runGit(["rev-parse", "--show-toplevel"], input.base.baseCwd);
+  await configureGitLongpathsIfNeeded(repoRoot);
   const branchTemplate = asString(rawStrategy.branchTemplate, "{{issue.identifier}}-{{slug}}");
   const renderedBranch = renderWorkspaceTemplate(branchTemplate, {
     issue: input.issue,
@@ -430,6 +466,81 @@ export async function realizeExecutionWorkspace(input: {
     worktreePath,
     warnings: [],
     created: true,
+  };
+}
+
+export async function cleanupExecutionWorkspace(input: {
+  baseCwd: string;
+  config: Record<string, unknown>;
+  branchName: string | null;
+  worktreePath?: string | null;
+}): Promise<{
+  removed: boolean;
+  branchDeleted: boolean;
+  worktreePath: string | null;
+  warnings: string[];
+}> {
+  const rawStrategy = parseObject(input.config.workspaceStrategy);
+  const strategyType = asString(rawStrategy.type, "project_primary");
+  if (strategyType !== "git_worktree" || !input.branchName) {
+    return {
+      removed: false,
+      branchDeleted: false,
+      worktreePath: null,
+      warnings: [],
+    };
+  }
+
+  const repoRoot = await runGit(["rev-parse", "--show-toplevel"], input.baseCwd);
+  await configureGitLongpathsIfNeeded(repoRoot);
+
+  const configuredParentDir = asString(rawStrategy.worktreeParentDir, "");
+  const worktreeParentDir = configuredParentDir
+    ? resolveConfiguredPath(configuredParentDir, repoRoot)
+    : path.join(repoRoot, ".paperclip", "worktrees");
+  const targetWorktreePath = input.worktreePath
+    ? resolveConfiguredPath(input.worktreePath, repoRoot)
+    : path.join(worktreeParentDir, input.branchName);
+  const warnings: string[] = [];
+
+  if (await directoryExists(targetWorktreePath)) {
+    const removeResult = await runGitWithResult(
+      ["worktree", "remove", "--force", targetWorktreePath],
+      repoRoot,
+    );
+    if (!removeResult.ok) {
+      warnings.push(
+        removeResult.stderr ||
+          removeResult.stdout ||
+          `git worktree remove failed for ${targetWorktreePath}`,
+      );
+    }
+    await runGitWithResult(["worktree", "prune"], repoRoot).catch(() => undefined);
+  }
+
+  let branchDeleted = false;
+  const branchExists = await runGitWithResult(
+    ["show-ref", "--verify", `refs/heads/${input.branchName}`],
+    repoRoot,
+  );
+  if (branchExists.ok) {
+    const deleteResult = await runGitWithResult(["branch", "-d", input.branchName], repoRoot);
+    if (deleteResult.ok) {
+      branchDeleted = true;
+    } else {
+      warnings.push(
+        deleteResult.stderr ||
+          deleteResult.stdout ||
+          `git branch -d failed for ${input.branchName}`,
+      );
+    }
+  }
+
+  return {
+    removed: !(await directoryExists(targetWorktreePath)),
+    branchDeleted,
+    worktreePath: targetWorktreePath,
+    warnings,
   };
 }
 

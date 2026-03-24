@@ -1,6 +1,6 @@
 import { and, asc, desc, eq, inArray } from "drizzle-orm";
 import type { Db } from "@paperclipai/db";
-import { activityLog, agents, heartbeatRuns, issues } from "@paperclipai/db";
+import { activityLog, agents, heartbeatRuns, issues, projectWorkspaces, projects } from "@paperclipai/db";
 import { z } from "zod";
 import { badRequest } from "../errors.js";
 import { logger } from "../middleware/logger.js";
@@ -10,6 +10,13 @@ import { logActivity } from "./activity-log.js";
 import { githubPrService } from "./github-pr.js";
 import { isIssueCompleteForParent } from "./issue-review-policy.js";
 import { resolveAssignedRoleTemplate } from "./role-templates.js";
+import {
+  buildExecutionWorkspaceAdapterConfig,
+  parseIssueExecutionWorkspaceSettings,
+  parseProjectExecutionWorkspacePolicy,
+  resolveExecutionWorkspaceMode,
+} from "./execution-workspace-policy.js";
+import { cleanupExecutionWorkspace } from "./workspace-runtime.js";
 
 const REVIEWER_ACCEPTED_STATUS = "reviewer_accepted";
 const MERGED_STATUS = "merged";
@@ -31,12 +38,14 @@ type MergeActor = {
 export type CeoIssueRecord = {
   id: string;
   companyId: string;
+  projectId: string | null;
   parentId: string | null;
   status: string;
   title: string;
   description: string | null;
   identifier: string | null;
   issueNumber: number | null;
+  executionWorkspaceSettings: Record<string, unknown> | null;
   createdAt: Date;
   assigneeAgentId: string | null;
 };
@@ -52,6 +61,7 @@ type MergeChildOutcome = {
   prNumber: number;
   prUrl: string | null;
   branch: string | null;
+  cleanupWarnings?: string[];
 };
 
 type MergeChildConflict = {
@@ -62,7 +72,17 @@ type MergeChildConflict = {
   message: string;
 };
 
-export type MergeChildResult = MergeChildOutcome | MergeChildConflict;
+type MergeChildBlocked = {
+  outcome: "merge_blocked";
+  prNumber: number;
+  prUrl: string | null;
+  branch: string | null;
+  message: string;
+  unexpectedFiles: string[];
+  missingFiles: string[];
+};
+
+export type MergeChildResult = MergeChildOutcome | MergeChildConflict | MergeChildBlocked;
 
 type OrchestratorNoTriggerReason =
   | "verdict_not_accepted"
@@ -101,6 +121,21 @@ export type CeoMergeOrchestratorResult =
         branch: string | null;
         message: string;
       };
+    }
+  | {
+      triggered: true;
+      outcome: "merge_blocked";
+      parentIssueId: string;
+      blocked: {
+        childIssueId: string;
+        identifier: string | null;
+        title: string;
+        prUrl: string | null;
+        branch: string | null;
+        message: string;
+        unexpectedFiles: string[];
+        missingFiles: string[];
+      };
     };
 
 type CeoMergeOrchestratorDeps = {
@@ -128,10 +163,55 @@ type CeoMergeOrchestratorDeps = {
     conflictChild: CeoIssueRecord;
     conflict: MergeChildConflict;
   }) => Promise<void>;
+  postParentBlockedComment: (input: {
+    parentIssue: CeoIssueRecord;
+    blockedChild: CeoIssueRecord;
+    blocked: MergeChildBlocked;
+  }) => Promise<void>;
 };
 
 function normalizeStatus(value: string | null | undefined): string {
   return typeof value === "string" ? value.trim().toLowerCase() : "";
+}
+
+function normalizeRepoRelativePath(value: string): string {
+  return value
+    .trim()
+    .replace(/\\/g, "/")
+    .replace(/^\.\//, "")
+    .replace(/^\/+/, "")
+    .replace(/\/+/g, "/")
+    .toLowerCase();
+}
+
+export function evaluateMergeScopeAgainstSummaryFiles(input: {
+  expectedFiles: string[];
+  actualFiles: string[];
+}) {
+  const expectedByKey = new Map<string, string>();
+  const actualByKey = new Map<string, string>();
+
+  for (const file of input.expectedFiles) {
+    const normalized = normalizeRepoRelativePath(file);
+    if (normalized) expectedByKey.set(normalized, normalized);
+  }
+  for (const file of input.actualFiles) {
+    const normalized = normalizeRepoRelativePath(file);
+    if (normalized) actualByKey.set(normalized, normalized);
+  }
+
+  const expected = Array.from(expectedByKey.values()).sort();
+  const actual = Array.from(actualByKey.values()).sort();
+  const unexpectedFiles = actual.filter((file) => !expectedByKey.has(file));
+  const missingFiles = expected.filter((file) => !actualByKey.has(file));
+
+  return {
+    matches: unexpectedFiles.length === 0 && missingFiles.length === 0,
+    expectedFiles: expected,
+    actualFiles: actual,
+    unexpectedFiles,
+    missingFiles,
+  };
 }
 
 function parsePrNumberFromUrl(prUrl: string | null | undefined): number | null {
@@ -208,6 +288,32 @@ function buildConflictComment(input: {
     `**Branch:** ${input.conflict.branch ?? "unknown"}`,
     `**PR:** ${input.conflict.prUrl ?? "unknown"}`,
     "**Aktion erforderlich:** David muss manuell entscheiden - Auto-Retry ist nicht aktiviert.",
+  ].join("\n");
+}
+
+function buildBlockedComment(input: {
+  blockedChild: CeoIssueRecord;
+  blocked: MergeChildBlocked;
+}) {
+  const unexpected =
+    input.blocked.unexpectedFiles.length > 0
+      ? input.blocked.unexpectedFiles.map((file) => `- ${file}`).join("\n")
+      : "- none";
+  const missing =
+    input.blocked.missingFiles.length > 0
+      ? input.blocked.missingFiles.map((file) => `- ${file}`).join("\n")
+      : "- none";
+  return [
+    "## Merge blockiert: Scope weicht vom Worker-Handoff ab",
+    `**Packet:** #${input.blockedChild.identifier ?? input.blockedChild.id} ${input.blockedChild.title}`,
+    `**Branch:** ${input.blocked.branch ?? "unknown"}`,
+    `**PR:** ${input.blocked.prUrl ?? "unknown"}`,
+    `**Ursache:** ${input.blocked.message}`,
+    "**Unexpected Files:**",
+    unexpected,
+    "**Missing Expected Files:**",
+    missing,
+    "**Aktion erforderlich:** Branch auf den kanonischen `worker-done.summary.files`-Scope bereinigen oder den Worker-Handoff mit korrektem Scope neu erzeugen.",
   ].join("\n");
 }
 
@@ -329,6 +435,30 @@ export async function maybeRunCeoMergeOrchestratorAfterReviewerVerdict(
       };
     }
 
+    if (mergeResult.outcome === "merge_blocked") {
+      await deps.setIssueStatus(parentIssue.id, "blocked");
+      await deps.postParentBlockedComment({
+        parentIssue,
+        blockedChild: child,
+        blocked: mergeResult,
+      });
+      return {
+        triggered: true,
+        outcome: "merge_blocked",
+        parentIssueId: parentIssue.id,
+        blocked: {
+          childIssueId: child.id,
+          identifier: child.identifier,
+          title: child.title,
+          prUrl: mergeResult.prUrl,
+          branch: mergeResult.branch,
+          message: mergeResult.message,
+          unexpectedFiles: mergeResult.unexpectedFiles,
+          missingFiles: mergeResult.missingFiles,
+        },
+      };
+    }
+
     mergedChildren.push({
       childIssueId: child.id,
       identifier: child.identifier,
@@ -393,12 +523,14 @@ export function ceoService(db: Db) {
     return {
       id: issue.id,
       companyId: issue.companyId,
+      projectId: issue.projectId ?? null,
       parentId: issue.parentId ?? null,
       status: issue.status,
       title: issue.title,
       description: issue.description ?? null,
       identifier: issue.identifier ?? null,
       issueNumber: issue.issueNumber ?? null,
+      executionWorkspaceSettings: issue.executionWorkspaceSettings ?? null,
       createdAt: issue.createdAt,
       assigneeAgentId: issue.assigneeAgentId ?? null,
     };
@@ -412,12 +544,14 @@ export function ceoService(db: Db) {
       .select({
         id: issues.id,
         companyId: issues.companyId,
+        projectId: issues.projectId,
         parentId: issues.parentId,
         status: issues.status,
         title: issues.title,
         description: issues.description,
         identifier: issues.identifier,
         issueNumber: issues.issueNumber,
+        executionWorkspaceSettings: issues.executionWorkspaceSettings,
         createdAt: issues.createdAt,
         assigneeAgentId: issues.assigneeAgentId,
       })
@@ -428,15 +562,93 @@ export function ceoService(db: Db) {
     return children.map((child) => ({
       id: child.id,
       companyId: child.companyId,
+      projectId: child.projectId ?? null,
       parentId: child.parentId ?? null,
       status: child.status,
       title: child.title,
       description: child.description ?? null,
       identifier: child.identifier ?? null,
       issueNumber: child.issueNumber ?? null,
+      executionWorkspaceSettings: child.executionWorkspaceSettings ?? null,
       createdAt: child.createdAt,
       assigneeAgentId: child.assigneeAgentId ?? null,
     }));
+  }
+
+  async function getWorkerMergeScopeForIssue(issueId: string): Promise<{
+    expectedFiles: string[];
+    branch: string | null;
+    prUrl: string | null;
+    commitHash: string | null;
+  } | null> {
+    const rows = await db
+      .select({ details: activityLog.details })
+      .from(activityLog)
+      .where(
+        and(
+          eq(activityLog.entityType, "issue"),
+          eq(activityLog.entityId, issueId),
+          eq(activityLog.action, "issue.worker_done_recorded"),
+        ),
+      )
+      .orderBy(desc(activityLog.createdAt))
+      .limit(12);
+
+    for (const row of rows) {
+      const details = parseObject(row.details);
+      const summary = parseObject(details.summary);
+      const files = Array.isArray(summary.files)
+        ? summary.files.filter((value): value is string => typeof value === "string" && value.trim().length > 0)
+        : [];
+      if (files.length === 0) continue;
+      return {
+        expectedFiles: files,
+        branch: readStringField(details, "branch"),
+        prUrl: readStringField(details, "prUrl"),
+        commitHash: readStringField(details, "commitHash"),
+      };
+    }
+
+    return null;
+  }
+
+  async function resolveExecutionWorkspaceCleanupConfig(issue: CeoIssueRecord) {
+    if (!issue.projectId) return null;
+
+    const row = await db
+      .select({
+        executionWorkspacePolicy: projects.executionWorkspacePolicy,
+        workspaceCwd: projectWorkspaces.cwd,
+      })
+      .from(projects)
+      .leftJoin(
+        projectWorkspaces,
+        and(eq(projectWorkspaces.projectId, projects.id), eq(projectWorkspaces.isPrimary, true)),
+      )
+      .where(eq(projects.id, issue.projectId))
+      .then((rows) => rows[0] ?? null);
+
+    if (!row?.workspaceCwd) return null;
+
+    const projectPolicy = parseProjectExecutionWorkspacePolicy(row.executionWorkspacePolicy);
+    const issueSettings = parseIssueExecutionWorkspaceSettings(issue.executionWorkspaceSettings);
+    const mode = resolveExecutionWorkspaceMode({
+      projectPolicy,
+      issueSettings,
+      legacyUseProjectWorkspace: true,
+    });
+    if (mode !== "isolated") return null;
+
+    return {
+      baseCwd: row.workspaceCwd,
+      config: buildExecutionWorkspaceAdapterConfig({
+        agentConfig: {},
+        projectPolicy,
+        issueSettings,
+        mode,
+        legacyUseProjectWorkspace: true,
+      }),
+    };
   }
 
   async function getPullRequestRefForChildIssue(childIssueId: string): Promise<PullRequestRef | null> {
@@ -486,6 +698,92 @@ export function ceoService(db: Db) {
     const prDetails = await githubSvc.getGitHubPullRequest({
       prNumber: input.prNumber,
     });
+    const workerMergeScope = await getWorkerMergeScopeForIssue(issue.id);
+    if (!workerMergeScope) {
+      const message = "Merge blocked: missing canonical worker-done summary.files metadata for this issue.";
+      const activityRunId = await resolvePersistedActivityRunId(input.requestedBy.runId);
+      await issuesSvc.update(issue.id, { status: "blocked" });
+      await logActivity(db, {
+        companyId: issue.companyId,
+        actorType: input.requestedBy.actorType,
+        actorId: input.requestedBy.actorId,
+        agentId: input.requestedBy.agentId ?? null,
+        runId: activityRunId,
+        action: "issue.merge_scope_blocked",
+        entityType: "issue",
+        entityId: issue.id,
+        details: withApiRunIdFallbackDetails(
+          {
+            identifier: issue.identifier,
+            prNumber: input.prNumber,
+            prUrl: prDetails.prUrl,
+            branch: prDetails.branch,
+            reason: "missing_worker_scope",
+            message,
+          },
+          input.requestedBy.runId,
+          activityRunId,
+        ),
+      });
+      return {
+        outcome: "merge_blocked",
+        prNumber: input.prNumber,
+        prUrl: prDetails.prUrl,
+        branch: prDetails.branch,
+        message,
+        unexpectedFiles: [],
+        missingFiles: [],
+      };
+    }
+
+    const changedFiles = await githubSvc.listGitHubPullRequestFiles({
+      prNumber: input.prNumber,
+    });
+    const scopeCheck = evaluateMergeScopeAgainstSummaryFiles({
+      expectedFiles: workerMergeScope.expectedFiles,
+      actualFiles: changedFiles.map((file) => file.path),
+    });
+    if (!scopeCheck.matches) {
+      const message =
+        "Merge blocked: PR file scope does not match worker-done.summary.files. Unexpected files would reach main.";
+      const activityRunId = await resolvePersistedActivityRunId(input.requestedBy.runId);
+      await issuesSvc.update(issue.id, { status: "blocked" });
+      await logActivity(db, {
+        companyId: issue.companyId,
+        actorType: input.requestedBy.actorType,
+        actorId: input.requestedBy.actorId,
+        agentId: input.requestedBy.agentId ?? null,
+        runId: activityRunId,
+        action: "issue.merge_scope_blocked",
+        entityType: "issue",
+        entityId: issue.id,
+        details: withApiRunIdFallbackDetails(
+          {
+            identifier: issue.identifier,
+            prNumber: input.prNumber,
+            prUrl: prDetails.prUrl,
+            branch: prDetails.branch,
+            expectedFiles: scopeCheck.expectedFiles,
+            actualFiles: scopeCheck.actualFiles,
+            unexpectedFiles: scopeCheck.unexpectedFiles,
+            missingFiles: scopeCheck.missingFiles,
+            message,
+          },
+          input.requestedBy.runId,
+          activityRunId,
+        ),
+      });
+      return {
+        outcome: "merge_blocked",
+        prNumber: input.prNumber,
+        prUrl: prDetails.prUrl,
+        branch: prDetails.branch,
+        message,
+        unexpectedFiles: scopeCheck.unexpectedFiles,
+        missingFiles: scopeCheck.missingFiles,
+      };
+    }
+
     const mergeResult = await githubSvc.mergeGitHubPullRequest({
       prNumber: input.prNumber,
       commitTitle: `[${issue.identifier ?? issue.id}] ${issue.title}`,
@@ -526,10 +824,21 @@ export function ceoService(db: Db) {
       };
     }
 
+    let cleanupWarnings: string[] = [];
     if (prDetails.branch) {
       await githubSvc.deleteGitHubBranch({
         branch: prDetails.branch,
       });
+
+      const cleanupConfig = await resolveExecutionWorkspaceCleanupConfig(issue);
+      if (cleanupConfig) {
+        const cleanupResult = await cleanupExecutionWorkspace({
+          baseCwd: cleanupConfig.baseCwd,
+          config: cleanupConfig.config,
+          branchName: prDetails.branch,
+        });
+        cleanupWarnings = cleanupResult.warnings;
+      }
     }
     const activityRunId = await resolvePersistedActivityRunId(
       input.requestedBy.runId,
@@ -552,6 +861,7 @@ export function ceoService(db: Db) {
           branch: prDetails.branch,
           mergeMethod: "squash",
           mergeSha: mergeResult.sha,
+          cleanupWarnings,
         },
         input.requestedBy.runId,
         activityRunId,
@@ -563,6 +873,7 @@ export function ceoService(db: Db) {
       prNumber: input.prNumber,
       prUrl: prDetails.prUrl,
       branch: prDetails.branch,
+      cleanupWarnings,
     };
   }
 
@@ -688,6 +999,47 @@ export function ceoService(db: Db) {
     });
   }
 
+  async function postParentBlockedComment(input: {
+    parentIssue: CeoIssueRecord;
+    blockedChild: CeoIssueRecord;
+    blocked: MergeChildBlocked;
+    ceoAgentId: string | null;
+    runId: string | null;
+  }) {
+    const body = buildBlockedComment({
+      blockedChild: input.blockedChild,
+      blocked: input.blocked,
+    });
+    await issuesSvc.addComment(input.parentIssue.id, body, {
+      agentId: input.ceoAgentId ?? undefined,
+    });
+
+    const activityRunId = await resolvePersistedActivityRunId(input.runId);
+    await logActivity(db, {
+      companyId: input.parentIssue.companyId,
+      actorType: "agent",
+      actorId: input.ceoAgentId ?? "system",
+      agentId: input.ceoAgentId,
+      runId: activityRunId,
+      action: "issue.merge_scope_blocked",
+      entityType: "issue",
+      entityId: input.parentIssue.id,
+      details: withApiRunIdFallbackDetails(
+        {
+          identifier: input.parentIssue.identifier,
+          blockedChildIssueId: input.blockedChild.id,
+          blockedChildIdentifier: input.blockedChild.identifier,
+          prUrl: input.blocked.prUrl,
+          branch: input.blocked.branch,
+          unexpectedFiles: input.blocked.unexpectedFiles,
+          missingFiles: input.blocked.missingFiles,
+        },
+        input.runId,
+        activityRunId,
+      ),
+    });
+  }
+
   async function isParentAssignedToCeo(parentIssue: CeoIssueRecord) {
     if (!parentIssue.assigneeAgentId) return false;
     const assignee = await db
@@ -746,12 +1098,14 @@ export function ceoService(db: Db) {
               ? {
                   id: issue.id,
                   companyId: issue.companyId,
+                  projectId: issue.projectId ?? null,
                   parentId: issue.parentId ?? null,
                   status: issue.status,
                   title: issue.title,
                   description: issue.description ?? null,
                   identifier: issue.identifier ?? null,
                   issueNumber: issue.issueNumber ?? null,
+                  executionWorkspaceSettings: issue.executionWorkspaceSettings ?? null,
                   createdAt: issue.createdAt,
                   assigneeAgentId: issue.assigneeAgentId ?? null,
                 }
@@ -770,6 +1124,14 @@ export function ceoService(db: Db) {
             parentIssue: parent,
             conflictChild,
             conflict,
+            ceoAgentId,
+            runId: input.reviewerRunId,
+          }),
+        postParentBlockedComment: ({ parentIssue: parent, blockedChild, blocked }) =>
+          postParentBlockedComment({
+            parentIssue: parent,
+            blockedChild,
+            blocked,
             ceoAgentId,
             runId: input.reviewerRunId,
           }),

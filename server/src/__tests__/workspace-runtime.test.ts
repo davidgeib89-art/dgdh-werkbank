@@ -5,6 +5,7 @@ import path from "node:path";
 import { promisify } from "node:util";
 import { afterEach, describe, expect, it } from "vitest";
 import {
+  cleanupExecutionWorkspace,
   ensureRuntimeServicesForRun,
   normalizeAdapterManagedRuntimeServices,
   realizeExecutionWorkspace,
@@ -209,6 +210,53 @@ describe("realizeExecutionWorkspace", () => {
     });
 
     await expect(fs.readFile(path.join(reused.cwd, ".paperclip-provision-created"), "utf8")).resolves.toBe("false\n");
+  });
+
+  it("removes an isolated git worktree and deletes its local branch after cleanup", async () => {
+    const repoRoot = await createTempRepo();
+
+    const workspace = await realizeExecutionWorkspace({
+      base: {
+        baseCwd: repoRoot,
+        source: "project_primary",
+        projectId: "project-1",
+        workspaceId: "workspace-1",
+        repoUrl: null,
+        repoRef: "HEAD",
+      },
+      config: {
+        workspaceStrategy: {
+          type: "git_worktree",
+          branchTemplate: "{{issue.identifier}}-{{slug}}",
+        },
+      },
+      issue: {
+        id: "issue-2",
+        identifier: "PAP-449",
+        title: "Cleanup worktree support",
+      },
+      agent: {
+        id: "agent-1",
+        name: "Codex Coder",
+        companyId: "company-1",
+      },
+    });
+
+    const cleanup = await cleanupExecutionWorkspace({
+      baseCwd: repoRoot,
+      config: {
+        workspaceStrategy: {
+          type: "git_worktree",
+        },
+      },
+      branchName: workspace.branchName,
+      worktreePath: workspace.worktreePath,
+    });
+
+    expect(cleanup.removed).toBe(true);
+    expect(cleanup.branchDeleted).toBe(true);
+    await expect(fs.stat(workspace.cwd)).rejects.toThrow();
+    await expect(execFileAsync("git", ["show-ref", "--verify", `refs/heads/${workspace.branchName}`], { cwd: repoRoot })).rejects.toThrow();
   });
 });
 

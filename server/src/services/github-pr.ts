@@ -37,6 +37,11 @@ export interface GitHubPullRequestDetails {
   merged: boolean;
 }
 
+export interface GitHubPullRequestFile {
+  path: string;
+  status: string | null;
+}
+
 export type MergeGitHubPullRequestResult =
   | {
       outcome: "merged";
@@ -365,6 +370,24 @@ function parsePullRequestDetails(payload: unknown): GitHubPullRequestDetails | n
   };
 }
 
+function parsePullRequestFiles(payload: unknown): GitHubPullRequestFile[] | null {
+  if (!Array.isArray(payload)) return null;
+
+  const files: GitHubPullRequestFile[] = [];
+  for (const entry of payload) {
+    const record = asRecord(entry);
+    if (!record) return null;
+    const filename = record.filename;
+    if (typeof filename !== "string" || filename.trim().length === 0) return null;
+    files.push({
+      path: filename.trim(),
+      status: typeof record.status === "string" ? record.status : null,
+    });
+  }
+
+  return files;
+}
+
 export async function getGitHubPullRequest(input: {
   owner?: string | null;
   repo?: string | null;
@@ -397,6 +420,52 @@ export async function getGitHubPullRequest(input: {
 
   const message = parseGitHubErrorMessage(payload) ?? response.statusText;
   throw unprocessable(`GitHub pull request lookup failed (${response.status}): ${message}`);
+}
+
+export async function listGitHubPullRequestFiles(input: {
+  owner?: string | null;
+  repo?: string | null;
+  prNumber: number;
+}): Promise<GitHubPullRequestFile[]> {
+  if (!Number.isInteger(input.prNumber) || input.prNumber <= 0) {
+    throw badRequest("prNumber must be a positive integer");
+  }
+
+  const token = resolveGitHubToken();
+  const repoRef = resolveGitHubRepo(input);
+  const files: GitHubPullRequestFile[] = [];
+
+  for (let page = 1; page <= 10; page += 1) {
+    const params = new URLSearchParams({
+      per_page: "100",
+      page: String(page),
+    });
+    const response = await fetch(
+      `${DEFAULT_GITHUB_API_BASE_URL}/repos/${repoRef.owner}/${repoRef.repo}/pulls/${input.prNumber}/files?${params.toString()}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: DEFAULT_GITHUB_ACCEPT_HEADER,
+          "X-GitHub-Api-Version": DEFAULT_GITHUB_API_VERSION,
+          "User-Agent": "paperclip-github-pr-service",
+        },
+        signal: AbortSignal.timeout(15_000),
+      },
+    );
+
+    const payload = (await response.json().catch(() => null)) as unknown;
+    const parsed = parsePullRequestFiles(payload);
+    if (!response.ok || !parsed) {
+      const message = parseGitHubErrorMessage(payload) ?? response.statusText;
+      throw unprocessable(`GitHub pull request files lookup failed (${response.status}): ${message}`);
+    }
+
+    files.push(...parsed);
+    if (parsed.length < 100) break;
+  }
+
+  return files;
 }
 
 export async function mergeGitHubPullRequest(input: {
@@ -538,6 +607,7 @@ export function githubPrService() {
   return {
     createGitHubPR,
     getGitHubPullRequest,
+    listGitHubPullRequestFiles,
     mergeGitHubPullRequest,
     deleteGitHubBranch,
     createGitHubIssueComment,

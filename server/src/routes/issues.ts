@@ -756,6 +756,21 @@ export function issueRoutes(db: Db, storage: StorageService) {
         return;
       }
 
+      if (mergeResult.outcome === "merge_blocked") {
+        res.status(409).json({
+          issueId: issue.id,
+          issueIdentifier: issue.identifier,
+          status: "merge_blocked",
+          prNumber: mergeResult.prNumber,
+          prUrl: mergeResult.prUrl,
+          branch: mergeResult.branch,
+          message: mergeResult.message,
+          unexpectedFiles: mergeResult.unexpectedFiles,
+          missingFiles: mergeResult.missingFiles,
+        });
+        return;
+      }
+
       res.status(200).json({
         issueId: issue.id,
         issueIdentifier: issue.identifier,
@@ -763,6 +778,7 @@ export function issueRoutes(db: Db, storage: StorageService) {
         prNumber: mergeResult.prNumber,
         prUrl: mergeResult.prUrl,
         branch: mergeResult.branch,
+        cleanupWarnings: mergeResult.cleanupWarnings ?? [],
       });
     },
   );
@@ -913,13 +929,13 @@ export function issueRoutes(db: Db, storage: StorageService) {
       const actor = getActorInfo(req);
       const activityRunId = await resolvePersistedActivityRunId(actor.runId);
       const updatedIssue = await db.transaction(async (tx) => {
-        const txIssueSvc = issueService(tx);
+        const txIssueSvc = issueService(tx as unknown as Db);
         const nextIssue = await txIssueSvc.update(issue.id, {
           status: "in_review",
         });
         if (!nextIssue) return null;
 
-        await logActivity(tx, {
+        await logActivity(tx as unknown as Db, {
           companyId: nextIssue.companyId,
           actorType: actor.actorType,
           actorId: actor.actorId,
@@ -998,8 +1014,8 @@ export function issueRoutes(db: Db, storage: StorageService) {
       const activityRunId = await resolvePersistedActivityRunId(actor.runId);
       const reviewerRunId = req.actor.runId ?? null;
       const { approval, issueStatusAfterVerdict } = await db.transaction(async (tx) => {
-        const txIssueSvc = issueService(tx);
-        const txIssueApprovalsSvc = issueApprovalService(tx);
+        const txIssueSvc = issueService(tx as unknown as Db);
+        const txIssueApprovalsSvc = issueApprovalService(tx as unknown as Db);
         const approvalRecord = await txIssueApprovalsSvc.recordReviewerVerdictForIssue({
           issueId: id,
           reviewerAgentId: reviewerAgent.id,
@@ -1012,7 +1028,7 @@ export function issueRoutes(db: Db, storage: StorageService) {
           next: req.body.next ?? null,
         });
 
-        await logActivity(tx, {
+        await logActivity(tx as unknown as Db, {
           companyId: issue.companyId,
           actorType: actor.actorType,
           actorId: actor.actorId,
@@ -1041,7 +1057,7 @@ export function issueRoutes(db: Db, storage: StorageService) {
           });
           if (updatedIssue) {
             nextIssueStatus = updatedIssue.status;
-            await logActivity(tx, {
+            await logActivity(tx as unknown as Db, {
               companyId: issue.companyId,
               actorType: actor.actorType,
               actorId: actor.actorId,

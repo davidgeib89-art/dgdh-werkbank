@@ -53,6 +53,7 @@ describe("maybeRunCeoMergeOrchestratorAfterReviewerVerdict", () => {
         setIssueStatus: vi.fn(),
         postParentSummaryComment: vi.fn(),
         postParentConflictComment: vi.fn(),
+        postParentBlockedComment: vi.fn(),
       },
     );
 
@@ -98,6 +99,7 @@ describe("maybeRunCeoMergeOrchestratorAfterReviewerVerdict", () => {
         ),
         postParentSummaryComment: vi.fn(),
         postParentConflictComment: vi.fn(),
+        postParentBlockedComment: vi.fn(),
       },
     );
 
@@ -150,6 +152,7 @@ describe("maybeRunCeoMergeOrchestratorAfterReviewerVerdict", () => {
         ),
         postParentSummaryComment: postSummary,
         postParentConflictComment: vi.fn(),
+        postParentBlockedComment: vi.fn(),
       },
     );
 
@@ -189,6 +192,7 @@ describe("maybeRunCeoMergeOrchestratorAfterReviewerVerdict", () => {
         setIssueStatus,
         postParentSummaryComment: vi.fn(),
         postParentConflictComment: postConflict,
+        postParentBlockedComment: vi.fn(),
       },
     );
 
@@ -196,5 +200,47 @@ describe("maybeRunCeoMergeOrchestratorAfterReviewerVerdict", () => {
     expect(result.outcome).toBe("merge_conflict");
     expect(setIssueStatus).toHaveBeenCalledWith("parent-1", "merge_conflict");
     expect(postConflict).toHaveBeenCalledOnce();
+  });
+
+  it("stops on merge scope block, marks parent blocked, and posts blocked comment", async () => {
+    const child = buildIssue({ id: "child-1", parentId: "parent-1", title: "scoped child" });
+    const parent = buildIssue({ id: "parent-1", status: "in_progress" });
+    const setIssueStatus = vi.fn().mockImplementation(async (issueId, status) =>
+      buildIssue({ id: issueId, status }),
+    );
+    const postBlocked = vi.fn().mockResolvedValue(undefined);
+
+    const result = await maybeRunCeoMergeOrchestratorAfterReviewerVerdict(
+      { childIssueId: "child-1", reviewerVerdict: "accepted" },
+      {
+        getIssueById: vi
+          .fn()
+          .mockResolvedValueOnce(child)
+          .mockResolvedValueOnce(parent),
+        listChildrenByParentId: vi.fn().mockResolvedValue([child]),
+        isParentAssignedToCeo: vi.fn().mockResolvedValue(true),
+        getPullRequestRefForChildIssue: vi
+          .fn()
+          .mockResolvedValue({ prNumber: 56, prUrl: "https://github.com/x/y/pull/56", branch: "dgdh/issue-56" }),
+        mergeChildIssuePullRequest: vi.fn().mockResolvedValue({
+          outcome: "merge_blocked",
+          prNumber: 56,
+          prUrl: "https://github.com/x/y/pull/56",
+          branch: "dgdh/issue-56",
+          message: "Merge blocked: unexpected files would reach main.",
+          unexpectedFiles: ["doc/unexpected.md"],
+          missingFiles: [],
+        }),
+        setIssueStatus,
+        postParentSummaryComment: vi.fn(),
+        postParentConflictComment: vi.fn(),
+        postParentBlockedComment: postBlocked,
+      },
+    );
+
+    expect(result.triggered).toBe(true);
+    expect(result.outcome).toBe("merge_blocked");
+    expect(setIssueStatus).toHaveBeenCalledWith("parent-1", "blocked");
+    expect(postBlocked).toHaveBeenCalledOnce();
   });
 });
