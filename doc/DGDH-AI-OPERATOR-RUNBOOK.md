@@ -321,7 +321,26 @@ The canonical handoff endpoints remain:
 
 But in a normal healthy company run, the operator should not manually simulate the whole chain from the start. The operator should attach, assign, observe, and only intervene where the live path genuinely stalls.
 
-### 7.3 Query Budget Rule
+### 7.3 Dashboard vs API Rule
+
+The dashboard is a secondary read surface, not the primary truth source.
+
+Useful board path:
+
+```text
+http://127.0.0.1:3101/DAV/dashboard
+```
+
+Use it to visualize what the API already says.
+Do not use it as a substitute for:
+- `/api/companies`
+- `/api/companies/:companyId/agents`
+- `/api/issues/:id`
+- `/api/issues/:id/children`
+- `/api/issues/:id/live-runs`
+- `/api/issues/:id/active-run`
+
+### 7.4 Query Budget Rule
 
 Do not rediscover operation by shell volume.
 
@@ -359,25 +378,6 @@ Current clean-main lesson:
 
 Promotion rule:
 - if a run reveals a repeated operator or tool-use learning, promote it into this runbook or `EXECUTOR.md` in the same sprint instead of relying on chat memory
-
-### 7.2 Dashboard vs API Rule
-
-The dashboard is a secondary read surface, not the primary truth source.
-
-Useful board path:
-
-```text
-http://127.0.0.1:3101/DAV/dashboard
-```
-
-Use it to visualize what the API already says.
-Do not use it as a substitute for:
-- `/api/companies`
-- `/api/companies/:companyId/agents`
-- `/api/issues/:id`
-- `/api/issues/:id/children`
-- `/api/issues/:id/live-runs`
-- `/api/issues/:id/active-run`
 
 ---
 
