@@ -24,6 +24,7 @@
 - `doc/plans/2026-03-23-research-and-skills-direction.md` - kanonische Richtung fuer Skills, Guardrails und OSS-Adaption
 - `doc/plans/2026-03-23-dgdh-evolution-lane-werkbank-baut-werkbank.md` - spaetere Evolution-Lane: kontrollierte replay-/benchmark-getriebene Selbstverbesserung statt freier Live-Selbstoptimierung
 - `doc/plans/2026-03-23-research-role-and-skill-invocation-direction.md` - Researcher als spaeterer Spezialpfad; klare Trennung Rolle vs Skill
+- `company-hq/research/2026-03-24-724-office-dgdh-transfer-matrix.md` - 724-office ist fuer DGDH nur als Primitive-Quelle relevant: file-layered identity, visible primitives, spaeter Memory/Diagnostics; nicht als self-evolving Zielarchitektur
 - `doc/plans/2026-03-23-chat-ai-docking-prompt.md` - neutrales Andock-Briefing fuer neue Chat-AI-Fenster
 - `doc/plans/2026-03-23-working-triad.md` - kurze visuelle Referenz fuer David -> Planner -> Coder
 - `doc/plans/2026-03-21-role-template-architecture.md` - Rollen-/Packet-Architektur
@@ -47,6 +48,7 @@
 - `SOUL.md` ist die gemeinsame Wesens- und Beziehungsschicht der Firma: shared core ueber Rollen, aber unter Governance; sie ersetzt weder Memory noch Rollenlogik noch Skills.
 - `TRINITY.md` plus `CODEX.md` / `CHATGPT.md` / `COPILOT.md` sind die durable Identity-Docks der direkten David-Assistenten; wenn einer driftet, soll David ihn ueber genau diese Datei wieder einklinken koennen.
 - `EXECUTOR.md` ist die kompakte Execution-Schicht fuer Langlauf-Agenten: richtige Runtime-Identitaet vor API-Vertrauen, API vor Browser, Prozess vor Port und kein Completion-Loop-Theater.
+- OSS-Research wird fuer DGDH per Primitive-Filter gelesen: uebernehmen wollen wir Muster wie file-layered identity, visible primitives und spaetere firm-memory/diagnostics; nicht ganze assistant-first oder self-evolving Produktidentitaeten.
 - Self-Learning bedeutet spaeter governte Hypothesenbildung aus echten Firmenlaeufen; Self-Improving promoted bewaehrte Verbesserungen erst nach Replay/Benchmark/PR-Pruefung in den Standardbetrieb.
 - CEO-Modell-Richtung: Gemini Pro bevorzugt -> Flash -> Flash-Lite. (Claude/Codex mittelfristig als CEO plausibel).
 

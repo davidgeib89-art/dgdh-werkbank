@@ -24,6 +24,31 @@ Der ausfuehrlichere Richtungsanker dazu steht in:
 
 - `doc/plans/2026-03-23-research-role-and-skill-invocation-direction.md`
 
+## 1.2 OSS-Filter statt Copycat-Reflex
+
+Neu geschaerft durch die 724-office-Reflexion:
+
+- DGDH untersucht fremde Repos nicht, um ganze Produktformen zu kopieren
+- sondern um Primitive zu extrahieren, die ein echtes DGDH-Problem loesen
+- die wichtigste Frage ist immer: `jetzt / bald / spaeter / nicht dran`
+
+Das aktuelle Beispiel dafuer ist:
+
+- `company-hq/research/2026-03-24-724-office-dgdh-transfer-matrix.md`
+
+Die dortige Verdichtung bestaetigt vor allem:
+
+- file-layered identity ist stark
+- visible primitives sind wertvoller als neue Framework-Magie
+- Memory ist als Kompressions- und Retrieval-Pipeline relevant
+- Scheduler und Diagnostics sind spaetere Operator-Hebel
+
+Und gleichzeitig:
+
+- `self-evolving` als Leitnarrativ ist fuer DGDH jetzt nicht dran
+- runtime tool creation ist aktuell zu driftgefaehrlich
+- personal-assistant-first ist nicht DGDHs Hauptform
+
 ## 2. Skills & Progressive Disclosure
 
 Der Einsatz von Skills (im Stil von `huggingface/skills`) ist strategisch gewollt.
@@ -82,3 +107,8 @@ Fuer den neuen Researcher-Gedanken gilt ausdruecklich:
 
 - jetzt sauber dokumentieren und einplanen: **ja**
 - sofort als neuen Multi-Agent-Sprint operationalisieren: **nein**
+
+Und fuer OSS-Research allgemein:
+
+- Primitive uebernehmen: **ja**
+- ganze Produktidentitaeten nachspielen: **nein**
