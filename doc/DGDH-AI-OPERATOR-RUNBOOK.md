@@ -466,6 +466,17 @@ A useful report includes:
 If stable operating facts changed, update `MEMORY.md`.
 If only the live handoff changed, update `CURRENT.md`.
 
+### 14.1 Copilot Reflection Follow-Up
+
+If David wants a post-run reflection from Copilot, the canonical prompt now lives in:
+- `COPILOT.md`
+
+Use that prompt after a real agent run when the goal is:
+- execution learning
+- CEO/Worker/Reviewer reflection
+- truthful handoff back to Codex
+- bounded creative next-step intuition under `SOUL.md`
+
 ---
 
 ## 15. Keep This Document Stable
