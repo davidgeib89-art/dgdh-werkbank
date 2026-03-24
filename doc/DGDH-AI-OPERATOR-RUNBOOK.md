@@ -147,6 +147,129 @@ Known important endpoints:
 - `POST /api/issues/:id/reviewer-verdict`
 - `POST /api/issues/:id/merge-pr`
 
+### 7.1 Minimal Paperclip Control Recipe
+
+Use this when you are the execution agent and need to drive one real bounded run without rediscovering the machine.
+
+Assume:
+- you already proved the correct worktree + `.paperclip` + startup banner
+- you know the real API port from that banner
+- API truth beats browser state
+
+PowerShell pattern:
+
+```powershell
+$base = "http://127.0.0.1:3101/api"
+```
+
+1. Read the company truth first.
+
+```powershell
+$companies = Invoke-RestMethod "$base/companies"
+$company = $companies | Where-Object { $_.status -eq "active" } | Select-Object -First 1
+$companyId = $company.id
+```
+
+2. Read the agent truth before assigning anything.
+
+```powershell
+$agents = Invoke-RestMethod "$base/companies/$companyId/agents"
+$ceo = $agents | Where-Object { $_.role -eq "ceo" -or $_.adapterConfig.roleTemplateId -eq "ceo" } | Select-Object -First 1
+$worker = $agents | Where-Object { $_.adapterConfig.roleTemplateId -eq "worker" } | Select-Object -First 1
+$reviewer = $agents | Where-Object { $_.adapterConfig.roleTemplateId -eq "reviewer" } | Select-Object -First 1
+```
+
+3. Reuse a project when it already exists. Only create one when the run truly needs a fresh scope.
+
+```powershell
+$projects = Invoke-RestMethod "$base/companies/$companyId/projects"
+```
+
+Minimal create payload if needed:
+
+```powershell
+$projectBody = @{
+  name = "Canonical Run $(Get-Date -Format 'yyyy-MM-dd HH:mm')"
+  status = "planned"
+  workspace = @{
+    name = "primary"
+    cwd = (git rev-parse --show-toplevel)
+    isPrimary = $true
+  }
+} | ConvertTo-Json -Depth 8
+
+$project = Invoke-RestMethod -Method Post -Uri "$base/companies/$companyId/projects" -ContentType "application/json" -Body $projectBody
+$projectId = $project.id
+```
+
+4. Create the parent issue through the company issue path.
+
+```powershell
+$issueBody = @{
+  projectId = $projectId
+  title = "Bounded canonical company run"
+  description = "Real bounded run on the proven canonical local baseline."
+  status = "todo"
+  priority = "medium"
+} | ConvertTo-Json -Depth 8
+
+$issue = Invoke-RestMethod -Method Post -Uri "$base/companies/$companyId/issues" -ContentType "application/json" -Body $issueBody
+$issueId = $issue.id
+```
+
+5. Start the loop by assigning the issue, not by raw wakeup.
+
+```powershell
+$assignBody = @{
+  assigneeAgentId = $ceo.id
+  status = "todo"
+} | ConvertTo-Json -Depth 8
+
+Invoke-RestMethod -Method Patch -Uri "$base/issues/$issueId" -ContentType "application/json" -Body $assignBody
+```
+
+Do not substitute this with `POST /api/agents/{id}/heartbeat/invoke` unless the sprint is specifically about heartbeat recovery. Raw wakeup is not the normal issue-execution path.
+
+6. Observe the run from API surfaces first.
+
+```powershell
+Invoke-RestMethod "$base/issues/$issueId"
+Invoke-RestMethod "$base/issues/$issueId/children"
+Invoke-RestMethod "$base/issues/$issueId/comments"
+Invoke-RestMethod "$base/issues/$issueId/live-runs"
+Invoke-RestMethod "$base/issues/$issueId/active-run"
+Invoke-RestMethod "$base/companies/$companyId/live-runs"
+```
+
+7. Only step into manual worker/reviewer endpoints when the real loop needs recovery or the sprint explicitly targets those handoffs.
+
+The canonical handoff endpoints remain:
+- `POST /api/issues/:id/worker-pr`
+- `POST /api/issues/:id/worker-done`
+- `POST /api/issues/:id/reviewer-verdict`
+- `POST /api/issues/:id/merge-pr`
+
+But in a normal healthy company run, the operator should not manually simulate the whole chain from the start. The operator should attach, assign, observe, and only intervene where the live path genuinely stalls.
+
+### 7.2 Dashboard vs API Rule
+
+The dashboard is a secondary read surface, not the primary truth source.
+
+Useful board path:
+
+```text
+http://127.0.0.1:3101/DAV/dashboard
+```
+
+Use it to visualize what the API already says.
+Do not use it as a substitute for:
+- `/api/companies`
+- `/api/companies/:companyId/agents`
+- `/api/issues/:id`
+- `/api/issues/:id/children`
+- `/api/issues/:id/live-runs`
+- `/api/issues/:id/active-run`
+
 ---
 
 ## 8. Observing a Real Run

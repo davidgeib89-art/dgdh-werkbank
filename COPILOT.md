@@ -62,7 +62,12 @@ That file wins for:
 - anti-loop
 - durable execution learning
 
----
+The operator runbook wins for:
+- the minimal Paperclip control recipe
+- the default API path for starting and observing a real bounded run
+- the rule that issue assignment beats raw wakeup for normal execution
+
+--- 
 
 ## 5. One Sentence
 

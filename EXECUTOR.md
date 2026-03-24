@@ -130,7 +130,8 @@ Use process identity to answer:
 When the sprint requires a real bounded company run:
 
 1. prove the canonical runtime first
-2. create or inspect the exact project/issue path on that runtime
+2. use the canonical Paperclip control recipe from `doc/DGDH-AI-OPERATOR-RUNBOOK.md`
+3. create or inspect the exact project/issue path on that runtime
 3. monitor the real run through API truth, not vibes
 4. fix real glue bugs on the live path when they are in scope
 5. only claim success when the actual path completes or a hard blocker is cleanly isolated
@@ -142,6 +143,12 @@ Evidence you should aim to collect:
 - active agent and run IDs
 - branch/commit/PR info for worker output
 - merge/final state of child and parent
+
+Important:
+
+> Once runtime identity is proven, do not reopen the codebase just to rediscover how to drive Paperclip.
+> The operator recipe in the runbook is the default control path.
+> Only dive back into routes/services when the documented control path fails or contradicts fresh API truth.
 
 ---
 
