@@ -35,6 +35,7 @@ Neu geschaerft durch die 724-office-Reflexion:
 Das aktuelle Beispiel dafuer ist:
 
 - `company-hq/research/2026-03-24-724-office-dgdh-transfer-matrix.md`
+- `company-hq/research/2026-03-24-airweave-dgdh-transfer-matrix.md`
 
 Die dortige Verdichtung bestaetigt vor allem:
 
@@ -42,12 +43,15 @@ Die dortige Verdichtung bestaetigt vor allem:
 - visible primitives sind wertvoller als neue Framework-Magie
 - Memory ist als Kompressions- und Retrieval-Pipeline relevant
 - Scheduler und Diagnostics sind spaetere Operator-Hebel
+- Retrieval ist als spaetere Capability-Schicht relevant, aber nicht als neuer Plattform-Sprint
+- Domain / Adapter / Protocol-Trennung ist nicht Architekturdeko, sondern Schutz gegen spaetere Systemmasse
 
 Und gleichzeitig:
 
 - `self-evolving` als Leitnarrativ ist fuer DGDH jetzt nicht dran
 - runtime tool creation ist aktuell zu driftgefaehrlich
 - personal-assistant-first ist nicht DGDHs Hauptform
+- retrieval-platform-first ist nicht DGDHs Hauptform
 
 ## 2. Skills & Progressive Disclosure
 
