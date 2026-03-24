@@ -74,7 +74,7 @@
 
 ## Stabile Arbeitsregeln
 - `CURRENT.md` traegt Fokus, naechsten Schritt und Blocker; `MEMORY.md` bleibt kompakt und stabil.
-- `main` ist die kanonische Baseline; `main-local` darf nur waehrend eines laufenden Sprint-Integrationsfensters abweichen und soll danach wieder auf demselben Commit landen.
+- `main` ist die einzige kanonische operative Branch-Wahrheit. `main-local` ist nur noch Legacy-/Uebergangsrest und soll nicht mehr als aktive Sprint-Basis verwendet werden.
 - Planer (Perplexity MCP) kann das private Repo lesen, aber Commit-Verifikation laeuft ueber Branch-Namen (`sha='main'`), nicht ueber rohen Commit-Hash.
 - Wenn du stabile Facts oder Architektur aenderst, update `MEMORY.md` vor Handoff.
 - High-Risk-Lokalops an DB, Workspace-Routing oder Ordnerstruktur bekommen vor Ausfuehrung einen kurzen Heads-up an den Planer, wenn es zeitlich geht.
