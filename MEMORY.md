@@ -9,6 +9,7 @@
 - `doc/DGDH-AI-OPERATOR-RUNBOOK.md` - stabile Bedienungsanleitung fuer lokale DGDH-/Paperclip-Firmenruns
 - `doc/plans/2026-03-24-dgdh-first-principles-operating-doctrine.md` - kanonische Verdichtung: DGDH als governte David-Aufmerksamkeits-Kompressionsmaschine
 - `doc/plans/2026-03-24-dgdh-memory-learning-self-improvement-first-principles.md` - kanonische Lesart fuer Firmengedachtnis, Lernen, Self-Learning und Self-Improving
+- `doc/plans/2026-03-24-dgdh-ai-trinity-and-operator-stack.md` - aktueller AI-Stack, Rollenwahrheit und Run-/Quota-Oekonomie
 - `doc/plans/2026-03-21-dgdh-north-star-roadmap.md` - kanonische operative Richtung
 - `doc/plans/2026-03-23-focus-freeze.md` - aktiver Kurzfrist-Fokus gegen Drift
 - `doc/plans/2026-03-23-dgdh-leitdokument.md` - lebendige CEO-nahe Richtungsbeschreibung; hoehere Lesart fuer die aktuelle Phase
@@ -28,7 +29,7 @@
 - Leitfragen: "Entlastet das David real?" UND "Wird die Firma faehiger - oder nur groesser?"
 - Primaerer Messwert in dieser Phase: sinkende David-Minuten pro Firmenlauf; Revenue bleibt Lagging Indicator von Capability.
 - Langfristige Richtung: David gibt die Richtung, die Maschine uebernimmt mit wachsender Modellfaehigkeit immer mehr Entscheidungen und Lieferung.
-- Planer = Perplexity im Chat; Codex = grosser Operator-Sprint-Coder; Reviewer/Researcher = Gemini CLI; Claude nur wenn wirklich noetig.
+- Aktuelle Operator-Realitaet: David als Operator; Codex/GPT-5.4 als Planner/Reflektor und bei Bedarf bounded Coder; Copilot als langlaufender High-Power-Coder-Agent; Herschel als externer GPT-5.4-Reflektor; Gemini bleibt Reviewer/Researcher-Lane.
 - Review ist Gate und Sensor zugleich: es schuetzt Qualitaet und liefert Drift-/Lernsignale fuer Packet, Handoff, Prompt und System.
 - Firmengedachtnis ist gestufte Kompression statt Vollkontext: Betriebszustand -> episodisch -> semantisch -> prozedural -> strategisch.
 - Lernen folgt fuer DGDH der Formel `Run -> Signal -> Verdichtung -> Promotion`.
@@ -53,6 +54,7 @@
 - Open-Source-Inspiration, neue Ideen und organische North-Star-Entwicklung sind erlaubt; der naechste Schritt bleibt trotzdem klar und bounded.
 - Fuer spaetere Run-UI gilt: Lesestruktur und Operator-Orientierung sind wichtiger als ein Library-Wechsel; `Firmenlauf lesbar machen` ist der richtige Sprinttitel, nicht `ArrowJS testen`.
 - Grosse, zusammenhaengende Coder-Sprints sind explizit erlaubt, wenn Scope und Reviewbarkeit klar genug sind.
+- Copilot soll bevorzugt grosse DoneWhen-orientierte Sprints ziehen; knapper budgetierte Codex-Interaktionen werden fuer Reflexion, Sprint-Schnitt und gezielte Eingriffe genutzt.
 - Reale Firmenlaeufe sind bevorzugte Prototyping-Schleifen; kein Test-Theater wenn ein echter Lauf bereits den naechsten Hebel sichtbar macht.
 - Coder committen und pushen vor dem Bericht; Statusberichte beginnen mit `CODEX STATUSBERICHT`, `Von: Codex`, `An: Planer`.
 
