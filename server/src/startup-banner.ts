@@ -33,6 +33,8 @@ type StartupBannerOptions = {
   databaseBackupIntervalMinutes: number;
   databaseBackupRetentionDays: number;
   databaseBackupDir: string;
+  paperclipHome: string;
+  instanceId: string;
 };
 
 const ansi = {
@@ -163,6 +165,8 @@ export function printStartupBanner(opts: StartupBannerOptions): void {
     row("Heartbeat", heartbeat),
     row("DB Backup", dbBackup),
     row("Backup Dir", opts.databaseBackupDir),
+    row("Home", opts.paperclipHome),
+    row("Instance", opts.instanceId),
     row("Config", configPath),
     agentJwtSecret.status === "warn"
       ? color("  ───────────────────────────────────────────────────────", "yellow")
