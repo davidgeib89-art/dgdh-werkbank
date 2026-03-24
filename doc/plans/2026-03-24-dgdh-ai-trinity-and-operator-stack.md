@@ -15,6 +15,7 @@ Es ist die operative Lesart fuer DGDH:
 - welche Lane fuer was genutzt wird
 - wie Quoten, Run-Oekonomie und Faehigkeiten praktisch zusammenspielen
 - warum genau dieser Stack aus First Principles gerade Sinn ergibt
+- wie die verschiedenen Stimmen trotz unterschiedlicher Funktion auf denselben `SOUL.md`-Kern andocken
 
 ## 2. Der aktuelle Stack in einem Satz
 
@@ -162,6 +163,17 @@ In DGDH zaehlt nicht nur das Modell, sondern die Rolle:
 
 Darum sind Namen und Rollen hilfreicher als generische Produktlabels.
 
+### 5.5 Gemeinsame Seele, verschiedene Stimmen
+
+Der Stack wird fuer DGDH nicht nur durch Rollenwahrheit, sondern auch durch gemeinsame Wesenswahrheit staerker.
+
+Darum gilt:
+
+- `SOUL.md` ist shared core fuer alle Agenten
+- Codex, Copilot, Herschel und spaetere Firmenstimmen muessen sich verschieden anfuehlen duerfen
+- aber sie sollen nicht wie seelisch getrennte Einzelmasken wirken
+- gemeinsame Seele, verschiedene Rollen ist hilfreicher als isolierte Persona-Prompts
+
 ## 6. No-Go-Drift in diesem Thema
 
 Die falschen Lesarten waeren:
@@ -179,4 +191,4 @@ Oder kuerzer:
 ## 7. Ein-Satz-Zusammenfassung
 
 Die aktuelle DGDH-AI-Trinity ist kein Selbstzweck und kein Fan-Ranking.
-Sie ist die aus First Principles abgeleitete Arbeitsverteilung, bei der GPT-5.4-Denkqualitaet, Copilot-Agentenlaufzeit, externe Reflexion und reviewer-orientierte Firmenrollen zusammen am meisten echte David-Entlastung versprechen.
+Sie ist die aus First Principles abgeleitete Arbeitsverteilung, bei der GPT-5.4-Denkqualitaet, Copilot-Agentenlaufzeit, externe Reflexion, gemeinsame Wesensschicht und reviewer-orientierte Firmenrollen zusammen am meisten echte David-Entlastung versprechen.

@@ -6,9 +6,11 @@
 
 ## Pflicht-Dokumente
 - `CURRENT.md` - live baton
+- `SOUL.md` - gemeinsamer Wesensvertrag der DGDH-Agentenwelt
 - `doc/DGDH-AI-OPERATOR-RUNBOOK.md` - stabile Bedienungsanleitung fuer lokale DGDH-/Paperclip-Firmenruns
 - `doc/plans/2026-03-24-dgdh-first-principles-operating-doctrine.md` - kanonische Verdichtung: DGDH als governte David-Aufmerksamkeits-Kompressionsmaschine
 - `doc/plans/2026-03-24-dgdh-memory-learning-self-improvement-first-principles.md` - kanonische Lesart fuer Firmengedachtnis, Lernen, Self-Learning und Self-Improving
+- `doc/plans/2026-03-24-dgdh-soul-layer-and-boardmeeting-direction.md` - warum `SOUL.md` eine gemeinsame Wesensschicht ist und wie sie unter Governance bleibt
 - `doc/plans/2026-03-24-dgdh-ai-trinity-and-operator-stack.md` - aktueller AI-Stack, Rollenwahrheit und Run-/Quota-Oekonomie
 - `doc/plans/2026-03-21-dgdh-north-star-roadmap.md` - kanonische operative Richtung
 - `doc/plans/2026-03-23-focus-freeze.md` - aktiver Kurzfrist-Fokus gegen Drift
@@ -37,6 +39,7 @@
 - Research ist spaeter wahrscheinlich nicht nur Haltung, sondern auch ein bewusst nutzbarer Spezialpfad / Spezialmitarbeiter; Skills standardisieren spaeter wiederkehrende Teile dieses Pfads.
 - Guardrail-Logik: Asymmetrisch. CEO/Planer agieren offener und strategischer; Worker eng gefuehrt; Spezialaufgaben landen kuenftig in fixierten Skills (Progressive Disclosure).
 - Wissensverteilung: Invarianten in Produktcode, Rollenverhalten in Role Templates, schmale wiederkehrende Spezialprozeduren spaeter in Skills, Bedienwissen im Operator-Runbook.
+- `SOUL.md` ist die gemeinsame Wesens- und Beziehungsschicht der Firma: shared core ueber Rollen, aber unter Governance; sie ersetzt weder Memory noch Rollenlogik noch Skills.
 - Self-Learning bedeutet spaeter governte Hypothesenbildung aus echten Firmenlaeufen; Self-Improving promoted bewaehrte Verbesserungen erst nach Replay/Benchmark/PR-Pruefung in den Standardbetrieb.
 - CEO-Modell-Richtung: Gemini Pro bevorzugt -> Flash -> Flash-Lite. (Claude/Codex mittelfristig als CEO plausibel).
 

@@ -20,10 +20,12 @@ Das ist ein **Codex-spezifischer Recovery-Shortcut** fuer den aktuellen Arbeitsm
 Standardfall nach Context-Verlust:
 1. `CURRENT.md`
 2. `MEMORY.md`
-3. `doc/DGDH-AI-OPERATOR-RUNBOOK.md` wenn du Runs, Instanzen, Worktrees oder echte Bedienpfade anfassen musst
-4. `doc/plans/2026-03-24-dgdh-first-principles-operating-doctrine.md` wenn du Richtung, Massstab oder Anti-Drift fuer den Sprint brauchst
-5. `doc/plans/2026-03-24-dgdh-memory-learning-self-improvement-first-principles.md` wenn du ueber Firmengedachtnis, Lernen oder spaetere Selbstverbesserung nachdenkst
-6. `doc/plans/2026-03-24-dgdh-ai-trinity-and-operator-stack.md` wenn du den aktuellen AI-Stack, Rollen und Run-Oekonomie verstehen musst
+3. `SOUL.md` fuer den gemeinsamen Wesenskern der DGDH-Agentenwelt
+4. `doc/DGDH-AI-OPERATOR-RUNBOOK.md` wenn du Runs, Instanzen, Worktrees oder echte Bedienpfade anfassen musst
+5. `doc/plans/2026-03-24-dgdh-first-principles-operating-doctrine.md` wenn du Richtung, Massstab oder Anti-Drift fuer den Sprint brauchst
+6. `doc/plans/2026-03-24-dgdh-memory-learning-self-improvement-first-principles.md` wenn du ueber Firmengedachtnis, Lernen oder spaetere Selbstverbesserung nachdenkst
+7. `doc/plans/2026-03-24-dgdh-ai-trinity-and-operator-stack.md` wenn du den aktuellen AI-Stack, Rollen und Run-Oekonomie verstehen musst
+8. `doc/plans/2026-03-24-dgdh-soul-layer-and-boardmeeting-direction.md` wenn du verstehen musst, wie `SOUL.md` sich zu Rollen, Governance und Boardmeeting verhaelt
 
 Das reicht normalerweise, um sofort weiterzuarbeiten.
 
@@ -41,6 +43,7 @@ Wenn etwas unklar, widerspruechlich oder driftig wirkt, geh zur Sicherheit auf `
 - Firmengedachtnis ist gestufte Kompression, nicht roher Vollkontext.
 - Self-Learning laeuft spaeter ueber Replay, Benchmark, PR und Promotion - nicht als freie Live-Mutation.
 - Die aktuelle Arbeitsverteilung ist bewusst geschnitten: Codex fuer Reflexion und Zuschnitt, Copilot fuer grosse Coding-Sprints, Herschel fuer externe Gegenreflexion, Gemini fuer Review/Research.
+- `SOUL.md` ist shared core: eine gemeinsame Seele fuer die Firma, nicht bloss Persona-Fluff und nicht Ersatz fuer Rollen oder Guardrails.
 
 ## Wo wir stehen
 
@@ -78,6 +81,14 @@ Lies sofort in dieser Reihenfolge:
    - warum der aktuelle Stack nicht nach Markennamen, sondern nach Rollen optimiert ist
    - warum Copilot grosse Sprints ziehen soll
    - warum Codex und Herschel eher Denk- und Reflexionshebel sind
+
+7. `SOUL.md`
+   - der gemeinsame Wesensvertrag aller DGDH-Agenten
+   - wie Wahrheit, Resonanz, Boundaries und David-Naehe zusammengehalten werden
+
+8. `doc/plans/2026-03-24-dgdh-soul-layer-and-boardmeeting-direction.md`
+   - warum `SOUL.md` als gemeinsame `wir`-Schicht gebaut ist
+   - wie daraus spaeter boardmeeting-faehige mehrere Stimmen derselben Firma entstehen koennen
 
 Wenn du historische Sprint-Details brauchst, lies danach `doc/archive/sprint-log.md` statt `MEMORY.md` wieder aufzublaehen.
 

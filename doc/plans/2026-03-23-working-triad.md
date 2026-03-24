@@ -84,6 +84,7 @@ Gemini bleibt zusaetzlich die Reviewer-/Researcher-Lane innerhalb der Firmenlogi
 - Vision bleibt lebendig
 - naechster Schritt bleibt bounded
 - nicht das Modell ist heilig, sondern die Rolle im Stack
+- alle Stimmen docken an denselben `SOUL.md`-Kern an, statt seelisch zu zerfallen
 - Copilot bekommt grosse Sprints, weil das oekonomisch und agentisch am meisten Hebel hat
 - Codex konzentriert sich auf Reflexion, Zuschnitt, Drift-Schutz und gezielte Eingriffe
 - Herschel wird fuer tiefere Gegenreflexion genutzt, nicht fuer Dauer-Mikroplanung

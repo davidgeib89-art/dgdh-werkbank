@@ -23,6 +23,7 @@ Wenn du aeltere Sprint-/Run-Historie brauchst, lies `doc/archive/sprint-log.md` 
 
 Wenn du die DGDH-/Paperclip-Firma selbst aktiv bedienen, Runs starten, beobachten oder lokale Instanz-/Worktree-Fragen klaeren musst, lies danach auch:
 - `doc/DGDH-AI-OPERATOR-RUNBOOK.md`
+- `SOUL.md`
 
 ---
 
@@ -50,11 +51,13 @@ Lies diese Docs in dieser Reihenfolge:
 
 1. `doc/plans/2026-03-24-dgdh-first-principles-operating-doctrine.md` - kanonische Lesart: DGDH als governte David-Aufmerksamkeits-Kompressionsmaschine; primaere Metrik, Anti-Drift und Wissensverteilung
 2. `doc/plans/2026-03-24-dgdh-memory-learning-self-improvement-first-principles.md` - wie Firmengedachtnis, Lernen, Self-Learning und Self-Improving fuer DGDH wirklich zu lesen sind
-3. `doc/plans/2026-03-24-dgdh-ai-trinity-and-operator-stack.md` - aktueller AI-Stack: David, Codex, Copilot, Herschel und Gemini sauber nach Rolle statt nach Marketingnamen gelesen
-4. `doc/plans/2026-03-21-dgdh-north-star-roadmap.md` - aktueller North Star; IMMER lesen
-5. `company-hq/ROADMAP.md` - Wo wir stehen, wo wir hinwollen, warum
-6. `company-hq/DGDH-CEO-CONTEXT.md` - Davids Prioritaeten und Entscheidungsregeln
-7. `company-hq/VISION.md` - Mission, Werte, Organisationsstruktur
+3. `doc/plans/2026-03-24-dgdh-soul-layer-and-boardmeeting-direction.md` - warum `SOUL.md` eine gemeinsame Wesensschicht ist und wie sie sich zu Rollen, Memory und Boardmeeting-Vision verhaelt
+4. `doc/plans/2026-03-24-dgdh-ai-trinity-and-operator-stack.md` - aktueller AI-Stack: David, Codex, Copilot, Herschel und Gemini sauber nach Rolle statt nach Marketingnamen gelesen
+5. `doc/plans/2026-03-21-dgdh-north-star-roadmap.md` - aktueller North Star; IMMER lesen
+6. `company-hq/ROADMAP.md` - Wo wir stehen, wo wir hinwollen, warum
+7. `company-hq/DGDH-CEO-CONTEXT.md` - Davids Prioritaeten und Entscheidungsregeln
+8. `company-hq/VISION.md` - Mission, Werte, Organisationsstruktur
+9. `SOUL.md` - gemeinsamer Wesensvertrag der DGDH-Agentenwelt
 
 Wenn Dokumente sich widersprechen, gilt fuer die aktuelle operative Richtung zuerst:
 - `doc/plans/2026-03-21-dgdh-north-star-roadmap.md`
@@ -75,6 +78,7 @@ Nur bei Bedarf (wenn deine Aufgabe es erfordert):
 - Firmengedachtnis ist keine Chat-History-Suppe, sondern gestufte Kompression: Betriebszustand -> episodisch -> semantisch -> prozedural -> strategisch.
 - Self-Learning heisst spaeter governte Hypothesenbildung aus echten Firmenlaeufen; Self-Improving heisst erst nach Replay/Benchmark/PR-Promotion den Standardbetrieb zu verbessern.
 - Die aktuelle AI-Trinity ist aus First Principles geschnitten: Codex/GPT-5.4 fuer Reflexion und Zuschnitt, Copilot fuer lange Coding-Sprints, Herschel fuer externe Gegenreflexion, Gemini fuer Reviewer-/Researcher-Arbeit.
+- `SOUL.md` ist die gemeinsame Wesens- und Beziehungsschicht der Firma: warm, wahr, resonant, bounded und David-nah, ohne Rollenlogik oder Governance zu ersetzen.
 
 ---
 
