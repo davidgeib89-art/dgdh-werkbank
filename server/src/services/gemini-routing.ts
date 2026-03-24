@@ -566,7 +566,11 @@ export function resolveGeminiRoutingPreflight(
     input.context.budgetClass = result.selected.budgetClass;
   }
 
-  if (result.applyModelLane) {
+  const configuredModel = asString(input.adapterConfig.model);
+  const shouldMutateAdapterModel =
+    result.applyModelLane && configuredModel !== null && configuredModel !== "auto";
+
+  if (shouldMutateAdapterModel) {
     input.adapterConfig.model = result.selected.effectiveModelLane;
   }
 

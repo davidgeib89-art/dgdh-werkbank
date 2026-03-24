@@ -338,4 +338,81 @@ describe("resolveGeminiRoutingPreflight extended fields", () => {
     expect(result!.selected.effectiveModelLane).toBe("gemini-3.1-pro-preview");
     expect(result!.routingReason).toContain("role=ceo");
   });
+
+  it("keeps adapterConfig.model on auto even when applyModelLane is true", () => {
+    const adapterConfig = { model: "auto" };
+
+    const result = resolveGeminiRoutingPreflight({
+      adapterType: "gemini_local",
+      adapterConfig,
+      runtimeConfig: {
+        routingPolicy: {
+          mode: "soft_enforced",
+          bucketState: {
+            flash: "ok",
+            pro: "ok",
+            "flash-lite": "ok",
+          },
+        },
+      },
+      context: {
+        role: "ceo",
+      },
+    });
+
+    expect(result).not.toBeNull();
+    expect(result!.applyModelLane).toBe(true);
+    expect(result!.selected.effectiveModelLane).toBe("gemini-3.1-pro-preview");
+    expect(adapterConfig.model).toBe("auto");
+  });
+
+  it("still mutates explicit adapterConfig.model when applyModelLane is true", () => {
+    const adapterConfig = { model: "gemini-3-flash-preview" };
+
+    const result = resolveGeminiRoutingPreflight({
+      adapterType: "gemini_local",
+      adapterConfig,
+      runtimeConfig: {
+        routingPolicy: {
+          mode: "soft_enforced",
+          bucketState: {
+            flash: "ok",
+            pro: "ok",
+            "flash-lite": "ok",
+          },
+        },
+      },
+      context: {
+        role: "ceo",
+      },
+    });
+
+    expect(result).not.toBeNull();
+    expect(result!.applyModelLane).toBe(true);
+    expect(adapterConfig.model).toBe("gemini-3.1-pro-preview");
+  });
+
+  it("packetType free_api keeps model: auto", () => {
+    const adapterConfig = { model: "auto" };
+    const result = resolveGeminiRoutingPreflight({
+      adapterType: "gemini_local",
+      adapterConfig,
+      runtimeConfig: {
+        routingPolicy: {
+          mode: "soft_enforced",
+          bucketState: { flash: "ok", pro: "ok", "flash-lite": "ok" },
+        },
+      },
+      context: {
+        packetType: "free_api",
+        role: "worker",
+      },
+    });
+
+    expect(result).not.toBeNull();
+    expect(result!.laneDecision.lane).toBe("free_api");
+    expect(result!.applyModelLane).toBe(true);
+    expect(result!.selected.effectiveModelLane).toBe("gemini-2.5-flash-lite");
+    expect(adapterConfig.model).toBe("auto");
+  });
 });
