@@ -332,8 +332,7 @@ export async function startServer(): Promise<StartedServer> {
           : message instanceof Error
           ? message.message
           : String(message ?? "");
-      for (const lineRaw of text.split(/?
-/)) {
+      for (const lineRaw of text.split(/\r?\n/)) {
         const line = lineRaw.trim();
         if (!line) continue;
         embeddedPostgresLogBuffer.push(line);
