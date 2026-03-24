@@ -45,6 +45,8 @@ Die dortige Verdichtung bestaetigt vor allem:
 - Scheduler und Diagnostics sind spaetere Operator-Hebel
 - Retrieval ist als spaetere Capability-Schicht relevant, aber nicht als neuer Plattform-Sprint
 - Domain / Adapter / Protocol-Trennung ist nicht Architekturdeko, sondern Schutz gegen spaetere Systemmasse
+- Retrieval wird schnell selbst zum Produkt; deshalb gilt fuer DGDH bei infra-lastigen Faehigkeiten: lieber frueh domain-first, fakebar und schmal als spaeter aus God-Objects und Plattformmasse herausrefactoren
+- Breite Integrationszaehlung ist fuer DGDH kein Wert an sich; wichtiger sind wenige echte Firmenhebel mit hoher Tiefe, klarer Capability-Identitaet und messbarer David-Minuten-Ersparnis
 
 Und gleichzeitig:
 

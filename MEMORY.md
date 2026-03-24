@@ -25,7 +25,7 @@
 - `doc/plans/2026-03-23-dgdh-evolution-lane-werkbank-baut-werkbank.md` - spaetere Evolution-Lane: kontrollierte replay-/benchmark-getriebene Selbstverbesserung statt freier Live-Selbstoptimierung
 - `doc/plans/2026-03-23-research-role-and-skill-invocation-direction.md` - Researcher als spaeterer Spezialpfad; klare Trennung Rolle vs Skill
 - `company-hq/research/2026-03-24-724-office-dgdh-transfer-matrix.md` - 724-office ist fuer DGDH nur als Primitive-Quelle relevant: file-layered identity, visible primitives, spaeter Memory/Diagnostics; nicht als self-evolving Zielarchitektur
-- `company-hq/research/2026-03-24-airweave-dgdh-transfer-matrix.md` - Airweave ist fuer DGDH nur als Retrieval-/Architektur-Signal relevant: spaetere shared context capability und Domain/Adapter/Protocol-Trennung; nicht als Plattform- oder Integrationssprint
+- `company-hq/research/2026-03-24-airweave-dgdh-transfer-matrix.md` - Airweave ist fuer DGDH als Retrieval-/Architektur-Signal relevant: spaetere shared context capability, Domain/Adapter/Protocol-Trennung, fakebare Capability-Seams und Warnung vor zu frueher Plattformmasse; nicht als Plattform- oder Integrationssprint
 - `doc/plans/2026-03-23-chat-ai-docking-prompt.md` - neutrales Andock-Briefing fuer neue Chat-AI-Fenster
 - `doc/plans/2026-03-23-working-triad.md` - kurze visuelle Referenz fuer David -> Planner -> Coder
 - `doc/plans/2026-03-21-role-template-architecture.md` - Rollen-/Packet-Architektur
@@ -51,6 +51,7 @@
 - `EXECUTOR.md` ist die kompakte Execution-Schicht fuer Langlauf-Agenten: richtige Runtime-Identitaet vor API-Vertrauen, API vor Browser, Prozess vor Port und kein Completion-Loop-Theater.
 - OSS-Research wird fuer DGDH per Primitive-Filter gelesen: uebernehmen wollen wir Muster wie file-layered identity, visible primitives und spaetere firm-memory/diagnostics; nicht ganze assistant-first oder self-evolving Produktidentitaeten.
 - Retrieval ist fuer DGDH spaeter eine eigene Capability-Schicht, aber nicht die aktuelle Produktform: shared context/retrieval ja, Retrieval-Plattform- oder Integrationsbreiten-Sprint nein.
+- Airweave lehrt zusaetzlich: Retrieval ist ein echtes Problem, wird aber extrem schnell selbst zum Produkt; deshalb muessen infra-lastige Faehigkeiten frueh domain-first, adapter-separiert, fakebar und auf wenige echte Firmenhebel geschnitten werden.
 - Sobald der Firmenloop auf canonical `main` wiederholt boringly durchlaeuft, verschiebt sich der naechste Hebel von versteckter Bootstrap-Infra zu operator-facing Lesbarkeit: die richtige naechste Frage lautet dann nicht mehr "welcher Glue-Bug fehlt?", sondern "wie sieht David die Firmenwahrheit mit moeglichst wenig Minuten?"
 - Die Issue-Detail-Seite zeigt jetzt eine kompakte operator-facing Firmenwahrheit: `Issue`, `Company`, `Project`, `Active run`, `Context` plus die schmale `company-run-chain`.
 - Bei bounded Implementation-Packets ist explizite `target file`-/`target folder`-Wahrheit upstream noetig; sonst darf Routing-Preflight legitimerweise mit `missing_inputs` vor dem ersten Child-Handoff blocken.
