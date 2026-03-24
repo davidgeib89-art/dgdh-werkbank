@@ -189,6 +189,16 @@ Agenten und Operator sollen den realen Zustand eines Firmenlaufs mit minimalen T
    - `Browser stale vs API fresh`
    - `Run merged in control plane, local branch not reconciled`
 
+### Moeglicher spaeterer Implementationspfad
+
+Wenn genau diese Beobachtungsschicht weiter zu viele Tokens ueber Shell-/API-/Git-Roundtrips verbraucht, ist ein spaeterer Kandidat:
+
+- bounded code execution
+- kleine typisierte Capability-Wrapper
+- ephemere Mikroskripte fuer State Capture
+
+Dann wuerde die Run-Wahrheit nicht nur ueber viele Toolturns rekonstruiert, sondern teilweise ueber kleine, sichere Mehrschrittprozeduren verdichtet.
+
 ## 7. Was bewusst nicht gebaut werden sollte
 
 Nicht jetzt:
