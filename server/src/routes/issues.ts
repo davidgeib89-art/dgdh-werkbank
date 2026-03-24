@@ -258,6 +258,33 @@ export function issueRoutes(db: Db, storage: StorageService) {
     };
   }
 
+  function buildIssueContextSnapshot(
+    issue: {
+      id: string;
+      companyId: string;
+      projectId?: string | null;
+      goalId?: string | null;
+      parentId?: string | null;
+      identifier?: string | null;
+    },
+    source: string,
+    extras?: Record<string, unknown>,
+  ) {
+    return {
+      issueId: issue.id,
+      taskId: issue.id,
+      taskKey: issue.identifier ?? issue.id,
+      workPacketId: issue.id,
+      companyId: issue.companyId,
+      projectId: issue.projectId ?? null,
+      goalId: issue.goalId ?? null,
+      parentId: issue.parentId ?? null,
+      issueIdentifier: issue.identifier ?? null,
+      source,
+      ...(extras ?? {}),
+    };
+  }
+
   async function assertAgentRunCheckoutOwnership(
     req: Request,
     res: Response,
@@ -1216,13 +1243,10 @@ export function issueRoutes(db: Db, storage: StorageService) {
             },
             requestedByActorType: actor.actorType,
             requestedByActorId: actor.actorId,
-            contextSnapshot: {
-              issueId: updatedIssue.id,
-              taskId: updatedIssue.id,
-              source: "issue.worker_done",
+            contextSnapshot: buildIssueContextSnapshot(updatedIssue, "issue.worker_done", {
               wakeReason: "issue_assigned",
               workerRunId,
-            },
+            }),
           });
           reviewerWakeQueued = true;
         } catch (err) {
@@ -1467,7 +1491,7 @@ export function issueRoutes(db: Db, storage: StorageService) {
           payload: { issueId: issue.id, mutation: "create" },
           requestedByActorType: actor.actorType,
           requestedByActorId: actor.actorId,
-          contextSnapshot: { issueId: issue.id, source: "issue.create" },
+          contextSnapshot: buildIssueContextSnapshot(issue, "issue.create"),
         })
         .catch((err) => logger.warn({ err, issueId: issue.id }, "failed to wake assignee on issue create"));
     }
@@ -1611,7 +1635,7 @@ export function issueRoutes(db: Db, storage: StorageService) {
           payload: { issueId: issue.id, mutation: "update" },
           requestedByActorType: actor.actorType,
           requestedByActorId: actor.actorId,
-          contextSnapshot: { issueId: issue.id, source: "issue.update" },
+          contextSnapshot: buildIssueContextSnapshot(issue, "issue.update"),
         });
       }
 
@@ -1623,7 +1647,7 @@ export function issueRoutes(db: Db, storage: StorageService) {
           payload: { issueId: issue.id, mutation: "update" },
           requestedByActorType: actor.actorType,
           requestedByActorId: actor.actorId,
-          contextSnapshot: { issueId: issue.id, source: "issue.status_change" },
+          contextSnapshot: buildIssueContextSnapshot(issue, "issue.status_change"),
         });
       }
 
@@ -1753,7 +1777,7 @@ export function issueRoutes(db: Db, storage: StorageService) {
           payload: { issueId: issue.id, mutation: "checkout" },
           requestedByActorType: actor.actorType,
           requestedByActorId: actor.actorId,
-          contextSnapshot: { issueId: issue.id, source: "issue.checkout" },
+          contextSnapshot: buildIssueContextSnapshot(issue, "issue.checkout"),
         })
         .catch((err) => logger.warn({ err, issueId: issue.id }, "failed to wake assignee on issue checkout"));
     }
