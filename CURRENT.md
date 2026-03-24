@@ -1,15 +1,13 @@
 # CURRENT - Live Baton
 
-focus: `main` ist die gemeinsame kanonische Basis; der `gemini_local`-Routing-Leak ist auf dem Live-Pfad gefixt und DAV-25 hat auf sauberem `main` bereits `reviewer_accepted` erreicht
-active_issue: post-routing-leak validation closure nach DAV-24 / DAV-25 / DAV-26
+focus: `main` ist die gemeinsame kanonische Basis; der `gemini_local`-Routing-Leak ist auf dem Live-Pfad gefixt und der DAV-24-Validierungspfad ist bis Merge/Parent-Close abgeschlossen
+active_issue: clean-main routing validation abgeschlossen; naechster Sprint kann wieder echte Firmenarbeit jenseits des Leaks ziehen
 
 next:
-  1) DAV-26 gezielt ziehen oder bewusst verwerfen; aktuell ist das zweite Child-Issue noch `todo` und unassigned
-  2) danach den bounded CEO -> Worker -> Reviewer -> Merge-/Parent-Close-Pfad auf sauberem `main` bis zum echten Abschluss beweisen
-  3) nur direkt im Live-Pfad bewiesene Execution-Learnings weiter promoten; kein Seitenscope
+  1) den naechsten echten Firmenpfad auf sauberem `main` ziehen; der Routing-Leak ist nicht mehr das Engpass-Thema
+  2) nur direkt im Live-Pfad bewiesene Execution-Learnings weiter promoten; kein Reflexions-/Doku-Seitengleis ohne harte Not
 blockers:
-  - kein aktiver Routing-Blocker mehr: DAV-24 erzeugte Child-Issues, DAV-25 lief ohne explizites `--model`, der Worker-Run `d68b3926-58c4-4f0e-a3d5-ebcdfe541e0b` endete `succeeded`, und der Reviewer-Lauf `d342a486-c276-4eec-b33d-2d8d8e1b4461` setzte DAV-25 auf `reviewer_accepted`
-  - verbleibende offene Pfadwahrheit: DAV-26 ist noch `todo` und unassigned, DAV-24 selbst steht weiter auf `todo`; damit ist der finale Parent-/Merge-Abschluss noch nicht live bewiesen
+  - fuer diesen Sprint kein offener Routing-Blocker mehr: DAV-24 ist `done`, DAV-25 ist `merged`, DAV-26 ist als bewusst verworfener Seitenscope `done`
 strategy_anchor:
   - `doc/plans/2026-03-24-dgdh-first-principles-operating-doctrine.md`
   - `doc/plans/2026-03-21-dgdh-north-star-roadmap.md`
@@ -25,9 +23,11 @@ notes:
   - Reale Parent-Runs `DAV-19`, `DAV-20` und `DAV-22` haben den alten CEO-/Routing-Blocker sichtbar gemacht; Details liegen in `company-hq/commit-reports/2026-03-24-clean-main-company-run-blocker-isolation.md`
   - Copilot hat den CEO auf API-first / sofortige Packetisierung bei execution-lastigen Parent-Issues geschaerft und den eigentlichen `model=auto`-Leak in `server/src/services/gemini-routing.ts` gefixt; der fruehere Heartbeat-Guard bleibt als defensiver Schutz bestehen
   - DAV-24 beweist den Routing-Fix live: `adapter.invoke.commandArgs` enthielt kein explizites `--model` mehr und der CEO erzeugte erstmals wieder echte Child-Issues (`DAV-25`, `DAV-26`) auf sauberem `main`
-  - DAV-25 beweist jetzt den naechsten erreichten Stand statt eines Blockers: Worker-Run `d68b3926-58c4-4f0e-a3d5-ebcdfe541e0b` lief erfolgreich durch und der Reviewer-Lauf `d342a486-c276-4eec-b33d-2d8d8e1b4461` setzte das Issue auf `reviewer_accepted`
+  - DAV-25 lief jetzt den ganzen Schlusspfad: Worker-Run `d68b3926-58c4-4f0e-a3d5-ebcdfe541e0b`, Reviewer-Lauf `d342a486-c276-4eec-b33d-2d8d8e1b4461`, danach echter Merge ueber `POST /api/issues/:id/merge-pr` mit PR `#12`; Endstatus `merged`
+  - DAV-26 wurde bewusst als Meta-Seitenscope verworfen und als optionale Entscheidungsaufgabe auf `done` geschlossen, statt noch eine Reflexionsdatei in den Sprint zu ziehen
+  - DAV-24 ist damit jetzt real auf `done`; der enge CEO -> Worker -> Reviewer -> Merge -> Parent-Close-Pfad fuer den Routing-Leak ist live beendet
   - Validiert wurden `pnpm -r typecheck` sowie gezielte Server-Tests fuer `gemini-local`, control-plane resolver und gemini pipeline; kein voller `pnpm test:run` oder `pnpm build` in diesem Sprint behauptet
   - Fuer den Routing-Fix liefen zusaetzlich die gezielten Tests `gemini-routing-engine`, `gemini-control-plane-resolver`, `gemini-local-execute` und `gemini-pipeline-e2e` gruen
-  - Kein Meta-Umbau als Reaktion: naechster Live-Schritt ist jetzt verbleibende Child-/Parent-Close-Wahrheit statt weiterer Routing-Arbeit
-last_updated_by: Copilot (post-DAV-25 reviewer acceptance)
+  - Kein Meta-Umbau als Reaktion: der Sprint endet bewusst ohne neue Reflexionsdatei; der naechste Schritt ist wieder echter Firmenfortschritt
+last_updated_by: Copilot (post-DAV-24 merged-close completion)
 updated_at: 2026-03-24
