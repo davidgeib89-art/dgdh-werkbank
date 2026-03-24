@@ -388,8 +388,7 @@ export async function startServer(): Promise<StartedServer> {
       if (!existsSync(postmasterPidFile)) return null;
       try {
         const pidLine = readFileSync(postmasterPidFile, "utf8")
-          .split("
-")[0]
+          .split("\n")[0]
           ?.trim();
         const pid = Number(pidLine);
         if (!Number.isInteger(pid) || pid <= 0) return null;
