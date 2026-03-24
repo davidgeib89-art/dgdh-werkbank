@@ -148,7 +148,49 @@ Known important endpoints:
 - `POST /api/issues/:id/reviewer-verdict`
 - `POST /api/issues/:id/merge-pr`
 
-### 7.1 Minimal Paperclip Control Recipe
+### 7.1 Execution Packets
+
+An **Execution Packet** is the canonical, structured unit of work delegated from a CEO to a Worker. It ensures that the task is "ready" for autonomous execution by providing explicit boundaries, goals, and success criteria.
+
+A packet is considered "ready" when it follows this mandatory structured format:
+
+| Field | Description |
+| :--- | :--- |
+| **Titel** | Short, descriptive name of the task. |
+| **packetType** | The execution lane (e.g., `free_api`, `deterministic_tool`, `premium_model`). |
+| **executionIntent** | High-level intent (e.g., `implement`, `research`, `fix`, `refactor`). |
+| **reviewPolicy** | The policy for human or automated review (e.g., `required`, `optional`). |
+| **needsReview** | Boolean indicating if an explicit review step is mandatory. |
+| **Ziel** | The concrete objective of the packet. |
+| **Scope** | Explicit boundaries of what should (and should not) be touched. |
+| **targetFile** | The primary file to be modified (if applicable). |
+| **targetFolder** | The directory scope for the work. |
+| **artifactKind** | The type of result expected (e.g., `code_patch`, `doc_update`, `report`). |
+| **doneWhen** | Specific, verifiable criteria that must be met to consider the task complete. |
+| **Annahmen** | Any assumptions the worker should make. |
+| **[NEEDS INPUT]** | Explicitly list any missing information required from the CEO or Human. |
+
+#### Template for Issue Description
+
+When creating or updating an issue for a Worker, use this template:
+
+```text
+Titel: [Name]
+packetType: [lane]
+executionIntent: [intent]
+reviewPolicy: [policy]
+needsReview: [true/false]
+Ziel: [Objective]
+Scope: [Boundaries]
+targetFile: [File path or none]
+targetFolder: [Folder path]
+artifactKind: [Kind]
+doneWhen: [Verification criteria]
+Annahmen: [None or list]
+[NEEDS INPUT]: [None or list]
+```
+
+### 7.2 Minimal Paperclip Control Recipe
 
 Use this when you are the execution agent and need to drive one real bounded run without rediscovering the machine.
 
@@ -365,6 +407,8 @@ Do not trust a single surface in isolation.
 ---
 
 ## 9. Canonical Worker and Reviewer Handoffs
+
+Workers receive their assignments via **Execution Packets** (see Section 7.1). The packet's `doneWhen` criteria serve as the primary validation gate for the worker before they claim completion.
 
 Worker completion is not "I think I am done."
 The canonical handoff is the API path:
