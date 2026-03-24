@@ -148,6 +148,26 @@ export function NewProjectDialog() {
 
     setWorkspaceError(null);
 
+    let workspacePayload: Record<string, unknown> | undefined;
+    if (localRequired && repoRequired) {
+      workspacePayload = {
+        name: deriveWorkspaceNameFromPath(localPath),
+        cwd: localPath,
+        repoUrl,
+      };
+    } else if (localRequired) {
+      workspacePayload = {
+        name: deriveWorkspaceNameFromPath(localPath),
+        cwd: localPath,
+      };
+    } else if (repoRequired) {
+      workspacePayload = {
+        name: deriveWorkspaceNameFromRepo(repoUrl),
+        cwd: REPO_ONLY_CWD_SENTINEL,
+        repoUrl,
+      };
+    }
+
     try {
       const created = await createProject.mutateAsync({
         name: name.trim(),
@@ -156,32 +176,8 @@ export function NewProjectDialog() {
         color: PROJECT_COLORS[Math.floor(Math.random() * PROJECT_COLORS.length)],
         ...(goalIds.length > 0 ? { goalIds } : {}),
         ...(targetDate ? { targetDate } : {}),
+        ...(workspacePayload ? { workspace: workspacePayload } : {}),
       });
-
-      const workspacePayloads: Array<Record<string, unknown>> = [];
-      if (localRequired && repoRequired) {
-        workspacePayloads.push({
-          name: deriveWorkspaceNameFromPath(localPath),
-          cwd: localPath,
-          repoUrl,
-        });
-      } else if (localRequired) {
-        workspacePayloads.push({
-          name: deriveWorkspaceNameFromPath(localPath),
-          cwd: localPath,
-        });
-      } else if (repoRequired) {
-        workspacePayloads.push({
-          name: deriveWorkspaceNameFromRepo(repoUrl),
-          cwd: REPO_ONLY_CWD_SENTINEL,
-          repoUrl,
-        });
-      }
-      for (const workspacePayload of workspacePayloads) {
-        await projectsApi.createWorkspace(created.id, {
-          ...workspacePayload,
-        });
-      }
 
       queryClient.invalidateQueries({ queryKey: queryKeys.projects.list(selectedCompanyId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.projects.detail(created.id) });
@@ -284,7 +280,7 @@ export function NewProjectDialog() {
         <div className="px-4 pb-3 space-y-3 border-t border-border">
           <div className="pt-3">
             <p className="text-sm font-medium">Where will work be done on this project?</p>
-            <p className="text-xs text-muted-foreground">Add local folder and/or GitHub repo workspace hints.</p>
+            <p className="text-xs text-muted-foreground">Add local folder and/or GitHub repo workspace hints. Git-backed local folders default to isolated worktrees for issue execution.</p>
           </div>
           <div className="grid gap-2 sm:grid-cols-3">
             <button

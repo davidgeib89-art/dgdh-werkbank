@@ -1,5 +1,6 @@
 import type {
   Approval,
+  CompanyRunChain,
   DocumentRevision,
   Issue,
   IssueAttachment,
@@ -41,6 +42,7 @@ export const issuesApi = {
     api.post<IssueLabel>(`/companies/${companyId}/labels`, data),
   deleteLabel: (id: string) => api.delete<IssueLabel>(`/labels/${id}`),
   get: (id: string) => api.get<Issue>(`/issues/${id}`),
+  companyRunChain: (id: string) => api.get<CompanyRunChain>(`/issues/${id}/company-run-chain`),
   markRead: (id: string) => api.post<{ id: string; lastReadAt: Date }>(`/issues/${id}/read`, {}),
   create: (companyId: string, data: Record<string, unknown>) =>
     api.post<Issue>(`/companies/${companyId}/issues`, data),

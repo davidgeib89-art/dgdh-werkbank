@@ -1,3 +1,5 @@
+import { existsSync } from "node:fs";
+import path from "node:path";
 import { and, asc, desc, eq, inArray } from "drizzle-orm";
 import type { Db } from "@paperclipai/db";
 import { projects, projectGoals, goals, projectWorkspaces, workspaceRuntimeServices } from "@paperclipai/db";
@@ -226,6 +228,38 @@ function normalizeWorkspaceCwd(value: unknown): string | null {
   const cwd = readNonEmptyString(value);
   if (!cwd) return null;
   return cwd === REPO_ONLY_CWD_SENTINEL ? null : cwd;
+}
+
+function isGitBackedWorkspacePath(cwd: string): boolean {
+  let current = path.resolve(cwd);
+  while (true) {
+    if (existsSync(path.join(current, ".git"))) {
+      return true;
+    }
+    const parent = path.dirname(current);
+    if (parent === current) {
+      return false;
+    }
+    current = parent;
+  }
+}
+
+export function inferBootstrapExecutionWorkspacePolicy(input: {
+  cwd?: string | null;
+  isPrimary?: boolean | null;
+}): ProjectExecutionWorkspacePolicy | null {
+  const cwd = normalizeWorkspaceCwd(input.cwd);
+  if (!cwd) return null;
+  if (input.isPrimary === false) return null;
+  if (!isGitBackedWorkspacePath(cwd)) return null;
+  return {
+    enabled: true,
+    defaultMode: "isolated",
+    allowIssueOverride: true,
+    workspaceStrategy: {
+      type: "git_worktree",
+    },
+  };
 }
 
 function deriveNameFromCwd(cwd: string): string {

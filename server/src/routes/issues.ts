@@ -18,6 +18,7 @@ import {
 import type { StorageService } from "../storage/types.js";
 import { validate } from "../middleware/validate.js";
 import {
+  activityService,
   accessService,
   agentService,
   ceoService,
@@ -83,6 +84,7 @@ const mergeIssuePullRequestSchema = z.object({
 export function issueRoutes(db: Db, storage: StorageService) {
   const router = Router();
   const svc = issueService(db);
+  const activitySvc = activityService(db);
   const access = accessService(db);
   const heartbeat = heartbeatService(db);
   const agentsSvc = agentService(db);
@@ -199,6 +201,60 @@ export function issueRoutes(db: Db, storage: StorageService) {
     return {
       ...details,
       apiRunId: runId,
+    };
+  }
+
+  function asDetailsRecord(value: unknown): Record<string, unknown> | null {
+    if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+    return value as Record<string, unknown>;
+  }
+
+  function readNonEmptyString(value: unknown): string | null {
+    if (typeof value !== "string") return null;
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : null;
+  }
+
+  function readStageDate(value: Date | string | null | undefined): Date | null {
+    if (!value) return null;
+    const parsed = value instanceof Date ? value : new Date(value);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  }
+
+  function issueCompletedAt(issue: { completedAt?: Date | null; status: string }) {
+    return issue.status === "done" || issue.status === "merged"
+      ? readStageDate(issue.completedAt ?? null)
+      : null;
+  }
+
+  function isReviewerAgent(
+    agentById: Map<string, Awaited<ReturnType<typeof agentsSvc.list>>[number]>,
+    agentId: string | null | undefined,
+  ) {
+    if (!agentId) return false;
+    const agent = agentById.get(agentId);
+    if (!agent) return false;
+    return agent.role.toLowerCase() === "reviewer" || hasRoleTemplateLegacy(agent, "reviewer");
+  }
+
+  function stageShape(input: {
+    key: "assigned" | "run_started" | "worker_done" | "reviewer_assigned" | "reviewer_run" | "merged" | "parent_done";
+    label: string;
+    at?: Date | null;
+    agentId?: string | null;
+    agentName?: string | null;
+    runId?: string | null;
+    note?: string | null;
+  }) {
+    return {
+      key: input.key,
+      label: input.label,
+      completed: Boolean(input.at),
+      at: input.at ?? null,
+      agentId: input.agentId ?? null,
+      agentName: input.agentName ?? null,
+      runId: input.runId ?? null,
+      note: input.note ?? null,
     };
   }
 
@@ -688,6 +744,168 @@ export function issueRoutes(db: Db, storage: StorageService) {
           new Date(left.createdAt).getTime() - new Date(right.createdAt).getTime(),
       ),
     );
+  });
+
+  router.get("/issues/:id/company-run-chain", async (req, res) => {
+    const id = req.params.id as string;
+    const currentIssue = await svc.getById(id);
+    if (!currentIssue) {
+      res.status(404).json({ error: "Issue not found" });
+      return;
+    }
+    assertCompanyAccess(req, currentIssue.companyId);
+
+    const rootIssue = currentIssue.parentId ? await svc.getById(currentIssue.parentId) : currentIssue;
+    if (!rootIssue) {
+      res.status(404).json({ error: "Parent issue not found" });
+      return;
+    }
+
+    const listedChildren = await ceoSvc.listChildrenByParentId(rootIssue.id);
+    const childIssues = listedChildren.length > 0
+      ? await Promise.all(
+          listedChildren.map(async (child) => (await svc.getById(child.id)) ?? child),
+        )
+      : currentIssue.parentId
+        ? [currentIssue]
+        : [];
+
+    const companyAgents = await agentsSvc.list(rootIssue.companyId);
+    const agentById = new Map(companyAgents.map((agent) => [agent.id, agent]));
+    const parentDoneAt = issueCompletedAt(rootIssue);
+
+    const children = await Promise.all(
+      childIssues.map(async (child) => {
+        const [activity, runs] = await Promise.all([
+          activitySvc.forIssue(child.id),
+          activitySvc.runsForIssue(rootIssue.companyId, child.id),
+        ]);
+        const activityAsc = [...activity].sort(
+          (left, right) => new Date(left.createdAt).getTime() - new Date(right.createdAt).getTime(),
+        );
+        const runsAsc = [...runs].sort(
+          (left, right) => new Date(left.createdAt).getTime() - new Date(right.createdAt).getTime(),
+        );
+
+        const latestWorkerDone = [...activityAsc]
+          .reverse()
+          .find((event) => event.action === "issue.worker_done_recorded");
+        const latestReviewerVerdict = [...activityAsc]
+          .reverse()
+          .find((event) => event.action === "issue.reviewer_verdict_recorded");
+        const latestWorkerPr = [...activityAsc]
+          .reverse()
+          .find((event) => event.action === "issue.worker_pull_request_created");
+
+        const workerDoneDetails = asDetailsRecord(latestWorkerDone?.details);
+        const reviewerVerdictDetails = asDetailsRecord(latestReviewerVerdict?.details);
+        const workerPrDetails = asDetailsRecord(latestWorkerPr?.details);
+
+        const workerAgentId =
+          latestWorkerDone?.agentId ??
+          runsAsc.find((run) => !isReviewerAgent(agentById, run.agentId))?.agentId ??
+          child.assigneeAgentId ??
+          null;
+        const workerAgent = workerAgentId ? agentById.get(workerAgentId) ?? null : null;
+        const reviewerAgentId =
+          readNonEmptyString(workerDoneDetails?.reviewerAgentId) ??
+          latestReviewerVerdict?.agentId ??
+          runsAsc.find((run) => isReviewerAgent(agentById, run.agentId))?.agentId ??
+          null;
+        const reviewerAgent = reviewerAgentId ? agentById.get(reviewerAgentId) ?? null : null;
+
+        const workerRun = workerAgentId
+          ? runsAsc.find((run) => run.agentId === workerAgentId)
+          : runsAsc.find((run) => !isReviewerAgent(agentById, run.agentId));
+        const reviewerRun = reviewerAgentId
+          ? runsAsc.find((run) => run.agentId === reviewerAgentId)
+          : runsAsc.find((run) => isReviewerAgent(agentById, run.agentId));
+
+        const assignedAt = workerAgentId ? readStageDate(child.createdAt) : null;
+        const workerRunAt = readStageDate(workerRun?.startedAt ?? workerRun?.createdAt ?? null);
+        const workerDoneAt = readStageDate(latestWorkerDone?.createdAt ?? null);
+        const reviewerAssignedAt = reviewerAgentId ? workerDoneAt : null;
+        const reviewerRunAt = readStageDate(reviewerRun?.startedAt ?? reviewerRun?.createdAt ?? null);
+        const mergedAt = child.status === "merged" ? issueCompletedAt(child) : null;
+        const prNumber = workerPrDetails && typeof workerPrDetails.prNumber === "number"
+          ? workerPrDetails.prNumber
+          : null;
+
+        return {
+          issueId: child.id,
+          identifier: child.identifier ?? null,
+          title: child.title,
+          status: child.status,
+          assigneeAgentId: child.assigneeAgentId ?? null,
+          assigneeAgentName: child.assigneeAgentId
+            ? (agentById.get(child.assigneeAgentId)?.name ?? null)
+            : null,
+          stages: [
+            stageShape({
+              key: "assigned",
+              label: "assigned",
+              at: assignedAt,
+              agentId: workerAgentId,
+              agentName: workerAgent?.name ?? null,
+            }),
+            stageShape({
+              key: "run_started",
+              label: "run started",
+              at: workerRunAt,
+              agentId: workerAgentId,
+              agentName: workerAgent?.name ?? null,
+              runId: workerRun?.runId ?? null,
+            }),
+            stageShape({
+              key: "worker_done",
+              label: "worker done",
+              at: workerDoneAt,
+              agentId: workerAgentId,
+              agentName: workerAgent?.name ?? null,
+              runId: latestWorkerDone?.runId ?? workerRun?.runId ?? null,
+              note: readNonEmptyString(workerDoneDetails?.branch),
+            }),
+            stageShape({
+              key: "reviewer_assigned",
+              label: "reviewer assigned",
+              at: reviewerAssignedAt,
+              agentId: reviewerAgentId,
+              agentName: reviewerAgent?.name ?? null,
+            }),
+            stageShape({
+              key: "reviewer_run",
+              label: "reviewer run",
+              at: reviewerRunAt,
+              agentId: reviewerAgentId,
+              agentName: reviewerAgent?.name ?? null,
+              runId: reviewerRun?.runId ?? latestReviewerVerdict?.runId ?? null,
+              note: readNonEmptyString(reviewerVerdictDetails?.verdict),
+            }),
+            stageShape({
+              key: "merged",
+              label: "merged",
+              at: mergedAt,
+              note: prNumber ? `PR #${prNumber}` : readNonEmptyString(workerPrDetails?.prUrl),
+            }),
+            stageShape({
+              key: "parent_done",
+              label: "parent done",
+              at: parentDoneAt,
+              note: rootIssue.identifier ?? rootIssue.id,
+            }),
+          ],
+        };
+      }),
+    );
+
+    res.json({
+      parentIssueId: rootIssue.id,
+      parentIdentifier: rootIssue.identifier ?? null,
+      parentTitle: rootIssue.title,
+      parentStatus: rootIssue.status,
+      focusIssueId: currentIssue.parentId ? currentIssue.id : null,
+      children,
+    });
   });
 
   router.post(

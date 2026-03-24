@@ -11,6 +11,7 @@ import { validate } from "../middleware/validate.js";
 import { projectService, logActivity } from "../services/index.js";
 import { conflict } from "../errors.js";
 import { assertCompanyAccess, getActorInfo } from "./authz.js";
+import { inferBootstrapExecutionWorkspacePolicy } from "../services/projects.js";
 
 export function projectRoutes(db: Db) {
   const router = Router();
@@ -88,6 +89,17 @@ export function projectRoutes(db: Db) {
         return;
       }
       createdWorkspaceId = createdWorkspace.id;
+      if (!project.executionWorkspacePolicy && createdWorkspace.isPrimary) {
+        const inferredPolicy = inferBootstrapExecutionWorkspacePolicy({
+          cwd: createdWorkspace.cwd,
+          isPrimary: createdWorkspace.isPrimary,
+        });
+        if (inferredPolicy) {
+          await svc.update(project.id, {
+            executionWorkspacePolicy: inferredPolicy as unknown as Record<string, unknown>,
+          });
+        }
+      }
     }
     const hydratedProject = workspace ? await svc.getById(project.id) : project;
 
@@ -161,6 +173,18 @@ export function projectRoutes(db: Db) {
     if (!workspace) {
       res.status(422).json({ error: "Invalid project workspace payload" });
       return;
+    }
+
+    if (!existing.executionWorkspacePolicy && workspace.isPrimary) {
+      const inferredPolicy = inferBootstrapExecutionWorkspacePolicy({
+        cwd: workspace.cwd,
+        isPrimary: workspace.isPrimary,
+      });
+      if (inferredPolicy) {
+        await svc.update(id, {
+          executionWorkspacePolicy: inferredPolicy as unknown as Record<string, unknown>,
+        });
+      }
     }
 
     const actor = getActorInfo(req);

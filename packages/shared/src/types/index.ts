@@ -38,6 +38,10 @@ export type {
 } from "./workspace-runtime.js";
 export type {
   Issue,
+  CompanyRunChain,
+  CompanyRunChainChild,
+  CompanyRunChainStage,
+  CompanyRunChainStageKey,
   IssueAssigneeAdapterOverrides,
   IssueComment,
   IssueDocument,

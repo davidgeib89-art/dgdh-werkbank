@@ -21,6 +21,7 @@ import { IssueDocumentsSection } from "../components/IssueDocumentsSection";
 import { IssueProperties } from "../components/IssueProperties";
 import { LiveRunWidget } from "../components/LiveRunWidget";
 import { NeedsInputNotice } from "../components/NeedsInputNotice";
+import { CompanyRunChainCard } from "../components/CompanyRunChainCard";
 import type { MentionOption } from "../components/MarkdownEditor";
 import { ScrollToBottom } from "../components/ScrollToBottom";
 import { StatusIcon } from "../components/StatusIcon";
@@ -260,6 +261,13 @@ export function IssueDetail() {
   const { data: activeRun } = useQuery({
     queryKey: queryKeys.issues.activeRun(issueId!),
     queryFn: () => heartbeatsApi.activeRunForIssue(issueId!),
+    enabled: !!issueId,
+    refetchInterval: 3000,
+  });
+
+  const { data: companyRunChain } = useQuery({
+    queryKey: queryKeys.issues.companyRunChain(issueId!),
+    queryFn: () => issuesApi.companyRunChain(issueId!),
     enabled: !!issueId,
     refetchInterval: 3000,
   });
@@ -889,6 +897,10 @@ export function IssueDetail() {
         itemClassName="rounded-lg border border-border p-3"
         missingBehavior="placeholder"
       />
+
+      {companyRunChain && companyRunChain.children.length > 0 && (
+        <CompanyRunChainCard chain={companyRunChain} />
+      )}
 
       <IssueDocumentsSection
         issue={issue}

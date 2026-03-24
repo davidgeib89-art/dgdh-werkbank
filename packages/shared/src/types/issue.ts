@@ -163,6 +163,45 @@ export interface WorkerHandoff {
   summary: WorkerHandoffSummary;
 }
 
+export type CompanyRunChainStageKey =
+  | "assigned"
+  | "run_started"
+  | "worker_done"
+  | "reviewer_assigned"
+  | "reviewer_run"
+  | "merged"
+  | "parent_done";
+
+export interface CompanyRunChainStage {
+  key: CompanyRunChainStageKey;
+  label: string;
+  completed: boolean;
+  at: Date | null;
+  agentId: string | null;
+  agentName: string | null;
+  runId: string | null;
+  note: string | null;
+}
+
+export interface CompanyRunChainChild {
+  issueId: string;
+  identifier: string | null;
+  title: string;
+  status: IssueStatus;
+  assigneeAgentId: string | null;
+  assigneeAgentName: string | null;
+  stages: CompanyRunChainStage[];
+}
+
+export interface CompanyRunChain {
+  parentIssueId: string;
+  parentIdentifier: string | null;
+  parentTitle: string;
+  parentStatus: IssueStatus;
+  focusIssueId: string | null;
+  children: CompanyRunChainChild[];
+}
+
 export interface IssueAttachment {
   id: string;
   companyId: string;
