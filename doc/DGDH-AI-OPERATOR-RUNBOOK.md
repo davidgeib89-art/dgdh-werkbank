@@ -44,6 +44,34 @@ In practice this means:
 - treat review as gate and sensor
 - do not open meta-architecture while an operational blocker is active
 
+### 2.2 Execution Packet Readiness
+
+An execution packet is the atomic unit of delegated work. It is "ready" when it satisfies the minimal contract for a Worker to succeed without broad re-discovery.
+
+Criteria for readiness:
+- **Narrow Scope**: Targets a specific file or folder (via `targetFile` or `targetFolder`).
+- **Verifiable `doneWhen`**: Contains a concrete, binary-verifiable condition (not a "vibe check").
+- **Mission Context**: Includes essential inputs; avoids forcing the worker to read broad documentation.
+- **Routing Metadata**: Has a defined `packetType` (e.g., `free_api`, `premium_model`) and `reviewPolicy`.
+- **Correct Status**: Set to `todo` for immediate execution; `backlog` intentionally blocks assignment-triggered wakeup.
+- **Constitutional Alignment**: Passes the CEO's constitution check (Is it real work? Is it bounded? Is the scope clear?).
+
+### 2.3 Validation-First Workflow
+
+DGDH workers operate under a "Validation-First" mandate, prioritizing empirical evidence over speculative implementation.
+
+Standard execution loop:
+1. **Locate**: Inspect the packet, relevant files, and current state before changing anything.
+2. **Hypothesize**: Decide the smallest credible change or action that should satisfy `doneWhen`.
+3. **Patch**: Apply the bounded change or produce the requested artifact.
+4. **Validate**: Run the smallest relevant verification (read the result, check file scope, or run a cheap targeted check).
+5. **Refine**: If validation fails, do one more bounded repair pass. If still failing, stop and report the blocker instead of drifting into a broad rewrite.
+
+Rules for the loop:
+- **Scope Firewall**: Do not touch files outside the `targetFolder`. If a cross-folder change is needed, report it as a blocker.
+- **Evidence over Theory**: Do not claim completion until the `Validation` step provides hard evidence that `doneWhen` is met.
+- **No Blind Retries**: Do not repeat the same failed tool call or command. Adapt once, then report.
+
 ---
 
 ## 3. Read Order Before Acting
