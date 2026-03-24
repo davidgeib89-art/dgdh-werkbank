@@ -133,6 +133,7 @@ In practice:
 - ask what David still cannot see quickly enough himself
 - prefer turning repeated hidden rescue knowledge into product defaults, surfaces, or simple visible truths
 - do not keep polishing invisible infrastructure if the next real David-minute bottleneck is readability
+- if agents are burning tokens on repeated state reconstruction, treat that as observability debt and ask whether a compact run-truth surface should replace shell/API archaeology
 
 ---
 

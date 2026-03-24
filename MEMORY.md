@@ -24,6 +24,7 @@
 - `doc/plans/2026-03-23-research-and-skills-direction.md` - kanonische Richtung fuer Skills, Guardrails und OSS-Adaption
 - `doc/plans/2026-03-23-dgdh-evolution-lane-werkbank-baut-werkbank.md` - spaetere Evolution-Lane: kontrollierte replay-/benchmark-getriebene Selbstverbesserung statt freier Live-Selbstoptimierung
 - `doc/plans/2026-03-23-research-role-and-skill-invocation-direction.md` - Researcher als spaeterer Spezialpfad; klare Trennung Rolle vs Skill
+- `doc/plans/2026-03-24-run-truth-observability-direction.md` - spaetere Run-Wahrheitsschicht: Zustandsrekonstruktion von Problemlogik trennen, damit Agenten weniger Tokens auf Shell-/API-/Git-Archaeologie verbrennen
 - `company-hq/research/2026-03-24-724-office-dgdh-transfer-matrix.md` - 724-office ist fuer DGDH nur als Primitive-Quelle relevant: file-layered identity, visible primitives, spaeter Memory/Diagnostics; nicht als self-evolving Zielarchitektur
 - `company-hq/research/2026-03-24-airweave-dgdh-transfer-matrix.md` - Airweave ist fuer DGDH als Retrieval-/Architektur-Signal relevant: spaetere shared context capability, Domain/Adapter/Protocol-Trennung, fakebare Capability-Seams und Warnung vor zu frueher Plattformmasse; nicht als Plattform- oder Integrationssprint
 - `doc/plans/2026-03-23-chat-ai-docking-prompt.md` - neutrales Andock-Briefing fuer neue Chat-AI-Fenster
@@ -54,6 +55,7 @@
 - Airweave lehrt zusaetzlich: Retrieval ist ein echtes Problem, wird aber extrem schnell selbst zum Produkt; deshalb muessen infra-lastige Faehigkeiten frueh domain-first, adapter-separiert, fakebar und auf wenige echte Firmenhebel geschnitten werden.
 - Sobald der Firmenloop auf canonical `main` wiederholt boringly durchlaeuft, verschiebt sich der naechste Hebel von versteckter Bootstrap-Infra zu operator-facing Lesbarkeit: die richtige naechste Frage lautet dann nicht mehr "welcher Glue-Bug fehlt?", sondern "wie sieht David die Firmenwahrheit mit moeglichst wenig Minuten?"
 - Die Issue-Detail-Seite zeigt jetzt eine kompakte operator-facing Firmenwahrheit: `Issue`, `Company`, `Project`, `Active run`, `Context` plus die schmale `company-run-chain`.
+- Wenn Agenten fuer Firmenlauf-Validierung zu viele Tokens auf Shell-, API- und Git-Rekonstruktion verbrennen, ist das nicht nur Prompt-Ineffizienz, sondern Observability-Defizit; die spaetere Antwort ist eine kompakte Run-Wahrheitsschicht mit Status, Identitaet, Truth-Quelle, Frische und blocker-orientierter Summary.
 - Bei bounded Implementation-Packets ist explizite `target file`-/`target folder`-Wahrheit upstream noetig; sonst darf Routing-Preflight legitimerweise mit `missing_inputs` vor dem ersten Child-Handoff blocken.
 - Ein leeres `/instance/scheduler-heartbeats` beweist keinen kaputten Assignment-Pfad; bei `intervalSec = 0` fehlt dort nur Timer-Scheduler-Sichtbarkeit.
 - Self-Learning bedeutet spaeter governte Hypothesenbildung aus echten Firmenlaeufen; Self-Improving promoted bewaehrte Verbesserungen erst nach Replay/Benchmark/PR-Pruefung in den Standardbetrieb.
