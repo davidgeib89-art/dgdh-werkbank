@@ -4,6 +4,7 @@ import { resolve } from "node:path";
 import { createInterface } from "node:readline/promises";
 import { stdin, stdout } from "node:process";
 import { pathToFileURL } from "node:url";
+import type {} from "./types/express.js";
 import type { Request as ExpressRequest, RequestHandler } from "express";
 import { and, eq } from "drizzle-orm";
 import {
@@ -79,20 +80,6 @@ export interface StartedServer {
 export async function startServer(): Promise<StartedServer> {
   const config = loadConfig();
 
-  // --- START MODIFICATION ---
-  // Ensure PAPERCLIP_HOME and PAPERCLIP_INSTANCE_ID reflect canonical runtime context from config.
-  // If they are not set externally, use values from the loaded config.
-  // This ensures the values surfaced in the startup banner are derived from the active configuration.
-  if (config.paperclipHome && !process.env.PAPERCLIP_HOME) {
-    process.env.PAPERCLIP_HOME = config.paperclipHome;
-    logger.info({ paperclipHome: config.paperclipHome }, "Using PAPERCLIP_HOME from config");
-  }
-  if (config.paperclipInstanceId && !process.env.PAPERCLIP_INSTANCE_ID) {
-    process.env.PAPERCLIP_INSTANCE_ID = config.paperclipInstanceId;
-    logger.info({ instanceId: config.paperclipInstanceId }, "Using PAPERCLIP_INSTANCE_ID from config");
-  }
-  // --- END MODIFICATION ---
-
   if (process.env.PAPERCLIP_SECRETS_PROVIDER === undefined) {
     process.env.PAPERCLIP_SECRETS_PROVIDER = config.secretsProvider;
   }
@@ -153,6 +140,27 @@ export async function startServer(): Promise<StartedServer> {
   ): Promise<MigrationSummary> {
     const autoApply = opts?.autoApply === true;
     let state = await inspectMigrations(connectionString);
+    const shouldAutoApplyBootstrapMigrations =
+      state.status === "needsMigrations" &&
+      (
+        state.reason === "no-migration-journal-empty-db" ||
+        (
+          state.reason === "pending-migrations" &&
+          state.appliedMigrations.length === 0 &&
+          state.tableCount <= 1
+        )
+      );
+    const shouldApplyWithoutPrompt = autoApply || shouldAutoApplyBootstrapMigrations;
+    if (shouldAutoApplyBootstrapMigrations && !autoApply) {
+      logger.info(
+        {
+          label,
+          tableCount: state.tableCount,
+          appliedMigrations: state.appliedMigrations,
+        },
+        "Detected bootstrap-like database state; applying pending migrations automatically",
+      );
+    }
     if (
       state.status === "needsMigrations" &&
       state.reason === "pending-migrations"
@@ -176,7 +184,7 @@ export async function startServer(): Promise<StartedServer> {
         { tableCount: state.tableCount },
         `${label} has existing tables but no migration journal. Run migrations manually to sync schema.`,
       );
-      const apply = autoApply
+      const apply = shouldApplyWithoutPrompt
         ? true
         : await promptApplyMigrations(state.pendingMigrations);
       if (!apply) {
@@ -195,7 +203,7 @@ export async function startServer(): Promise<StartedServer> {
       return "applied (pending migrations)";
     }
 
-    const apply = autoApply
+    const apply = shouldApplyWithoutPrompt
       ? true
       : await promptApplyMigrations(state.pendingMigrations);
     if (!apply) {
