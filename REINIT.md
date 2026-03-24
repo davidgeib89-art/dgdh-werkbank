@@ -21,11 +21,12 @@ Standardfall nach Context-Verlust:
 1. `CURRENT.md`
 2. `MEMORY.md`
 3. `SOUL.md` fuer den gemeinsamen Wesenskern der DGDH-Agentenwelt
-4. `doc/DGDH-AI-OPERATOR-RUNBOOK.md` wenn du Runs, Instanzen, Worktrees oder echte Bedienpfade anfassen musst
-5. `doc/plans/2026-03-24-dgdh-first-principles-operating-doctrine.md` wenn du Richtung, Massstab oder Anti-Drift fuer den Sprint brauchst
-6. `doc/plans/2026-03-24-dgdh-memory-learning-self-improvement-first-principles.md` wenn du ueber Firmengedachtnis, Lernen oder spaetere Selbstverbesserung nachdenkst
-7. `doc/plans/2026-03-24-dgdh-ai-trinity-and-operator-stack.md` wenn du den aktuellen AI-Stack, Rollen und Run-Oekonomie verstehen musst
-8. `doc/plans/2026-03-24-dgdh-soul-layer-and-boardmeeting-direction.md` wenn du verstehen musst, wie `SOUL.md` sich zu Rollen, Governance und Boardmeeting verhaelt
+4. `EXECUTOR.md` wenn du der ausfuehrende Agent bist und Runtime, Ports, Prozess-Identitaet oder Real-Run-Protokoll schnell sauber haben musst
+5. `doc/DGDH-AI-OPERATOR-RUNBOOK.md` wenn du Runs, Instanzen, Worktrees oder echte Bedienpfade anfassen musst
+6. `doc/plans/2026-03-24-dgdh-first-principles-operating-doctrine.md` wenn du Richtung, Massstab oder Anti-Drift fuer den Sprint brauchst
+7. `doc/plans/2026-03-24-dgdh-memory-learning-self-improvement-first-principles.md` wenn du ueber Firmengedachtnis, Lernen oder spaetere Selbstverbesserung nachdenkst
+8. `doc/plans/2026-03-24-dgdh-ai-trinity-and-operator-stack.md` wenn du den aktuellen AI-Stack, Rollen und Run-Oekonomie verstehen musst
+9. `doc/plans/2026-03-24-dgdh-soul-layer-and-boardmeeting-direction.md` wenn du verstehen musst, wie `SOUL.md` sich zu Rollen, Governance und Boardmeeting verhaelt
 
 Das reicht normalerweise, um sofort weiterzuarbeiten.
 
@@ -44,6 +45,7 @@ Wenn etwas unklar, widerspruechlich oder driftig wirkt, geh zur Sicherheit auf `
 - Self-Learning laeuft spaeter ueber Replay, Benchmark, PR und Promotion - nicht als freie Live-Mutation.
 - Die aktuelle Arbeitsverteilung ist bewusst geschnitten: Codex fuer Reflexion und Zuschnitt, Copilot fuer grosse Coding-Sprints, Herschel fuer externe Gegenreflexion, Gemini fuer Review/Research.
 - `SOUL.md` ist shared core: eine gemeinsame Seele fuer die Firma, nicht bloss Persona-Fluff und nicht Ersatz fuer Rollen oder Guardrails.
+- `EXECUTOR.md` ist die schmale Execution-Schicht fuer Langlauf-Agenten: richtige Runtime zuerst, API vor Browser, Prozess vor Port, keine `task_complete`-Loops.
 
 ## Wo wir stehen
 
@@ -67,26 +69,31 @@ Lies sofort in dieser Reihenfolge:
    - wie du Live-Runs, Inbox und Git zusammen liest
    - haeufige Bedienfehler und Standardbehandlung
 
-4. `doc/plans/2026-03-24-dgdh-first-principles-operating-doctrine.md`
+4. `EXECUTOR.md`
+   - wie du als Copilot-/Executor-Lane nicht wieder Ports, Worktrees und stale Browserzustand verwechselst
+   - wie du echte Runs ueber harte Runtime-Identitaet statt ueber Bauchgefuehl steuerst
+   - wie du Completion-Loop-Drift vermeidest
+
+5. `doc/plans/2026-03-24-dgdh-first-principles-operating-doctrine.md`
    - was in dieser Phase wirklich zaehlt
    - warum wir grosse reale Sprints statt Test-Theater fahren
    - wo Produktcode, Role Templates, Skills und Runbook jeweils hingehoeren
 
-5. `doc/plans/2026-03-24-dgdh-memory-learning-self-improvement-first-principles.md`
+6. `doc/plans/2026-03-24-dgdh-memory-learning-self-improvement-first-principles.md`
    - wie DGDH Firmengedachtnis von Rohhistorie trennt
    - wie Lernen aus echten Firmenlaeufen verdichtet wird
    - warum Self-Improving spaeter replay-/benchmark-getrieben statt frei live laeuft
 
-6. `doc/plans/2026-03-24-dgdh-ai-trinity-and-operator-stack.md`
+7. `doc/plans/2026-03-24-dgdh-ai-trinity-and-operator-stack.md`
    - warum der aktuelle Stack nicht nach Markennamen, sondern nach Rollen optimiert ist
    - warum Copilot grosse Sprints ziehen soll
    - warum Codex und Herschel eher Denk- und Reflexionshebel sind
 
-7. `SOUL.md`
+8. `SOUL.md`
    - der gemeinsame Wesensvertrag aller DGDH-Agenten
    - wie Wahrheit, Resonanz, Boundaries und David-Naehe zusammengehalten werden
 
-8. `doc/plans/2026-03-24-dgdh-soul-layer-and-boardmeeting-direction.md`
+9. `doc/plans/2026-03-24-dgdh-soul-layer-and-boardmeeting-direction.md`
    - warum `SOUL.md` als gemeinsame `wir`-Schicht gebaut ist
    - wie daraus spaeter boardmeeting-faehige mehrere Stimmen derselben Firma entstehen koennen
 

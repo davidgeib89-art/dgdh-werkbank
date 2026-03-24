@@ -23,6 +23,7 @@ Wenn du aeltere Sprint-/Run-Historie brauchst, lies `doc/archive/sprint-log.md` 
 
 Wenn du die DGDH-/Paperclip-Firma selbst aktiv bedienen, Runs starten, beobachten oder lokale Instanz-/Worktree-Fragen klaeren musst, lies danach auch:
 - `doc/DGDH-AI-OPERATOR-RUNBOOK.md`
+- `EXECUTOR.md` wenn du der ausfuehrende Langlauf-Agent bist
 - `SOUL.md`
 
 ---
@@ -67,6 +68,7 @@ Nur bei Bedarf (wenn deine Aufgabe es erfordert):
 - `company-hq/DGDH-GEMINI-ENGINE-V1-2026-03-19.md` - Gemini Engine Spec
 - `CLAUDE.md` - Claude-spezifische Architektur-Details und Workflow
 - `doc/DGDH-AI-OPERATOR-RUNBOOK.md` - praktische Bedienungsanleitung fuer lokale Firmenruns und kanonische Run-Control
+- `EXECUTOR.md` - kompakter Regelkern fuer Copilot und andere ausfuehrende Langlauf-Agenten: Runtime-Truth, Port-/Process-Checks, Real-Run-Protokoll, Anti-Drift und Anti-`task_complete`-Loop
 
 ### Stabile Arbeitslesart (2026-03-24)
 

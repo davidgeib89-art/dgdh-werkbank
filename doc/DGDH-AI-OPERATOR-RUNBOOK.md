@@ -14,6 +14,7 @@ Use it together with:
 - `INIT.md` / `REINIT.md` for role and working style
 - `MEMORY.md` for stable facts
 - `CURRENT.md` for the live baton and active sprint
+- `EXECUTOR.md` if you are the active long-running execution agent
 
 This document is not the live baton and not a strategy doc.
 It should stay stable, operational, and boring.
