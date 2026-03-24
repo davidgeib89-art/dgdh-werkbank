@@ -104,6 +104,10 @@ Before you trust a running local server, verify:
 6. `GET /api/health`
 7. `GET /api/companies`
 
+If repo-local `.paperclip/.env` or `.paperclip/config.json` do not exist, do not assume the local company is gone.
+Treat the startup banner as decisive and expect fallback identity under `~/.paperclip/instances/default`.
+That fallback is real runtime truth until a repo-local Paperclip context is actually created.
+
 If any of these disagree, you are not yet attached to a canonical runtime.
 
 ---
@@ -168,6 +172,24 @@ Check in this order:
 
 The goal is not dramatic debugging.
 The goal is to locate the first real blockage in the actual path.
+
+When a parent issue run sits in `running` with no child issues, no comments, and no status movement:
+
+1. read `GET /api/heartbeat-runs/{runId}`
+2. read `GET /api/heartbeat-runs/{runId}/events`
+3. read `GET /api/heartbeat-runs/{runId}/log`
+
+This distinguishes:
+- pre-adapter stall
+- adapter invoke with no model output
+- repo-read drift inside the CEO
+- later handoff failure
+
+Observed clean-main truth:
+- project/API truth may still point at a stale historical workspace path even when the current canonical worktree is correct
+- a fresh project on the proven worktree is the right repair, not old-worktree revival
+- for `gemini_local`, compare `adapter.invoke.commandArgs` against the agent API record
+- if the agent record says `model: auto` but `adapter.invoke` still passes explicit `--model ...`, treat that as a real routing/adapter blocker worth isolating
 
 ---
 

@@ -4271,9 +4271,16 @@ export function heartbeatService(db: Db) {
         // Gate 2 (routine operator approval) is intentionally disabled for now.
         // Valid runs should continue unless they hit the hard block above.
         // Apply model lane override from routing preflight.
-        // Analogous to how resolvedConfig.includeSkills is set from flashLiteProposal above.
+        // Keep gemini_local agents on CLI auto-selection unless they already carry an explicit model,
+        // because forcing --model has caused live CEO runs to stall before any model output.
         if (routingPreflight?.applyModelLane) {
-          resolvedConfig.model = routingPreflight.selected.effectiveModelLane;
+          const configuredModel = readNonEmptyString(resolvedConfig.model);
+          const keepGeminiAutoModel =
+            agent.adapterType === "gemini_local" &&
+            (!configuredModel || configuredModel === "auto");
+          if (!keepGeminiAutoModel) {
+            resolvedConfig.model = routingPreflight.selected.effectiveModelLane;
+          }
         }
 
         const singleFileBenchmarkPreflight =

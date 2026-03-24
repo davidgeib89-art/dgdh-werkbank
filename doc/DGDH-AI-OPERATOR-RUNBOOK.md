@@ -73,6 +73,7 @@ Practical meaning:
 - Do not trust inherited `PAPERCLIP_HOME` / `PAPERCLIP_INSTANCE_ID` blindly.
 - Prefer running commands from the intended repo/worktree root.
 - Treat repo-local `.paperclip` as source of truth when it exists.
+- If repo-local `.paperclip/.env` and `.paperclip/config.json` are absent, use the startup banner to confirm the fallback default instance under `~/.paperclip/instances/default` instead of assuming the company is missing.
 
 Quick checks:
 
@@ -181,6 +182,9 @@ $reviewer = $agents | Where-Object { $_.adapterConfig.roleTemplateId -eq "review
 
 3. Reuse a project when it already exists. Only create one when the run truly needs a fresh scope.
 
+Validate the existing project workspace before reuse.
+If the project points at a stale historical worktree path, create a fresh project on the proven current worktree instead of reviving the stale path.
+
 ```powershell
 $projects = Invoke-RestMethod "$base/companies/$companyId/projects"
 ```
@@ -271,6 +275,16 @@ Operational rule:
 > prefer one direct API or process check over broad shell harvesting
 
 Only widen the search when the direct probe failed or contradicted another stronger truth source.
+
+If a CEO/worker run is `running` but produces no child issues, no comments, and no status movement, use the heartbeat-run read surfaces before reopening code:
+- `GET /api/heartbeat-runs/{runId}`
+- `GET /api/heartbeat-runs/{runId}/events`
+- `GET /api/heartbeat-runs/{runId}/log`
+
+Current clean-main lesson:
+- `adapter.invoke` is the decisive place to compare effective CLI args against agent API truth
+- if `gemini_local` shows agent `adapterConfig.model = auto` but `adapter.invoke.commandArgs` still includes explicit `--model gemini-3.1-pro-preview`, treat that as a real live-path blocker
+- this blocker is different from prompt drift; prompt drift shows repo/file reads, while model-override stalls can freeze before any meaningful model output
 
 ### 7.2 Dashboard vs API Rule
 
