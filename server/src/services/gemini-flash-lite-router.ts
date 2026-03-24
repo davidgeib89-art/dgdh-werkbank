@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import path from "node:path";
+import type { IssueExecutionPacketArtifactKind } from "@paperclipai/shared";
 import {
   ensureCommandResolvable,
   ensurePathInEnv,
@@ -40,7 +41,9 @@ export interface GeminiFlashLiteProposal {
   taskClass: TaskClass;
   budgetClass: BudgetClass;
   executionIntent: ExecutionIntent;
+  targetFile: string;
   targetFolder: string;
+  artifactKind: IssueExecutionPacketArtifactKind;
   doneWhen: string;
   riskLevel: RiskLevel;
   missingInputs: string[];
@@ -213,6 +216,23 @@ function isRiskLevel(value: string | null): value is RiskLevel {
   return value === "low" || value === "medium" || value === "high";
 }
 
+function normalizeArtifactKind(
+  value: unknown,
+): IssueExecutionPacketArtifactKind | null {
+  const normalized = asString(value)?.toLowerCase().replace(/[\s-]+/g, "_");
+  if (
+    normalized === "code_patch" ||
+    normalized === "doc_update" ||
+    normalized === "config_change" ||
+    normalized === "test_update" ||
+    normalized === "multi_file_change" ||
+    normalized === "folder_operation"
+  ) {
+    return normalized;
+  }
+  return null;
+}
+
 function normalizeMissingInputs(value: unknown): string[] {
   if (!Array.isArray(value)) return [];
   return value
@@ -290,7 +310,11 @@ function normalizeProposalFromRaw(
     : chosenBucket;
 
   const executionIntentRaw = asString(coalesce(raw, "executionIntent", "execution_intent"));
+  const targetFileRaw = asString(coalesce(raw, "targetFile", "target_file"));
   const targetFolderRaw = asString(coalesce(raw, "targetFolder", "target_folder"));
+  const artifactKindRaw = normalizeArtifactKind(
+    coalesce(raw, "artifactKind", "artifact_kind"),
+  );
   const doneWhenRaw = asString(coalesce(raw, "doneWhen", "done_when"));
   const riskLevelRaw = asString(coalesce(raw, "riskLevel", "risk_level"));
   const needsApprovalRaw = asBoolean(coalesce(raw, "needsApproval", "needs_approval"));
@@ -302,7 +326,9 @@ function normalizeProposalFromRaw(
     executionIntent: isExecutionIntent(executionIntentRaw)
       ? executionIntentRaw
       : defaultExecutionIntent(taskClass),
+    targetFile: targetFileRaw ?? "none",
     targetFolder: targetFolderRaw ?? ".",
+    artifactKind: artifactKindRaw ?? "multi_file_change",
     doneWhen:
       doneWhenRaw ??
       "Provide a concise completion summary and validation evidence.",
@@ -642,7 +668,16 @@ function buildStrictPrompt(input: {
         "benchmark",
         "plan",
       ],
+      targetFile: "string (repo-relative file path or 'n/a')",
       targetFolder: "string (relative folder path)",
+      artifactKind: [
+        "code_patch",
+        "doc_update",
+        "config_change",
+        "test_update",
+        "multi_file_change",
+        "folder_operation",
+      ],
       doneWhen: "string (clear done-condition)",
       riskLevel: ["low", "medium", "high"],
       missingInputs: "string[] — only list genuinely ABSENT required inputs from the task description (e.g. 'target_file_not_specified', 'no_repository_url'). Do NOT list skills here. Leave empty [] if the task has all needed inputs.",

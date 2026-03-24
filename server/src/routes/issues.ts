@@ -36,6 +36,7 @@ import { forbidden, HttpError, unauthorized } from "../errors.js";
 import { assertCompanyAccess, getActorInfo } from "./authz.js";
 import { shouldWakeAssigneeOnCheckout } from "./issues-checkout-wakeup.js";
 import { isAllowedContentType, MAX_ATTACHMENT_BYTES } from "../attachment-types.js";
+import { resolveIssueExecutionPacketTruth } from "../services/issue-execution-packet.js";
 
 const MAX_ISSUE_COMMENT_LIMIT = 500;
 const WORKER_BRANCH_PREFIX = "dgdh/issue-";
@@ -266,10 +267,16 @@ export function issueRoutes(db: Db, storage: StorageService) {
       goalId?: string | null;
       parentId?: string | null;
       identifier?: string | null;
+      title?: string | null;
+      description?: string | null;
     },
     source: string,
     extras?: Record<string, unknown>,
   ) {
+    const executionPacketTruth = resolveIssueExecutionPacketTruth({
+      title: issue.title ?? null,
+      description: issue.description ?? null,
+    });
     return {
       issueId: issue.id,
       taskId: issue.id,
@@ -280,9 +287,44 @@ export function issueRoutes(db: Db, storage: StorageService) {
       goalId: issue.goalId ?? null,
       parentId: issue.parentId ?? null,
       issueIdentifier: issue.identifier ?? null,
+      packetType: executionPacketTruth.packetType,
+      executionIntent: executionPacketTruth.executionIntent,
+      reviewPolicy: executionPacketTruth.reviewPolicy,
+      needsReview: executionPacketTruth.needsReview,
+      targetFile: executionPacketTruth.targetFile,
+      targetFolder: executionPacketTruth.targetFolder,
+      doneWhen: executionPacketTruth.doneWhen,
+      artifactKind: executionPacketTruth.artifactKind,
+      executionHeavy: executionPacketTruth.executionHeavy,
+      packetReadinessStatus: executionPacketTruth.status,
+      packetReadinessReasonCodes: executionPacketTruth.reasonCodes,
+      issueExecutionPacketTruth: executionPacketTruth,
       source,
       ...(extras ?? {}),
     };
+  }
+
+  function withIssueExecutionPacketTruth<T extends { title: string; description?: string | null }>(
+    issue: T,
+  ) {
+    return {
+      ...issue,
+      executionPacketTruth: resolveIssueExecutionPacketTruth({
+        title: issue.title,
+        description: issue.description ?? null,
+      }),
+    };
+  }
+
+  function getIssueExecutionPacketBlock(issue: {
+    title: string;
+    description?: string | null;
+  }) {
+    const truth = resolveIssueExecutionPacketTruth({
+      title: issue.title,
+      description: issue.description ?? null,
+    });
+    return truth.executionHeavy && !truth.ready ? truth : null;
   }
 
   async function assertAgentRunCheckoutOwnership(
@@ -488,7 +530,7 @@ export function issueRoutes(db: Db, storage: StorageService) {
       ? await projectsSvc.listByIds(issue.companyId, mentionedProjectIds)
       : [];
     res.json({
-      ...issue,
+      ...withIssueExecutionPacketTruth(issue),
       goalId: goal?.id ?? issue.goalId,
       ancestors,
       ...documentPayload,
@@ -538,6 +580,10 @@ export function issueRoutes(db: Db, storage: StorageService) {
         assigneeAgentId: issue.assigneeAgentId,
         assigneeUserId: issue.assigneeUserId,
         updatedAt: issue.updatedAt,
+        executionPacketTruth: resolveIssueExecutionPacketTruth({
+          title: issue.title,
+          description: issue.description ?? null,
+        }),
       },
       ancestors: ancestors.map((ancestor) => ({
         id: ancestor.id,
@@ -1493,21 +1539,45 @@ export function issueRoutes(db: Db, storage: StorageService) {
       details: { title: issue.title, identifier: issue.identifier },
     });
 
+    const createWakeupBlock = getIssueExecutionPacketBlock(issue);
+
     if (issue.assigneeAgentId && issue.status !== "backlog") {
-      void heartbeat
-        .wakeup(issue.assigneeAgentId, {
-          source: "assignment",
-          triggerDetail: "system",
-          reason: "issue_assigned",
-          payload: { issueId: issue.id, mutation: "create" },
-          requestedByActorType: actor.actorType,
-          requestedByActorId: actor.actorId,
-          contextSnapshot: buildIssueContextSnapshot(issue, "issue.create"),
-        })
-        .catch((err) => logger.warn({ err, issueId: issue.id }, "failed to wake assignee on issue create"));
+      if (createWakeupBlock) {
+        await logActivity(db, {
+          companyId,
+          actorType: actor.actorType,
+          actorId: actor.actorId,
+          agentId: actor.agentId,
+          runId: actor.runId,
+          action: "issue.execution_packet_not_ready",
+          entityType: "issue",
+          entityId: issue.id,
+          details: {
+            identifier: issue.identifier,
+            reasonCodes: createWakeupBlock.reasonCodes,
+            targetFile: createWakeupBlock.targetFile,
+            targetFolder: createWakeupBlock.targetFolder,
+            artifactKind: createWakeupBlock.artifactKind,
+            doneWhen: createWakeupBlock.doneWhen,
+            source: "issue.create",
+          },
+        });
+      } else {
+        void heartbeat
+          .wakeup(issue.assigneeAgentId, {
+            source: "assignment",
+            triggerDetail: "system",
+            reason: "issue_assigned",
+            payload: { issueId: issue.id, mutation: "create" },
+            requestedByActorType: actor.actorType,
+            requestedByActorId: actor.actorId,
+            contextSnapshot: buildIssueContextSnapshot(issue, "issue.create"),
+          })
+          .catch((err) => logger.warn({ err, issueId: issue.id }, "failed to wake assignee on issue create"));
+      }
     }
 
-    res.status(201).json(issue);
+    res.status(201).json(withIssueExecutionPacketTruth(issue));
   });
 
   router.patch("/issues/:id", validate(updateIssueSchema), async (req, res) => {
@@ -1637,8 +1707,35 @@ export function issueRoutes(db: Db, storage: StorageService) {
     // Merge all wakeups from this update into one enqueue per agent to avoid duplicate runs.
     void (async () => {
       const wakeups = new Map<string, Parameters<typeof heartbeat.wakeup>[1]>();
+      const wakeupBlock = getIssueExecutionPacketBlock(issue);
 
-      if (assigneeChanged && issue.assigneeAgentId && issue.status !== "backlog") {
+      if (
+        wakeupBlock &&
+        ((assigneeChanged && issue.assigneeAgentId && issue.status !== "backlog") ||
+          (!assigneeChanged && statusChangedFromBacklog && issue.assigneeAgentId))
+      ) {
+        await logActivity(db, {
+          companyId: issue.companyId,
+          actorType: actor.actorType,
+          actorId: actor.actorId,
+          agentId: actor.agentId,
+          runId: actor.runId,
+          action: "issue.execution_packet_not_ready",
+          entityType: "issue",
+          entityId: issue.id,
+          details: {
+            identifier: issue.identifier,
+            reasonCodes: wakeupBlock.reasonCodes,
+            targetFile: wakeupBlock.targetFile,
+            targetFolder: wakeupBlock.targetFolder,
+            artifactKind: wakeupBlock.artifactKind,
+            doneWhen: wakeupBlock.doneWhen,
+            source: assigneeChanged ? "issue.update.assignment" : "issue.update.status_change",
+          },
+        });
+      }
+
+      if (!wakeupBlock && assigneeChanged && issue.assigneeAgentId && issue.status !== "backlog") {
         wakeups.set(issue.assigneeAgentId, {
           source: "assignment",
           triggerDetail: "system",
@@ -1650,7 +1747,7 @@ export function issueRoutes(db: Db, storage: StorageService) {
         });
       }
 
-      if (!assigneeChanged && statusChangedFromBacklog && issue.assigneeAgentId) {
+      if (!wakeupBlock && !assigneeChanged && statusChangedFromBacklog && issue.assigneeAgentId) {
         wakeups.set(issue.assigneeAgentId, {
           source: "automation",
           triggerDetail: "system",
@@ -1699,7 +1796,7 @@ export function issueRoutes(db: Db, storage: StorageService) {
       }
     })();
 
-    res.json({ ...issue, comment });
+    res.json({ ...withIssueExecutionPacketTruth(issue), comment });
   });
 
   router.delete("/issues/:id", async (req, res) => {

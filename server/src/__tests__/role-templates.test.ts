@@ -167,6 +167,8 @@ describe("resolveAssignedRoleTemplate", () => {
     );
     expect(result.assigned?.prompt).toContain("executionIntent: implement");
     expect(result.assigned?.prompt).toContain("reviewPolicy: required");
+    expect(result.assigned?.prompt).toContain("targetFile:");
+    expect(result.assigned?.prompt).toContain("artifactKind:");
   });
 
   it("ceo template contains aggregation mode instructions", () => {
@@ -244,6 +246,8 @@ describe("resolveAssignedRoleTemplate", () => {
     expect(result.assigned?.prompt).toContain("3. packetType je Packet:");
     expect(result.assigned?.prompt).toContain("packetType: free_api");
     expect(result.assigned?.prompt).toContain("needsReview: true");
+    expect(result.assigned?.prompt).toContain("targetFile:");
+    expect(result.assigned?.prompt).toContain("artifactKind:");
   });
 
   it("assistant template file declares premium_model packetType", () => {

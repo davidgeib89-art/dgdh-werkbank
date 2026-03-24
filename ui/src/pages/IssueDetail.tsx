@@ -22,6 +22,7 @@ import { IssueProperties } from "../components/IssueProperties";
 import { LiveRunWidget } from "../components/LiveRunWidget";
 import { NeedsInputNotice } from "../components/NeedsInputNotice";
 import { CompanyRunChainCard } from "../components/CompanyRunChainCard";
+import { ExecutionPacketReadinessCard } from "../components/ExecutionPacketReadinessCard";
 import type { MentionOption } from "../components/MarkdownEditor";
 import { ScrollToBottom } from "../components/ScrollToBottom";
 import { StatusIcon } from "../components/StatusIcon";
@@ -918,6 +919,14 @@ export function IssueDetail() {
       {needsInputLines.length > 0 && (
         <NeedsInputNotice
           lines={needsInputLines}
+          onEditDescription={openDescriptionEditor}
+          onAddComment={openCommentComposer}
+        />
+      )}
+
+      {issue.executionPacketTruth && (
+        <ExecutionPacketReadinessCard
+          truth={issue.executionPacketTruth}
           onEditDescription={openDescriptionEditor}
           onAddComment={openCommentComposer}
         />

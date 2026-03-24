@@ -38,6 +38,10 @@ export type {
 } from "./workspace-runtime.js";
 export type {
   Issue,
+  IssueExecutionPacketTruth,
+  IssueExecutionPacketReadinessStatus,
+  IssueExecutionPacketReasonCode,
+  IssueExecutionPacketArtifactKind,
   CompanyRunChain,
   CompanyRunChainChild,
   CompanyRunChainStage,

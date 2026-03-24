@@ -1,11 +1,11 @@
 # CURRENT - Live Baton
 
-focus: die operator-visible Firmenlauf-Wahrheit ist jetzt im Produkt auf canonical `main` sichtbar; der naechste Engpass ist nicht mehr fehlende Chain-Sichtbarkeit, sondern Packet-/Run-Input-Schaerfe vor dem ersten CEO-Child-Handoff
-active_issue: die schmale operator-facing Truth-Surface ist geliefert und live validiert; der naechste grosse Sprint soll die naechste echte David-Minuten-Reibung nach dieser Sichtbarkeit schneiden
+focus: die operator-visible Firmenlauf-Wahrheit und execution-packet-readiness sind jetzt im Produkt auf canonical `main` sichtbar; der naechste Engpass liegt nach dem ersten CEO-Child-Handoff, nicht mehr davor
+active_issue: die schmale operator-facing Truth-Surface plus Packet-Readiness-V1 sind geliefert und live validiert; der naechste grosse Sprint soll die naechste echte David-Minuten-Reibung nach erfolgreicher Child-Erzeugung schneiden
 
 next:
-  1) die neue Issue-Detail-Truth-Surface als Default-Operator-Leseflaeche benutzen und den naechsten echten Firmenlauf wieder von dort lesen
-  2) bounded Implementation-Packets upstream schaerfen: fuer echte Code-/Doc-Arbeit konkrete `target file`/`target folder`-Wahrheit mitgeben, damit der CEO nicht mehr vor Child-Erzeugung an `missing_inputs` haengen bleibt
+  1) die neue Issue-Detail-Truth-Surface inkl. Packet-Readiness als Default-Operator-Leseflaeche benutzen und den naechsten echten Firmenlauf wieder von dort lesen
+  2) den naechsten echten Live-Blocker erst nach erfolgreicher CEO-Child-Erzeugung isolieren, statt weiter Packet-Wahrheit vor dem Start nachzuschaerfen
 blockers:
   - fuer diesen Sprint kein offener Surface-Blocker mehr: DAV-35 ist `done`, DAV-36 ist `merged`
 strategy_anchor:
@@ -13,6 +13,10 @@ strategy_anchor:
   - `doc/plans/2026-03-21-dgdh-north-star-roadmap.md`
   - `doc/plans/2026-03-23-focus-freeze.md`
 notes:
+  - Execution-Packet-Readiness-V1 ist jetzt produktisiert: Issues tragen strukturierte `executionPacketTruth` mit `targetFile`, `targetFolder`, `artifactKind`, `doneWhen`, `status` und kleinen `reasonCodes`; die Issue-Detail-Seite zeigt diese Wahrheit direkt vor dem Run
+  - Assignment-/Status-Wakeups blocken execution-heavy Issues jetzt frueh auf `not_ready`, statt den CEO erst spaet im Parent-Run an `missing_inputs` haengen zu lassen
+  - Die minimalen `reasonCodes` fuer fruehe Packet-Blocker sind jetzt `target_file_missing`, `target_folder_missing`, `artifact_kind_missing`, `donewhen_missing` und `execution_scope_ambiguous`
+  - Frische Live-Validierung auf lokaler API: `DAV-52` blieb sichtbar `not_ready` ohne echten Run; `DAV-53` war `ready`, startete sauber und erzeugte Child `DAV-54` fuer die bounded Runbook-Aenderung
   - Die Issue-Detail-Seite zeigt jetzt fuer Firmenlaeufe eine kleine operator-facing Truth-Surface: `Issue`, `Company`, `Project`, `Active run`, `Context` plus die schmale Kette `assigned -> run started -> worker done -> reviewer assigned -> reviewer run -> merged -> parent done`
   - DAV-35/DAV-36 validieren den neuen Surface-Sprint live: DAV-35 endete `done`, Child DAV-36 endete `merged`, PR `#17`, Worker-Run `f9cceee9-0d27-4791-afc8-b3178bc1d4a8`, Reviewer-Run `aab00521-9b04-4eb4-bf6d-20ae23fe3e16`
   - Der erste echte Blocker im Validierungslauf war kein Infrastrukturfehler, sondern Packet-Wahrheit: der CEO-Parent-Run `6ca52f5e-da45-4a35-a2ac-1339a34b29a8` blockte mit `missing_inputs` / `target_file_not_specified`; nach explizitem `Target file: doc/DGDH-AI-OPERATOR-RUNBOOK.md` lief die Kette normal durch

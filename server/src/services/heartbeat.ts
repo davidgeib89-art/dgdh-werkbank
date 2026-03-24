@@ -68,6 +68,7 @@ import { produceFlashLiteRoutingProposal } from "./gemini-flash-lite-router.js";
 import { fetchLiveGeminiQuota } from "./gemini-quota-api.js";
 import { resolveAssignedRoleTemplate } from "./role-templates.js";
 import { logActivity } from "./activity-log.js";
+import { resolveIssueExecutionPacketTruth } from "./issue-execution-packet.js";
 
 const MAX_LIVE_LOG_CHUNK_BYTES = 8 * 1024;
 const HEARTBEAT_MAX_CONCURRENT_RUNS_DEFAULT = 1;
@@ -1005,6 +1006,34 @@ function buildIssueTaskPrompt(issue: IssuePromptContext) {
   const projectId = trimIssueText(issue.projectId);
   const goalId = trimIssueText(issue.goalId);
   const parentId = trimIssueText(issue.parentId);
+  const packetTruth = resolveIssueExecutionPacketTruth({
+    title: issue.title,
+    description: issue.description,
+  });
+  const packetLines = [
+    `- status: ${packetTruth.status}`,
+    `- executionHeavy: ${packetTruth.executionHeavy ? "yes" : "no"}`,
+    `- targetFile: ${packetTruth.targetFile ?? "none"}`,
+    `- targetFolder: ${packetTruth.targetFolder ?? "none"}`,
+    `- artifactKind: ${packetTruth.artifactKind ?? "none"}`,
+    `- doneWhen: ${packetTruth.doneWhen ?? "none"}`,
+    `- packetType: ${packetTruth.packetType ?? "none"}`,
+    `- executionIntent: ${packetTruth.executionIntent ?? "none"}`,
+    `- reviewPolicy: ${packetTruth.reviewPolicy ?? "none"}`,
+    `- needsReview: ${
+      typeof packetTruth.needsReview === "boolean"
+        ? packetTruth.needsReview
+          ? "yes"
+          : "no"
+        : "none"
+    }`,
+    `- scopeMode: ${packetTruth.scopeMode}`,
+    `- reasonCodes: ${
+      packetTruth.reasonCodes.length > 0
+        ? packetTruth.reasonCodes.join(", ")
+        : "none"
+    }`,
+  ];
 
   return [
     "Paperclip issue assignment:",
@@ -1017,6 +1046,9 @@ function buildIssueTaskPrompt(issue: IssuePromptContext) {
     `- PROJECT_ID: ${projectId ?? "none"}`,
     `- GOAL_ID: ${goalId ?? "none"}`,
     `- PARENT_ID: ${parentId ?? "none"}`,
+    "",
+    "Execution packet truth:",
+    ...packetLines,
     ...(description ? ["", description] : []),
   ].join("\n");
 }
@@ -1540,6 +1572,17 @@ export function applyIssuePromptContext(
   };
 
   contextSnapshot.paperclipIssue = normalizedIssue;
+  const packetTruth = resolveIssueExecutionPacketTruth({
+    title: normalizedIssue.title,
+    description: normalizedIssue.description,
+  });
+  contextSnapshot.paperclipIssueExecutionPacketTruth = packetTruth;
+  contextSnapshot.paperclipExecutionPacketStatus = packetTruth.status;
+  contextSnapshot.paperclipExecutionPacketReasonCodes = packetTruth.reasonCodes;
+  contextSnapshot.paperclipExecutionPacketTargetFile = packetTruth.targetFile;
+  contextSnapshot.paperclipExecutionPacketTargetFolder = packetTruth.targetFolder;
+  contextSnapshot.paperclipExecutionPacketArtifactKind = packetTruth.artifactKind;
+  contextSnapshot.paperclipExecutionPacketDoneWhen = packetTruth.doneWhen;
   const issueTaskPrompt = buildIssueTaskPrompt(normalizedIssue);
   contextSnapshot.paperclipTaskPrompt = issueTaskPrompt;
 

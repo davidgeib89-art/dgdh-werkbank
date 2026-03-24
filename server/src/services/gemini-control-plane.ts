@@ -2,6 +2,7 @@ import {
   ingestGeminiQuotaSnapshot,
   type GeminiQuotaBucketSnapshot,
 } from "./gemini-quota-snapshot.js";
+import type { IssueExecutionPacketArtifactKind } from "@paperclipai/shared";
 
 type BucketName = "flash" | "pro" | "flash-lite";
 type TaskType =
@@ -36,7 +37,9 @@ export interface GeminiRoutingStageOneProposal {
   taskType: TaskType;
   budgetClass: BudgetClass;
   executionIntent: ExecutionIntent;
+  targetFile: string;
   targetFolder: string;
+  artifactKind: IssueExecutionPacketArtifactKind;
   doneWhen: string;
   riskLevel: RiskLevel;
   missingInputs: string[];
@@ -50,7 +53,9 @@ export interface GeminiRoutingStageOneProposal {
 export interface GeminiRoutingWorkPacketDiff {
   field:
     | "executionIntent"
+    | "targetFile"
     | "targetFolder"
+    | "artifactKind"
     | "doneWhen"
     | "riskLevel"
     | "missingInputs"
@@ -107,7 +112,9 @@ export interface GeminiControlPlaneResolveResult {
     softCapTokens: number;
     taskType: TaskType;
     executionIntent: ExecutionIntent;
+    targetFile: string;
     targetFolder: string;
+    artifactKind: IssueExecutionPacketArtifactKind;
     doneWhen: string;
     riskLevel: RiskLevel;
     missingInputs: string[];
@@ -183,7 +190,9 @@ export interface GeminiControlPlaneState {
         taskType: TaskType;
         budgetClass: BudgetClass;
         executionIntent: ExecutionIntent;
+        targetFile: string;
         targetFolder: string;
+        artifactKind: IssueExecutionPacketArtifactKind;
         doneWhen: string;
         riskLevel: RiskLevel;
         missingInputs: string[];
@@ -346,6 +355,23 @@ function normalizeMissingInputs(value: unknown): string[] {
     .slice(0, 8);
 }
 
+function normalizeArtifactKind(
+  value: unknown,
+): IssueExecutionPacketArtifactKind | null {
+  const normalized = asString(value)?.toLowerCase().replace(/[\s-]+/g, "_");
+  if (
+    normalized === "code_patch" ||
+    normalized === "doc_update" ||
+    normalized === "config_change" ||
+    normalized === "test_update" ||
+    normalized === "multi_file_change" ||
+    normalized === "folder_operation"
+  ) {
+    return normalized;
+  }
+  return null;
+}
+
 function readWorkPacketFromContext(
   context: Record<string, unknown>,
 ): Partial<GeminiRoutingStageOneProposal> | null {
@@ -360,7 +386,8 @@ function readWorkPacketFromContext(
     }
   })();
   const raw = hasAnyKeys(fromContext) ? fromContext : fromJson;
-  if (!hasAnyKeys(raw)) return null;
+  const packetTruth = asObject(context.paperclipIssueExecutionPacketTruth);
+  if (!hasAnyKeys(raw) && !hasAnyKeys(packetTruth)) return null;
 
   const taskTypeRaw = asString(raw.taskType) ?? asString(raw.taskClass);
   const budgetClassRaw = asString(raw.budgetClass);
@@ -369,10 +396,26 @@ function readWorkPacketFromContext(
   const fallbackBucketRaw = asString(raw.fallbackBucket);
   const rationale = asString(raw.rationale);
   const executionIntentRaw = asString(raw.executionIntent);
-  const targetFolderRaw = asString(raw.targetFolder);
-  const doneWhenRaw = asString(raw.doneWhen);
+  const targetFileRaw =
+    asString(raw.targetFile) ?? asString(context.paperclipExecutionPacketTargetFile) ?? asString(packetTruth.targetFile);
+  const targetFolderRaw =
+    asString(raw.targetFolder) ??
+    asString(context.paperclipExecutionPacketTargetFolder) ??
+    asString(packetTruth.targetFolder);
+  const artifactKindRaw =
+    normalizeArtifactKind(raw.artifactKind) ??
+    normalizeArtifactKind(context.paperclipExecutionPacketArtifactKind) ??
+    normalizeArtifactKind(packetTruth.artifactKind);
+  const doneWhenRaw =
+    asString(raw.doneWhen) ??
+    asString(context.paperclipExecutionPacketDoneWhen) ??
+    asString(packetTruth.doneWhen);
   const riskLevelRaw = asString(raw.riskLevel);
   const needsApproval = asBoolean(raw.needsApproval);
+  const missingInputsFromContext = normalizeMissingInputs(
+    context.paperclipExecutionPacketReasonCodes,
+  );
+  const missingInputsFromTruth = normalizeMissingInputs(packetTruth.reasonCodes);
   const missingInputs = normalizeMissingInputs(raw.missingInputs);
 
   return {
@@ -381,10 +424,17 @@ function readWorkPacketFromContext(
     executionIntent: isExecutionIntent(executionIntentRaw)
       ? executionIntentRaw
       : undefined,
+    targetFile: targetFileRaw ?? undefined,
     targetFolder: targetFolderRaw ?? undefined,
+    artifactKind: artifactKindRaw ?? undefined,
     doneWhen: doneWhenRaw ?? undefined,
     riskLevel: isRiskLevel(riskLevelRaw) ? riskLevelRaw : undefined,
-    missingInputs,
+    missingInputs:
+      missingInputs.length > 0
+        ? missingInputs
+        : missingInputsFromContext.length > 0
+          ? missingInputsFromContext
+          : missingInputsFromTruth,
     needsApproval: needsApproval ?? undefined,
     chosenBucket: isBucket(chosenBucketRaw) ? chosenBucketRaw : undefined,
     chosenModelLane: chosenModelLane ?? undefined,
@@ -403,7 +453,9 @@ function enforceWorkPacket(input: {
     taskType: TaskType;
     budgetClass: BudgetClass;
     executionIntent: ExecutionIntent;
+    targetFile: string;
     targetFolder: string;
+    artifactKind: IssueExecutionPacketArtifactKind;
     doneWhen: string;
     riskLevel: RiskLevel;
     missingInputs: string[];
@@ -419,9 +471,14 @@ function enforceWorkPacket(input: {
     input.proposed?.budgetClass ?? input.detectedBudgetClass;
   const proposedExecutionIntent =
     input.proposed?.executionIntent ?? defaultExecutionIntent(proposedTaskType);
+  const proposedTargetFile =
+    (input.proposed?.targetFile ?? "").trim().length > 0
+      ? (input.proposed?.targetFile as string).trim()
+      : "none";
   const normalizedTargetFolder = normalizeRelativeFolder(
     input.proposed?.targetFolder ?? null,
   );
+  const proposedArtifactKind = input.proposed?.artifactKind ?? "multi_file_change";
   const proposedDoneWhen =
     (input.proposed?.doneWhen ?? "").trim().length >= 12
       ? (input.proposed?.doneWhen as string).trim()
@@ -464,7 +521,9 @@ function enforceWorkPacket(input: {
     taskType: proposedTaskType,
     budgetClass: proposedBudgetClass,
     executionIntent: proposedExecutionIntent,
+    targetFile: proposedTargetFile,
     targetFolder: normalizedTargetFolder ?? ".",
+    artifactKind: proposedArtifactKind,
     doneWhen: proposedDoneWhen,
     riskLevel: enforcedRiskLevel,
     missingInputs: proposedMissingInputs,
@@ -549,7 +608,9 @@ function enforceWorkPacket(input: {
               : defaultExecutionIntent(
                   input.proposed.taskType as TaskType,
                 )) as ExecutionIntent,
+            targetFile: input.proposed.targetFile ?? "none",
             targetFolder: input.proposed.targetFolder ?? ".",
+            artifactKind: input.proposed.artifactKind ?? "multi_file_change",
             doneWhen:
               input.proposed.doneWhen ??
               "Deliver validated changes and a concise completion summary.",
@@ -723,7 +784,9 @@ export function resolveGeminiControlPlane(
     taskType: enforcedWorkPacket.enforced.taskType,
     budgetClass: enforcedWorkPacket.enforced.budgetClass,
     executionIntent: enforcedWorkPacket.enforced.executionIntent,
+    targetFile: enforcedWorkPacket.enforced.targetFile,
     targetFolder: enforcedWorkPacket.enforced.targetFolder,
+    artifactKind: enforcedWorkPacket.enforced.artifactKind,
     doneWhen: enforcedWorkPacket.enforced.doneWhen,
     riskLevel: enforcedWorkPacket.enforced.riskLevel,
     missingInputs: enforcedWorkPacket.enforced.missingInputs,
@@ -1031,7 +1094,9 @@ export function resolveGeminiControlPlane(
       softCapTokens,
       taskType,
       executionIntent: enforcedWorkPacket.enforced.executionIntent,
+      targetFile: enforcedWorkPacket.enforced.targetFile,
       targetFolder: enforcedWorkPacket.enforced.targetFolder,
+      artifactKind: enforcedWorkPacket.enforced.artifactKind,
       doneWhen: enforcedWorkPacket.enforced.doneWhen,
       riskLevel: enforcedWorkPacket.enforced.riskLevel,
       missingInputs: enforcedWorkPacket.enforced.missingInputs,
@@ -1261,7 +1326,9 @@ export function deriveGeminiControlPlaneState(
         const taskType = asString(raw.taskType) ?? asString(raw.taskClass);
         const budgetClass = asString(raw.budgetClass);
         const executionIntent = asString(raw.executionIntent);
+        const targetFile = asString(raw.targetFile);
         const targetFolder = asString(raw.targetFolder);
+        const artifactKind = normalizeArtifactKind(raw.artifactKind);
         const doneWhen = asString(raw.doneWhen);
         const riskLevel = asString(raw.riskLevel);
         const missingInputs = normalizeMissingInputs(raw.missingInputs);
@@ -1286,7 +1353,9 @@ export function deriveGeminiControlPlaneState(
           executionIntent: isExecutionIntent(executionIntent)
             ? executionIntent
             : defaultExecutionIntent(taskType),
+          targetFile: targetFile ?? "none",
           targetFolder: normalizeRelativeFolder(targetFolder) ?? ".",
+          artifactKind: artifactKind ?? "multi_file_change",
           doneWhen:
             doneWhen ??
             "Deliver validated changes and a concise completion summary.",
@@ -1343,8 +1412,12 @@ export function deriveGeminiControlPlaneState(
             )
               ? (asString(proposal.executionIntent) as ExecutionIntent)
               : defaultExecutionIntent(taskType),
+            targetFile: asString(proposal.targetFile) ?? "none",
             targetFolder:
               normalizeRelativeFolder(asString(proposal.targetFolder)) ?? ".",
+            artifactKind:
+              normalizeArtifactKind(proposal.artifactKind) ??
+              "multi_file_change",
             doneWhen:
               asString(proposal.doneWhen) ??
               "Deliver validated changes and a concise completion summary.",
@@ -1376,8 +1449,12 @@ export function deriveGeminiControlPlaneState(
           )
             ? (asString(rawEnforced.executionIntent) as ExecutionIntent)
             : defaultExecutionIntent(enforcedTaskType),
+          targetFile: asString(rawEnforced.targetFile) ?? "none",
           targetFolder:
             normalizeRelativeFolder(asString(rawEnforced.targetFolder)) ?? ".",
+          artifactKind:
+            normalizeArtifactKind(rawEnforced.artifactKind) ??
+            "multi_file_change",
           doneWhen:
             asString(rawEnforced.doneWhen) ??
             "Deliver validated changes and a concise completion summary.",
@@ -1404,7 +1481,9 @@ export function deriveGeminiControlPlaneState(
                   !field ||
                   ![
                     "executionIntent",
+                    "targetFile",
                     "targetFolder",
+                    "artifactKind",
                     "doneWhen",
                     "riskLevel",
                     "missingInputs",

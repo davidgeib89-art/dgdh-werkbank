@@ -93,6 +93,42 @@ export interface LegacyPlanDocument {
   source: "issue_description";
 }
 
+export type IssueExecutionPacketReadinessStatus =
+  | "not_applicable"
+  | "ready"
+  | "not_ready";
+
+export type IssueExecutionPacketReasonCode =
+  | "target_file_missing"
+  | "target_folder_missing"
+  | "artifact_kind_missing"
+  | "donewhen_missing"
+  | "execution_scope_ambiguous";
+
+export type IssueExecutionPacketArtifactKind =
+  | "code_patch"
+  | "doc_update"
+  | "config_change"
+  | "test_update"
+  | "multi_file_change"
+  | "folder_operation";
+
+export interface IssueExecutionPacketTruth {
+  packetType: string | null;
+  executionIntent: string | null;
+  reviewPolicy: string | null;
+  needsReview: boolean | null;
+  targetFile: string | null;
+  targetFolder: string | null;
+  doneWhen: string | null;
+  artifactKind: IssueExecutionPacketArtifactKind | null;
+  scopeMode: "none" | "file" | "folder" | "mixed";
+  executionHeavy: boolean;
+  ready: boolean;
+  status: IssueExecutionPacketReadinessStatus;
+  reasonCodes: IssueExecutionPacketReasonCode[];
+}
+
 export interface Issue {
   id: string;
   companyId: string;
@@ -130,6 +166,7 @@ export interface Issue {
   project?: Project | null;
   goal?: Goal | null;
   mentionedProjects?: Project[];
+  executionPacketTruth?: IssueExecutionPacketTruth | null;
   myLastTouchAt?: Date | null;
   lastExternalCommentAt?: Date | null;
   isUnreadForMe?: boolean;
