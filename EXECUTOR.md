@@ -62,6 +62,10 @@ The compact recovery principle is:
 - the run should continue as if the context window had only blinked
 - do not make David restate the sprint unless the truth is genuinely missing
 
+If session prompt, old transcript memory, browser state, and fresh runtime truth disagree:
+
+> `EXECUTOR.md` + fresh git/API/runtime reality wins.
+
 ---
 
 ## 4. Truth Hierarchy
@@ -228,6 +232,10 @@ If you repeatedly rediscover the same operating fact, add it to the right durabl
 
 Do not call it "self-learning" if it only lived in your transient context.
 It becomes real learning when it is promoted into durable team memory.
+
+Hard rule:
+
+> If you had to rediscover the same execution truth twice, the sprint is not really clean until that truth is promoted into `EXECUTOR.md` or the Operator Runbook.
 
 ---
 
