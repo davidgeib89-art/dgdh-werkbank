@@ -225,8 +225,8 @@ $issue = Invoke-RestMethod -Method Post -Uri "$base/companies/$companyId/issues"
 $issueId = $issue.id
 ```
 
-For bounded implementation packets, specify the concrete target file or target folder in the issue description when you already know it.
-Otherwise the routing preflight can legitimately stop the CEO run with `missing_inputs` before any child issue is created.
+For bounded implementation packets, follow the structure defined in [Section 16](#16-execution-packets-bounded-child-issues). Specify the concrete target file or target folder in the issue description. Otherwise the routing preflight can legitimately stop the CEO run with `missing_inputs` before any child issue is created.
+
 
 5. Start the loop by assigning the issue, not by raw wakeup.
 
@@ -372,6 +372,8 @@ The canonical handoff is the API path:
 - `worker-pr` creates or records the PR
 - `worker-done` records `prUrl`, `branch`, `commitHash`, and structured summary
 
+Before calling `worker-done`, follow the validation guidelines in [Section 16](#16-execution-packets-bounded-child-issues).
+
 Reviewer completion is the API path:
 - `reviewer-verdict`
 
@@ -488,6 +490,48 @@ Use that prompt after a real agent run when the goal is:
 - CEO/Worker/Reviewer reflection
 - truthful handoff back to Codex
 - bounded creative next-step intuition under `SOUL.md`
+
+---
+
+## 16. Execution Packets (Bounded Child Issues)
+
+Execution packets are highly bounded, specific tasks assigned to a Worker. They must be structured to ensure clarity and automatable validation.
+
+### 16.1 Structure of an Execution Packet
+
+When creating or updating a child issue intended for execution, the description MUST include the following fields:
+
+- **Titel**: A concise, action-oriented title.
+- **Ziel**: The specific objective of the packet.
+- **Scope**: The explicit boundaries (files, folders, or features) the worker is allowed to touch.
+- **doneWhen**: Clear, binary criteria that define completion.
+- **artifactKind**: The type of result expected (e.g., `code_update`, `doc_update`, `test_fix`, `new_feature`).
+- **targetFile** / **targetFolder**: The primary location of the change.
+
+Example description format:
+
+```text
+Titel: [Brief Title]
+Ziel: [What needs to be achieved]
+Scope: [Files/Folders allowed to be modified]
+doneWhen: [Concrete criteria for success]
+artifactKind: [e.g., code_update]
+targetFile: [Path/to/file]
+targetFolder: [Path/to/folder]
+Annahmen:
+[NEEDS INPUT]: none
+```
+
+### 16.2 Validation Before Handoff
+
+Before a Worker calls `worker-done`, it must verify the following:
+
+1. **Scope Integrity**: Ensure no files outside the defined `Scope` or `targetFolder` were modified.
+2. **Behavioral Correctness**: Run the smallest relevant test or verification step that confirms the `doneWhen` criteria.
+3. **Artifact Quality**: For `code_update`, ensure the code is idiomatic and follows project conventions. For `doc_update`, ensure formatting and links are correct.
+4. **Handoff Consistency**: The `summary.files` in the `worker-done` call must exactly match the actual changed files in the PR/branch.
+
+If validation fails, the Worker should perform a bounded repair pass or report a blocker instead of claiming completion.
 
 ---
 
