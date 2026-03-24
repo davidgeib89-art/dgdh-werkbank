@@ -1,4 +1,3 @@
-/// <reference path="./types/express.d.ts" />
 import { existsSync, readFileSync, rmSync } from "node:fs";
 import { createServer } from "node:http";
 import { resolve } from "node:path";
@@ -31,6 +30,10 @@ import {
 } from "./services/index.js";
 import { createStorageServiceFromConfig } from "./storage/index.js";
 import { printStartupBanner } from "./startup-banner.js";
+import {
+  resolvePaperclipHomeDir,
+  resolvePaperclipInstanceId,
+} from "./home-paths.js";
 import {
   getBoardClaimWarningUrl,
   initializeBoardClaimChallenge,
@@ -75,6 +78,21 @@ export interface StartedServer {
 
 export async function startServer(): Promise<StartedServer> {
   const config = loadConfig();
+
+  // --- START MODIFICATION ---
+  // Ensure PAPERCLIP_HOME and PAPERCLIP_INSTANCE_ID reflect canonical runtime context from config.
+  // If they are not set externally, use values from the loaded config.
+  // This ensures the values surfaced in the startup banner are derived from the active configuration.
+  if (config.paperclipHome && !process.env.PAPERCLIP_HOME) {
+    process.env.PAPERCLIP_HOME = config.paperclipHome;
+    logger.info({ paperclipHome: config.paperclipHome }, "Using PAPERCLIP_HOME from config");
+  }
+  if (config.paperclipInstanceId && !process.env.PAPERCLIP_INSTANCE_ID) {
+    process.env.PAPERCLIP_INSTANCE_ID = config.paperclipInstanceId;
+    logger.info({ instanceId: config.paperclipInstanceId }, "Using PAPERCLIP_INSTANCE_ID from config");
+  }
+  // --- END MODIFICATION ---
+
   if (process.env.PAPERCLIP_SECRETS_PROVIDER === undefined) {
     process.env.PAPERCLIP_SECRETS_PROVIDER = config.secretsProvider;
   }
@@ -314,7 +332,8 @@ export async function startServer(): Promise<StartedServer> {
           : message instanceof Error
           ? message.message
           : String(message ?? "");
-      for (const lineRaw of text.split(/\r?\n/)) {
+      for (const lineRaw of text.split(/?
+/)) {
         const line = lineRaw.trim();
         if (!line) continue;
         embeddedPostgresLogBuffer.push(line);
@@ -370,7 +389,8 @@ export async function startServer(): Promise<StartedServer> {
       if (!existsSync(postmasterPidFile)) return null;
       try {
         const pidLine = readFileSync(postmasterPidFile, "utf8")
-          .split("\n")[0]
+          .split("
+")[0]
           ?.trim();
         const pid = Number(pidLine);
         if (!Number.isInteger(pid) || pid <= 0) return null;
@@ -627,7 +647,7 @@ export async function startServer(): Promise<StartedServer> {
   if (config.heartbeatSchedulerEnabled) {
     const heartbeat = heartbeatService(db as any);
 
-    // Reap orphaned running runs at startup while in-memory execution state is empty,
+    // Reap orphaned runs at startup while in-memory execution state is empty,
     // then resume any persisted queued runs that were waiting on the previous process.
     void heartbeat
       .reapOrphanedRuns({
@@ -759,6 +779,8 @@ export async function startServer(): Promise<StartedServer> {
         databaseBackupIntervalMinutes: config.databaseBackupIntervalMinutes,
         databaseBackupRetentionDays: config.databaseBackupRetentionDays,
         databaseBackupDir: config.databaseBackupDir,
+        paperclipHome: resolvePaperclipHomeDir(),
+        instanceId: resolvePaperclipInstanceId(),
       });
 
       const boardClaimUrl = getBoardClaimWarningUrl(config.host, listenPort);
@@ -773,7 +795,8 @@ export async function startServer(): Promise<StartedServer> {
             `${yellow}Sign in with a real user and open this one-time URL to claim ownership:${reset}`,
             `${yellow}${boardClaimUrl}${reset}`,
             `${yellow}If you are connecting over Tailscale, replace the host in this URL with your Tailscale IP/MagicDNS name.${reset}`,
-          ].join("\n"),
+          ].join("
+"),
         );
       }
 
