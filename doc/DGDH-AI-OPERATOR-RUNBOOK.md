@@ -196,14 +196,6 @@ Minimal create payload if needed:
 $projectBody = @{
   name = "Canonical Run $(Get-Date -Format 'yyyy-MM-dd HH:mm')"
   status = "planned"
-  executionWorkspacePolicy = @{
-    enabled = $true
-    defaultMode = "isolated"
-    allowIssueOverride = $true
-    workspaceStrategy = @{
-      type = "git_worktree"
-    }
-  }
   workspace = @{
     name = "primary"
     cwd = (git rev-parse --show-toplevel)
@@ -215,8 +207,8 @@ $project = Invoke-RestMethod -Method Post -Uri "$base/companies/$companyId/proje
 $projectId = $project.id
 ```
 
-For clean-main company runs, do not create a fresh project without `executionWorkspacePolicy` set to isolated `git_worktree` mode.
-Otherwise worker execution can fall back to the human primary worktree, contaminate `main`, and create merge-scope baggage that blocks parent closure.
+For the canonical product path, a fresh project that includes a git-backed local primary workspace now auto-applies isolated `git_worktree` execution policy even when the payload omits `executionWorkspacePolicy`.
+Only send an explicit policy when you want to override that default or when the project does not have a git-backed local primary workspace.
 
 4. Create the parent issue through the company issue path.
 
@@ -251,11 +243,14 @@ Do not substitute this with `POST /api/agents/{id}/heartbeat/invoke` unless the 
 ```powershell
 Invoke-RestMethod "$base/issues/$issueId"
 Invoke-RestMethod "$base/issues/$issueId/children"
+Invoke-RestMethod "$base/issues/$issueId/company-run-chain"
 Invoke-RestMethod "$base/issues/$issueId/comments"
 Invoke-RestMethod "$base/issues/$issueId/live-runs"
 Invoke-RestMethod "$base/issues/$issueId/active-run"
 Invoke-RestMethod "$base/companies/$companyId/live-runs"
 ```
+
+`/issues/{id}/company-run-chain` is the narrowest single read for the normal company path: `assigned -> run started -> worker done -> reviewer assigned -> reviewer run -> merged -> parent done`.
 
 7. Only step into manual worker/reviewer endpoints when the real loop needs recovery or the sprint explicitly targets those handoffs.
 

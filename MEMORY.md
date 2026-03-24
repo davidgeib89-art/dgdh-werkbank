@@ -104,7 +104,8 @@
 - Harte Code-Firewall (Option B) bleibt Backlog und wird erst bei dokumentiertem Trigger aktiviert (`doc/backlog/scope-firewall-code.md`).
 - Dual-Gemini-Failover schaltet bei exhausted / `429` / `RESOURCE_EXHAUSTED` von `account_1` auf `account_2`.
 - `git_worktree` ist fuer Astro/Keystatic aktiv (`isolated`, `allowIssueOverride=true`).
-- Fuer frische DGDH-Clean-Main-Firmenlaeufe muss das Projekt explizit `executionWorkspacePolicy = isolated` mit `workspaceStrategy.type = git_worktree` tragen; ohne diese Policy kann Worker-Ausfuehrung den Human-Main-Worktree auf einen Issue-Branch ziehen und den Merge-Scope-Guard blockieren.
+- Frische Projekte mit git-backed lokalem Primary-Workspace auto-bootstrappen jetzt auf `executionWorkspacePolicy = isolated` mit `workspaceStrategy.type = git_worktree`, auch wenn der Create-Pfad keine explizite Policy mitsendet; repo-only oder nicht-git-backed Workspaces brauchen weiter explizite Policy oder Preset.
+- `GET /api/issues/:id/company-run-chain` liefert jetzt die schmale Kettenwahrheit `assigned -> run started -> worker done -> reviewer assigned -> reviewer run -> merged -> parent done` fuer Parent-/Child-Laeufe.
 - End-to-End Multi-Agent-Kette (Sprint S) laeuft durch (Prototyp-Reife), produziert aber isolierte Worktree-Inseln.
 - Dashboard-Sichtbarkeit fuer echte Agenten-Runs ist lokal bewiesen: ein zugewiesenes Issue triggert einen sichtbaren `codex_local`-Run im Dashboard/`live-runs` mit laufendem Transcript und Abschluss.
 - Ein manueller Heartbeat ohne zugewiesenes Issue blockt erwartbar am Gate `no_assigned_issue`; fuer sichtbare reale Runs muss der bestehende Issue-Assignment-Pfad genutzt werden.
@@ -127,6 +128,7 @@
 - Der reale DAV-24/DAV-25-Schlusspfad ist geliefert: nach Fix des `model=auto`-Routing-Leaks erzeugte der CEO auf sauberem `main` wieder echte Child-Issues, `DAV-25` lief durch Worker -> Reviewer -> Merge bis `merged`, `DAV-24` endete danach `done`.
 - `POST /api/issues/:id/worker-done` weist jetzt auf dem Live-Pfad einen idle Reviewer zu, setzt den Issue-Assignee auf diesen Reviewer und queued sofort den Reviewer-Wakeup; der fruehere `in_review`-Stillstand ohne Reviewer-Run ist damit beseitigt.
 - Der reale DAV-31/DAV-32-Lauf auf canonical `main` ist geliefert: neues isoliertes Projekt, Worker blieb aus dem Human-Main-Worktree heraus, Reviewer startete automatisch, PR `#15` landete und Parent `DAV-31` endete `done`.
+- Der reale DAV-33/DAV-34-Lauf validiert die Produktisierung live: frisches Projekt ohne manuelle `executionWorkspacePolicy` kam direkt mit isolierter `git_worktree`-Policy zurueck, Child `DAV-34` endete `merged` (PR `#16`), Parent `DAV-33` endete `done`.
 - Reviewer-Verdict-Contract-Fact: `POST /api/issues/:id/reviewer-verdict` akzeptiert bei `accepted` nur `requiredFixes: []`; `"none"` oder `["none"]` werden vom Schema abgewiesen.
 - Evolution Lane ist kanonisch als spaetere Richtung gesetzt: kontrollierte Selbstverbesserung laeuft replay-/benchmark-getrieben, PR-basiert und mit Human-Merge, nicht als freie Live-Selbstoptimierung.
 

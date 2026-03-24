@@ -1,18 +1,23 @@
 # CURRENT - Live Baton
 
-focus: `main` ist die gemeinsame kanonische Basis; der frische bounded Firmenlauf auf clean main ist jetzt wieder real bis Merge/Parent-Close geliefert
-active_issue: Zero-Rescue Company Run From Clean Main abgeschlossen; naechster Sprint kann den naechsten echten Firmenhebel auf derselben kanonischen Basis ziehen
+focus: der kanonische Clean-Main-Firmenlauf bootstrapt jetzt boringly ueber den Produktpfad; die Kettenwahrheit ist ueber einen einzigen API-Read sichtbar und ein frischer bounded Lauf auf `main` lief wieder bis Merge/Parent-Close
+active_issue: Productize Zero-Rescue Company Run Bootstrap geliefert und live validiert; der naechste Sprint kann wieder denselben kanonischen Pfad statt Runbook-Sonderwissen ziehen
 
 next:
-  1) den naechsten echten Firmenpfad wieder auf sauberem `main` ziehen, aber frische Projekte nur noch mit isolierter `git_worktree`-Policy anlegen
-  2) nur direkt im Live-Pfad bewiesene Execution-Learnings weiter promoten; kein Reflexions-/Doku-Seitengleis ohne harte Not
+  1) den naechsten echten Firmenpfad erneut ueber frische Projektanlage ohne Sonderpayload starten und nur neue echte Glue-Blocker anfassen
+  2) verbleibendes Operator-Wissen nur dann promoten, wenn es sich im naechsten Live-Lauf wieder als echter David-Minuten-Kostenpunkt zeigt
 blockers:
-  - fuer diesen Sprint kein offener Restblocker mehr: DAV-31 ist `done`, DAV-32 ist `merged`
+  - fuer diesen Sprint kein offener Restblocker mehr: DAV-33 ist `done`, DAV-34 ist `merged`
 strategy_anchor:
   - `doc/plans/2026-03-24-dgdh-first-principles-operating-doctrine.md`
   - `doc/plans/2026-03-21-dgdh-north-star-roadmap.md`
   - `doc/plans/2026-03-23-focus-freeze.md`
 notes:
+  - Frische Projekte mit git-backed lokalem Primary-Workspace bootstrappen jetzt produktseitig automatisch auf `executionWorkspacePolicy = isolated` mit `workspaceStrategy.type = git_worktree`; der kanonische Create-Pfad braucht dafuer kein manuelles Sonderpayload mehr
+  - `GET /api/issues/:id/company-run-chain` liefert jetzt die schmale Kettenwahrheit `assigned -> run started -> worker done -> reviewer assigned -> reviewer run -> merged -> parent done` fuer Parent-/Child-Laeufe an einer Stelle
+  - DAV-33/DAV-34 validieren den neuen Pfad live: Projekt `2651f46c-04cb-4433-a55c-8baee1ce1c84` wurde frisch ohne explizite `executionWorkspacePolicy` angelegt und kam trotzdem direkt mit isolierter `git_worktree`-Policy zurueck
+  - Im frischen Validierungslauf endete Parent `DAV-33` `done`, Child `DAV-34` `merged`, PR `#16`, Branch `dgdh/issue-DAV-34-bootstrap-chain-proof`, Worker-Run `4b766419-02ce-4d62-aa73-4dd9152adea5`, Reviewer-Run `e03480b4-eabc-4032-9b8d-4cc10c9788e6`, Worker-Commit `0de480e4e67f879882ddd64ccfacbdc05e5bed80`
+  - Der Produktisierungs-Commit auf canonical `main` / `origin/main` ist `84a7d8fbde54347a912bd0f2f51847cd64e53cdc` (`productize company run bootstrap defaults and chain visibility`)
   - Der echte bounded Firmenlauf ist geliefert und verifiziert: `DAV-18` endete `merged`, Parent `DAV-17` endete `done`, PR `#10` landete auf canonical `main`
   - Die kanonischen Proof-Commits auf `origin/main` sind `2eb751c30cd1bfc808349c8e8611ed20eb82aa98` (`[PAP-2] Proof of canonical main boot`), `0cc723c` (`[DAV-18] Add regression test for seeded agent runtimeConfig recovery`) und `6b453ce` (`fix(server): recover canonical main bootstrap state`)
   - Die DGDH-Doku-/Trinity-/Soul-/Executor-Schicht ist jetzt auf `main` gelandet; `main` ist damit wieder die einzige gemeinsame operative Branch-Wahrheit
@@ -34,5 +39,5 @@ notes:
   - Validiert wurden `pnpm -r typecheck` sowie gezielte Server-Tests fuer `gemini-local`, control-plane resolver und gemini pipeline; kein voller `pnpm test:run` oder `pnpm build` in diesem Sprint behauptet
   - Fuer den Routing-Fix liefen zusaetzlich die gezielten Tests `gemini-routing-engine`, `gemini-control-plane-resolver`, `gemini-local-execute` und `gemini-pipeline-e2e` gruen
   - Kein Meta-Umbau als Reaktion: der Sprint endet bewusst ohne neue Reflexionsdatei; der naechste Schritt ist wieder echter Firmenfortschritt
-last_updated_by: Copilot (post-DAV-31 zero-rescue merged-close completion)
+last_updated_by: Copilot (post-DAV-33 bootstrap productization validation)
 updated_at: 2026-03-24
