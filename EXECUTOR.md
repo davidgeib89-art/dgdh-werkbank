@@ -171,6 +171,36 @@ The goal is to locate the first real blockage in the actual path.
 
 ---
 
+## 8.1 Shell Discipline
+
+Do not turn uncertainty into a giant shell harvest.
+
+When you need one missing fact:
+- ask one precise question
+- run the minimum command set that can answer that question
+- stop as soon as the answer is clear
+
+Default query budget:
+- 1 unknown -> 1 to 3 focused commands
+- only widen the search if those commands truly fail to answer it
+
+Examples:
+- wrong: dump many ports, many logs, many branches, many files "just in case"
+- right: first identify the intended worktree, then the exact listener, then the exact API surface you need
+
+After runtime identity is proven:
+- do not keep scanning the repo for Paperclip control rules
+- do not reopen broad route files unless the documented runbook path failed
+- prefer the minimal API sequence from the runbook over exploratory shell loops
+
+If the shell is still running and you are mostly gathering context rather than moving the real path:
+
+> you are probably drifting
+
+Stop, restate the exact unknown, and choose the smallest next probe.
+
+---
+
 ## 9. Anti-Drift Rules
 
 Do not drift into:

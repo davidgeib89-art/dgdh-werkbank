@@ -251,6 +251,27 @@ The canonical handoff endpoints remain:
 
 But in a normal healthy company run, the operator should not manually simulate the whole chain from the start. The operator should attach, assign, observe, and only intervene where the live path genuinely stalls.
 
+### 7.3 Query Budget Rule
+
+Do not rediscover operation by shell volume.
+
+If one fact is missing, use the smallest probe that can answer it.
+
+Good pattern:
+- missing company id -> `GET /api/companies`
+- missing agent id -> `GET /api/companies/:companyId/agents`
+- missing issue state -> `GET /api/issues/:id`
+- missing live run state -> `GET /api/issues/:id/live-runs` or `GET /api/issues/:id/active-run`
+
+Bad pattern:
+- scanning many logs, routes, env vars, ports, and repo files before asking the direct API question
+
+Operational rule:
+
+> prefer one direct API or process check over broad shell harvesting
+
+Only widen the search when the direct probe failed or contradicted another stronger truth source.
+
 ### 7.2 Dashboard vs API Rule
 
 The dashboard is a secondary read surface, not the primary truth source.

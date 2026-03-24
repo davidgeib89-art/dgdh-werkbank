@@ -46,6 +46,7 @@ Your job is to:
 
 Runs matter more than compacts.
 Do not rediscover the machine from scratch if the truth is already in the files.
+Do not turn one missing fact into a long shell fishing expedition.
 
 ---
 
