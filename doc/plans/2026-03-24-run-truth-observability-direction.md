@@ -119,6 +119,13 @@ Der Zweck ist nicht QA-Theater, sondern:
 - Shell-/API-/Terminal-Archaeologie reduzieren
 - David-Minuten pro Firmenlauf senken
 
+Eine spaetere Schaerfung davon kann zur **Blocker-Intelligence-Layer** werden:
+
+- rohe Run-Signale nicht nur anzeigen
+- sondern zu blocker classes verdichten
+- `NEW`, `REGRESSION`, `ONGOING`, `SUPPRESSED` aehnliche Zustandslogik auf Firmenlaeufe uebersetzen
+- bekannte ongoing blockers nicht jedes Mal neu tokenisieren
+
 ## 5. Was schon existiert und was noch fehlt
 
 Schon vorhanden:
@@ -198,6 +205,14 @@ Wenn genau diese Beobachtungsschicht weiter zu viele Tokens ueber Shell-/API-/Gi
 - ephemere Mikroskripte fuer State Capture
 
 Dann wuerde die Run-Wahrheit nicht nur ueber viele Toolturns rekonstruiert, sondern teilweise ueber kleine, sichere Mehrschrittprozeduren verdichtet.
+
+Eine weitere spaetere Ausbaustufe waere dann:
+
+- blocker clustering
+- context enrichment
+- status / severity / suppression
+
+also nicht nur "was ist der Zustand?", sondern "welche Klasse von Schmerz sehen wir hier eigentlich schon wieder?"
 
 ## 7. Was bewusst nicht gebaut werden sollte
 

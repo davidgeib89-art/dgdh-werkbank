@@ -37,6 +37,7 @@ Das aktuelle Beispiel dafuer ist:
 - `company-hq/research/2026-03-24-724-office-dgdh-transfer-matrix.md`
 - `company-hq/research/2026-03-24-airweave-dgdh-transfer-matrix.md`
 - `company-hq/research/2026-03-24-cloudflare-code-mode-dgdh-transfer-matrix.md`
+- `company-hq/research/2026-03-24-error-monitoring-agent-dgdh-transfer-matrix.md`
 
 Die dortige Verdichtung bestaetigt vor allem:
 
@@ -50,6 +51,7 @@ Die dortige Verdichtung bestaetigt vor allem:
 - Breite Integrationszaehlung ist fuer DGDH kein Wert an sich; wichtiger sind wenige echte Firmenhebel mit hoher Tiefe, klarer Capability-Identitaet und messbarer David-Minuten-Ersparnis
 - Manche Agentenarbeit ist eigentlich kleine deterministische Mehrschrittlogik; dafuer ist spaeter bounded code execution / execution compression plausibel, aber nicht als sofortiger Plattform- oder Cloudflare-Sprint
 - Beobachtungslast ist ein eigener Designhebel: wenn zu viele Tokens in Shell-/API-/Git-Rekonstruktion gehen, fehlt oft keine Promptkunst, sondern eine bessere, verdichtete Capability- und Run-Wahrheitsschicht
+- Rohe technische Signale muessen spaeter nicht nur sichtbar, sondern semantisch verdichtet, geclustert, klassifiziert und bei Bedarf suppressed werden; sonst denkt die Firma denselben Schmerz immer wieder neu
 
 Und gleichzeitig:
 
