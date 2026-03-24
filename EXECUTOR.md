@@ -200,6 +200,9 @@ Do not wait passively for a reply unless:
 Compact is not a decision request.
 Compact is a cue to recover from files and keep going.
 
+Do not spend shell/debug time hunting for hidden completion tools.
+If no explicit callable completion tool is exposed in the session, write one final normal report and stop instead of probing `task_complete` in loops.
+
 One honest blocker report is useful.
 Infinite fake-finished loops are not.
 
