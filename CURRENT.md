@@ -9,7 +9,7 @@ next:
   3) den naechsten bounded Firmenlauf erst von einer wieder synchronisierten Basis starten
 blockers:
   - der aktive Workspace steht auf `main-local` und ist lokal dirty in `server/src/index.ts`, `server/src/middleware/auth.ts`, `server/src/services/ensure-seed-data.ts` und `server/src/types/express.d.ts`; direkte Branch-Reconciliation hier waere riskant
-  - `main-local` und `origin/main-local` stehen noch auf `42ac5f46e4860e723f026ed83de419834c4fd8ab`, waehrend der verifizierte Beweis auf `origin/main` in `2eb751c30cd1bfc808349c8e8611ed20eb82aa98` plus `0cc723c` und `6b453ce` liegt
+  - `main-local` und `origin/main-local` tragen inzwischen zusaetzliche Baton-/Soul-/Executor-Doku-Commits, waehrend der verifizierte canonical-main Beweis auf `origin/main` in `2eb751c30cd1bfc808349c8e8611ed20eb82aa98` plus `0cc723c` und `6b453ce` liegt; die saubere Reconciliation braucht darum ein eigenes bounded Sync-Fenster statt eines riskanten Schnell-Merges im dirty Worktree
 strategy_anchor:
   - `doc/plans/2026-03-24-dgdh-first-principles-operating-doctrine.md`
   - `doc/plans/2026-03-21-dgdh-north-star-roadmap.md`
@@ -21,5 +21,5 @@ notes:
   - Waehrend dieser Verifikation lief lokal kein kanonischer Server; `/api/health` und `/api/companies` auf `3100` bis `3102` antworteten mit `ECONNREFUSED`, daher stammt die Wahrheit hier bewusst aus Git-/Artefakt- statt Live-Port-Signalen
   - Der Reviewer validierte den Worker-Artefakt real ueber `npx vitest run src/__tests__/ensure-seed-data.test.ts`; vier Tests liefen gruen
   - Kein Meta-Umbau als Reaktion: nur Truthfulness jetzt, saubere Branch-Spiegelung spaeter in einem eigenen bounded Schritt
-last_updated_by: Codex
+last_updated_by: Codex (review truth fix after Copilot verification)
 updated_at: 2026-03-24
