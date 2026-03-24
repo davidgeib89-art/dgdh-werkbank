@@ -1,15 +1,15 @@
 # CURRENT - Live Baton
 
-focus: `main` ist jetzt die gemeinsame kanonische Basis; naechster Schritt ist wieder echter Firmenfortschritt auf `main` statt Branch-/Sync-Theater
-active_issue: one-branch stabilization auf `main` plus naechster echter bounded Firmenlauf
+focus: `main` ist die gemeinsame kanonische Basis; naechster Schritt ist der naechste echte Firmenlauf auf `main`, aber jetzt gegen den neu belegten CEO-/gemini_local-Blocker statt gegen Branch-Theater
+active_issue: clean-main company run blocker isolation nach DAV-19 / DAV-20 / DAV-22
 
 next:
-  1) neue Arbeit nur noch von einer sauberen `main`-Basis starten
-  2) alte Sidecar-/Legacy-Pfade (`main-local`, alter Copilot-Sidecar, alte Reconcile-Worktrees) nicht mehr als aktive Basen verwenden
-  3) den naechsten bounded Firmenlauf direkt von `main` ziehen und dabei nur echte Produktionsblocker fixen
+  1) den `gemini_local`-Routing-/Adapterpfad weiter eingrenzen, der trotz `adapterConfig.model = auto` noch explizit `--model gemini-3.1-pro-preview` in `adapter.invoke.commandArgs` landet
+  2) danach den bounded CEO -> Worker -> Reviewer -> Merge-Pfad auf sauberem `main` erneut ziehen
+  3) nur direkt im Live-Pfad bewiesene Execution-Learnings weiter promoten; kein Seitenscope
 blockers:
-  - kein neuer harter Repo-Blocker bestaetigt; die naechste Wahrheit muss wieder aus einem echten Firmenlauf auf sauberem `main` kommen
-  - der alte Ordner `c:\\Users\\holyd\\DGDH\\worktrees\\dgdh-werkbank-main` liegt noch physisch herum, ist aber kein aktiver Git-Worktree mehr und darf nicht als Startbasis verwechselt werden
+  - echter harter Restblocker belegt: `gemini_local`-CEO-Runs koennen weiter mit explizitem `--model gemini-3.1-pro-preview` starten, obwohl die Agent-API `adapterConfig.model = auto` zeigt
+  - Wirkung im Live-Pfad: Parent-Issues erzeugen keine Child-Issues; `DAV-22` endete als Run `succeeded` mit `errorCode: budget_hard_cap_reached`, waehrend das Parent-Issue `todo` blieb
 strategy_anchor:
   - `doc/plans/2026-03-24-dgdh-first-principles-operating-doctrine.md`
   - `doc/plans/2026-03-21-dgdh-north-star-roadmap.md`
@@ -20,9 +20,11 @@ notes:
   - Die DGDH-Doku-/Trinity-/Soul-/Executor-Schicht ist jetzt auf `main` gelandet; `main` ist damit wieder die einzige gemeinsame operative Branch-Wahrheit
   - `main-local` wurde lokal und remote entfernt; frische Operator- und Executor-Arbeit startet nur noch auf `main`
   - Der Beweisartefakt liegt in `doc/archive/testrun/2026-03-24-canonical-main-bounded-proof.md` und dokumentiert `Status: Confirmed`, `boot: SUCCESS`, `health: green`, `companies: DGDH`
-  - Waehrend dieser Verifikation lief lokal kein kanonischer Server; `/api/health` und `/api/companies` auf `3100` bis `3102` antworteten mit `ECONNREFUSED`, daher stammt die Wahrheit hier bewusst aus Git-/Artefakt- statt Live-Port-Signalen
-  - Der Reviewer validierte den Worker-Artefakt real ueber `npx vitest run src/__tests__/ensure-seed-data.test.ts`; vier Tests liefen gruen
-  - Ein zusaetzlicher lokaler Testversuch im Reconcile-Worktree scheiterte nicht am Produktcode, sondern daran, dass `npx vitest` in dieser Umgebung `vitest/config` nicht aufloesen konnte; fuer diesen Merge-Sync wurde darum kein neuer gruener Lauf behauptet
-  - Kein Meta-Umbau als Reaktion: jetzt wieder echter Firmenfortschritt auf `main`
-last_updated_by: Codex (one-branch main stabilization)
+  - Clean-main Runtime ist jetzt real bewiesen: `c:\\Users\\holyd\\DGDH\\worktrees\\dgdh-werkbank`, Branch `main`, Startup-Banner `local_trusted` auf Port `3100`, Firma `44850e08-61ce-44de-8ccd-b645c1f292be`
+  - Die reale Laufzeit hing dabei mangels repo-lokaler `.paperclip/.env` / `config.json` an der Default-Instanz unter `C:\\Users\\holyd\\.paperclip\\instances\\default`
+  - Reale Parent-Runs `DAV-19`, `DAV-20` und `DAV-22` haben den neuen CEO-/Routing-Blocker sichtbar gemacht; Details liegen in `company-hq/commit-reports/2026-03-24-clean-main-company-run-blocker-isolation.md`
+  - Copilot hat den CEO auf API-first / sofortige Packetisierung bei execution-lastigen Parent-Issues geschaerft und in `heartbeat.ts` einen engen Guard gegen blindes Model-Lane-Forcing fuer `gemini_local` mit `model=auto` ergaenzt
+  - Validiert wurden `pnpm -r typecheck` sowie gezielte Server-Tests fuer `gemini-local`, control-plane resolver und gemini pipeline; kein voller `pnpm test:run` oder `pnpm build` in diesem Sprint behauptet
+  - Kein Meta-Umbau als Reaktion: jetzt den isolierten Live-Blocker loesen und den Firmenlauf erneut ziehen
+last_updated_by: Codex (post-DAV-22 blocker truth sync)
 updated_at: 2026-03-24
