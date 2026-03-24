@@ -1,12 +1,12 @@
 # CURRENT - Live Baton
 
-focus: Firmenfaehigkeit zuerst - realer DAV-12/DAV-13 Reviewer-Pfad inkl. changes_requested -> revision -> re-review -> merge -> summary ist bewiesen; Merge-Hygiene auf main wurde nachgezogen
-active_issue: Baton Sync nach dem realen DAV-12/DAV-13-Beweis; naechster Sprint soll den Merge-Pfad boringly reliable machen, bevor der naechste Firmenlauf startet
+focus: Kanonische Baseline auf main ist hergestellt - lokale Paperclip-Identity ist gehaertet, reviewer handoff normalization ist geliefert, und der reale DAV-16 Firmenlauf lief bis merge auf main durch
+active_issue: Nach dem Baseline-Schnitt soll der naechste Sprint wieder ein kleiner echter Firmenlauf von sauberem main sein, damit der naechste reale Engpass sichtbar wird statt weiterer Meta-Drift
 next:
-  1) Merge-Vorpruefung gegen branch baggage haerten, damit nur gewollter Issue-Scope auf main landet
-  2) lokalen Branch-Cleanup unter Worktree-Bindung boringly reliable machen oder klar dokumentieren
-  3) erst danach den naechsten echten Firmenlauf starten
-blockers: kein Produktblocker; offener Reliability-Punkt ist Merge-Hygiene bei alten Issue-Branch-Historien
+  1) naechsten bounded Firmenlauf direkt von canonical main starten
+  2) im echten Lauf weiter nur reale Glue-Bugs oder Guardrail-Luecken fixen, keine Vorab-Refactor-Schleife
+  3) `CURRENT.md` und `MEMORY.md` erst wieder drehen, wenn ein neuer stabiler Firmenstand geliefert ist
+blockers: kein harter Produktblocker; offene Fragen sollen ueber den naechsten echten Lauf statt ueber Meta-Planung sichtbar werden
 
 leitdokument_update (2026-03-23):
   doc: `doc/plans/2026-03-23-dgdh-leitdokument.md`
@@ -53,6 +53,11 @@ brainstorm_backlog (2026-03-22, David + Perplexity + Claude):
   - Smoke Customer Run Konzept -> `doc/backlog/smoke-customer-run.md` (noch nicht erstellt)
   - Agent Architecture kanonisch dokumentiert -> `doc/architecture/dgdh-agent-architecture.md`
 notes:
+- Kanonischer Baseline-Schnitt 2026-03-24: `origin/main` enthaelt jetzt den echten DAV-16-Merge plus die nachgezogenen Fixes fuer lokale Identity-Hardening und reviewer handoff normalization; `main` ist wieder die kanonische Wahrheit.
+- Identity-Fact 2026-03-24: repo-lokale `.paperclip/.env` und `.paperclip/config.json` schlagen stale ambient Worktree-Env; ohne lokalen Kontext faellt Paperclip auf `~/.paperclip/instances/default` zurueck.
+- Reviewer-Handoff-Fact 2026-03-24: Reviewer-Kontext bevorzugt kanonisch `issue.worker_done_recorded` und `issue.worker_pull_request_created` statt rohem Worker-stdout.
+- Realbeweis 2026-03-24: DAV-16 lief als echter bounded Worker -> Reviewer -> merge-Pfad; Parent DAV-15 endete danach `done` mit Merge-Summary.
+- Stabiler Operator-Stand liegt jetzt in `doc/DGDH-AI-OPERATOR-RUNBOOK.md` und soll kuenftige lokale Firmenlaeufe ohne Neuentdeckung der Maschine andocken.
 - Arbeitsmodell ab 2026-03-22: Planer = Perplexity via Chat. Codex = grosse Operator-Sprints mit eigenem Debug-Loop, Console-Watch und aktiver Bedienung von Paperclip/Werkbank. Reviewer/Researcher = Gemini CLI. Claude = nur wenn wirklich noetig, um Quota zu schonen.
 - Codex committed und pusht selbst. Commit-Hash im Statusbericht ist Pflicht. Planer reviewed den Diff direkt.
 - `MEMORY.md` bleibt Stable-Facts-only; datierte Sprint-Historie lebt in `doc/archive/sprint-log.md`.
@@ -86,5 +91,5 @@ notes:
 - Neu 2026-03-23: `doc/plans/2026-03-23-research-and-skills-direction.md` dokumentiert gewollte spaetere Auslagerung in Skills (Progressive Disclosure) und asymmetrische Guardrails (CEO offen, Worker eng).
 - CEO-Modell-Prioritaet ist fixiert: Pro -> Flash -> Flash-Lite (Claude/Codex mittelfristig plausibel).
 - OSS-Researcher-Haltung ist aktiv, ordnet sich aber dem E2E-Loop-Fokus (Focus Freeze) unter.
-last_updated_by: Codex
-updated_at: 2026-03-23
+last_updated_by: Copilot
+updated_at: 2026-03-24

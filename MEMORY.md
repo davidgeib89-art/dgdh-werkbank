@@ -52,6 +52,7 @@
 
 ## Stabile Arbeitsregeln
 - `CURRENT.md` traegt Fokus, naechsten Schritt und Blocker; `MEMORY.md` bleibt kompakt und stabil.
+- `main` ist die kanonische Baseline; `main-local` darf nur waehrend eines laufenden Sprint-Integrationsfensters abweichen und soll danach wieder auf demselben Commit landen.
 - Planer (Perplexity MCP) kann das private Repo lesen, aber Commit-Verifikation laeuft ueber Branch-Namen (`sha='main'`), nicht ueber rohen Commit-Hash.
 - Wenn du stabile Facts oder Architektur aenderst, update `MEMORY.md` vor Handoff.
 - High-Risk-Lokalops an DB, Workspace-Routing oder Ordnerstruktur bekommen vor Ausfuehrung einen kurzen Heads-up an den Planer, wenn es zeitlich geht.
@@ -92,8 +93,10 @@
 - Isolierte Git-Worktree-Ausfuehrung ist im DGDH-Repo real bewiesen: DAV-13 lief in `C:\Users\holyd\DGDH\worktrees\dgdh-werkbank\.paperclip\worktrees\DAV-13-reviewer-semantic-truth-artifact-implementation`; der Human-Main-Worktree blieb separat.
 - Windows-Glue-Fact: fuer tiefe isolierte Git-Worktrees in diesem Repo ist lokal `git config core.longpaths true` noetig.
 - Merge-Hygiene-Fact: alte Issue-Branch-Historie kann versehentlich branch baggage auf `main` ziehen; die fremden `hyperagents.pdf`-Artefakte wurden danach bounded wieder aus `main` entfernt.
+- Lokale Paperclip-Identity ist gehaertet: repo-lokale `.paperclip/.env` und `.paperclip/config.json` schlagen stale ambient `PAPERCLIP_HOME`/`PAPERCLIP_INSTANCE_ID`/`PAPERCLIP_CONFIG`; ohne lokalen Kontext faellt Paperclip auf `~/.paperclip/instances/default` zurueck.
+- Reviewer-Review-Target nutzt fuer Worker-Handoffs kanonisch `issue.worker_done_recorded` plus `issue.worker_pull_request_created`; rohes Worker-stdout ist nur Fallback.
+- Der reale DAV-16-Lauf ist geliefert: Worker -> Reviewer -> merge lief mit echten GitHub-Spuren; der Parent DAV-15 endete danach `done` mit Merge-Summary.
 - Evolution Lane ist kanonisch als spaetere Richtung gesetzt: kontrollierte Selbstverbesserung laeuft replay-/benchmark-getrieben, PR-basiert und mit Human-Merge, nicht als freie Live-Selbstoptimierung.
-- Naechster Fokus fuer Produktionsreife: Merge-Orchestrator, harte Review-Gates, Scope-Firewall.
 
 ## Revenue Lane Foundation (langfristige Capability, nicht aktueller Fokus)
 - Revenue Lane baut wiederverwendbare DGDH-Faehigkeiten, nicht Einzelfall-Abschluesse.
