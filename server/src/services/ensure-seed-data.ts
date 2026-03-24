@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import type { Db } from "@paperclipai/db";
 import { agents, companies } from "@paperclipai/db";
 import { logger } from "../middleware/logger.js";
@@ -17,6 +17,7 @@ interface SeedAgent {
   role: string;
   adapterType: string;
   adapterConfig: Record<string, unknown>;
+  runtimeConfig: Record<string, unknown>;
 }
 
 interface SeedConfig {
@@ -45,6 +46,15 @@ function asNumber(value: unknown, label: string): number {
     throw new Error(`Invalid ${label}: expected finite number`);
   }
   return value;
+}
+
+function isEmptyRecord(value: unknown): boolean {
+  return (
+    typeof value !== "object" ||
+    value === null ||
+    Array.isArray(value) ||
+    Object.keys(value as Record<string, unknown>).length === 0
+  );
 }
 
 function parseSeedConfig(raw: unknown): SeedConfig {
@@ -80,6 +90,10 @@ function parseSeedConfig(raw: unknown): SeedConfig {
         row.adapterConfig,
         `agents[${index}].adapterConfig`,
       ),
+      runtimeConfig: asObject(
+        row.runtimeConfig,
+        `agents[${index}].runtimeConfig`,
+      ),
     };
   });
 
@@ -111,6 +125,52 @@ export async function ensureSeedData(db: Db): Promise<void> {
     .where(eq(companies.name, DGDH_COMPANY_NAME))
     .then((rows) => rows[0] ?? null);
   if (existingCompany) {
+    let backfilledAgents = 0;
+    let createdAgents = 0;
+    for (const seedAgent of seedConfig.agents) {
+      const existingAgent = await db
+        .select({ id: agents.id, runtimeConfig: agents.runtimeConfig })
+        .from(agents)
+        .where(
+          and(
+            eq(agents.companyId, existingCompany.id),
+            eq(agents.name, seedAgent.name),
+          ),
+        )
+        .then((rows) => rows[0] ?? null);
+
+      if (!existingAgent) {
+        await db.insert(agents).values({
+          companyId: existingCompany.id,
+          name: seedAgent.name,
+          role: seedAgent.role,
+          adapterType: seedAgent.adapterType,
+          adapterConfig: seedAgent.adapterConfig,
+          runtimeConfig: seedAgent.runtimeConfig,
+        });
+        createdAgents += 1;
+        continue;
+      }
+
+      if (isEmptyRecord(existingAgent.runtimeConfig)) {
+        await db
+          .update(agents)
+          .set({ runtimeConfig: seedAgent.runtimeConfig })
+          .where(eq(agents.id, existingAgent.id));
+        backfilledAgents += 1;
+      }
+    }
+
+    if (createdAgents > 0 || backfilledAgents > 0) {
+      logger.info(
+        {
+          companyName: seedConfig.company.name,
+          createdAgents,
+          backfilledAgents,
+        },
+        "DGDH seed agent runtime restored",
+      );
+    }
     return;
   }
 
@@ -136,6 +196,7 @@ export async function ensureSeedData(db: Db): Promise<void> {
           role: agent.role,
           adapterType: agent.adapterType,
           adapterConfig: agent.adapterConfig,
+          runtimeConfig: agent.runtimeConfig,
         })),
       );
     }
