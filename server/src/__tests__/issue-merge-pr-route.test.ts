@@ -13,6 +13,11 @@ const mockAgentService = vi.hoisted(() => ({
   getById: vi.fn(),
 }));
 
+const mockActivityService = vi.hoisted(() => ({
+  forIssue: vi.fn(),
+  runsForIssue: vi.fn(),
+}));
+
 const mockCeoService = vi.hoisted(() => ({
   mergeIssuePullRequest: vi.fn(),
   maybeRunMergeOrchestratorAfterReviewerVerdict: vi.fn(),
@@ -21,6 +26,7 @@ const mockCeoService = vi.hoisted(() => ({
 
 vi.mock("../services/index.js", () => ({
   accessService: () => ({}),
+  activityService: () => mockActivityService,
   agentService: () => mockAgentService,
   ceoService: () => mockCeoService,
   goalService: () => ({}),

@@ -225,6 +225,9 @@ $issue = Invoke-RestMethod -Method Post -Uri "$base/companies/$companyId/issues"
 $issueId = $issue.id
 ```
 
+For bounded implementation packets, specify the concrete target file or target folder in the issue description when you already know it.
+Otherwise the routing preflight can legitimately stop the CEO run with `missing_inputs` before any child issue is created.
+
 5. Start the loop by assigning the issue, not by raw wakeup.
 
 ```powershell

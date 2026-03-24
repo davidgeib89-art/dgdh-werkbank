@@ -1,21 +1,25 @@
 # CURRENT - Live Baton
 
-focus: der kanonische Clean-Main-Firmenlauf bootstrapt jetzt boringly ueber den Produktpfad; der naechste Engpass ist nicht mehr versteckte Bootstrapping-Infra, sondern operator-visible Firmenlauf-Wahrheit mit moeglichst wenig David-Minuten
-active_issue: der Kernpfad ist geliefert; der naechste grosse Sprint soll Firmenlauf-Lesbarkeit und operator-facing Truth auf derselben kanonischen Basis productizen
+focus: die operator-visible Firmenlauf-Wahrheit ist jetzt im Produkt auf canonical `main` sichtbar; der naechste Engpass ist nicht mehr fehlende Chain-Sichtbarkeit, sondern Packet-/Run-Input-Schaerfe vor dem ersten CEO-Child-Handoff
+active_issue: die schmale operator-facing Truth-Surface ist geliefert und live validiert; der naechste grosse Sprint soll die naechste echte David-Minuten-Reibung nach dieser Sichtbarkeit schneiden
 
 next:
-  1) den naechsten grossen Sprint auf `main` auf operator-facing Firmenlauf-Lesbarkeit schneiden: die Kette soll fuer David sichtbar und schnell lesbar sein, nicht nur fuer API-Leser
-  2) den neuen UI-/Operator-Pfad wieder ueber einen echten bounded Firmenlauf validieren und nur neue echte Glue-Blocker anfassen
+  1) die neue Issue-Detail-Truth-Surface als Default-Operator-Leseflaeche benutzen und den naechsten echten Firmenlauf wieder von dort lesen
+  2) bounded Implementation-Packets upstream schaerfen: fuer echte Code-/Doc-Arbeit konkrete `target file`/`target folder`-Wahrheit mitgeben, damit der CEO nicht mehr vor Child-Erzeugung an `missing_inputs` haengen bleibt
 blockers:
-  - fuer den letzten Infra-/Bootstrap-Sprint kein offener Restblocker mehr: DAV-33 ist `done`, DAV-34 ist `merged`
+  - fuer diesen Sprint kein offener Surface-Blocker mehr: DAV-35 ist `done`, DAV-36 ist `merged`
 strategy_anchor:
   - `doc/plans/2026-03-24-dgdh-first-principles-operating-doctrine.md`
   - `doc/plans/2026-03-21-dgdh-north-star-roadmap.md`
   - `doc/plans/2026-03-23-focus-freeze.md`
 notes:
+  - Die Issue-Detail-Seite zeigt jetzt fuer Firmenlaeufe eine kleine operator-facing Truth-Surface: `Issue`, `Company`, `Project`, `Active run`, `Context` plus die schmale Kette `assigned -> run started -> worker done -> reviewer assigned -> reviewer run -> merged -> parent done`
+  - DAV-35/DAV-36 validieren den neuen Surface-Sprint live: DAV-35 endete `done`, Child DAV-36 endete `merged`, PR `#17`, Worker-Run `f9cceee9-0d27-4791-afc8-b3178bc1d4a8`, Reviewer-Run `aab00521-9b04-4eb4-bf6d-20ae23fe3e16`
+  - Der erste echte Blocker im Validierungslauf war kein Infrastrukturfehler, sondern Packet-Wahrheit: der CEO-Parent-Run `6ca52f5e-da45-4a35-a2ac-1339a34b29a8` blockte mit `missing_inputs` / `target_file_not_specified`; nach explizitem `Target file: doc/DGDH-AI-OPERATOR-RUNBOOK.md` lief die Kette normal durch
+  - Die Chain-Surface zaehlt `merged` jetzt auch dann korrekt als abgeschlossen, wenn ein Child-Issue `status = merged` und PR-Evidenz hat, aber `completedAt` fehlt; Fallback ist `updatedAt` statt unsichtbarer halb-fertiger Merge-Sicht
   - Frische Projekte mit git-backed lokalem Primary-Workspace bootstrappen jetzt produktseitig automatisch auf `executionWorkspacePolicy = isolated` mit `workspaceStrategy.type = git_worktree`; der kanonische Create-Pfad braucht dafuer kein manuelles Sonderpayload mehr
   - `GET /api/issues/:id/company-run-chain` liefert jetzt die schmale Kettenwahrheit `assigned -> run started -> worker done -> reviewer assigned -> reviewer run -> merged -> parent done` fuer Parent-/Child-Laeufe an einer Stelle
-  - Die naechste Leverage-Frage ist nicht mehr "welcher Bootstrapping-Glue fehlt noch?", sondern "wie wird diese Kettenwahrheit fuer David selbst boringly lesbar und vertrauenswuerdig sichtbar?"
+  - Die naechste Leverage-Frage ist nicht mehr "wie wird diese Kettenwahrheit fuer David sichtbar?", sondern "welche Packet-/Run-Wahrheit fehlt noch, bevor der erste Child-Handoff startet?"
   - DAV-33/DAV-34 validieren den neuen Pfad live: Projekt `2651f46c-04cb-4433-a55c-8baee1ce1c84` wurde frisch ohne explizite `executionWorkspacePolicy` angelegt und kam trotzdem direkt mit isolierter `git_worktree`-Policy zurueck
   - Im frischen Validierungslauf endete Parent `DAV-33` `done`, Child `DAV-34` `merged`, PR `#16`, Branch `dgdh/issue-DAV-34-bootstrap-chain-proof`, Worker-Run `4b766419-02ce-4d62-aa73-4dd9152adea5`, Reviewer-Run `e03480b4-eabc-4032-9b8d-4cc10c9788e6`, Worker-Commit `0de480e4e67f879882ddd64ccfacbdc05e5bed80`
   - Der Produktisierungs-Commit auf canonical `main` / `origin/main` ist `84a7d8fbde54347a912bd0f2f51847cd64e53cdc` (`productize company run bootstrap defaults and chain visibility`)
@@ -40,5 +44,5 @@ notes:
   - Validiert wurden `pnpm -r typecheck` sowie gezielte Server-Tests fuer `gemini-local`, control-plane resolver und gemini pipeline; kein voller `pnpm test:run` oder `pnpm build` in diesem Sprint behauptet
   - Fuer den Routing-Fix liefen zusaetzlich die gezielten Tests `gemini-routing-engine`, `gemini-control-plane-resolver`, `gemini-local-execute` und `gemini-pipeline-e2e` gruen
   - Kein Meta-Umbau als Reaktion: der Sprint endet bewusst ohne neue Reflexionsdatei; der naechste Schritt ist wieder echter Firmenfortschritt
-last_updated_by: Copilot (post-DAV-33 bootstrap productization validation)
+last_updated_by: Copilot (post-DAV-35 operator truth surface validation)
 updated_at: 2026-03-24

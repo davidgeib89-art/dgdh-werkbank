@@ -52,6 +52,8 @@
 - OSS-Research wird fuer DGDH per Primitive-Filter gelesen: uebernehmen wollen wir Muster wie file-layered identity, visible primitives und spaetere firm-memory/diagnostics; nicht ganze assistant-first oder self-evolving Produktidentitaeten.
 - Retrieval ist fuer DGDH spaeter eine eigene Capability-Schicht, aber nicht die aktuelle Produktform: shared context/retrieval ja, Retrieval-Plattform- oder Integrationsbreiten-Sprint nein.
 - Sobald der Firmenloop auf canonical `main` wiederholt boringly durchlaeuft, verschiebt sich der naechste Hebel von versteckter Bootstrap-Infra zu operator-facing Lesbarkeit: die richtige naechste Frage lautet dann nicht mehr "welcher Glue-Bug fehlt?", sondern "wie sieht David die Firmenwahrheit mit moeglichst wenig Minuten?"
+- Die Issue-Detail-Seite zeigt jetzt eine kompakte operator-facing Firmenwahrheit: `Issue`, `Company`, `Project`, `Active run`, `Context` plus die schmale `company-run-chain`.
+- Bei bounded Implementation-Packets ist explizite `target file`-/`target folder`-Wahrheit upstream noetig; sonst darf Routing-Preflight legitimerweise mit `missing_inputs` vor dem ersten Child-Handoff blocken.
 - Self-Learning bedeutet spaeter governte Hypothesenbildung aus echten Firmenlaeufen; Self-Improving promoted bewaehrte Verbesserungen erst nach Replay/Benchmark/PR-Pruefung in den Standardbetrieb.
 - CEO-Modell-Richtung: Gemini Pro bevorzugt -> Flash -> Flash-Lite. (Claude/Codex mittelfristig als CEO plausibel).
 
@@ -112,6 +114,7 @@
 - `git_worktree` ist fuer Astro/Keystatic aktiv (`isolated`, `allowIssueOverride=true`).
 - Frische Projekte mit git-backed lokalem Primary-Workspace auto-bootstrappen jetzt auf `executionWorkspacePolicy = isolated` mit `workspaceStrategy.type = git_worktree`, auch wenn der Create-Pfad keine explizite Policy mitsendet; repo-only oder nicht-git-backed Workspaces brauchen weiter explizite Policy oder Preset.
 - `GET /api/issues/:id/company-run-chain` liefert jetzt die schmale Kettenwahrheit `assigned -> run started -> worker done -> reviewer assigned -> reviewer run -> merged -> parent done` fuer Parent-/Child-Laeufe.
+- Die `company-run-chain`-Surface behandelt `merged` jetzt auch dann als abgeschlossen, wenn ein Child-Issue `status = merged` und PR-Evidenz hat, aber `completedAt` fehlt; `updatedAt` ist der Fallback fuer lesbare operator truth.
 - End-to-End Multi-Agent-Kette (Sprint S) laeuft durch (Prototyp-Reife), produziert aber isolierte Worktree-Inseln.
 - Dashboard-Sichtbarkeit fuer echte Agenten-Runs ist lokal bewiesen: ein zugewiesenes Issue triggert einen sichtbaren `codex_local`-Run im Dashboard/`live-runs` mit laufendem Transcript und Abschluss.
 - Ein manueller Heartbeat ohne zugewiesenes Issue blockt erwartbar am Gate `no_assigned_issue`; fuer sichtbare reale Runs muss der bestehende Issue-Assignment-Pfad genutzt werden.
