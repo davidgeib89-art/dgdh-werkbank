@@ -4,6 +4,7 @@ import path from "node:path";
 import { and, asc, desc, eq, gt, inArray, sql } from "drizzle-orm";
 import type { Db } from "@paperclipai/db";
 import {
+  activityLog,
   agents,
   agentRuntimeState,
   agentTaskSessions,
@@ -884,6 +885,12 @@ type ReviewTargetPromptContext = {
   workerHandoff: string | null;
 };
 
+type RecordedWorkerHandoffContext = {
+  resultSummary: string | null;
+  artifactPaths: string[];
+  workerHandoff: string | null;
+};
+
 function trimIssueText(value: unknown) {
   if (typeof value !== "string" || value.trim().length === 0) return null;
 
@@ -916,6 +923,76 @@ export function extractBenchmarkFamily(description: string | null | undefined) {
   const match = description.match(/benchmark family:\s*([^\r\n]+)/i);
   const value = match?.[1]?.trim();
   return value && value.length > 0 ? value : null;
+}
+
+function formatWorkerDoneHandoff(
+  workerDoneDetails: Record<string, unknown> | null,
+  workerPrDetails: Record<string, unknown> | null,
+): RecordedWorkerHandoffContext | null {
+  if (!workerDoneDetails && !workerPrDetails) return null;
+
+  const doneSummary = parseObject(workerDoneDetails?.summary);
+  const files = readNonEmptyStringArray(doneSummary.files);
+  const branch =
+    readNonEmptyString(workerDoneDetails?.branch) ??
+    readNonEmptyString(workerPrDetails?.branch);
+  const prUrl =
+    readNonEmptyString(workerDoneDetails?.prUrl) ??
+    readNonEmptyString(workerPrDetails?.prUrl);
+  const commitHash = readNonEmptyString(workerDoneDetails?.commitHash);
+  const goal = readNonEmptyString(doneSummary.goal);
+  const result = readNonEmptyString(doneSummary.result);
+  const blockers = readNonEmptyString(doneSummary.blockers);
+  const next = readNonEmptyString(doneSummary.next);
+
+  const lines: string[] = [];
+  if (prUrl) lines.push(`PR: ${prUrl}`);
+  if (branch) lines.push(`Branch: ${branch}`);
+  if (commitHash) lines.push(`Commit: ${commitHash}`);
+  if (goal) {
+    if (lines.length > 0) lines.push("");
+    lines.push(`Goal: ${goal}`);
+  }
+  if (result) lines.push(`Result: ${result}`);
+  if (files.length > 0) {
+    lines.push("Files Changed:");
+    for (const filePath of files) {
+      lines.push(`- ${filePath}`);
+    }
+  }
+  if (blockers) lines.push(`Blockers: ${blockers}`);
+  if (next) lines.push(`Next: ${next}`);
+
+  return {
+    resultSummary: result,
+    artifactPaths: files,
+    workerHandoff: lines.length > 0 ? lines.join("\n") : null,
+  };
+}
+
+export function normalizeReviewTargetWorkerHandoff(input: {
+  workerDoneDetails?: Record<string, unknown> | null;
+  workerPrDetails?: Record<string, unknown> | null;
+  targetStdoutExcerpt?: string | null;
+  fallbackResultSummary?: string | null;
+}): RecordedWorkerHandoffContext {
+  const structured = formatWorkerDoneHandoff(
+    input.workerDoneDetails ?? null,
+    input.workerPrDetails ?? null,
+  );
+  if (structured) return structured;
+
+  const targetStdoutExcerpt = input.targetStdoutExcerpt ?? null;
+  const fallbackHandoff =
+    (targetStdoutExcerpt
+      ? collectAssistantContentFromStreamJson(targetStdoutExcerpt)
+      : null) ?? targetStdoutExcerpt;
+
+  return {
+    resultSummary: input.fallbackResultSummary ?? null,
+    artifactPaths: extractArtifactPathsFromWorkerOutput(targetStdoutExcerpt),
+    workerHandoff: fallbackHandoff,
+  };
 }
 
 function buildIssueTaskPrompt(issue: IssuePromptContext) {
@@ -2099,10 +2176,6 @@ export function heartbeatService(db: Db) {
       parseObject(target.resultJson),
     );
     const targetStdoutExcerpt = readNonEmptyString(target.stdoutExcerpt);
-    const workerHandoff =
-      (targetStdoutExcerpt
-        ? collectAssistantContentFromStreamJson(targetStdoutExcerpt)
-        : null) ?? targetStdoutExcerpt;
     const targetContext = parseObject(target.contextSnapshot);
     const targetPreflight = parseObject(targetContext.paperclipRoutingPreflight);
     const targetSelected = parseObject(targetPreflight.selected);
@@ -2133,9 +2206,63 @@ export function heartbeatService(db: Db) {
           .filter((value): value is string => Boolean(value)),
       ),
     ];
-    const artifactPaths = extractArtifactPathsFromWorkerOutput(
+    const handoffRows = await db
+      .select({
+        action: activityLog.action,
+        details: activityLog.details,
+        runId: activityLog.runId,
+      })
+      .from(activityLog)
+      .where(
+        and(
+          eq(activityLog.companyId, input.companyId),
+          eq(activityLog.entityType, "issue"),
+          eq(activityLog.entityId, input.issueId),
+          inArray(activityLog.action, [
+            "issue.worker_pull_request_created",
+            "issue.worker_done_recorded",
+          ]),
+        ),
+      )
+      .orderBy(desc(activityLog.createdAt))
+      .limit(12);
+
+    const parsedHandoffRows = handoffRows.map((row) => ({
+      action: row.action,
+      runId: row.runId,
+      details: parseObject(row.details),
+    }));
+    const matchesTargetRun = (row: {
+      runId: string | null;
+      details: Record<string, unknown>;
+    }) => row.runId === target.id || readNonEmptyString(row.details.apiRunId) === target.id;
+
+    const workerDoneRow =
+      parsedHandoffRows.find(
+        (row) => row.action === "issue.worker_done_recorded" && matchesTargetRun(row),
+      ) ??
+      parsedHandoffRows.find(
+        (row) => row.action === "issue.worker_done_recorded",
+      ) ??
+      null;
+    const workerPrRow =
+      parsedHandoffRows.find(
+        (row) => row.action === "issue.worker_pull_request_created" && matchesTargetRun(row),
+      ) ??
+      parsedHandoffRows.find(
+        (row) => row.action === "issue.worker_pull_request_created",
+      ) ??
+      null;
+
+    const normalizedHandoff = normalizeReviewTargetWorkerHandoff({
+      workerDoneDetails: workerDoneRow?.details ?? null,
+      workerPrDetails: workerPrRow?.details ?? null,
       targetStdoutExcerpt,
-    );
+      fallbackResultSummary:
+        readNonEmptyString(resultSummaryRecord?.summary) ??
+        readNonEmptyString(resultSummaryRecord?.result) ??
+        readNonEmptyString(resultSummaryRecord?.message),
+    });
 
     return {
       runId: target.id,
@@ -2148,13 +2275,10 @@ export function heartbeatService(db: Db) {
       model:
         readNonEmptyString(targetSelected.effectiveModelLane) ??
         readNonEmptyString(parseObject(target.resultJson).model),
-      resultSummary:
-        readNonEmptyString(resultSummaryRecord?.summary) ??
-        readNonEmptyString(resultSummaryRecord?.result) ??
-        readNonEmptyString(resultSummaryRecord?.message),
+      resultSummary: normalizedHandoff.resultSummary,
       readEvidencePaths,
-      artifactPaths,
-      workerHandoff,
+      artifactPaths: normalizedHandoff.artifactPaths,
+      workerHandoff: normalizedHandoff.workerHandoff,
     };
   }
 

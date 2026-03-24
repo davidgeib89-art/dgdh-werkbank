@@ -16,6 +16,7 @@ import {
   isDryRunExecutionMode,
   isGovernanceTestModeEnabled,
   isPhaseBExecution,
+  normalizeReviewTargetWorkerHandoff,
   isTestRunContext,
   determineIssueStatusAfterRun,
   readExecutionMode,
@@ -270,6 +271,72 @@ describe("heartbeat governance helpers", () => {
     ].join("\n");
 
     expect(extractReviewerVerdict(output)).toBe("accepted");
+  });
+
+  it("prefers canonical worker_done handoff details for reviewer context", () => {
+    const normalized = normalizeReviewTargetWorkerHandoff({
+      workerDoneDetails: {
+        prUrl: "https://github.com/example/repo/pull/9",
+        branch: "dgdh/issue-DAV-16-startup-banner",
+        commitHash: "43de73cbc1a00e1017a23ca6907fa04d7889ea95",
+        summary: {
+          goal: "Surface active Paperclip home and instance in startup banner",
+          result: "Startup banner now shows canonical Paperclip home and instance id.",
+          files: ["server/src/index.ts", "server/src/startup-banner.ts"],
+          blockers: "none",
+          next: "none",
+        },
+      },
+      targetStdoutExcerpt: [
+        JSON.stringify({
+          type: "message",
+          role: "assistant",
+          content: "stale stdout handoff that should not win",
+        }),
+      ].join("\n"),
+      fallbackResultSummary: "fallback summary",
+    });
+
+    expect(normalized.resultSummary).toBe(
+      "Startup banner now shows canonical Paperclip home and instance id.",
+    );
+    expect(normalized.artifactPaths).toEqual([
+      "server/src/index.ts",
+      "server/src/startup-banner.ts",
+    ]);
+    expect(normalized.workerHandoff).toContain(
+      "PR: https://github.com/example/repo/pull/9",
+    );
+    expect(normalized.workerHandoff).toContain(
+      "Branch: dgdh/issue-DAV-16-startup-banner",
+    );
+    expect(normalized.workerHandoff).toContain(
+      "Files Changed:\n- server/src/index.ts\n- server/src/startup-banner.ts",
+    );
+    expect(normalized.workerHandoff).not.toContain(
+      "stale stdout handoff that should not win",
+    );
+  });
+
+  it("falls back to assistant stdout when no canonical worker handoff exists", () => {
+    const normalized = normalizeReviewTargetWorkerHandoff({
+      targetStdoutExcerpt: [
+        JSON.stringify({
+          type: "message",
+          role: "assistant",
+          content: [
+            "1. Goal",
+            "2. Result",
+            "3. Files Changed: `server/src/startup-banner.ts`",
+          ].join("\n"),
+        }),
+      ].join("\n"),
+      fallbackResultSummary: "fallback summary",
+    });
+
+    expect(normalized.resultSummary).toBe("fallback summary");
+    expect(normalized.artifactPaths).toEqual(["server/src/startup-banner.ts"]);
+    expect(normalized.workerHandoff).toContain("1. Goal");
   });
 
   it("extracts the reviewer verdict when verdict is markdown-formatted", () => {

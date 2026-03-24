@@ -37,6 +37,16 @@ describe("home path resolution", () => {
     expect(() => resolvePaperclipInstanceId("bad/id")).toThrow(/Invalid instance id/);
   });
 
+  it("ignores stale ambient worktree env outside a repo-local paperclip context", () => {
+    process.env.PAPERCLIP_HOME = "~/paperclip-worktrees";
+    process.env.PAPERCLIP_INSTANCE_ID = "main";
+    process.env.PAPERCLIP_IN_WORKTREE = "true";
+
+    const paths = describeLocalInstancePaths();
+    expect(paths.homeDir).toBe(path.resolve(os.homedir(), ".paperclip"));
+    expect(paths.instanceId).toBe("default");
+  });
+
   it("expands ~ prefixes", () => {
     expect(expandHomePrefix("~")).toBe(os.homedir());
     expect(expandHomePrefix("~/x/y")).toBe(path.resolve(os.homedir(), "x/y"));

@@ -16,12 +16,15 @@ import {
   type StorageProvider,
 } from "@paperclipai/shared";
 import {
+  normalizePaperclipRuntimeEnvironment,
   resolveDefaultBackupDir,
   resolveDefaultEmbeddedPostgresDir,
   resolveDefaultSecretsKeyFilePath,
   resolveDefaultStorageDir,
   resolveHomeAwarePath,
 } from "./home-paths.js";
+
+normalizePaperclipRuntimeEnvironment();
 
 const PAPERCLIP_ENV_FILE_PATH = resolvePaperclipEnvPath();
 if (existsSync(PAPERCLIP_ENV_FILE_PATH)) {
