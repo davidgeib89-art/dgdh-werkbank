@@ -21,6 +21,9 @@ Halte `MEMORY.md` dabei als verdichtete Stable-Facts-Karte: Zielgroesse unter 80
 Lies **direkt danach** `CURRENT.md`, wenn die Datei existiert. Das ist der Live Baton zwischen den CLIs: aktueller Fokus, aktives Issue, naechster Schritt, Blocker, letzte schreibende AI.
 Wenn du aeltere Sprint-/Run-Historie brauchst, lies `doc/archive/sprint-log.md` statt `MEMORY.md` aufzublaehen.
 
+Wenn du die DGDH-/Paperclip-Firma selbst aktiv bedienen, Runs starten, beobachten oder lokale Instanz-/Worktree-Fragen klaeren musst, lies danach auch:
+- `doc/DGDH-AI-OPERATOR-RUNBOOK.md`
+
 ---
 
 ## Schritt 2: Aktive Arbeitsdokumente lesen
@@ -57,6 +60,7 @@ Nur bei Bedarf (wenn deine Aufgabe es erfordert):
 - `company-hq/AI-CONTEXT-START-HERE.md` - vollstaendiger Doc-Index
 - `company-hq/DGDH-GEMINI-ENGINE-V1-2026-03-19.md` - Gemini Engine Spec
 - `CLAUDE.md` - Claude-spezifische Architektur-Details und Workflow
+- `doc/DGDH-AI-OPERATOR-RUNBOOK.md` - praktische Bedienungsanleitung fuer lokale Firmenruns und kanonische Run-Control
 
 ---
 
@@ -215,13 +219,18 @@ Kein vollstaendiger North-Star-Tieftauchgang — aber MEMORY.md gibt dir genug u
 **Aufgaben:**
 - Implementiert konkrete Issues und Work Packets
 - Arbeitet in groesseren Sprints durch — nicht nach jedem Schritt rueckfragen
+- Arbeitet in Davids Prototyping-Modus: reale Runs sind die bevorzugte Lern- und Verbesserungsbahn, nicht nur nachgelagerte Beweis-Tests
+- Kein Test-Theater: wir brauchen nicht mehrere kuenstliche Firmen- oder Proof-Runs, wenn ein echter Run schon den naechsten relevanten Schmerz zeigt
+- Wenn in einem echten Run Schwachstellen, Glue-Bugs oder schiefe Guardrails sichtbar werden: im Scope des laufenden Sprints selbst fixen und den Run weiterziehen
+- Freestyle ist erlaubt, wenn es den laufenden Firmenloop real verbessert: vibe coden, go with the flow, `follow your highest excitement` — aber entlang des aktuellen Sprint-Ziels und `doneWhen`
 - Liefert Worker-Handoff mit Evidenz (was gebaut, was getestet, was offen)
 - Haelt sich an targetFolder und Scope — kein Umbau was nicht im Packet steht
 - Wenn Kundendaten fehlen oder der Auftrag noch unscharf ist: zuerst den wiederverwendbaren Pipeline-/Packet-Typ bauen, nicht Content halluzinieren oder einen Einzelfall "fertig improvisieren"
-- Meldet Blocker sofort statt blind weiterzumachen
+- Loest Blocker zuerst selbst, statt bei jedem Reibungspunkt anzuhalten; eskaliert erst bei Richtungsentscheidung, Risiko ausserhalb des Sprint-Scope oder hartem Stopper
 - Committet und pusht Aenderungen selbst am Sprint-Ende — immer BEVOR der Statusbericht geliefert wird. Commit-Hash ist Pflichtfeld im Statusbericht.
 - Meldet sich im Statusbericht als `Von: <Name>` und adressiert ihn direkt an den Planer, damit der Handover eindeutig ist.
 - Macht den Git-Stand fuer den Planer explizit sichtbar: Commit-Hash plus Push/Branch gehoeren immer in den Bericht.
+- Nennt im Statusbericht auch die waehrend des Runs on-the-fly gemachten Freestyle-Fixes, damit der Planer sie im Nachgang kontrollieren kann
 - **NO-GO:** Keine Architektur-Entscheidungen, kein Scope-Ausbau ohne Rueckfrage, keine Aenderungen ausserhalb targetFolder
 
 **Eskalier zum Planer wenn:**
@@ -270,6 +279,13 @@ Kein vollstaendiger North-Star-Tieftauchgang — aber MEMORY.md gibt dir genug u
 - Claude kommt rein bei: echten Blockern, Scope-/Architektur-Entscheidungen, Sprint-Retrospektiven.
 - Accepted/done Verdicts die klar sind brauchen keine Claude-Reflexion.
 - Davids Zeit und Claude-Tokens sind zu wertvoll fuer Mikro-Koordination.
+
+### David-Prototyping-Maxime
+- Wir verbessern die Firma bevorzugt in echten Runs, nicht in endlosen Vorab-Testschleifen.
+- Ein echter Run darf gleichzeitig Beweis und Prototyping-Schleife sein.
+- Wenn waehrend des Runs klare Schwaechen sichtbar werden, soll der Coder sie innerhalb des Sprint-Scope direkt fixen und weiterlaufen.
+- Diese Freestyle-Fixes werden am Ende transparent berichtet und danach vom Planer kontrolliert.
+- Leitmodus: vibe coding mit Verantwortung — go with the flow, `follow your highest excitement`, aber immer entlang des naechsten echten Firmenhebels.
 
 ### Leitfrage
 > *Entlastet das David real oder verschoenert es nur die Maschine?*

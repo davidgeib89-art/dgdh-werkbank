@@ -6,6 +6,7 @@
 
 ## Pflicht-Dokumente
 - `CURRENT.md` - live baton
+- `doc/DGDH-AI-OPERATOR-RUNBOOK.md` - stabile Bedienungsanleitung fuer lokale DGDH-/Paperclip-Firmenruns
 - `doc/plans/2026-03-21-dgdh-north-star-roadmap.md` - kanonische operative Richtung
 - `doc/plans/2026-03-23-focus-freeze.md` - aktiver Kurzfrist-Fokus gegen Drift
 - `doc/plans/2026-03-23-dgdh-leitdokument.md` - lebendige CEO-nahe Richtungsbeschreibung; hoehere Lesart fuer die aktuelle Phase

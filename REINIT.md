@@ -20,6 +20,7 @@ Das ist ein **Codex-spezifischer Recovery-Shortcut** fuer den aktuellen Arbeitsm
 Standardfall nach Context-Verlust:
 1. `CURRENT.md`
 2. `MEMORY.md`
+3. `doc/DGDH-AI-OPERATOR-RUNBOOK.md` wenn du Runs, Instanzen, Worktrees oder echte Bedienpfade anfassen musst
 
 Das reicht normalerweise, um sofort weiterzuarbeiten.
 
@@ -43,6 +44,12 @@ Lies sofort in dieser Reihenfolge:
    - wichtige IDs
    - stabile Regeln
 
+3. `doc/DGDH-AI-OPERATOR-RUNBOOK.md`
+   - kanonische lokale Firmen-Identitaet
+   - wie echte Issue-Runs gestartet werden
+   - wie du Live-Runs, Inbox und Git zusammen liest
+   - haeufige Bedienfehler und Standardbehandlung
+
 Wenn du historische Sprint-Details brauchst, lies danach `doc/archive/sprint-log.md` statt `MEMORY.md` wieder aufzublaehen.
 
 ## Was du vor dem Sprint klaeren musst
@@ -59,13 +66,23 @@ Wenn das aus `CURRENT.md`, Issue-Text oder Arbeitskontext nicht sauber hervorgeh
 ## Dein Arbeitsmodell
 
 - Grosser Sprint statt Mikroschritte
+- Reale Runs sind aktive Prototyping-Schleifen, nicht nur Tests
+- Kein Test-Theater: nicht auf mehrere kuenstliche Proof-Runs warten, wenn ein echter Run schon den naechsten Lernhebel zeigt
 - Dev-Server starten, Console beobachten, Fehler selbst fixen
 - API-Calls ausfuehren, Agents triggern, Status pruefen, wenn das zum Sprint gehoert
 - Paperclip/Werkbank wie ein echter Operator bedienen
+- Wenn im echten Run Schwachstellen auffallen: on the fly selbst fixen, solange der Fix im Sprint-Scope bleibt
+- Freestyle ist ausdruecklich erlaubt, wenn es den laufenden Firmenloop staerkt: vibe coden, go with the flow, `follow your highest excitement`
 - Erst melden, wenn der Sprint fachlich durch ist oder ein echter Blocker vorliegt
 - Am Sprint-Ende committen und pushen
 - Statusbericht mit Commit-Hash und Push-Info an den Planer
 - Der Bericht beginnt mit `CODEX STATUSBERICHT`, nennt `Von: Codex` und ist direkt an den Planer adressiert
+
+## Freestyle-Regel
+
+- Nicht fuer jeden kleinen Blocker anhalten; zuerst selbst loesen
+- On-the-fly-Fixes am Sprint-Ende explizit im Statusbericht nennen
+- Nur eskalieren bei echter Richtungsfrage, Risiko ausserhalb des Sprint-Scope oder hartem Stopper
 
 ## Anti-Drift fuer Revenue Lane
 

@@ -1,0 +1,280 @@
+# DGDH AI Operator Runbook
+
+Status: Stable operating guide for AI coders and operators
+Audience: Codex, Copilot, Gemini CLI, Claude, ChatGPT and similar repo-working AIs
+Purpose: Avoid repeated rediscovery of how to operate the local DGDH/Paperclip company loop
+
+---
+
+## 1. What This Document Is
+
+This is the compact "how to drive the machine" guide.
+
+Use it together with:
+- `INIT.md` / `REINIT.md` for role and working style
+- `MEMORY.md` for stable facts
+- `CURRENT.md` for the live baton and active sprint
+
+This document is not the live baton and not a strategy doc.
+It should stay stable, operational, and boring.
+
+---
+
+## 2. Core Operating Principle
+
+The recurring bottleneck is usually not model intelligence.
+It is losing track of the canonical local company state and the canonical run-control path.
+
+Default operating rule:
+- first make sure you are attached to the right local Paperclip identity
+- then use the issue-driven company loop
+- then observe the real run
+- then fix real blockers on the fly
+
+Do not rediscover the machine from scratch every run.
+
+---
+
+## 3. Read Order Before Acting
+
+If you need to operate the DGDH company loop:
+
+1. `CURRENT.md`
+2. `MEMORY.md`
+3. this runbook
+4. only then the directly relevant files, routes, or UI pages
+
+If the run is about architecture or product direction, also read the current North Star and active plan docs.
+
+---
+
+## 4. Canonical Local Identity
+
+Paperclip identity is defined by the effective local home/config/instance context.
+If you get this wrong, the company can look "missing" even when nothing is deleted.
+
+Current rules:
+- Repo-local `.paperclip/.env` and `.paperclip/config.json` are the canonical local override when present.
+- Stale ambient worktree env should not override the repo when there is no repo-local Paperclip context.
+- Without a repo-local Paperclip context, Paperclip falls back to the default local instance under `~/.paperclip/instances/default`.
+
+Practical meaning:
+- Do not trust inherited `PAPERCLIP_HOME` / `PAPERCLIP_INSTANCE_ID` blindly.
+- Prefer running commands from the intended repo/worktree root.
+- Treat repo-local `.paperclip` as source of truth when it exists.
+
+Quick checks:
+
+```powershell
+git rev-parse --show-toplevel
+Get-ChildItem .paperclip -Force
+git branch --show-current
+git worktree list
+```
+
+---
+
+## 5. Human Workspace vs Firm Workspaces
+
+Keep the human/operator workspace separate from issue execution workspaces.
+
+Desired pattern:
+- Human workspace stays on the normal main worktree
+- firm execution happens in issue-scoped isolated git worktrees
+- issue worktrees live under `.paperclip/worktrees/...` unless configured otherwise
+
+Do not casually use the human main checkout as the issue execution branch checkout.
+
+Windows note:
+- deep worktree paths in this repo may require `git config core.longpaths true`
+
+---
+
+## 6. Starting the Local System
+
+Preferred local dev paths:
+
+```powershell
+pnpm dev:watch
+```
+
+Use when you actively develop and can tolerate watch-mode restarts.
+
+```powershell
+pnpm dev:once
+```
+
+Use when you want the more stable verification path without watch/hot reload churn.
+
+Important:
+- Running inside a configured worktree should auto-load repo-local `.paperclip/.env`.
+- Do not manually export Paperclip env vars unless you know why you are overriding the local context.
+
+---
+
+## 7. Canonical Run Control
+
+For real issue work, use issue-driven wakeup paths.
+
+Canonical path:
+- create/update the issue with the right `projectId`
+- ensure it is in a runnable status such as `todo`
+- assign the responsible agent via the issue flow
+
+Important:
+- For issue work, use issue assignment/update paths
+- Do not use `POST /api/agents/{id}/wakeup` as a substitute for issue execution
+- A raw agent wakeup without an assigned issue is only a heartbeat nudge and can correctly block with `no_assigned_issue`
+
+Useful rule:
+- If a packet should start immediately, use `todo`, not `backlog`
+
+Known important endpoints:
+- `PATCH /api/issues/{id}` with `{"assigneeAgentId":"..."}`
+- `POST /api/issues/:id/worker-pr`
+- `POST /api/issues/:id/worker-done`
+- `POST /api/issues/:id/reviewer-verdict`
+- `POST /api/issues/:id/merge-pr`
+
+---
+
+## 8. Observing a Real Run
+
+When a run is live, read multiple surfaces together:
+
+- dashboard / company live-runs
+- issue page and issue comments
+- inbox for human-action blockers
+- git state / worktree state
+
+Useful read surfaces:
+- `GET /api/companies/:companyId/live-runs`
+- `GET /api/issues/:issueId/live-runs`
+- board inbox page
+
+What counts as real evidence:
+- an actual run record appears
+- transcript or live output exists
+- issue status changes coherently
+- worker/reviewer handoff artifacts exist
+- git branch/worktree effects match the issue path
+
+Do not trust a single surface in isolation.
+
+---
+
+## 9. Canonical Worker and Reviewer Handoffs
+
+Worker completion is not "I think I am done."
+The canonical handoff is the API path:
+
+- `worker-pr` creates or records the PR
+- `worker-done` records `prUrl`, `branch`, `commitHash`, and structured summary
+
+Reviewer completion is the API path:
+- `reviewer-verdict`
+
+Merge is the API path:
+- `merge-pr`
+
+Do not replace these with ad hoc CLI-only behavior if the canonical Paperclip route exists.
+
+---
+
+## 10. Merge Hygiene
+
+`main` must only receive the intended issue scope.
+
+Current guardrail:
+- merge scope is checked against canonical `worker-done.summary.files`
+- unexpected files should block the merge before they land on `main`
+
+Interpretation:
+- if merge is blocked because file scope diverges, do not bypass it blindly
+- fix the issue branch or the worker handoff so the expected scope is truthful again
+
+This is a protection against branch baggage leaking onto `main`.
+
+---
+
+## 11. Common Failure Modes
+
+### Wrong company or "missing" company
+- suspect home/config/instance mismatch first
+- verify repo-local `.paperclip` and effective worktree context
+- do not assume data loss
+
+### Manual wakeup did nothing useful
+- check whether there was an assigned issue
+- raw wakeup is not the same as issue-driven execution
+
+### No run appears in live-runs
+- verify assignment path
+- verify agent wake policy (`wakeOnAssignment`, `wakeOnAutomation`)
+- verify the issue is runnable and correctly scoped
+
+### Worktree problems
+- check `git worktree list`
+- verify the expected `.paperclip/worktrees/...` path exists
+- on Windows, consider `git config core.longpaths true`
+
+### Merge blocked
+- read the blocked message
+- compare PR file scope with `worker-done.summary.files`
+- fix the real scope mismatch instead of forcing the merge
+
+---
+
+## 12. Operating Posture
+
+David's preferred operating posture for coders:
+- large bounded sprints
+- real runs as prototyping loops
+- fix real blockers on the fly
+- no endless pre-proof test theater
+
+So:
+- do not stop at every small blocker
+- do not open meta-scope while a real loop is in flight
+- if a run exposes a narrow real weakness, fix it and continue
+- report those freestyle fixes clearly at the end
+
+---
+
+## 13. When To Escalate
+
+Escalate when one of these is true:
+- the next step requires a real architecture or strategy decision
+- the fix would exceed sprint scope in a non-trivial way
+- the canonical local identity is still ambiguous after direct checks
+- the company loop is blocked by a real hard stopper you cannot remove safely
+
+Do not escalate just because a real run surfaced a normal glue bug.
+
+---
+
+## 14. Minimum End-of-Sprint Report
+
+A useful report includes:
+- result: done / partial / blocked
+- hard evidence: run ids, issue ids, worktree paths, branch/merge result
+- what was fixed on the fly
+- what remains open
+- commit hash and push target
+
+If stable operating facts changed, update `MEMORY.md`.
+If only the live handoff changed, update `CURRENT.md`.
+
+---
+
+## 15. Keep This Document Stable
+
+This runbook should only contain repeatable operating truth.
+
+Do not turn it into:
+- a sprint log
+- a theory document
+- a giant architecture dump
+- a replacement for `CURRENT.md`
+
+If something is only true for the current sprint, it belongs in `CURRENT.md` or a dated plan doc, not here.
