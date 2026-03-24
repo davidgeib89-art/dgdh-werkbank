@@ -154,6 +154,11 @@ Important:
 > The operator recipe in the runbook is the default control path.
 > Only dive back into routes/services when the documented control path fails or contradicts fresh API truth.
 
+Tooling rule for real runs:
+- prefer exact workspace tools and direct API probes over broad terminal searches
+- reserve terminal use for starting/stopping the runtime, one focused process probe, or one precise command when no better tool exists
+- if a command would spill large logs, redirect it to a file or choose a narrower probe and read only the exact lines you need
+
 ---
 
 ## 8. How To Read Stalled Runs
@@ -208,12 +213,14 @@ Default query budget:
 
 Examples:
 - wrong: dump many ports, many logs, many branches, many files "just in case"
+- wrong: broad `rg` or log-tail searches for runtime identity strings when exact file existence, one process probe, or one API call would answer the question
 - right: first identify the intended worktree, then the exact listener, then the exact API surface you need
 
 After runtime identity is proven:
 - do not keep scanning the repo for Paperclip control rules
 - do not reopen broad route files unless the documented runbook path failed
 - prefer the minimal API sequence from the runbook over exploratory shell loops
+- avoid streaming large terminal output to yourself or the operator; if a command is expected to be noisy, choose a narrower probe or a tool that returns only the specific fact you need
 
 If the shell is still running and you are mostly gathering context rather than moving the real path:
 
@@ -298,6 +305,10 @@ It becomes real learning when it is promoted into durable team memory.
 Hard rule:
 
 > If you had to rediscover the same execution truth twice, the sprint is not really clean until that truth is promoted into `EXECUTOR.md` or the Operator Runbook.
+
+Additional hard rule:
+
+> If you learn a repeated Paperclip run-control habit or tool-use constraint during a real sprint, promote it into durable memory/docs during that sprint; do not leave it trapped in transient chat context.
 
 ---
 

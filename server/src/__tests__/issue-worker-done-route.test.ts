@@ -13,10 +13,12 @@ const mockIssueService = vi.hoisted(() => ({
 
 const mockAgentService = vi.hoisted(() => ({
   getById: vi.fn(),
+  list: vi.fn(),
 }));
 
 const mockHeartbeatService = vi.hoisted(() => ({
   getRun: vi.fn(),
+  wakeup: vi.fn(),
 }));
 
 const mockLogActivity = vi.hoisted(() => vi.fn());
@@ -84,13 +86,30 @@ describe("issues worker done route", () => {
       companyId: "company-1",
       identifier: "DGD-120",
       status: "in_review",
-      assigneeAgentId: "agent-worker-1",
+      assigneeAgentId: "agent-reviewer-1",
     });
     mockHeartbeatService.getRun.mockResolvedValue(null);
+    mockHeartbeatService.wakeup.mockResolvedValue({ queued: true });
     mockLogActivity.mockResolvedValue(undefined);
+    mockAgentService.list.mockResolvedValue([
+      {
+        id: "agent-worker-1",
+        companyId: "company-1",
+        role: "worker",
+        status: "running",
+        adapterConfig: { roleTemplateId: "worker" },
+      },
+      {
+        id: "agent-reviewer-1",
+        companyId: "company-1",
+        role: "reviewer",
+        status: "idle",
+        adapterConfig: { roleTemplateId: "reviewer" },
+      },
+    ]);
   });
 
-  it("records worker done handoff and moves issue into in_review", async () => {
+  it("records worker done handoff, assigns a reviewer, and wakes review", async () => {
     const res = await request(createApp())
       .post("/api/issues/issue-1/worker-done")
       .send({
@@ -109,7 +128,19 @@ describe("issues worker done route", () => {
     expect(res.status).toBe(200);
     expect(mockIssueService.update).toHaveBeenCalledWith("issue-1", {
       status: "in_review",
+      assigneeAgentId: "agent-reviewer-1",
     });
+    expect(mockHeartbeatService.wakeup).toHaveBeenCalledWith(
+      "agent-reviewer-1",
+      expect.objectContaining({
+        source: "assignment",
+        reason: "issue_assigned",
+        payload: expect.objectContaining({
+          issueId: "issue-1",
+          mutation: "worker_done_handoff",
+        }),
+      }),
+    );
     expect(mockLogActivity).toHaveBeenCalledWith(
       expect.anything(),
       expect.objectContaining({
@@ -119,7 +150,52 @@ describe("issues worker done route", () => {
       }),
     );
     expect(res.body.status).toBe("in_review");
+    expect(res.body.reviewerAgentId).toBe("agent-reviewer-1");
+    expect(res.body.reviewerWakeQueued).toBe(true);
     expect(res.body.handoff.prUrl).toContain("/pull/123");
+  });
+
+  it("keeps in_review when no idle reviewer exists", async () => {
+    mockIssueService.update.mockResolvedValueOnce({
+      id: "issue-1",
+      companyId: "company-1",
+      identifier: "DGD-120",
+      status: "in_review",
+      assigneeAgentId: "agent-worker-1",
+    });
+    mockAgentService.list.mockResolvedValueOnce([
+      {
+        id: "agent-worker-1",
+        companyId: "company-1",
+        role: "worker",
+        status: "running",
+        adapterConfig: { roleTemplateId: "worker" },
+      },
+    ]);
+
+    const res = await request(createApp())
+      .post("/api/issues/issue-1/worker-done")
+      .send({
+        prUrl: "https://github.com/davidgeib89-art/dgdh-werkbank/pull/123",
+        branch: "dgdh/issue-DGD-120-worker-done",
+        commitHash: "a1b2c3d4e5f6a7b8c9d0",
+        summary: {
+          goal: "Implement worker-done endpoint",
+          result: "Endpoint implemented and validated",
+          files: ["server/src/routes/issues.ts"],
+          blockers: "none",
+          next: "review",
+        },
+      });
+
+    expect(res.status).toBe(200);
+    expect(mockIssueService.update).toHaveBeenCalledWith("issue-1", {
+      status: "in_review",
+      assigneeAgentId: "agent-worker-1",
+    });
+    expect(mockHeartbeatService.wakeup).not.toHaveBeenCalled();
+    expect(res.body.reviewerAgentId).toBeNull();
+    expect(res.body.reviewerWakeQueued).toBe(false);
   });
 
   it("rejects submissions from non-worker agents", async () => {

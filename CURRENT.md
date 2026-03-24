@@ -1,13 +1,13 @@
 # CURRENT - Live Baton
 
-focus: `main` ist die gemeinsame kanonische Basis; der `gemini_local`-Routing-Leak ist auf dem Live-Pfad gefixt und der DAV-24-Validierungspfad ist bis Merge/Parent-Close abgeschlossen
-active_issue: clean-main routing validation abgeschlossen; naechster Sprint kann wieder echte Firmenarbeit jenseits des Leaks ziehen
+focus: `main` ist die gemeinsame kanonische Basis; der frische bounded Firmenlauf auf clean main ist jetzt wieder real bis Merge/Parent-Close geliefert
+active_issue: Zero-Rescue Company Run From Clean Main abgeschlossen; naechster Sprint kann den naechsten echten Firmenhebel auf derselben kanonischen Basis ziehen
 
 next:
-  1) den naechsten echten Firmenpfad auf sauberem `main` ziehen; der Routing-Leak ist nicht mehr das Engpass-Thema
+  1) den naechsten echten Firmenpfad wieder auf sauberem `main` ziehen, aber frische Projekte nur noch mit isolierter `git_worktree`-Policy anlegen
   2) nur direkt im Live-Pfad bewiesene Execution-Learnings weiter promoten; kein Reflexions-/Doku-Seitengleis ohne harte Not
 blockers:
-  - fuer diesen Sprint kein offener Routing-Blocker mehr: DAV-24 ist `done`, DAV-25 ist `merged`, DAV-26 ist als bewusst verworfener Seitenscope `done`
+  - fuer diesen Sprint kein offener Restblocker mehr: DAV-31 ist `done`, DAV-32 ist `merged`
 strategy_anchor:
   - `doc/plans/2026-03-24-dgdh-first-principles-operating-doctrine.md`
   - `doc/plans/2026-03-21-dgdh-north-star-roadmap.md`
@@ -26,6 +26,11 @@ notes:
   - DAV-25 lief jetzt den ganzen Schlusspfad: Worker-Run `d68b3926-58c4-4f0e-a3d5-ebcdfe541e0b`, Reviewer-Lauf `d342a486-c276-4eec-b33d-2d8d8e1b4461`, danach echter Merge ueber `POST /api/issues/:id/merge-pr` mit PR `#12`; Endstatus `merged`
   - DAV-26 wurde bewusst als Meta-Seitenscope verworfen und als optionale Entscheidungsaufgabe auf `done` geschlossen, statt noch eine Reflexionsdatei in den Sprint zu ziehen
   - DAV-24 ist damit jetzt real auf `done`; der enge CEO -> Worker -> Reviewer -> Merge -> Parent-Close-Pfad fuer den Routing-Leak ist live beendet
+  - Der erste echte Blocker im neuen Clean-Main-Firmenlauf war nicht mehr Routing, sondern der Reviewer-Handoff: `worker-done` setzte nur `in_review`, ohne Reviewer zuzuweisen oder zu wecken; das ist jetzt im Live-Pfad gefixt
+  - Der zweite echte Blocker war fehlende Projekt-Isolation bei frisch erzeugten Projekten: ohne `executionWorkspacePolicy` lief der Worker im Human-Main-Worktree, zog Branch-Baggage in die PR und blockierte den Merge-Scope-Guard
+  - Der durable Operator-Fix ist jetzt im Runbook verankert: frische Clean-Main-Projekte werden fuer echte Firmenlaeufe mit `executionWorkspacePolicy = isolated + git_worktree` angelegt
+  - DAV-31 beweist den korrigierten Pfad live: Parent `DAV-31` endete `done`, Child `DAV-32` endete `merged`, PR `#15`, Branch `dgdh/issue-98769978-d330-4705-819b-4add3f21bed5`, Commit `aba3648605c8a1aa6438dbcfc4a768b3ddba103a`
+  - Im korrigierten Lauf blieb der Human-Worktree auf `main`, waehrend das Child explizit `executionWorkspaceSettings.mode = isolated` trug und der Reviewer danach automatisch startete
   - Validiert wurden `pnpm -r typecheck` sowie gezielte Server-Tests fuer `gemini-local`, control-plane resolver und gemini pipeline; kein voller `pnpm test:run` oder `pnpm build` in diesem Sprint behauptet
   - Fuer den Routing-Fix liefen zusaetzlich die gezielten Tests `gemini-routing-engine`, `gemini-control-plane-resolver`, `gemini-local-execute` und `gemini-pipeline-e2e` gruen
   - Kein Meta-Umbau als Reaktion: der Sprint endet bewusst ohne neue Reflexionsdatei; der naechste Schritt ist wieder echter Firmenfortschritt

@@ -928,10 +928,24 @@ export function issueRoutes(db: Db, storage: StorageService) {
 
       const actor = getActorInfo(req);
       const activityRunId = await resolvePersistedActivityRunId(actor.runId);
+      const companyAgents = await agentsSvc.list(issue.companyId);
+      const reviewerAgent =
+        companyAgents.find(
+          (agent) =>
+            agent.id !== workerAgent.id &&
+            agent.status === "idle" &&
+            (
+              agent.role.toLowerCase() === "reviewer" ||
+              hasRoleTemplateLegacy(agent, "reviewer")
+            ),
+        ) ??
+        null;
+
       const updatedIssue = await db.transaction(async (tx) => {
         const txIssueSvc = issueService(tx as unknown as Db);
         const nextIssue = await txIssueSvc.update(issue.id, {
           status: "in_review",
+          assigneeAgentId: reviewerAgent?.id ?? issue.assigneeAgentId,
         });
         if (!nextIssue) return null;
 
@@ -954,8 +968,10 @@ export function issueRoutes(db: Db, storage: StorageService) {
               branch: req.body.branch,
               commitHash: req.body.commitHash,
               summary: req.body.summary,
+              reviewerAgentId: reviewerAgent?.id ?? null,
               _previous: {
                 status: issue.status,
+                assigneeAgentId: issue.assigneeAgentId,
               },
             },
             actor.runId,
@@ -969,12 +985,44 @@ export function issueRoutes(db: Db, storage: StorageService) {
         return;
       }
 
+      let reviewerWakeQueued = false;
+      if (reviewerAgent) {
+        try {
+          await heartbeat.wakeup(reviewerAgent.id, {
+            source: "assignment",
+            triggerDetail: "system",
+            reason: "issue_assigned",
+            payload: {
+              issueId: updatedIssue.id,
+              mutation: "worker_done_handoff",
+            },
+            requestedByActorType: actor.actorType,
+            requestedByActorId: actor.actorId,
+            contextSnapshot: {
+              issueId: updatedIssue.id,
+              taskId: updatedIssue.id,
+              source: "issue.worker_done",
+              wakeReason: "issue_assigned",
+              workerRunId,
+            },
+          });
+          reviewerWakeQueued = true;
+        } catch (err) {
+          logger.warn(
+            { err, issueId: updatedIssue.id, reviewerAgentId: reviewerAgent.id },
+            "failed to wake reviewer on worker handoff",
+          );
+        }
+      }
+
       res.status(200).json({
         issueId: updatedIssue.id,
         issueIdentifier: updatedIssue.identifier,
         status: updatedIssue.status,
         handoff: req.body,
         workerRunId,
+        reviewerAgentId: reviewerAgent?.id ?? null,
+        reviewerWakeQueued,
       });
     },
   );

@@ -156,6 +156,7 @@ Assume:
 - you already proved the correct worktree + `.paperclip` + startup banner
 - you know the real API port from that banner
 - API truth beats browser state
+- use exact tools or direct API/file probes first; do not start with broad terminal scans when one precise check would answer the question
 
 PowerShell pattern:
 
@@ -195,6 +196,14 @@ Minimal create payload if needed:
 $projectBody = @{
   name = "Canonical Run $(Get-Date -Format 'yyyy-MM-dd HH:mm')"
   status = "planned"
+  executionWorkspacePolicy = @{
+    enabled = $true
+    defaultMode = "isolated"
+    allowIssueOverride = $true
+    workspaceStrategy = @{
+      type = "git_worktree"
+    }
+  }
   workspace = @{
     name = "primary"
     cwd = (git rev-parse --show-toplevel)
@@ -205,6 +214,9 @@ $projectBody = @{
 $project = Invoke-RestMethod -Method Post -Uri "$base/companies/$companyId/projects" -ContentType "application/json" -Body $projectBody
 $projectId = $project.id
 ```
+
+For clean-main company runs, do not create a fresh project without `executionWorkspacePolicy` set to isolated `git_worktree` mode.
+Otherwise worker execution can fall back to the human primary worktree, contaminate `main`, and create merge-scope baggage that blocks parent closure.
 
 4. Create the parent issue through the company issue path.
 
@@ -274,6 +286,11 @@ Operational rule:
 
 > prefer one direct API or process check over broad shell harvesting
 
+Tooling corollary:
+- prefer workspace tools for exact file existence, file reads, searches, and diagnostics
+- use the terminal mainly for runtime boot, one focused process inspection, or one precise command with bounded output
+- if a boot command is noisy, capture to a file and read only the startup identity or failure lines you actually need
+
 Only widen the search when the direct probe failed or contradicted another stronger truth source.
 
 If a CEO/worker run is `running` but produces no child issues, no comments, and no status movement, use the heartbeat-run read surfaces before reopening code:
@@ -285,6 +302,9 @@ Current clean-main lesson:
 - `adapter.invoke` is the decisive place to compare effective CLI args against agent API truth
 - if `gemini_local` shows agent `adapterConfig.model = auto` but `adapter.invoke.commandArgs` still includes explicit `--model gemini-3.1-pro-preview`, treat that as a real live-path blocker
 - this blocker is different from prompt drift; prompt drift shows repo/file reads, while model-override stalls can freeze before any meaningful model output
+
+Promotion rule:
+- if a run reveals a repeated operator or tool-use learning, promote it into this runbook or `EXECUTOR.md` in the same sprint instead of relying on chat memory
 
 ### 7.2 Dashboard vs API Rule
 
