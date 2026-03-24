@@ -81,8 +81,9 @@ describe("issue company run chain route", () => {
           identifier: "DAV-41",
           title: "Implement bootstrap defaults",
           status: "merged",
-          completedAt: new Date("2026-03-24T15:00:00.000Z"),
+          completedAt: null,
           createdAt: new Date("2026-03-24T14:00:00.000Z"),
+          updatedAt: new Date("2026-03-24T15:00:00.000Z"),
           parentId: "parent-1",
           assigneeAgentId: "agent-reviewer-1",
         };

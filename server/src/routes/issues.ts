@@ -853,7 +853,18 @@ export function issueRoutes(db: Db, storage: StorageService) {
         const workerDoneAt = readStageDate(latestWorkerDone?.createdAt ?? null);
         const reviewerAssignedAt = reviewerAgentId ? workerDoneAt : null;
         const reviewerRunAt = readStageDate(reviewerRun?.startedAt ?? reviewerRun?.createdAt ?? null);
-        const mergedAt = child.status === "merged" ? issueCompletedAt(child) : null;
+        const mergedIssueTimestamps = child as {
+          completedAt?: Date | string | null;
+          updatedAt?: Date | string | null;
+        };
+        const mergedAt = child.status === "merged"
+          ? readStageDate(
+              mergedIssueTimestamps.completedAt ??
+              mergedIssueTimestamps.updatedAt ??
+              latestWorkerPr?.createdAt ??
+              null,
+            )
+          : null;
         const prNumber = workerPrDetails && typeof workerPrDetails.prNumber === "number"
           ? workerPrDetails.prNumber
           : null;

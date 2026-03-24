@@ -28,6 +28,7 @@ import { StatusIcon } from "../components/StatusIcon";
 import { PriorityIcon } from "../components/PriorityIcon";
 import { StatusBadge } from "../components/StatusBadge";
 import { Identity } from "../components/Identity";
+import type { CompanyRunActiveIdentity } from "../lib/company-run-truth";
 import { PluginSlotMount, PluginSlotOutlet, usePluginSlots } from "@/plugins/slots";
 import { PluginLauncherOutlet } from "@/plugins/launchers";
 import { Separator } from "@/components/ui/separator";
@@ -193,7 +194,7 @@ function ActorIdentity({ evt, agentMap }: { evt: ActivityEvent; agentMap: Map<st
 
 export function IssueDetail() {
   const { issueId } = useParams<{ issueId: string }>();
-  const { selectedCompanyId } = useCompany();
+  const { companies, selectedCompanyId } = useCompany();
   const { openPanel, closePanel, panelVisible, setPanelVisible } = usePanel();
   const { setBreadcrumbs } = useBreadcrumbs();
   const queryClient = useQueryClient();
@@ -271,6 +272,61 @@ export function IssueDetail() {
     enabled: !!issueId,
     refetchInterval: 3000,
   });
+
+  const { data: companyLiveRuns } = useQuery({
+    queryKey: queryKeys.liveRuns(resolvedCompanyId ?? ""),
+    queryFn: () => heartbeatsApi.liveRunsForCompany(resolvedCompanyId!),
+    enabled: !!resolvedCompanyId && !!companyRunChain,
+    refetchInterval: 3000,
+  });
+
+  const chainIssueIds = useMemo(() => {
+    if (!companyRunChain) return new Set<string>();
+    return new Set<string>([
+      companyRunChain.parentIssueId,
+      ...companyRunChain.children.map((child) => child.issueId),
+    ]);
+  }, [companyRunChain]);
+
+  const chainActiveRunSummary = useMemo(() => {
+    return (companyLiveRuns ?? [])
+      .filter((run) => (run.status === "queued" || run.status === "running") && !!run.issueId && chainIssueIds.has(run.issueId))
+      .sort(
+        (left, right) =>
+          new Date(right.startedAt ?? right.createdAt).getTime() - new Date(left.startedAt ?? left.createdAt).getTime(),
+      )[0] ?? null;
+  }, [chainIssueIds, companyLiveRuns]);
+
+  const { data: chainActiveRunDetail } = useQuery({
+    queryKey: queryKeys.runDetail(chainActiveRunSummary?.id ?? ""),
+    queryFn: () => heartbeatsApi.get(chainActiveRunSummary!.id),
+    enabled: !!chainActiveRunSummary?.id && (!activeRun || activeRun.id !== chainActiveRunSummary.id),
+    refetchInterval: 3000,
+  });
+
+  const operatorVisibleRun = useMemo<CompanyRunActiveIdentity | null>(() => {
+    if (activeRun && issue) {
+      return {
+        id: activeRun.id,
+        status: activeRun.status,
+        agentId: activeRun.agentId,
+        issueId: issue.id,
+        contextSnapshot: activeRun.contextSnapshot ?? null,
+      };
+    }
+
+    if (!chainActiveRunSummary || !chainActiveRunDetail) {
+      return null;
+    }
+
+    return {
+      id: chainActiveRunDetail.id,
+      status: chainActiveRunDetail.status,
+      agentId: chainActiveRunDetail.agentId,
+      issueId: chainActiveRunSummary.issueId ?? null,
+      contextSnapshot: chainActiveRunDetail.contextSnapshot ?? null,
+    };
+  }, [activeRun, chainActiveRunDetail, chainActiveRunSummary, issue]);
 
   const hasLiveRuns = (liveRuns ?? []).length > 0 || !!activeRun;
   const sourceBreadcrumb = useMemo(
@@ -367,6 +423,16 @@ export function IssueDetail() {
       .filter((i) => i.parentId === issue.id)
       .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
   }, [allIssues, issue]);
+
+  const companyName = useMemo(() => {
+    if (!issue?.companyId) return null;
+    return companies.find((company) => company.id === issue.companyId)?.name ?? null;
+  }, [companies, issue?.companyId]);
+
+  const projectName = useMemo(() => {
+    if (!issue?.projectId) return null;
+    return (projects ?? []).find((project) => project.id === issue.projectId)?.name ?? null;
+  }, [issue?.projectId, projects]);
 
   const needsInputLines = useMemo(
     () => extractNeedsInputLines(issue?.description),
@@ -899,7 +965,17 @@ export function IssueDetail() {
       />
 
       {companyRunChain && companyRunChain.children.length > 0 && (
-        <CompanyRunChainCard chain={companyRunChain} />
+        <CompanyRunChainCard
+          chain={companyRunChain}
+          currentIssueId={issue.id}
+          currentIssueIdentifier={issue.identifier ?? null}
+          currentIssueTitle={issue.title}
+          companyId={issue.companyId ?? null}
+          companyName={companyName}
+          projectId={issue.projectId ?? null}
+          projectName={projectName}
+          activeRun={operatorVisibleRun}
+        />
       )}
 
       <IssueDocumentsSection
