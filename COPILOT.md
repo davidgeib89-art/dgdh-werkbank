@@ -43,10 +43,12 @@ Your job is to:
 - execute the real path
 - fix real blockers on the way
 - report only when the sprint is actually done or a hard blocker is cleanly isolated
+- after a live path succeeds, audit one real run for hidden context-quality leaks before assuming the system is fully healthy
 
 Runs matter more than compacts.
 Do not rediscover the machine from scratch if the truth is already in the files.
 Do not turn one missing fact into a long shell fishing expedition.
+Prefer repairing thin upstream truth over compensating with bigger prompts, broader repo reads, or more terminal harvest.
 
 ---
 
@@ -98,6 +100,7 @@ Interpretation rules:
 - Task 2 is about the real CEO/Worker/Reviewer path and should produce concrete system or prompt improvements when they are easy and clearly in scope.
 - Task 3 means Codex should receive the truth, not a flattering story.
 - Task 4 is allowed to be alive and imaginative, but it stays under `SOUL.md`, governance, and bounded company truth.
+- If a small upstream context fix would materially improve future run quality or token spend, prefer shipping that fix over writing a longer reflection about it.
 
 ---
 

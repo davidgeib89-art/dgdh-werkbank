@@ -159,6 +159,13 @@ Tooling rule for real runs:
 - reserve terminal use for starting/stopping the runtime, one focused process probe, or one precise command when no better tool exists
 - if a command would spill large logs, redirect it to a file or choose a narrower probe and read only the exact lines you need
 
+Quality and token rule for real runs:
+- once the loop basically works, inspect one real assigned run for prompt identity completeness before calling the path truly learned
+- verify the run still carries `companyId`, `projectId`, `issueIdentifier`, and the expected task context, not just that the issue eventually merged
+- if that truth is thin or wrong, treat it as an upstream system defect at the issue/wakeup boundary
+- fix missing context before adding more prompt text, more repo reading, or more recovery logic
+- narrower truthful inputs beat larger ambiguous context windows
+
 ---
 
 ## 8. How To Read Stalled Runs
@@ -195,6 +202,7 @@ Observed clean-main truth:
 - a fresh project on the proven worktree is the right repair, not old-worktree revival
 - for `gemini_local`, compare `adapter.invoke.commandArgs` against the agent API record
 - if the agent record says `model: auto` but `adapter.invoke` still passes explicit `--model ...`, treat that as a real routing/adapter blocker worth isolating
+- if a run is technically alive but reads as low-quality, slow, or token-wasteful, inspect its exact heartbeat/run context before reopening broad code paths; thin identity/context is usually cheaper to fix than prompt drift
 
 ---
 

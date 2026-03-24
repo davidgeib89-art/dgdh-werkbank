@@ -252,6 +252,20 @@ Invoke-RestMethod "$base/companies/$companyId/live-runs"
 
 `/issues/{id}/company-run-chain` is the narrowest single read for the normal company path: `assigned -> run started -> worker done -> reviewer assigned -> reviewer run -> merged -> parent done`.
 
+If the loop basically works but quality, speed, or token use still looks wrong, inspect one exact run before reopening the repo:
+
+```powershell
+$active = Invoke-RestMethod "$base/issues/$issueId/active-run"
+$runId = $active.runId
+Invoke-RestMethod "$base/heartbeat-runs/$runId"
+Invoke-RestMethod "$base/heartbeat-runs/$runId/events"
+Invoke-RestMethod "$base/heartbeat-runs/$runId/log"
+```
+
+Use that read to verify the run still carries real company/task identity, not just that the issue later merged.
+If `companyId`, `projectId`, or issue identity is thin or missing in the run context, fix the upstream issue/wakeup context first.
+Do not compensate for missing truth by widening prompts, adding more repo-reading steps, or starting a broader diagnostic sweep.
+
 7. Only step into manual worker/reviewer endpoints when the real loop needs recovery or the sprint explicitly targets those handoffs.
 
 The canonical handoff endpoints remain:

@@ -85,6 +85,9 @@
 - High-Risk-Lokalops an DB, Workspace-Routing oder Ordnerstruktur bekommen vor Ausfuehrung einen kurzen Heads-up an den Planer, wenn es zeitlich geht.
 - Issues immer mit `projectId` anlegen, sonst kein Workspace-Lookup.
 - Direkte Codex-CLI-Arbeit ausserhalb eines Paperclip-Worker-Runs braucht spaeter einen formalen Worker-Abholrunner vor Review.
+- Nach einem scheinbar erfolgreichen bounded Firmenlauf einmal die echte Run-Kontext-Wahrheit pruefen, nicht nur Parent-/Child-/PR-Endstatus; fehlende `companyId`/`projectId`/`issueIdentifier` im aktiven Run sind ein realer Qualitaets- und Token-Leak.
+- Bei Qualitaets- oder Tokenproblemen zuerst Upstream-Wahrheit reparieren (`issue`-/`wakeup`-/Prompt-Context), erst danach Prompts aufblasen, Repo-Reads verbreitern oder Diagnostik ausweiten.
+- Fuer normale Firmenlauf-Diagnose gilt: API-/Chain-Truth zuerst, breite Repo-Lektuere spaeter. `company-run-chain`, `active-run` und exakte `heartbeat-runs`-Reads schlagen Shell- oder Repo-Streu-Scans.
 
 ## Astro/Keystatic Workspace-Sicherheit
 - Live Primary Workspace fuer Projekt `0bce43aa-2bb9-4572-9938-f556a3279149`: `C:\Users\holyd\DGDH\worktrees\astro-keystatic-template-geib`
