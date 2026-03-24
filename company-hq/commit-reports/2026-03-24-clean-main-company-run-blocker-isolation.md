@@ -20,7 +20,7 @@ Author: Copilot
 - Reale Parent-Runs gestartet: `DAV-19`, `DAV-20`, `DAV-22`.
 - `DAV-19`: CEO driftete in Repo-Lesen statt Packet-Delegation; das ist ueber `heartbeat-runs/{runId}/events` und `log` belegt.
 - `DAV-20`: Prompt-Fix kam an; der CEO fuehrte jetzt die Pflicht-API-Reads fuer Child-Issues und Agents aus, blieb danach aber weiter haengen.
-- `DAV-22`: Der explizite `--model gemini-3.1-pro-preview`-Pfad blieb trotz Heartbeat-Guard aktiv und der Run stallte erneut ohne Child-Issue.
+- `DAV-22`: Der explizite `--model gemini-3.1-pro-preview`-Pfad blieb trotz Heartbeat-Guard aktiv. Der Parent erzeugte erneut kein Child-Issue und endete schliesslich als Run `succeeded` mit `errorCode: budget_hard_cap_reached`, waehrend das Parent-Issue `todo` blieb.
 - Verifikation gruen:
   - `pnpm -r typecheck`
   - `pnpm --filter @paperclipai/server exec vitest run src/__tests__/gemini-local-execute.test.ts src/__tests__/gemini-control-plane-resolver.test.ts src/__tests__/gemini-pipeline-e2e.test.ts`
@@ -41,5 +41,5 @@ Author: Copilot
 ## Isolierter Restblocker
 
 - Harter Restblocker: `gemini_local`-CEO-Runs koennen weiterhin mit explizitem `--model gemini-3.1-pro-preview` starten, obwohl der Agent via API `adapterConfig.model = auto` traegt.
-- Dieser Pfad ist live belegt ueber `adapter.invoke.commandArgs` von `DAV-20` und `DAV-22`.
-- Wirkung: reale bounded Parent-Runs bleiben auf dem CEO haengen, bevor Child-Issues entstehen.
+- Dieser Pfad ist live belegt ueber `adapter.invoke.commandArgs` von `DAV-20` und `DAV-22` sowie ueber `routing.preflight.applyModelLane = true` / `configuredModelLane = auto` / `effectiveModelLane = gemini-3.1-pro-preview`.
+- Wirkung: reale bounded Parent-Runs erzeugen keine Child-Issues. Im juengsten Validierungslauf `DAV-22` schlug der CEO-Pfad schliesslich in `budget_hard_cap_reached` um, waehrend das Parent-Issue offen blieb.
