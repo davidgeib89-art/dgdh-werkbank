@@ -55,4 +55,26 @@ describe("resolveIssueExecutionPacketTruth", () => {
     expect(truth.status).toBe("ready");
     expect(truth.reasonCodes).toEqual([]);
   });
+
+  it("allows bounded multi-file test packets with explicit file targets", () => {
+    const truth = resolveIssueExecutionPacketTruth({
+      title: "Gate run: small multi-file regression-test packet",
+      description: [
+        "Target folder: server/src/__tests__",
+        "Artifact kind: test_update",
+        "Specific mission for this gate run:",
+        "- add regression coverage by updating exactly these files:",
+        "  - server/src/__tests__/ceo-merge-service.test.ts",
+        "  - server/src/__tests__/issue-merge-pr-route.test.ts",
+        "DoneWhen: Both named test files contain bounded new coverage and the validation command passes.",
+      ].join("\n"),
+    });
+
+    expect(truth.executionHeavy).toBe(true);
+    expect(truth.targetFile).toBe(null);
+    expect(truth.targetFolder).toBe("server/src/__tests__");
+    expect(truth.artifactKind).toBe("test_update");
+    expect(truth.status).toBe("ready");
+    expect(truth.reasonCodes).toEqual([]);
+  });
 });

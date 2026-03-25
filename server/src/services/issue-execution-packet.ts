@@ -208,6 +208,17 @@ function inferTargetFile(text: string, targetFolder: string | null): string | nu
   return fileCandidates.length === 1 ? fileCandidates[0] : null;
 }
 
+function collectBoundedMultiFileTargets(
+  text: string,
+  targetFolder: string | null,
+): string[] {
+  if (!targetFolder) return [];
+
+  return extractPathCandidates(text)
+    .filter(isFileLikePath)
+    .filter((candidate) => candidate.startsWith(`${targetFolder}/`));
+}
+
 function inferTargetFolder(text: string): string | null {
   const candidates = extractPathCandidates(text).filter((candidate) => !isFileLikePath(candidate));
   return candidates.length === 1 ? candidates[0] : null;
@@ -274,6 +285,10 @@ export function resolveIssueExecutionPacketTruth(input: {
   const targetFolder =
     explicitTargetFolder ??
     (targetFile ? normalizeRepoPath(path.posix.dirname(targetFile)) ?? "." : inferTargetFolder(joinedText));
+  const boundedMultiFileTargets = collectBoundedMultiFileTargets(
+    joinedText,
+    targetFolder,
+  );
 
   const rawDoneWhen = readMetadataField(description, ["doneWhen", "done when", "done_when"]);
   const doneWhen = rawDoneWhen && rawDoneWhen.trim().length >= 12 ? rawDoneWhen.trim() : null;
@@ -303,11 +318,13 @@ export function resolveIssueExecutionPacketTruth(input: {
     if (!artifactKind) reasonCodes.push("artifact_kind_missing");
     if (!targetFolder) reasonCodes.push("target_folder_missing");
 
+    const hasBoundedExplicitMultiFileScope = boundedMultiFileTargets.length >= 2;
     const targetFileRequired =
-      !artifactKind ||
-      FILE_LIKE_ARTIFACT_KINDS.has(artifactKind) ||
-      isBroadTargetFolder(targetFolder) ||
-      !FOLDER_OK_ARTIFACT_KINDS.has(artifactKind);
+      !hasBoundedExplicitMultiFileScope &&
+      (!artifactKind ||
+        FILE_LIKE_ARTIFACT_KINDS.has(artifactKind) ||
+        isBroadTargetFolder(targetFolder) ||
+        !FOLDER_OK_ARTIFACT_KINDS.has(artifactKind));
     if (targetFileRequired && !targetFile) {
       reasonCodes.push("target_file_missing");
     }
