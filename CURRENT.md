@@ -1,12 +1,12 @@
 # CURRENT - Live Baton
 
-focus: `ceo-fast-truth-loop-and-post-tool-capacity-cut-v1`; der kleine CEO-Pfad ist jetzt repo- und runtime-wahr auf `flash-first`/`ready_packet_truth` geschnitten, der extra Flash-Lite-Classifier-Call fuer fertige Packets ist tot, und der naechste echte Engpass sitzt enger bei Capacity-Retries nach echten Tool-Calls statt vor dem ersten Handoff
-active_issue: `DAV-95` (`06462c90-afd7-45ab-b76f-30537902db0f`) / CEO-Run `1071e89d-5441-4266-9b84-ce9a7586bcd0` beweist auf frischer `3101`-Runtime den neuen Stand: `paperclipRoutingProposalMeta.parseStatus = not_attempted`, `fallbackReason = ready_packet_truth`, `budgetClass = small`, `bucket = flash`, `model = gemini-3-flash-preview`; der CEO fuehrt danach den Pflicht-Call `GET /issues?parentId=...` plus `GET /agents` aus, erstellt Child `DAV-96` (`a504f43d-555b-4997-874e-598391be09d2`) und weist es dem Worker `5061a67b-5c78-47a9-b59a-d71612cd6129` zu; Worker-Run `74f821e2-fd4d-4dd2-9559-cf2e6b0f54fa` startet live
+focus: `heartbeat-four-kernel-seams-v1`; `heartbeat.ts` ist jetzt repo-wahr auf vier Kernseams geschnitten (`prepareHeartbeatGeminiRouting`, Prompt/Context-Patch, Workspace/Session-Plan, Run-Finalization), die gezielten Contract-Tests sind gruen, und der frische Live-Probe `DAV-97` zeigt: `flash-first` plus `ready_packet_truth` bleiben intakt; der naechste echte Engpass sitzt weiter bei Capacity-Retries nach dem ersten echten Tool-Call
+active_issue: `DAV-97` (`f4dd4367-d71b-4d3b-a1ec-1044160ad598`) / CEO-Run `22deb79d-dceb-4195-b7eb-21609c65dfe7` beweist auf frischer `3100`-Runtime den neuen Stand nach dem Seam-Split: `paperclipFixedModelLane = gemini-3-flash-preview`, `paperclipRoutingProposalMeta.parseStatus = not_attempted`, `fallbackReason = ready_packet_truth`, `paperclipSkillSelection.source = ready_packet_truth`; im Run-Log kommt zuerst der Pflicht-Call `GET /issues?parentId=...` plus `GET /agents`, danach schlagen wiederholte `You have exhausted your capacity on this model`-Retries ein; nach >60s entsteht noch kein Child
 
 next:
-  1) den jetzt engeren Post-Tool-Blocker schneiden: warum selbst erfolgreiche CEO-/Worker-Runs weiter `You have exhausted your capacity on this model` zwischen echten Tool-Calls streuen und damit noetige Retries/Verzoegerungen erzeugen
-  2) den neuen Fast-Truth-Loop weiter nutzen: zuerst `prepareHeartbeatGeminiRouting` + Replay-Fixtures, dann genau ein Live-Proof, statt wiederholt teure Mehrfach-Runs
-  3) nur wenn der Capacity-Cut sauber sitzt: verbleibende Packet-Qualitaets-/Schema-Drifts auf echten Child-Pfaden nachziehen
+  1) `gemini-post-tool-capacity-cooldown-state-v1` schneiden: warum der CEO auf dem kleinen Ready-Pfad nach erfolgreichem erstem Tool-Call in Capacity-Retries haengt statt Child-Create sauber zu Ende zu bringen
+  2) den neuen Fast-Truth-Loop nutzen: zuerst Seam-/Replay-/Contract-Tests, dann genau ein Live-Proof auf frischer Runtime
+  3) erst nach dem Capacity-Cut wieder an Child-Create-/Worker-Folgepfade gehen
 
 blockers:
   - Der alte reine `assignment-to-run kickoff loss` ist fuer frische ready Packets nicht mehr der erste Blocker
@@ -14,7 +14,7 @@ blockers:
   - `worker run blocked -> worker dauerhaft error` gilt ebenfalls nicht mehr; `blocked` finalisiert/reconciled jetzt wieder zu `idle`
   - `CEO claims Paperclip env vars are missing -> no tool calls` gilt nicht mehr; `DAV-88` und `DAV-95` zeigen echte Tool-Calls
   - Der extra `flash_lite_call` fuer fertige Ready-Packets gilt auf dem CEO-Pfad nicht mehr; `DAV-95` laeuft live mit `flash_lite_router_skipped_ready_packet_truth`
-  - Neuer primaerer Live-Blocker auf dem kleinen Delegationspfad: `capacity exhausted after real tool calls`; `DAV-95` delegiert erfolgreich, streut aber trotzdem Retry-Phasen zwischen Child-Status/Agent-Read und Child-Create
+  - Neuer primaerer Live-Blocker auf dem kleinen Delegationspfad: `capacity exhausted after real tool calls`; `DAV-97` zeigt auf frischer `3100`-Runtime wieder denselben engeren Bruch: `GET child issues` und `GET agents` laufen, danach haengt der CEO in Capacity-Retries vor `POST child issue`
 
 strategy_anchor:
   - `doc/plans/2026-03-24-dgdh-first-principles-operating-doctrine.md`
@@ -35,7 +35,9 @@ notes:
   - `ceo-fast-truth-loop-and-post-tool-capacity-cut-v1` ist jetzt repo-wahr: `server/src/services/heartbeat-gemini-routing.ts` kapselt die billige Routing-Vorstufe; `heartbeat.ts` orchestriert nur noch; neue Replay-Fixtures unter `server/src/__tests__/fixtures/heartbeat-routing/` decken `DAV-88`, `DAV-91` und den Worker-Fallback-Pfad ab
   - Live-Beweis `DAV-95` auf frischer `3101`-Runtime zeigt den neuen CEO-Standardpfad: `agentRole = ceo`, `paperclipSkillSelection.source = ready_packet_truth`, `paperclipRoutingProposal.taskType = bounded-implementation`, `paperclipRoutingPreflight.selected.selectedBucket = flash`, `tool_calls = 2`, Child `DAV-96` wird erstellt und direkt dem Worker zugewiesen
   - `DAV-96` / Worker-Run `74f821e2-fd4d-4dd2-9559-cf2e6b0f54fa` beweist direkt dahinter, dass derselbe Ready-Packet-Skip jetzt auch auf dem Worker-Pfad stabil bleibt: `selectedBucket = flash-lite`, `effectiveModelLane = gemini-2.5-flash-lite`, Run startet sofort nach CEO-Handoff
-  - Konsequenz fuer den North-Star-Pfad: CEO-Delegierbarkeit ist jetzt boringer und billiger beweisbar; der naechste Sprint soll nicht mehr Routing/Ready-Packet-Wahrheit schneiden, sondern die verbleibende post-tool Capacity-Instabilitaet als eigene blocker class isolieren
+  - `heartbeat-four-kernel-seams-v1` ist repo-wahr: `heartbeat.ts` orchestriert jetzt ueber `heartbeat-prompt-context.ts`, `heartbeat-workspace-session.ts`, `heartbeat-run-finalization.ts` plus den bestehenden Routing-Seam; gezielte Tests decken Prompt-Patches, Session-/Workspace-Wahrheit, Finalization und Orchestrations-Reihenfolge ab
+  - Live-Beweis `DAV-97` auf frischer `3100`-Runtime zeigt, dass der Seam-Split keine alte Routing-Regression eingefuehrt hat: `paperclipFixedModelLane = gemini-3-flash-preview`, `paperclipRoutingProposalMeta.parseStatus = not_attempted`, erster Tool-Call ist `GET child issues`/`GET agents`; der offene Blocker bleibt post-tool Capacity statt Router-/Prompt-Truth
+  - Konsequenz fuer den North-Star-Pfad: der Default-Pfad ist jetzt billiger testbar und strukturierter codierbar; der naechste Sprint soll nicht mehr `heartbeat.ts`-Sumpf oder Ready-Packet-Routing schneiden, sondern die verbleibende post-tool Capacity-Instabilitaet als eigene blocker class isolieren
 
 last_updated_by: Codex
 updated_at: 2026-03-25

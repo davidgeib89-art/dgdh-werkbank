@@ -57,14 +57,69 @@ import {
   redactCurrentUserText,
   redactCurrentUserValue,
 } from "../log-redaction.js";
-import { runPromptResolverPreflight } from "./prompt-resolver-preflight.js";
-import type { PromptResolverInput } from "./prompt-resolver-schema.js";
 import { refreshGeminiRuntimeQuotaSnapshot } from "./gemini-quota-producer.js";
 import { fetchLiveGeminiQuota } from "./gemini-quota-api.js";
 import { resolveAssignedRoleTemplate } from "./role-templates.js";
 import { logActivity } from "./activity-log.js";
-import { resolveIssueExecutionPacketTruth } from "./issue-execution-packet.js";
 import { prepareHeartbeatGeminiRouting } from "./heartbeat-gemini-routing.js";
+import {
+  applyHeartbeatContextPatch,
+  applyIssuePromptContext,
+  applyReviewerPromptContext,
+  buildHeartbeatIssuePromptContextPatch,
+  buildHeartbeatReviewerPromptContextPatch,
+  isDryRunExecutionMode,
+  isTestRunContext,
+  normalizeReviewTargetWorkerHandoff,
+  readExecutionMode,
+  type IssuePromptContext,
+  type ReviewerVerdict,
+  type ReviewTargetPromptContext,
+} from "./heartbeat-prompt-context.js";
+import {
+  evaluateSessionCompaction as evaluateSessionCompactionSeam,
+  evaluateSingleFileBenchmarkPreflight,
+  getAdapterSessionCodec as getAdapterSessionCodecSeam,
+  normalizeSessionParams as normalizeSessionParamsSeam,
+  prepareHeartbeatWorkspaceSessionPlan,
+  resolveNextSessionState as resolveNextSessionStateSeam,
+  resolveSessionBeforeForWakeup as resolveSessionBeforeForWakeupSeam,
+  resolveWorkspaceForRun as resolveWorkspaceForRunSeam,
+  shouldResetTaskSessionForWake,
+  truncateDisplayId as truncateDisplayIdSeam,
+  type ResolvedWorkspaceForRun,
+  type SessionCompactionDecision,
+} from "./heartbeat-workspace-session.js";
+import {
+  determineIssueStatusAfterRun,
+  finalizeHeartbeatAgentStatus,
+  readAssignedRoleTemplateId,
+  resolveNextAgentStatusAfterRun,
+  type AgentFinalizationOutcome,
+} from "./heartbeat-run-finalization.js";
+
+export {
+  extractReviewerVerdict,
+  extractSingleFileBenchmarkTarget,
+  applyIssuePromptContext,
+  applyReviewerPromptContext,
+  isDryRunExecutionMode,
+  isTestRunContext,
+  normalizeReviewTargetWorkerHandoff,
+  readExecutionMode,
+} from "./heartbeat-prompt-context.js";
+export {
+  evaluateSingleFileBenchmarkPreflight,
+  resolveAdapterCwdForRun,
+  resolveRuntimeSessionParamsForWorkspace,
+  shouldResetTaskSessionForWake,
+  type ResolvedWorkspaceForRun,
+} from "./heartbeat-workspace-session.js";
+export {
+  determineIssueStatusAfterRun,
+  resolveNextAgentStatusAfterRun,
+  type AgentFinalizationOutcome,
+} from "./heartbeat-run-finalization.js";
 
 const MAX_LIVE_LOG_CHUNK_BYTES = 8 * 1024;
 const HEARTBEAT_MAX_CONCURRENT_RUNS_DEFAULT = 1;
@@ -73,17 +128,13 @@ const RUN_KEEPALIVE_INTERVAL_MS = 25_000;
 const RUN_KEEPALIVE_MIN_TOUCH_AGE_MS = 60_000;
 const ABSOLUTE_RUN_TOKEN_HARD_CAP = 150_000;
 const DEFERRED_WAKE_CONTEXT_KEY = "_paperclipWakeContext";
-const CLOSED_ISSUE_STATUSES = new Set(["done", "cancelled", "reviewer_accepted", "merged"]);
-const startLocksByAgent = new Map<string, Promise<void>>();
-const REPO_ONLY_CWD_SENTINEL = "/__paperclip_repo_only__";
-const SESSIONED_LOCAL_ADAPTERS = new Set([
-  "claude_local",
-  "codex_local",
-  "cursor",
-  "gemini_local",
-  "opencode_local",
-  "pi_local",
+const CLOSED_ISSUE_STATUSES = new Set([
+  "done",
+  "cancelled",
+  "reviewer_accepted",
+  "merged",
 ]);
+const startLocksByAgent = new Map<string, Promise<void>>();
 
 const heartbeatRunListColumns = {
   id: heartbeatRuns.id,
@@ -167,48 +218,10 @@ export type UsageTotals = {
   outputTokens: number;
 };
 
-export type AgentFinalizationOutcome =
-  | "succeeded"
-  | "failed"
-  | "cancelled"
-  | "timed_out"
-  | "blocked"
-  | "awaiting_approval";
-
-type SessionCompactionPolicy = {
-  enabled: boolean;
-  maxSessionRuns: number;
-  maxRawInputTokens: number;
-  maxSessionAgeHours: number;
-};
-
-type SessionCompactionDecision = {
-  rotate: boolean;
-  reason: string | null;
-  handoffMarkdown: string | null;
-  previousRunId: string | null;
-};
-
 interface ParsedIssueAssigneeAdapterOverrides {
   adapterConfig: Record<string, unknown> | null;
   useProjectWorkspace: boolean | null;
 }
-
-export type ResolvedWorkspaceForRun = {
-  cwd: string;
-  source: "project_primary" | "task_session" | "agent_home";
-  projectId: string | null;
-  workspaceId: string | null;
-  repoUrl: string | null;
-  repoRef: string | null;
-  workspaceHints: Array<{
-    workspaceId: string;
-    cwd: string | null;
-    repoUrl: string | null;
-    repoRef: string | null;
-  }>;
-  warnings: string[];
-};
 
 function readNonEmptyString(value: unknown): string | null {
   return typeof value === "string" && value.trim().length > 0 ? value : null;
@@ -360,114 +373,6 @@ function formatCount(value: number | null | undefined) {
   return value.toLocaleString("en-US");
 }
 
-function parseSessionCompactionPolicy(
-  agent: typeof agents.$inferSelect,
-): SessionCompactionPolicy {
-  const runtimeConfig = parseObject(agent.runtimeConfig);
-  const heartbeat = parseObject(runtimeConfig.heartbeat);
-  const compaction = parseObject(
-    heartbeat.sessionCompaction ??
-      heartbeat.sessionRotation ??
-      runtimeConfig.sessionCompaction,
-  );
-  const supportsSessions = SESSIONED_LOCAL_ADAPTERS.has(agent.adapterType);
-  const enabled =
-    compaction.enabled === undefined
-      ? supportsSessions
-      : asBoolean(compaction.enabled, supportsSessions);
-
-  return {
-    enabled,
-    maxSessionRuns: Math.max(
-      0,
-      Math.floor(asNumber(compaction.maxSessionRuns, 20)),
-    ),
-    maxRawInputTokens: Math.max(
-      0,
-      Math.floor(asNumber(compaction.maxRawInputTokens, 500_000)),
-    ),
-    maxSessionAgeHours: Math.max(
-      0,
-      Math.floor(asNumber(compaction.maxSessionAgeHours, 48)),
-    ),
-  };
-}
-
-export function resolveRuntimeSessionParamsForWorkspace(input: {
-  agentId: string;
-  previousSessionParams: Record<string, unknown> | null;
-  resolvedWorkspace: ResolvedWorkspaceForRun;
-}) {
-  const { agentId, previousSessionParams, resolvedWorkspace } = input;
-  const previousSessionId = readNonEmptyString(
-    previousSessionParams?.sessionId,
-  );
-  const previousCwd = readNonEmptyString(previousSessionParams?.cwd);
-  if (!previousSessionId || !previousCwd) {
-    return {
-      sessionParams: previousSessionParams,
-      warning: null as string | null,
-    };
-  }
-  if (resolvedWorkspace.source !== "project_primary") {
-    return {
-      sessionParams: previousSessionParams,
-      warning: null as string | null,
-    };
-  }
-  const projectCwd = readNonEmptyString(resolvedWorkspace.cwd);
-  if (!projectCwd) {
-    return {
-      sessionParams: previousSessionParams,
-      warning: null as string | null,
-    };
-  }
-  const fallbackAgentHomeCwd = resolveDefaultAgentWorkspaceDir(agentId);
-  if (path.resolve(previousCwd) !== path.resolve(fallbackAgentHomeCwd)) {
-    return {
-      sessionParams: previousSessionParams,
-      warning: null as string | null,
-    };
-  }
-  if (path.resolve(projectCwd) === path.resolve(previousCwd)) {
-    return {
-      sessionParams: previousSessionParams,
-      warning: null as string | null,
-    };
-  }
-  const previousWorkspaceId = readNonEmptyString(
-    previousSessionParams?.workspaceId,
-  );
-  if (
-    previousWorkspaceId &&
-    resolvedWorkspace.workspaceId &&
-    previousWorkspaceId !== resolvedWorkspace.workspaceId
-  ) {
-    return {
-      sessionParams: previousSessionParams,
-      warning: null as string | null,
-    };
-  }
-
-  const migratedSessionParams: Record<string, unknown> = {
-    ...(previousSessionParams ?? {}),
-    cwd: projectCwd,
-  };
-  if (resolvedWorkspace.workspaceId)
-    migratedSessionParams.workspaceId = resolvedWorkspace.workspaceId;
-  if (resolvedWorkspace.repoUrl)
-    migratedSessionParams.repoUrl = resolvedWorkspace.repoUrl;
-  if (resolvedWorkspace.repoRef)
-    migratedSessionParams.repoRef = resolvedWorkspace.repoRef;
-
-  return {
-    sessionParams: migratedSessionParams,
-    warning:
-      `Project workspace "${projectCwd}" is now available. ` +
-      `Attempting to resume session "${previousSessionId}" that was previously saved in fallback workspace "${previousCwd}".`,
-  };
-}
-
 function parseIssueAssigneeAdapterOverrides(
   raw: unknown,
 ): ParsedIssueAssigneeAdapterOverrides | null {
@@ -561,25 +466,6 @@ export function estimateTotalTokens(usage: UsageTotals | null) {
   );
 }
 
-export function resolveNextAgentStatusAfterRun(input: {
-  runningCount: number;
-  outcome: AgentFinalizationOutcome;
-  errorCode?: string | null;
-}) {
-  if (input.runningCount > 0) return "running" as const;
-  if (input.outcome === "failed" && input.errorCode === "process_lost") {
-    // A lost process during restart/recovery should fail the run, but it should
-    // not strand the whole agent in permanent error.
-    return "idle" as const;
-  }
-  return input.outcome === "succeeded" ||
-    input.outcome === "blocked" ||
-    input.outcome === "cancelled" ||
-    input.outcome === "awaiting_approval"
-    ? ("idle" as const)
-    : ("error" as const);
-}
-
 export function resolveHeartbeatModelOverride(input: {
   adapterType: string;
   configuredModel?: string | null;
@@ -634,45 +520,8 @@ export function hasPhaseBCheckpointApproval(context: Record<string, unknown>) {
   );
 }
 
-export function readExecutionMode(
-  contextSnapshot: Record<string, unknown> | null | undefined,
-) {
-  return (
-    readNonEmptyString(contextSnapshot?.executionMode) ??
-    readNonEmptyString(contextSnapshot?.runMode) ??
-    readNonEmptyString(contextSnapshot?.mode) ??
-    null
-  );
-}
-
-export function isDryRunExecutionMode(mode: string | null | undefined) {
-  if (!mode) return false;
-  const normalized = mode.trim().toLowerCase();
-  return (
-    normalized === "dry_run" ||
-    normalized === "dry-run" ||
-    normalized === "dryrun" ||
-    normalized === "test" ||
-    normalized === "mock"
-  );
-}
-
 export function isGovernanceTestModeEnabled() {
   return process.env.GOVERNANCE_TEST_MODE === "true";
-}
-
-export function isTestRunContext(
-  contextSnapshot: Record<string, unknown> | null | undefined,
-) {
-  if (!contextSnapshot) return false;
-  if (
-    contextSnapshot.isTestRun === true ||
-    contextSnapshot.dryRun === true ||
-    contextSnapshot.governanceTest === true
-  ) {
-    return true;
-  }
-  return isDryRunExecutionMode(readExecutionMode(contextSnapshot));
 }
 
 const LEGACY_DB_ASCII_REPLACEMENTS: Record<string, string> = {
@@ -871,27 +720,6 @@ export function evaluateGovernanceDryRunValidation(input: {
   };
 }
 
-export function shouldResetTaskSessionForWake(
-  contextSnapshot: Record<string, unknown> | null | undefined,
-) {
-  if (contextSnapshot?.forceFreshSession === true) return true;
-
-  const wakeReason = readNonEmptyString(contextSnapshot?.wakeReason);
-  if (wakeReason === "issue_assigned") return true;
-  return false;
-}
-
-function describeSessionResetReason(
-  contextSnapshot: Record<string, unknown> | null | undefined,
-) {
-  if (contextSnapshot?.forceFreshSession === true)
-    return "forceFreshSession was requested";
-
-  const wakeReason = readNonEmptyString(contextSnapshot?.wakeReason);
-  if (wakeReason === "issue_assigned") return "wake reason is issue_assigned";
-  return null;
-}
-
 function deriveCommentId(
   contextSnapshot: Record<string, unknown> | null | undefined,
   payload: Record<string, unknown> | null | undefined,
@@ -902,479 +730,6 @@ function deriveCommentId(
     readNonEmptyString(payload?.commentId) ??
     null
   );
-}
-
-type IssuePromptContext = {
-  id: string;
-  companyId?: string | null;
-  projectId?: string | null;
-  goalId?: string | null;
-  parentId?: string | null;
-  identifier: string | null;
-  title: string | null;
-  description: string | null;
-};
-
-type ReviewTargetPromptContext = {
-  runId: string;
-  agentId: string;
-  agentName: string | null;
-  status: string;
-  finishedAt: string | null;
-  model: string | null;
-  resultSummary: string | null;
-  readEvidencePaths: string[];
-  artifactPaths: string[];
-  workerHandoff: string | null;
-};
-
-type RecordedWorkerHandoffContext = {
-  resultSummary: string | null;
-  artifactPaths: string[];
-  workerHandoff: string | null;
-};
-
-function trimIssueText(value: unknown) {
-  if (typeof value !== "string" || value.trim().length === 0) return null;
-
-  const normalized = value
-    .replace(/&#x20;/gi, " ")
-    .replace(/&#32;/gi, " ")
-    .replace(/&nbsp;/gi, " ")
-    .replace(/&amp;/gi, "&")
-    .replace(/&lt;/gi, "<")
-    .replace(/&gt;/gi, ">")
-    .replace(/&quot;/gi, '"')
-    .replace(/&#39;/gi, "'")
-    // undo common markdown escapes that break file paths in prompts
-    .replace(/\\([_`*[\]()#+\-.!\\])/g, "$1")
-    .trim();
-
-  return normalized.length > 0 ? normalized : null;
-}
-
-export function extractSingleFileBenchmarkTarget(
-  description: string | null | undefined,
-) {
-  if (!description) return null;
-  const match = description.match(/read only the file:\s*\r?\n([^\r\n]+)/i);
-  return match?.[1]?.trim() || null;
-}
-
-export function extractBenchmarkFamily(description: string | null | undefined) {
-  if (!description) return null;
-  const match = description.match(/benchmark family:\s*([^\r\n]+)/i);
-  const value = match?.[1]?.trim();
-  return value && value.length > 0 ? value : null;
-}
-
-function formatWorkerDoneHandoff(
-  workerDoneDetails: Record<string, unknown> | null,
-  workerPrDetails: Record<string, unknown> | null,
-): RecordedWorkerHandoffContext | null {
-  if (!workerDoneDetails && !workerPrDetails) return null;
-
-  const doneSummary = parseObject(workerDoneDetails?.summary);
-  const files = readNonEmptyStringArray(doneSummary.files);
-  const branch =
-    readNonEmptyString(workerDoneDetails?.branch) ??
-    readNonEmptyString(workerPrDetails?.branch);
-  const prUrl =
-    readNonEmptyString(workerDoneDetails?.prUrl) ??
-    readNonEmptyString(workerPrDetails?.prUrl);
-  const commitHash = readNonEmptyString(workerDoneDetails?.commitHash);
-  const goal = readNonEmptyString(doneSummary.goal);
-  const result = readNonEmptyString(doneSummary.result);
-  const blockers = readNonEmptyString(doneSummary.blockers);
-  const next = readNonEmptyString(doneSummary.next);
-
-  const lines: string[] = [];
-  if (prUrl) lines.push(`PR: ${prUrl}`);
-  if (branch) lines.push(`Branch: ${branch}`);
-  if (commitHash) lines.push(`Commit: ${commitHash}`);
-  if (goal) {
-    if (lines.length > 0) lines.push("");
-    lines.push(`Goal: ${goal}`);
-  }
-  if (result) lines.push(`Result: ${result}`);
-  if (files.length > 0) {
-    lines.push("Files Changed:");
-    for (const filePath of files) {
-      lines.push(`- ${filePath}`);
-    }
-  }
-  if (blockers) lines.push(`Blockers: ${blockers}`);
-  if (next) lines.push(`Next: ${next}`);
-
-  return {
-    resultSummary: result,
-    artifactPaths: files,
-    workerHandoff: lines.length > 0 ? lines.join("\n") : null,
-  };
-}
-
-export function normalizeReviewTargetWorkerHandoff(input: {
-  workerDoneDetails?: Record<string, unknown> | null;
-  workerPrDetails?: Record<string, unknown> | null;
-  targetStdoutExcerpt?: string | null;
-  fallbackResultSummary?: string | null;
-}): RecordedWorkerHandoffContext {
-  const structured = formatWorkerDoneHandoff(
-    input.workerDoneDetails ?? null,
-    input.workerPrDetails ?? null,
-  );
-  if (structured) return structured;
-
-  const targetStdoutExcerpt = input.targetStdoutExcerpt ?? null;
-  const fallbackHandoff =
-    (targetStdoutExcerpt
-      ? collectAssistantContentFromStreamJson(targetStdoutExcerpt)
-      : null) ?? targetStdoutExcerpt;
-
-  return {
-    resultSummary: input.fallbackResultSummary ?? null,
-    artifactPaths: extractArtifactPathsFromWorkerOutput(targetStdoutExcerpt),
-    workerHandoff: fallbackHandoff,
-  };
-}
-
-function buildIssueTaskPrompt(issue: IssuePromptContext) {
-  const ref = issue.identifier ?? issue.id;
-  const title = trimIssueText(issue.title);
-  const description = trimIssueText(issue.description);
-  const summary = title ? `${ref} - ${title}` : ref;
-  const apiUrl = trimIssueText(process.env.PAPERCLIP_API_URL);
-  const companyId = trimIssueText(issue.companyId);
-  const projectId = trimIssueText(issue.projectId);
-  const goalId = trimIssueText(issue.goalId);
-  const parentId = trimIssueText(issue.parentId);
-  const packetTruth = resolveIssueExecutionPacketTruth({
-    title: issue.title,
-    description: issue.description,
-  });
-  const packetLines = [
-    `- status: ${packetTruth.status}`,
-    `- executionHeavy: ${packetTruth.executionHeavy ? "yes" : "no"}`,
-    `- targetFile: ${packetTruth.targetFile ?? "none"}`,
-    `- targetFolder: ${packetTruth.targetFolder ?? "none"}`,
-    `- artifactKind: ${packetTruth.artifactKind ?? "none"}`,
-    `- doneWhen: ${packetTruth.doneWhen ?? "none"}`,
-    `- packetType: ${packetTruth.packetType ?? "none"}`,
-    `- executionIntent: ${packetTruth.executionIntent ?? "none"}`,
-    `- reviewPolicy: ${packetTruth.reviewPolicy ?? "none"}`,
-    `- needsReview: ${
-      typeof packetTruth.needsReview === "boolean"
-        ? packetTruth.needsReview
-          ? "yes"
-          : "no"
-        : "none"
-    }`,
-    `- scopeMode: ${packetTruth.scopeMode}`,
-    `- reasonCodes: ${
-      packetTruth.reasonCodes.length > 0
-        ? packetTruth.reasonCodes.join(", ")
-        : "none"
-    }`,
-  ];
-
-  return [
-    "Paperclip issue assignment:",
-    summary,
-    "",
-    "Paperclip API context:",
-    `- PAPERCLIP_API_URL: ${apiUrl ?? "none"}`,
-    `- PAPERCLIP_TASK_ID: ${issue.id}`,
-    `- PAPERCLIP_COMPANY_ID: ${companyId ?? "none"}`,
-    `- PROJECT_ID: ${projectId ?? "none"}`,
-    `- GOAL_ID: ${goalId ?? "none"}`,
-    `- PARENT_ID: ${parentId ?? "none"}`,
-    "",
-    "Execution packet truth:",
-    ...packetLines,
-    ...(description ? ["", description] : []),
-  ].join("\n");
-}
-
-function buildIssueWorkspacePrompt(
-  contextSnapshot: Record<string, unknown>,
-) {
-  const workspace = parseObject(contextSnapshot.paperclipWorkspace);
-  const workspaceCwd = readNonEmptyString(workspace.cwd);
-  const workspaceBranch = readNonEmptyString(workspace.branchName);
-  const worktreePath = readNonEmptyString(workspace.worktreePath);
-
-  if (!workspaceCwd && !workspaceBranch && !worktreePath) {
-    return null;
-  }
-
-  const lines = [
-    "",
-    "Execution workspace:",
-    `- PAPERCLIP_WORKSPACE_CWD: ${workspaceCwd ?? "none"}`,
-    `- PAPERCLIP_WORKSPACE_BRANCH: ${workspaceBranch ?? "none"}`,
-    `- PAPERCLIP_WORKTREE_PATH: ${worktreePath ?? "none"}`,
-  ];
-
-  if (workspaceBranch) {
-    lines.push(
-      "- Branch rule: reuse PAPERCLIP_WORKSPACE_BRANCH for commits, worker-pr, and worker-done. Do not create a different ad hoc branch.",
-    );
-  }
-
-  return lines.join("\n");
-}
-
-function buildReviewerTaskPrompt(input: {
-  issue: IssuePromptContext;
-  reviewTarget: ReviewTargetPromptContext | null;
-}) {
-  const { issue, reviewTarget } = input;
-  const ref = issue.identifier ?? issue.id;
-  const title = trimIssueText(issue.title);
-  const summary = title ? `${ref} - ${title}` : ref;
-  const originalPacket = buildIssueTaskPrompt(issue);
-
-  const lines = [
-    "Paperclip review assignment:",
-    summary,
-    "",
-    "You are reviewing the latest worker result for this issue.",
-    "Do not implement the original task yourself.",
-    "",
-    "Original packet:",
-    originalPacket,
-  ];
-
-  if (!reviewTarget) {
-    lines.push(
-      "",
-      "Review target status:",
-      "- No prior non-reviewer run was found for this issue.",
-      "",
-      "Your task:",
-      "1. Do not execute the packet yourself.",
-      "2. Return Verdict: changes_requested.",
-      "3. Explain that no worker result exists yet to review.",
-      "4. Recommend that a worker run the issue first.",
-    );
-    return lines.join("\n");
-  }
-
-  lines.push(
-    "",
-    "Review target run:",
-    `- Run ID: ${reviewTarget.runId}`,
-    `- Worker agent: ${reviewTarget.agentName ?? reviewTarget.agentId}`,
-    `- Status: ${reviewTarget.status}`,
-  );
-  if (reviewTarget.finishedAt) {
-    lines.push(`- Finished at: ${reviewTarget.finishedAt}`);
-  }
-  if (reviewTarget.model) {
-    lines.push(`- Model lane: ${reviewTarget.model}`);
-  }
-  if (reviewTarget.resultSummary) {
-    lines.push(`- Result summary: ${reviewTarget.resultSummary}`);
-  }
-  if (reviewTarget.readEvidencePaths.length > 0) {
-    lines.push("- Worker read evidence:");
-    for (const readPath of reviewTarget.readEvidencePaths) {
-      lines.push(`  - ${readPath}`);
-    }
-  } else {
-    lines.push("- Worker read evidence: none recorded");
-  }
-  if (reviewTarget.artifactPaths.length > 0) {
-    lines.push("- Worker produced artifacts:");
-    for (const artifactPath of reviewTarget.artifactPaths) {
-      lines.push(`  - ${artifactPath}`);
-    }
-  } else {
-    lines.push("- Worker produced artifacts: none recorded");
-  }
-  if (reviewTarget.workerHandoff) {
-    lines.push(
-      "",
-      "Worker handoff:",
-      reviewTarget.workerHandoff,
-    );
-  }
-
-  lines.push(
-    "",
-    "Your task:",
-    "1. Inspect the actual produced result in the workspace.",
-    "2. Check whether the result satisfies doneWhen and stays inside the issue scope.",
-    "3. Flag unsupported claims or references to sources not named in the issue.",
-    "4. Do not redo the worker task unless the review explicitly requires a tiny corrective verification step.",
-    "",
-    "Acceptance rules:",
-    "- Use accepted only if doneWhen is satisfied, scope was respected, and no unsupported claim or source drift remains.",
-    "- If the result references information that cannot be justified from the issue-listed sources, the produced artifact, or recorded evidence, return changes_requested.",
-    "- If there is no worker result to inspect, return changes_requested.",
-    "",
-    "Return exactly these sections:",
-    "1. Verdict: accepted | changes_requested",
-    "2. Findings",
-    "3. Evidence Checked",
-    "4. Recommended Next Step",
-  );
-
-  return lines.join("\n");
-}
-
-export type ReviewerVerdict = "accepted" | "changes_requested";
-
-function matchReviewerVerdict(
-  output: string,
-): ReviewerVerdict | null {
-  for (const rawLine of output.split(/\r?\n/)) {
-    const normalizedLine = rawLine
-      .replace(/[`#>]/g, "")
-      .replace(/\*\*/g, "")
-      .replace(/\*/g, "")
-      .trim();
-    const verdictMatch = normalizedLine.match(
-      /^(?:\d+\.\s*)?_?Verdict:?_?\s*(accepted|changes_requested|needs_revision|blocked)\s*$/i,
-    );
-    const verdict = verdictMatch?.[1]?.toLowerCase();
-    if (verdict === "accepted") return "accepted";
-    if (
-      verdict === "changes_requested" ||
-      verdict === "needs_revision" ||
-      verdict === "blocked"
-    ) {
-      // Keep backward compatibility with older reviewer responses.
-      return "changes_requested";
-    }
-  }
-  return null;
-}
-
-function collectAssistantContentFromStreamJson(
-  output: string,
-): string | null {
-  const chunks: string[] = [];
-  for (const line of output.split(/\r?\n/)) {
-    const trimmed = line.trim();
-    if (!trimmed.startsWith("{") || !trimmed.endsWith("}")) continue;
-    try {
-      const parsed = JSON.parse(trimmed) as {
-        type?: unknown;
-        role?: unknown;
-        content?: unknown;
-      };
-      if (
-        parsed.type === "message" &&
-        parsed.role === "assistant" &&
-        typeof parsed.content === "string" &&
-        parsed.content.length > 0
-      ) {
-        chunks.push(parsed.content);
-      }
-    } catch {
-      // Ignore non-JSON or partial lines in stdout excerpts.
-    }
-  }
-  if (chunks.length === 0) return null;
-  return chunks.join("\n");
-}
-
-function extractArtifactPathsFromWorkerOutput(
-  output: string | null | undefined,
-): string[] {
-  if (!output) return [];
-  const paths = new Set<string>();
-
-  const assistantOutput = collectAssistantContentFromStreamJson(output);
-  const assistantText = assistantOutput ?? output;
-  for (const match of assistantText.matchAll(/Files Changed:\s*`([^`]+)`/g)) {
-    const candidate = match[1]?.trim();
-    if (candidate) paths.add(candidate);
-  }
-
-  for (const match of output.matchAll(/"file_path":"([^"]+)"/g)) {
-    const candidate = match[1]?.trim();
-    if (candidate) paths.add(candidate);
-  }
-
-  return [...paths];
-}
-
-export function extractReviewerVerdict(
-  output: string | null | undefined,
-): ReviewerVerdict | null {
-  if (!output) return null;
-  const assistantOutput = collectAssistantContentFromStreamJson(output);
-  if (assistantOutput) {
-    return matchReviewerVerdict(assistantOutput);
-  }
-  return matchReviewerVerdict(output);
-}
-
-export function readAssignedRoleTemplateId(
-  contextSnapshot: Record<string, unknown> | null | undefined,
-) {
-  const roleTemplate = parseObject(contextSnapshot?.paperclipRoleTemplate);
-  return readNonEmptyString(roleTemplate.id)?.toLowerCase() ?? null;
-}
-
-export function determineIssueStatusAfterRun(input: {
-  runStatus: string;
-  issueStatus: string | null | undefined;
-  roleTemplateId: string | null | undefined;
-  errorCode?: string | null | undefined;
-  stdoutExcerpt?: string | null | undefined;
-}): {
-  nextStatus: "blocked" | "in_review" | "done" | null;
-  reason:
-    | "worker_loop_detected"
-    | "reviewer_accepted"
-    | null;
-  reviewerVerdict: ReviewerVerdict | null;
-} {
-  const normalizedErrorCode = readNonEmptyString(input.errorCode)?.toLowerCase() ?? null;
-  if (
-    input.runStatus !== "succeeded" &&
-    !(input.runStatus === "blocked" && normalizedErrorCode === "loop_detected")
-  ) {
-    return { nextStatus: null, reason: null, reviewerVerdict: null };
-  }
-
-  const issueStatus = readNonEmptyString(input.issueStatus)?.toLowerCase();
-  if (!issueStatus || CLOSED_ISSUE_STATUSES.has(issueStatus)) {
-    return { nextStatus: null, reason: null, reviewerVerdict: null };
-  }
-
-  if (input.runStatus === "blocked" && normalizedErrorCode === "loop_detected") {
-    return {
-      nextStatus: "blocked",
-      reason: "worker_loop_detected",
-      reviewerVerdict: null,
-    };
-  }
-
-  const roleTemplateId =
-    readNonEmptyString(input.roleTemplateId)?.toLowerCase() ?? null;
-  if (roleTemplateId === "reviewer") {
-    const reviewerVerdict = extractReviewerVerdict(input.stdoutExcerpt);
-    if (reviewerVerdict === "accepted") {
-      return {
-        nextStatus: "done",
-        reason: "reviewer_accepted",
-        reviewerVerdict,
-      };
-    }
-    return { nextStatus: null, reason: null, reviewerVerdict };
-  }
-
-  // Worker completion is now explicit via POST /api/issues/:id/worker-done.
-  // Keep heartbeat free from implicit worker->in_review transitions to avoid
-  // double-transition races and split sources of truth.
-  const workerLikeRole = roleTemplateId === "worker" || roleTemplateId == null;
-  if (workerLikeRole) return { nextStatus: null, reason: null, reviewerVerdict: null };
-
-  return { nextStatus: null, reason: null, reviewerVerdict: null };
 }
 
 type AutoRetriggerIssueRecord = {
@@ -1523,517 +878,6 @@ export function shouldPromoteDeferredIssueExecution(
   return normalized == null || !CLOSED_ISSUE_STATUSES.has(normalized);
 }
 
-function buildPromptResolverDryRunInput(
-  contextSnapshot: Record<string, unknown>,
-  issueTaskPrompt: string,
-): PromptResolverInput {
-  const targetPath = readNonEmptyString(
-    contextSnapshot.paperclipSingleFileTargetPath,
-  );
-  const allowedTargets = targetPath ? [targetPath] : ["paperclipTaskPrompt"];
-  const requestedTargets = readNonEmptyStringArray(
-    contextSnapshot.paperclipRequestedTargets,
-  );
-  const allowedTools = readNonEmptyStringArray(
-    contextSnapshot.paperclipAllowedTools,
-  );
-  const blockedTools = readNonEmptyStringArray(
-    contextSnapshot.paperclipBlockedTools,
-  );
-
-  const overrideRaw = parseObject(contextSnapshot.paperclipRoleOverrideAttempt);
-  const overrideAttempt: PromptResolverInput["roleAddon"]["overrideAttempt"] = {
-    ...(readNonEmptyString(overrideRaw.approvalMode)
-      ? {
-          approvalMode:
-            readNonEmptyString(overrideRaw.approvalMode) ?? undefined,
-        }
-      : {}),
-    ...(readNonEmptyString(overrideRaw.riskClass)
-      ? { riskClass: readNonEmptyString(overrideRaw.riskClass) ?? undefined }
-      : {}),
-    ...(readNonEmptyString(overrideRaw.budgetClass)
-      ? {
-          budgetClass: readNonEmptyString(overrideRaw.budgetClass) ?? undefined,
-        }
-      : {}),
-    ...(readNonEmptyStringArray(overrideRaw.forbiddenChanges).length > 0
-      ? {
-          forbiddenChanges: readNonEmptyStringArray(
-            overrideRaw.forbiddenChanges,
-          ),
-        }
-      : {}),
-    ...(readNonEmptyStringArray(overrideRaw.blockedTools).length > 0
-      ? { blockedTools: readNonEmptyStringArray(overrideRaw.blockedTools) }
-      : {}),
-    ...(typeof overrideRaw.decisionTraceRequired === "boolean"
-      ? { decisionTraceRequired: overrideRaw.decisionTraceRequired }
-      : {}),
-  };
-
-  return {
-    layerOrder: [
-      "companyCore",
-      "governanceExecution",
-      "taskDelta",
-      "roleAddon",
-    ],
-    companyCore: {
-      missionGuardrails: "Human-led governance first",
-      governancePrinciples: "Escalate before scope growth",
-      tokenDiscipline: "Delta over full context",
-      behaviorSeparation: "plan vs build vs review",
-      versionTag: "heartbeat-dry-run",
-    },
-    governanceExecution: {
-      scope: {
-        allowedTargets,
-        ...(requestedTargets.length > 0
-          ? { requestedTargets }
-          : { requestedTargets: [...allowedTargets] }),
-        forbiddenChanges: ["runtime_mutation"],
-      },
-      tools: {
-        allowedTools: allowedTools.length > 0 ? allowedTools : ["read_file"],
-        blockedTools:
-          blockedTools.length > 0 ? blockedTools : ["run_in_terminal"],
-      },
-      governance: {
-        approvalMode: "manual_required_for_phase_b",
-        riskClass: "medium",
-        budgetClass: "medium",
-      },
-      audit: {
-        decisionTraceRequired: true,
-        reasonCodes: ["HEARTBEAT_DRY_RUN_PREFLIGHT"],
-      },
-      notes: issueTaskPrompt,
-    },
-    taskDelta: {
-      objective: "Attach issue task prompt context",
-      allowedTargets,
-      acceptanceCriteria: ["Issue prompt context preserved"],
-      constraints: ["No execution branching", "No prompt mutation"],
-    },
-    roleAddon: {
-      roleName: "HeartbeatDryRunObserver",
-      roleMandate: "Observe prompt preflight only",
-      roleLimits: ["no policy override", "no runtime control"],
-      ...(Object.keys(overrideAttempt).length > 0 ? { overrideAttempt } : {}),
-    },
-  };
-}
-
-export function applyIssuePromptContext(
-  contextSnapshot: Record<string, unknown>,
-  issue: IssuePromptContext | null,
-) {
-  if (!issue) return contextSnapshot;
-
-  const normalizedIssue = {
-    id: issue.id,
-    companyId: trimIssueText(issue.companyId),
-    projectId: trimIssueText(issue.projectId),
-    goalId: trimIssueText(issue.goalId),
-    parentId: trimIssueText(issue.parentId),
-    identifier: trimIssueText(issue.identifier),
-    title: trimIssueText(issue.title),
-    description: trimIssueText(issue.description),
-  };
-
-  contextSnapshot.paperclipIssue = normalizedIssue;
-  const packetTruth = resolveIssueExecutionPacketTruth({
-    title: normalizedIssue.title,
-    description: normalizedIssue.description,
-  });
-  contextSnapshot.paperclipIssueExecutionPacketTruth = packetTruth;
-  contextSnapshot.paperclipExecutionPacketStatus = packetTruth.status;
-  contextSnapshot.paperclipExecutionPacketReasonCodes = packetTruth.reasonCodes;
-  contextSnapshot.paperclipExecutionPacketTargetFile = packetTruth.targetFile;
-  contextSnapshot.paperclipExecutionPacketTargetFolder = packetTruth.targetFolder;
-  contextSnapshot.paperclipExecutionPacketArtifactKind = packetTruth.artifactKind;
-  contextSnapshot.paperclipExecutionPacketDoneWhen = packetTruth.doneWhen;
-  const issueTaskPrompt = [
-    buildIssueTaskPrompt(normalizedIssue),
-    buildIssueWorkspacePrompt(contextSnapshot),
-  ]
-    .filter((value): value is string => Boolean(value))
-    .join("\n");
-  contextSnapshot.paperclipTaskPrompt = issueTaskPrompt;
-
-  if (isTestRunContext(contextSnapshot)) {
-    contextSnapshot.paperclipPromptResolverPreflight =
-      runPromptResolverPreflight(
-        buildPromptResolverDryRunInput(contextSnapshot, issueTaskPrompt),
-        { includeAuditMeta: true },
-      );
-  }
-
-  const singleFileTargetPath = extractSingleFileBenchmarkTarget(
-    normalizedIssue.description,
-  );
-  if (singleFileTargetPath) {
-    contextSnapshot.paperclipSingleFileTargetPath = singleFileTargetPath;
-    contextSnapshot.paperclipAbortOnMissingFile = true;
-  }
-
-  const benchmarkFamily = extractBenchmarkFamily(normalizedIssue.description);
-  if (benchmarkFamily) {
-    contextSnapshot.paperclipBenchmarkFamily = benchmarkFamily;
-  }
-
-  const strictFloorMode =
-    typeof benchmarkFamily === "string" &&
-    (benchmarkFamily.trim().toLowerCase().startsWith("t1-floor-v") ||
-      benchmarkFamily.trim().toLowerCase().startsWith("t1-floor-normalized-v"));
-  if (strictFloorMode) {
-    contextSnapshot.paperclipStrictFloorMode = true;
-    contextSnapshot.paperclipAllowedTools = ["read_file"];
-    contextSnapshot.paperclipBlockedTools = [
-      "run_shell_command",
-      "list_directory",
-      "glob_search",
-      "grep_search",
-      "activate_skill",
-    ];
-  }
-
-  return contextSnapshot;
-}
-
-export function applyReviewerPromptContext(
-  contextSnapshot: Record<string, unknown>,
-  issue: IssuePromptContext | null,
-  reviewTarget: ReviewTargetPromptContext | null,
-) {
-  if (!issue) return contextSnapshot;
-
-  const issueTaskPrompt = buildIssueTaskPrompt(issue);
-  contextSnapshot.paperclipOriginalTaskPrompt = issueTaskPrompt;
-  contextSnapshot.paperclipTaskPrompt = buildReviewerTaskPrompt({
-    issue,
-    reviewTarget,
-  });
-
-  if (reviewTarget) {
-    contextSnapshot.paperclipReviewTarget = {
-      runId: reviewTarget.runId,
-      agentId: reviewTarget.agentId,
-      agentName: reviewTarget.agentName,
-      status: reviewTarget.status,
-      finishedAt: reviewTarget.finishedAt,
-      model: reviewTarget.model,
-      resultSummary: reviewTarget.resultSummary,
-      readEvidencePaths: reviewTarget.readEvidencePaths,
-      artifactPaths: reviewTarget.artifactPaths,
-      workerHandoff: reviewTarget.workerHandoff,
-    };
-    delete contextSnapshot.paperclipReviewTargetError;
-  } else {
-    delete contextSnapshot.paperclipReviewTarget;
-    contextSnapshot.paperclipReviewTargetError =
-      "No prior non-reviewer run found for this issue.";
-  }
-
-  return contextSnapshot;
-}
-
-export type AdapterCwdResolution = {
-  effectiveRunCwd: string;
-  rawWorkspaceCwd: string | null;
-  effectiveWorkspaceCwd: string | null;
-  workspaceSource: string | null;
-  configuredCwd: string | null;
-  configuredCwdExists: boolean;
-  resolutionStrategy: "configured" | "workspace" | "process";
-};
-
-function arePathsEquivalent(left: string, right: string) {
-  const leftResolved = path.resolve(left);
-  const rightResolved = path.resolve(right);
-  if (process.platform === "win32") {
-    return leftResolved.toLowerCase() === rightResolved.toLowerCase();
-  }
-  return leftResolved === rightResolved;
-}
-
-function isPathWithinRoot(targetPath: string, rootPath: string) {
-  const relative = path.relative(
-    path.resolve(rootPath),
-    path.resolve(targetPath),
-  );
-  return (
-    relative.length === 0 ||
-    (!relative.startsWith("..") && !path.isAbsolute(relative))
-  );
-}
-
-export function resolveAdapterCwdForRun(
-  contextSnapshot: Record<string, unknown>,
-  resolvedConfig: Record<string, unknown>,
-): AdapterCwdResolution {
-  const workspaceContext = parseObject(contextSnapshot.paperclipWorkspace);
-  const rawWorkspaceCwd = readNonEmptyString(workspaceContext.cwd);
-  const workspaceSource = readNonEmptyString(workspaceContext.source);
-  const configuredCwd = readNonEmptyString(resolvedConfig.cwd);
-  const configuredCwdExists = Boolean(configuredCwd);
-
-  const prefersConfiguredForSingleFile =
-    contextSnapshot.paperclipAbortOnMissingFile === true ||
-    Boolean(readNonEmptyString(contextSnapshot.paperclipSingleFileTargetPath));
-  const useConfiguredCwd =
-    Boolean(configuredCwd) && prefersConfiguredForSingleFile;
-  const effectiveWorkspaceCwd =
-    useConfiguredCwd &&
-    (workspaceSource === "agent_home" || workspaceSource === "fallback")
-      ? null
-      : rawWorkspaceCwd;
-
-  const effectiveRunCwd = useConfiguredCwd
-    ? configuredCwd!
-    : effectiveWorkspaceCwd ?? configuredCwd ?? process.cwd();
-
-  const resolutionStrategy: AdapterCwdResolution["resolutionStrategy"] =
-    useConfiguredCwd || (!effectiveWorkspaceCwd && configuredCwd)
-      ? "configured"
-      : effectiveWorkspaceCwd
-      ? "workspace"
-      : "process";
-
-  return {
-    effectiveRunCwd,
-    rawWorkspaceCwd,
-    effectiveWorkspaceCwd,
-    workspaceSource,
-    configuredCwd,
-    configuredCwdExists,
-    resolutionStrategy,
-  };
-}
-
-export type SingleFileBenchmarkPreflight = {
-  required: boolean;
-  ok: boolean;
-  reason: string | null;
-  adapterCwd: string;
-  rawWorkspaceCwd: string | null;
-  effectiveWorkspaceCwd: string | null;
-  workspaceSource: string | null;
-  configuredCwd: string | null;
-  configuredCwdExists: boolean;
-  resolutionStrategy: "configured" | "workspace" | "process";
-  singleFileTargetPath: string | null;
-  singleFileTargetResolvedPath: string | null;
-  targetExists: boolean;
-  targetWithinEffectiveCwd: boolean;
-  issueTaskPromptPresent: boolean;
-  issueTaskPromptPreview: string | null;
-  abortOnMissingFile: boolean;
-};
-
-export async function evaluateSingleFileBenchmarkPreflight(input: {
-  contextSnapshot: Record<string, unknown>;
-  resolvedConfig: Record<string, unknown>;
-}): Promise<SingleFileBenchmarkPreflight> {
-  const { contextSnapshot, resolvedConfig } = input;
-  const singleFileTargetPath = readNonEmptyString(
-    contextSnapshot.paperclipSingleFileTargetPath,
-  );
-  const abortOnMissingFile =
-    contextSnapshot.paperclipAbortOnMissingFile === true;
-  const issueTaskPrompt = readNonEmptyString(
-    contextSnapshot.paperclipTaskPrompt,
-  );
-  const issueTaskPromptPreview = issueTaskPrompt
-    ? issueTaskPrompt.slice(0, 400)
-    : null;
-  const adapterCwdResolution = resolveAdapterCwdForRun(
-    contextSnapshot,
-    resolvedConfig,
-  );
-  const {
-    effectiveRunCwd,
-    rawWorkspaceCwd,
-    effectiveWorkspaceCwd,
-    workspaceSource,
-    configuredCwd,
-    configuredCwdExists,
-    resolutionStrategy,
-  } = adapterCwdResolution;
-  const configuredCwdAccessible = configuredCwd
-    ? await fs
-        .access(configuredCwd)
-        .then(() => true)
-        .catch(() => false)
-    : false;
-
-  const required = abortOnMissingFile || Boolean(singleFileTargetPath);
-  if (!required) {
-    return {
-      required,
-      ok: true,
-      reason: null,
-      adapterCwd: effectiveRunCwd,
-      rawWorkspaceCwd,
-      effectiveWorkspaceCwd,
-      workspaceSource,
-      configuredCwd,
-      configuredCwdExists: configuredCwdAccessible,
-      resolutionStrategy,
-      singleFileTargetPath,
-      singleFileTargetResolvedPath: null,
-      targetExists: false,
-      targetWithinEffectiveCwd: false,
-      issueTaskPromptPresent: Boolean(issueTaskPrompt),
-      issueTaskPromptPreview,
-      abortOnMissingFile,
-    };
-  }
-
-  if (!singleFileTargetPath) {
-    return {
-      required,
-      ok: false,
-      reason: "single_file_target_missing",
-      adapterCwd: effectiveRunCwd,
-      rawWorkspaceCwd,
-      effectiveWorkspaceCwd,
-      workspaceSource,
-      configuredCwd,
-      configuredCwdExists: configuredCwdAccessible,
-      resolutionStrategy,
-      singleFileTargetPath: null,
-      singleFileTargetResolvedPath: null,
-      targetExists: false,
-      targetWithinEffectiveCwd: false,
-      issueTaskPromptPresent: Boolean(issueTaskPrompt),
-      issueTaskPromptPreview,
-      abortOnMissingFile,
-    };
-  }
-
-  if (configuredCwd && !configuredCwdAccessible) {
-    return {
-      required,
-      ok: false,
-      reason: "configured_cwd_unavailable",
-      adapterCwd: effectiveRunCwd,
-      rawWorkspaceCwd,
-      effectiveWorkspaceCwd,
-      workspaceSource,
-      configuredCwd,
-      configuredCwdExists: false,
-      resolutionStrategy,
-      singleFileTargetPath,
-      singleFileTargetResolvedPath: null,
-      targetExists: false,
-      targetWithinEffectiveCwd: false,
-      issueTaskPromptPresent: Boolean(issueTaskPrompt),
-      issueTaskPromptPreview,
-      abortOnMissingFile,
-    };
-  }
-
-  if (
-    effectiveWorkspaceCwd &&
-    !arePathsEquivalent(effectiveWorkspaceCwd, effectiveRunCwd)
-  ) {
-    return {
-      required,
-      ok: false,
-      reason: "workspace_cwd_mismatch",
-      adapterCwd: effectiveRunCwd,
-      rawWorkspaceCwd,
-      effectiveWorkspaceCwd,
-      workspaceSource,
-      configuredCwd,
-      configuredCwdExists: configuredCwdAccessible,
-      resolutionStrategy,
-      singleFileTargetPath,
-      singleFileTargetResolvedPath: null,
-      targetExists: false,
-      targetWithinEffectiveCwd: false,
-      issueTaskPromptPresent: Boolean(issueTaskPrompt),
-      issueTaskPromptPreview,
-      abortOnMissingFile,
-    };
-  }
-
-  const singleFileTargetResolvedPath = path.isAbsolute(singleFileTargetPath)
-    ? singleFileTargetPath
-    : path.resolve(effectiveRunCwd, singleFileTargetPath);
-  const targetWithinEffectiveCwd = isPathWithinRoot(
-    singleFileTargetResolvedPath,
-    effectiveRunCwd,
-  );
-
-  if (!targetWithinEffectiveCwd) {
-    return {
-      required,
-      ok: false,
-      reason: "single_file_target_outside_cwd",
-      adapterCwd: effectiveRunCwd,
-      rawWorkspaceCwd,
-      effectiveWorkspaceCwd,
-      workspaceSource,
-      configuredCwd,
-      configuredCwdExists: configuredCwdAccessible,
-      resolutionStrategy,
-      singleFileTargetPath,
-      singleFileTargetResolvedPath,
-      targetExists: false,
-      targetWithinEffectiveCwd,
-      issueTaskPromptPresent: Boolean(issueTaskPrompt),
-      issueTaskPromptPreview,
-      abortOnMissingFile,
-    };
-  }
-
-  try {
-    await fs.access(singleFileTargetResolvedPath);
-    return {
-      required,
-      ok: true,
-      reason: null,
-      adapterCwd: effectiveRunCwd,
-      rawWorkspaceCwd,
-      effectiveWorkspaceCwd,
-      workspaceSource,
-      configuredCwd,
-      configuredCwdExists: configuredCwdAccessible,
-      resolutionStrategy,
-      singleFileTargetPath,
-      singleFileTargetResolvedPath,
-      targetExists: true,
-      targetWithinEffectiveCwd,
-      issueTaskPromptPresent: Boolean(issueTaskPrompt),
-      issueTaskPromptPreview,
-      abortOnMissingFile,
-    };
-  } catch {
-    return {
-      required,
-      ok: false,
-      reason: "single_file_target_unavailable",
-      adapterCwd: effectiveRunCwd,
-      rawWorkspaceCwd,
-      effectiveWorkspaceCwd,
-      workspaceSource,
-      configuredCwd,
-      configuredCwdExists: Boolean(configuredCwdExists),
-      resolutionStrategy,
-      singleFileTargetPath,
-      singleFileTargetResolvedPath,
-      targetExists: false,
-      targetWithinEffectiveCwd,
-      issueTaskPromptPresent: Boolean(issueTaskPrompt),
-      issueTaskPromptPreview,
-      abortOnMissingFile,
-    };
-  }
-}
-
 function enrichWakeContextSnapshot(input: {
   contextSnapshot: Record<string, unknown>;
   reason: string | null;
@@ -2121,8 +965,7 @@ function isSameTaskScope(left: string | null, right: string | null) {
 }
 
 function truncateDisplayId(value: string | null | undefined, max = 128) {
-  if (!value) return null;
-  return value.length > max ? value.slice(0, max) : value;
+  return truncateDisplayIdSeam(value, max);
 }
 
 function normalizeAgentNameKey(value: string | null | undefined) {
@@ -2131,35 +974,14 @@ function normalizeAgentNameKey(value: string | null | undefined) {
   return normalized.length > 0 ? normalized : null;
 }
 
-const defaultSessionCodec: AdapterSessionCodec = {
-  deserialize(raw: unknown) {
-    const asObj = parseObject(raw);
-    if (Object.keys(asObj).length > 0) return asObj;
-    const sessionId = readNonEmptyString(
-      (raw as Record<string, unknown> | null)?.sessionId,
-    );
-    if (sessionId) return { sessionId };
-    return null;
-  },
-  serialize(params: Record<string, unknown> | null) {
-    if (!params || Object.keys(params).length === 0) return null;
-    return params;
-  },
-  getDisplayId(params: Record<string, unknown> | null) {
-    return readNonEmptyString(params?.sessionId);
-  },
-};
-
 function getAdapterSessionCodec(adapterType: string) {
-  const adapter = getServerAdapter(adapterType);
-  return adapter.sessionCodec ?? defaultSessionCodec;
+  return getAdapterSessionCodecSeam(adapterType);
 }
 
 function normalizeSessionParams(
   params: Record<string, unknown> | null | undefined,
 ) {
-  if (!params) return null;
-  return Object.keys(params).length > 0 ? params : null;
+  return normalizeSessionParamsSeam(params);
 }
 
 function resolveNextSessionState(input: {
@@ -2169,64 +991,7 @@ function resolveNextSessionState(input: {
   previousDisplayId: string | null;
   previousLegacySessionId: string | null;
 }) {
-  const {
-    codec,
-    adapterResult,
-    previousParams,
-    previousDisplayId,
-    previousLegacySessionId,
-  } = input;
-
-  if (adapterResult.clearSession) {
-    return {
-      params: null as Record<string, unknown> | null,
-      displayId: null as string | null,
-      legacySessionId: null as string | null,
-    };
-  }
-
-  const explicitParams = adapterResult.sessionParams;
-  const hasExplicitParams = adapterResult.sessionParams !== undefined;
-  const hasExplicitSessionId = adapterResult.sessionId !== undefined;
-  const explicitSessionId = readNonEmptyString(adapterResult.sessionId);
-  const hasExplicitDisplay = adapterResult.sessionDisplayId !== undefined;
-  const explicitDisplayId = readNonEmptyString(adapterResult.sessionDisplayId);
-  const shouldUsePrevious =
-    !hasExplicitParams && !hasExplicitSessionId && !hasExplicitDisplay;
-
-  const candidateParams = hasExplicitParams
-    ? explicitParams
-    : hasExplicitSessionId
-    ? explicitSessionId
-      ? { sessionId: explicitSessionId }
-      : null
-    : previousParams;
-
-  const serialized = normalizeSessionParams(
-    codec.serialize(normalizeSessionParams(candidateParams) ?? null),
-  );
-  const deserialized = normalizeSessionParams(codec.deserialize(serialized));
-
-  const displayId = truncateDisplayId(
-    explicitDisplayId ??
-      (codec.getDisplayId ? codec.getDisplayId(deserialized) : null) ??
-      readNonEmptyString(deserialized?.sessionId) ??
-      (shouldUsePrevious ? previousDisplayId : null) ??
-      explicitSessionId ??
-      (shouldUsePrevious ? previousLegacySessionId : null),
-  );
-
-  const legacySessionId =
-    explicitSessionId ??
-    readNonEmptyString(deserialized?.sessionId) ??
-    displayId ??
-    (shouldUsePrevious ? previousLegacySessionId : null);
-
-  return {
-    params: serialized,
-    displayId,
-    legacySessionId,
-  };
+  return resolveNextSessionStateSeam(input);
 }
 
 export function heartbeatService(db: Db) {
@@ -2601,151 +1366,26 @@ export function heartbeatService(db: Db) {
     sessionId: string | null;
     issueId: string | null;
   }): Promise<SessionCompactionDecision> {
-    const { agent, sessionId, issueId } = input;
-    if (!sessionId) {
-      return {
-        rotate: false,
-        reason: null,
-        handoffMarkdown: null,
-        previousRunId: null,
-      };
-    }
-
-    const policy = parseSessionCompactionPolicy(agent);
-    if (!policy.enabled) {
-      return {
-        rotate: false,
-        reason: null,
-        handoffMarkdown: null,
-        previousRunId: null,
-      };
-    }
-
-    const fetchLimit = Math.max(
-      policy.maxSessionRuns > 0 ? policy.maxSessionRuns + 1 : 0,
-      4,
-    );
-    const runs = await db
-      .select({
-        id: heartbeatRuns.id,
-        createdAt: heartbeatRuns.createdAt,
-        usageJson: heartbeatRuns.usageJson,
-        resultJson: heartbeatRuns.resultJson,
-        error: heartbeatRuns.error,
-      })
-      .from(heartbeatRuns)
-      .where(
-        and(
-          eq(heartbeatRuns.agentId, agent.id),
-          eq(heartbeatRuns.sessionIdAfter, sessionId),
-        ),
-      )
-      .orderBy(desc(heartbeatRuns.createdAt))
-      .limit(fetchLimit);
-
-    if (runs.length === 0) {
-      return {
-        rotate: false,
-        reason: null,
-        handoffMarkdown: null,
-        previousRunId: null,
-      };
-    }
-
-    const latestRun = runs[0] ?? null;
-    const oldestRun =
-      policy.maxSessionAgeHours > 0
-        ? await getOldestRunForSession(agent.id, sessionId)
-        : runs[runs.length - 1] ?? latestRun;
-    const latestRawUsage = readRawUsageTotals(latestRun?.usageJson);
-    const sessionAgeHours =
-      latestRun && oldestRun
-        ? Math.max(
-            0,
-            (new Date(latestRun.createdAt).getTime() -
-              new Date(oldestRun.createdAt).getTime()) /
-              (1000 * 60 * 60),
-          )
-        : 0;
-
-    let reason: string | null = null;
-    if (policy.maxSessionRuns > 0 && runs.length > policy.maxSessionRuns) {
-      reason = `session exceeded ${policy.maxSessionRuns} runs`;
-    } else if (
-      policy.maxRawInputTokens > 0 &&
-      latestRawUsage &&
-      latestRawUsage.inputTokens >= policy.maxRawInputTokens
-    ) {
-      reason =
-        `session raw input reached ${formatCount(
-          latestRawUsage.inputTokens,
-        )} tokens ` + `(threshold ${formatCount(policy.maxRawInputTokens)})`;
-    } else if (
-      policy.maxSessionAgeHours > 0 &&
-      sessionAgeHours >= policy.maxSessionAgeHours
-    ) {
-      reason = `session age reached ${Math.floor(sessionAgeHours)} hours`;
-    }
-
-    if (!reason || !latestRun) {
-      return {
-        rotate: false,
-        reason: null,
-        handoffMarkdown: null,
-        previousRunId: latestRun?.id ?? null,
-      };
-    }
-
-    const latestSummary = summarizeHeartbeatRunResultJson(latestRun.resultJson);
-    const latestTextSummary =
-      readNonEmptyString(latestSummary?.summary) ??
-      readNonEmptyString(latestSummary?.result) ??
-      readNonEmptyString(latestSummary?.message) ??
-      readNonEmptyString(latestRun.error);
-
-    const handoffMarkdown = [
-      "Paperclip session handoff:",
-      `- Previous session: ${sessionId}`,
-      issueId ? `- Issue: ${issueId}` : "",
-      `- Rotation reason: ${reason}`,
-      latestTextSummary ? `- Last run summary: ${latestTextSummary}` : "",
-      "Continue from the current task state. Rebuild only the minimum context you need.",
-    ]
-      .filter(Boolean)
-      .join("\n");
-
-    return {
-      rotate: true,
-      reason,
-      handoffMarkdown,
-      previousRunId: latestRun.id,
-    };
+    return evaluateSessionCompactionSeam({
+      db,
+      ...input,
+    });
   }
 
   async function resolveSessionBeforeForWakeup(
     agent: typeof agents.$inferSelect,
     taskKey: string | null,
   ) {
-    if (taskKey) {
-      const codec = getAdapterSessionCodec(agent.adapterType);
-      const existingTaskSession = await getTaskSession(
-        agent.companyId,
-        agent.id,
-        agent.adapterType,
-        taskKey,
-      );
-      const parsedParams = normalizeSessionParams(
-        codec.deserialize(existingTaskSession?.sessionParamsJson ?? null),
-      );
-      return truncateDisplayId(
-        existingTaskSession?.sessionDisplayId ??
-          (codec.getDisplayId ? codec.getDisplayId(parsedParams) : null) ??
-          readNonEmptyString(parsedParams?.sessionId),
-      );
-    }
-
-    const runtimeForRun = await getRuntimeState(agent.id);
-    return runtimeForRun?.sessionId ?? null;
+    return resolveSessionBeforeForWakeupSeam(
+      { agent, taskKey },
+      {
+        getTaskSession,
+        getRuntimeState: async (agentId) => {
+          const runtime = await getRuntimeState(agentId);
+          return { sessionId: runtime?.sessionId ?? null };
+        },
+      },
+    );
   }
 
   async function resolveWorkspaceForRun(
@@ -2754,143 +1394,13 @@ export function heartbeatService(db: Db) {
     previousSessionParams: Record<string, unknown> | null,
     opts?: { useProjectWorkspace?: boolean | null },
   ): Promise<ResolvedWorkspaceForRun> {
-    const issueId = readNonEmptyString(context.issueId);
-    const contextProjectId = readNonEmptyString(context.projectId);
-    const issueProjectId = issueId
-      ? await db
-          .select({ projectId: issues.projectId })
-          .from(issues)
-          .where(
-            and(eq(issues.id, issueId), eq(issues.companyId, agent.companyId)),
-          )
-          .then((rows) => rows[0]?.projectId ?? null)
-      : null;
-    const resolvedProjectId = issueProjectId ?? contextProjectId;
-    const useProjectWorkspace = opts?.useProjectWorkspace !== false;
-    const workspaceProjectId = useProjectWorkspace ? resolvedProjectId : null;
-
-    const projectWorkspaceRows = workspaceProjectId
-      ? await db
-          .select()
-          .from(projectWorkspaces)
-          .where(
-            and(
-              eq(projectWorkspaces.companyId, agent.companyId),
-              eq(projectWorkspaces.projectId, workspaceProjectId),
-            ),
-          )
-          .orderBy(asc(projectWorkspaces.createdAt), asc(projectWorkspaces.id))
-      : [];
-
-    const workspaceHints = projectWorkspaceRows.map((workspace) => ({
-      workspaceId: workspace.id,
-      cwd: readNonEmptyString(workspace.cwd),
-      repoUrl: readNonEmptyString(workspace.repoUrl),
-      repoRef: readNonEmptyString(workspace.repoRef),
-    }));
-
-    if (projectWorkspaceRows.length > 0) {
-      const missingProjectCwds: string[] = [];
-      let hasConfiguredProjectCwd = false;
-      for (const workspace of projectWorkspaceRows) {
-        const projectCwd = readNonEmptyString(workspace.cwd);
-        if (!projectCwd || projectCwd === REPO_ONLY_CWD_SENTINEL) {
-          continue;
-        }
-        hasConfiguredProjectCwd = true;
-        const projectCwdExists = await fs
-          .stat(projectCwd)
-          .then((stats) => stats.isDirectory())
-          .catch(() => false);
-        if (projectCwdExists) {
-          return {
-            cwd: projectCwd,
-            source: "project_primary" as const,
-            projectId: resolvedProjectId,
-            workspaceId: workspace.id,
-            repoUrl: workspace.repoUrl,
-            repoRef: workspace.repoRef,
-            workspaceHints,
-            warnings: [],
-          };
-        }
-        missingProjectCwds.push(projectCwd);
-      }
-
-      const fallbackCwd = resolveDefaultAgentWorkspaceDir(agent.id);
-      await fs.mkdir(fallbackCwd, { recursive: true });
-      const warnings: string[] = [];
-      if (missingProjectCwds.length > 0) {
-        const firstMissing = missingProjectCwds[0];
-        const extraMissingCount = Math.max(0, missingProjectCwds.length - 1);
-        warnings.push(
-          extraMissingCount > 0
-            ? `Project workspace path "${firstMissing}" and ${extraMissingCount} other configured path(s) are not available yet. Using fallback workspace "${fallbackCwd}" for this run.`
-            : `Project workspace path "${firstMissing}" is not available yet. Using fallback workspace "${fallbackCwd}" for this run.`,
-        );
-      } else if (!hasConfiguredProjectCwd) {
-        warnings.push(
-          `Project workspace has no local cwd configured. Using fallback workspace "${fallbackCwd}" for this run.`,
-        );
-      }
-      return {
-        cwd: fallbackCwd,
-        source: "project_primary" as const,
-        projectId: resolvedProjectId,
-        workspaceId: projectWorkspaceRows[0]?.id ?? null,
-        repoUrl: projectWorkspaceRows[0]?.repoUrl ?? null,
-        repoRef: projectWorkspaceRows[0]?.repoRef ?? null,
-        workspaceHints,
-        warnings,
-      };
-    }
-
-    const sessionCwd = readNonEmptyString(previousSessionParams?.cwd);
-    if (sessionCwd) {
-      const sessionCwdExists = await fs
-        .stat(sessionCwd)
-        .then((stats) => stats.isDirectory())
-        .catch(() => false);
-      if (sessionCwdExists) {
-        return {
-          cwd: sessionCwd,
-          source: "task_session" as const,
-          projectId: resolvedProjectId,
-          workspaceId: readNonEmptyString(previousSessionParams?.workspaceId),
-          repoUrl: readNonEmptyString(previousSessionParams?.repoUrl),
-          repoRef: readNonEmptyString(previousSessionParams?.repoRef),
-          workspaceHints,
-          warnings: [],
-        };
-      }
-    }
-
-    const cwd = resolveDefaultAgentWorkspaceDir(agent.id);
-    await fs.mkdir(cwd, { recursive: true });
-    const warnings: string[] = [];
-    if (sessionCwd) {
-      warnings.push(
-        `Saved session workspace "${sessionCwd}" is not available. Using fallback workspace "${cwd}" for this run.`,
-      );
-    } else if (resolvedProjectId) {
-      warnings.push(
-        `No project workspace directory is currently available for this issue. Using fallback workspace "${cwd}" for this run.`,
-      );
-    } else {
-      warnings.push(
-        `No project or prior session workspace was available. Using fallback workspace "${cwd}" for this run.`,
-      );
-    }
-    return {
-      cwd,
-      source: "agent_home" as const,
-      projectId: resolvedProjectId,
-      workspaceId: null,
-      repoUrl: null,
-      repoRef: null,
-      workspaceHints,
-      warnings,
-    };
+    return resolveWorkspaceForRunSeam({
+      db,
+      agent,
+      context,
+      previousSessionParams,
+      useProjectWorkspace: opts?.useProjectWorkspace,
+    });
   }
 
   async function upsertTaskSession(input: {
@@ -3251,45 +1761,42 @@ export function heartbeatService(db: Db) {
     outcome: AgentFinalizationOutcome,
     opts?: { errorCode?: string | null },
   ) {
-    const existing = await getAgent(agentId);
-    if (!existing) return;
-
-    if (existing.status === "paused" || existing.status === "terminated") {
-      return;
-    }
-
-    const runningCount = await countRunningRunsForAgent(agentId);
-    const nextStatus = resolveNextAgentStatusAfterRun({
-      runningCount,
-      outcome,
-      errorCode: opts?.errorCode ?? null,
-    });
-
-    const updated = await db
-      .update(agents)
-      .set({
-        status: nextStatus,
-        lastHeartbeatAt: new Date(),
-        updatedAt: new Date(),
-      })
-      .where(eq(agents.id, agentId))
-      .returning()
-      .then((rows) => rows[0] ?? null);
-
-    if (updated) {
-      publishLiveEvent({
-        companyId: updated.companyId,
-        type: "agent.status",
-        payload: {
-          agentId: updated.id,
-          status: updated.status,
-          lastHeartbeatAt: updated.lastHeartbeatAt
-            ? new Date(updated.lastHeartbeatAt).toISOString()
-            : null,
-          outcome,
+    await finalizeHeartbeatAgentStatus(
+      {
+        agentId,
+        outcome,
+        errorCode: opts?.errorCode ?? null,
+      },
+      {
+        getAgent,
+        countRunningRunsForAgent,
+        updateAgentStatus: async (targetAgentId, nextStatus) =>
+          db
+            .update(agents)
+            .set({
+              status: nextStatus,
+              lastHeartbeatAt: new Date(),
+              updatedAt: new Date(),
+            })
+            .where(eq(agents.id, targetAgentId))
+            .returning()
+            .then((rows) => rows[0] ?? null),
+        publishAgentStatus: (statusUpdate) => {
+          publishLiveEvent({
+            companyId: statusUpdate.companyId,
+            type: "agent.status",
+            payload: {
+              agentId: statusUpdate.agentId,
+              status: statusUpdate.status,
+              lastHeartbeatAt: statusUpdate.lastHeartbeatAt
+                ? new Date(statusUpdate.lastHeartbeatAt).toISOString()
+                : null,
+              outcome: statusUpdate.outcome,
+            },
+          });
         },
-      });
-    }
+      },
+    );
   }
 
   async function reapOrphanedRuns(opts?: {
@@ -3713,7 +2220,6 @@ export function heartbeatService(db: Db) {
           )
         : null;
       const resetTaskSession = shouldResetTaskSessionForWake(context);
-      const sessionResetReason = describeSessionResetReason(context);
       const taskSessionForRun = resetTaskSession ? null : taskSession;
       const previousSessionParams = normalizeSessionParams(
         sessionCodec.deserialize(taskSessionForRun?.sessionParamsJson ?? null),
@@ -3775,14 +2281,27 @@ export function heartbeatService(db: Db) {
             )
             .then((rows) => rows[0] ?? null)
         : null;
-      applyIssuePromptContext(context, issueRef);
+      applyHeartbeatContextPatch(
+        context,
+        buildHeartbeatIssuePromptContextPatch({
+          contextSnapshot: context,
+          issue: issueRef,
+        }),
+      );
       if (roleTemplateResolution.assigned?.template.id === "reviewer" && issueRef) {
         const reviewTarget = await loadReviewTargetForIssue({
           companyId: agent.companyId,
           issueId: issueRef.id,
           currentRunId: run.id,
         });
-        applyReviewerPromptContext(context, issueRef, reviewTarget);
+        applyHeartbeatContextPatch(
+          context,
+          buildHeartbeatReviewerPromptContextPatch({
+            contextSnapshot: context,
+            issue: issueRef,
+            reviewTarget,
+          }),
+        );
       }
 
       let runtimeConfigForRouting = parseObject(agent.runtimeConfig);
@@ -3868,149 +2387,42 @@ export function heartbeatService(db: Db) {
       }
       const routingPreflight = routingPlan.routingPreflight;
       const routingWarnings = [...routingPlan.warnings];
-
-      const executionWorkspace = await realizeExecutionWorkspace({
-        base: {
-          baseCwd: resolvedWorkspace.cwd,
-          source: resolvedWorkspace.source,
-          projectId: resolvedWorkspace.projectId,
-          workspaceId: resolvedWorkspace.workspaceId,
-          repoUrl: resolvedWorkspace.repoUrl,
-          repoRef: resolvedWorkspace.repoRef,
-        },
-        config: resolvedConfig,
-        issue: issueRef,
-        agent: {
-          id: agent.id,
-          name: agent.name,
-          companyId: agent.companyId,
-        },
-      });
-      const runtimeSessionResolution = resolveRuntimeSessionParamsForWorkspace({
-        agentId: agent.id,
+      const workspacePlan = await prepareHeartbeatWorkspaceSessionPlan({
+        db,
+        agent,
+        context,
         previousSessionParams,
-        resolvedWorkspace: {
-          ...resolvedWorkspace,
-          cwd: executionWorkspace.cwd,
-        },
-      });
-      const runtimeSessionParams = runtimeSessionResolution.sessionParams;
-      const runtimeWorkspaceWarnings = [
-        ...routingWarnings,
-        ...resolvedWorkspace.warnings,
-        ...executionWorkspace.warnings,
-        ...(runtimeSessionResolution.warning
-          ? [runtimeSessionResolution.warning]
-          : []),
-        ...(resetTaskSession && sessionResetReason
-          ? [
-              taskKey
-                ? `Skipping saved session resume for task "${taskKey}" because ${sessionResetReason}.`
-                : `Skipping saved session resume because ${sessionResetReason}.`,
-            ]
-          : []),
-      ];
-      context.paperclipWorkspace = {
-        cwd: executionWorkspace.cwd,
-        source: executionWorkspace.source,
-        mode: executionWorkspaceMode,
-        strategy: executionWorkspace.strategy,
-        projectId: executionWorkspace.projectId,
-        workspaceId: executionWorkspace.workspaceId,
-        repoUrl: executionWorkspace.repoUrl,
-        repoRef: executionWorkspace.repoRef,
-        branchName: executionWorkspace.branchName,
-        worktreePath: executionWorkspace.worktreePath,
-        agentHome: resolveDefaultAgentWorkspaceDir(agent.id),
-      };
-      if (issueRef && roleTemplateResolution.assigned?.template.id !== "reviewer") {
-        applyIssuePromptContext(context, issueRef);
-      }
-      context.paperclipWorkspaces = resolvedWorkspace.workspaceHints;
-      const runtimeServiceIntents = (() => {
-        const runtimeConfig = parseObject(resolvedConfig.workspaceRuntime);
-        return Array.isArray(runtimeConfig.services)
-          ? runtimeConfig.services.filter(
-              (value): value is Record<string, unknown> =>
-                typeof value === "object" && value !== null,
-            )
-          : [];
-      })();
-      if (runtimeServiceIntents.length > 0) {
-        context.paperclipRuntimeServiceIntents = runtimeServiceIntents;
-      } else {
-        delete context.paperclipRuntimeServiceIntents;
-      }
-      if (
-        executionWorkspace.projectId &&
-        !readNonEmptyString(context.projectId)
-      ) {
-        context.projectId = executionWorkspace.projectId;
-      }
-      const runtimeSessionFallback =
-        taskKey || resetTaskSession ? null : runtime.sessionId;
-      let previousSessionDisplayId = truncateDisplayId(
-        taskSessionForRun?.sessionDisplayId ??
-          (sessionCodec.getDisplayId
-            ? sessionCodec.getDisplayId(runtimeSessionParams)
-            : null) ??
-          readNonEmptyString(runtimeSessionParams?.sessionId) ??
-          runtimeSessionFallback,
-      );
-      let runtimeSessionIdForAdapter =
-        readNonEmptyString(runtimeSessionParams?.sessionId) ??
-        runtimeSessionFallback;
-      let runtimeSessionParamsForAdapter = runtimeSessionParams;
-      const thinDefaultExecutionPath =
-        readNonEmptyString(context.paperclipDefaultExecutionPath) ===
-        "ready_small_default";
-      let sessionCompaction: SessionCompactionDecision = {
-        rotate: false,
-        reason: null,
-        handoffMarkdown: null,
-        previousRunId: null,
-      };
-
-      if (thinDefaultExecutionPath || context.forceFreshSession === true) {
-        runtimeSessionIdForAdapter = null;
-        runtimeSessionParamsForAdapter = null;
-        previousSessionDisplayId = null;
-        delete context.paperclipSessionHandoffMarkdown;
-        delete context.paperclipSessionRotationReason;
-        delete context.paperclipPreviousSessionId;
-      } else {
-        sessionCompaction = await evaluateSessionCompaction({
-          agent,
-          sessionId: previousSessionDisplayId ?? runtimeSessionIdForAdapter,
-          issueId,
-        });
-        if (sessionCompaction.rotate) {
-          context.paperclipSessionHandoffMarkdown =
-            sessionCompaction.handoffMarkdown;
-          context.paperclipSessionRotationReason = sessionCompaction.reason;
-          context.paperclipPreviousSessionId =
-            previousSessionDisplayId ?? runtimeSessionIdForAdapter;
-          runtimeSessionIdForAdapter = null;
-          runtimeSessionParamsForAdapter = null;
-          previousSessionDisplayId = null;
-          if (sessionCompaction.reason) {
-            runtimeWorkspaceWarnings.push(
-              `Starting a fresh session because ${sessionCompaction.reason}.`,
-            );
-          }
-        } else {
-          delete context.paperclipSessionHandoffMarkdown;
-          delete context.paperclipSessionRotationReason;
-          delete context.paperclipPreviousSessionId;
-        }
-      }
-
-      const runtimeForAdapter = {
-        sessionId: runtimeSessionIdForAdapter,
-        sessionParams: runtimeSessionParamsForAdapter,
-        sessionDisplayId: previousSessionDisplayId,
+        runtimeSessionId: runtime.sessionId ?? null,
         taskKey,
-      };
+        taskSessionForRun: taskSessionForRun
+          ? { sessionDisplayId: taskSessionForRun.sessionDisplayId }
+          : null,
+        resetTaskSession,
+        resolvedConfig,
+        executionWorkspaceMode,
+        useProjectWorkspace: executionWorkspaceMode !== "agent_default",
+        issueId,
+        issueRef,
+        sessionCodec,
+        baseWarnings: routingWarnings,
+        realizeExecutionWorkspace,
+      });
+      applyHeartbeatContextPatch(context, workspacePlan.contextPatch);
+      if (issueRef && roleTemplateResolution.assigned?.template.id !== "reviewer") {
+        applyHeartbeatContextPatch(
+          context,
+          buildHeartbeatIssuePromptContextPatch({
+            contextSnapshot: context,
+            issue: issueRef,
+          }),
+        );
+      }
+      const executionWorkspace = workspacePlan.executionWorkspace;
+      const runtimeWorkspaceWarnings = [...workspacePlan.warnings];
+      const sessionCompaction = workspacePlan.sessionCompaction;
+      const runtimeForAdapter = workspacePlan.runtimeForAdapter;
+      const singleFileBenchmarkPreflight =
+        workspacePlan.singleFileBenchmarkPreflight;
 
       const runtimeStatePatch = routingPreflight
         ? {
@@ -4312,11 +2724,6 @@ export function heartbeatService(db: Db) {
           resolvedConfig.model = routedModelOverride;
         }
 
-        const singleFileBenchmarkPreflight =
-          await evaluateSingleFileBenchmarkPreflight({
-            contextSnapshot: context,
-            resolvedConfig,
-          });
         if (singleFileBenchmarkPreflight.required) {
           await appendRunEvent(currentRun, seq++, {
             eventType: "lifecycle",
@@ -5072,7 +3479,11 @@ export function heartbeatService(db: Db) {
 
           if (
             taskKey &&
-            (previousSessionParams || previousSessionDisplayId || taskSession)
+            (
+              previousSessionParams ||
+              runtimeForAdapter.sessionDisplayId ||
+              taskSession
+            )
           ) {
             await upsertTaskSession({
               companyId: agent.companyId,
@@ -5080,7 +3491,7 @@ export function heartbeatService(db: Db) {
               adapterType: agent.adapterType,
               taskKey,
               sessionParamsJson: previousSessionParams,
-              sessionDisplayId: previousSessionDisplayId,
+              sessionDisplayId: runtimeForAdapter.sessionDisplayId,
               lastRunId: failedRun.id,
               lastError: message,
             });

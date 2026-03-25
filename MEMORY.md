@@ -109,6 +109,7 @@
 - Wenn eine frische CEO-Zuweisung weder `executionRunId` noch `live-runs` erzeugt, bevor irgendein Child entsteht, ist das ein Core-Loop-Blocker vor jeder Arbeitsklasse; keinen groesseren Capability-Sprint darueberstapeln.
 - Ein `blocked`-Run ist Packet-/Policy-Wahrheit, nicht kaputter Agent: Worker und CEO muessen nach `blocked` ohne aktive Rest-Runs wieder auf `idle` zurueckfallen, sowohl im Finalisierungspfad als auch in stale Status-Reconciliation.
 - Der Flash-Lite-Router soll fuer Paperclip-Issues bevorzugt den kompakten `paperclipIssue`-Titel/-Text statt des aufgeblasenen Assignment-Prompts klassifizieren; sonst koennen kleine Single-File-Packets falsch als `large/high` ueberklassifiziert werden.
+- `heartbeat.ts` wird ab jetzt nur noch als Orchestrationskern weitergefuehrt; die dicken Entscheidungsbloecke leben testbar in `heartbeat-gemini-routing.ts`, `heartbeat-prompt-context.ts`, `heartbeat-workspace-session.ts` und `heartbeat-run-finalization.ts`.
 
 ## Astro/Keystatic Workspace-Sicherheit
 - Live Primary Workspace fuer Projekt `0bce43aa-2bb9-4572-9938-f556a3279149`: `C:\Users\holyd\DGDH\worktrees\astro-keystatic-template-geib`

@@ -18,6 +18,14 @@ const heartbeatSource = readFileSync(
   path.resolve(__dirname, "../../..", "server/src/services/heartbeat.ts"),
   "utf8",
 );
+const finalizationSource = readFileSync(
+  path.resolve(
+    __dirname,
+    "../../..",
+    "server/src/services/heartbeat-run-finalization.ts",
+  ),
+  "utf8",
+);
 
 // ---------------------------------------------------------------------------
 // A) Agent health surface — blocked / awaiting_approval
@@ -257,13 +265,10 @@ describe("DGDH State Truth — gate finalization wiring", () => {
   });
 
   it("awaiting_approval maps to idle in finalizeAgentStatus (not error)", () => {
-    // The nextStatus ternary must include awaiting_approval in the idle branch
-    expect(heartbeatSource).toContain(
-      'outcome === "awaiting_approval"',
-    );
+    expect(finalizationSource).toContain('outcome === "awaiting_approval"');
   });
 
   it("blocked maps to idle in finalizeAgentStatus (not error)", () => {
-    expect(heartbeatSource).toContain('outcome === "blocked"');
+    expect(finalizationSource).toContain('outcome === "blocked"');
   });
 });

@@ -13,6 +13,10 @@ const heartbeatSource = readFileSync(
   path.join(serverRoot, "server/src/services/heartbeat.ts"),
   "utf8",
 );
+const workspaceSessionSource = readFileSync(
+  path.join(serverRoot, "server/src/services/heartbeat-workspace-session.ts"),
+  "utf8",
+);
 const executeSource = readFileSync(
   path.join(
     serverRoot,
@@ -23,19 +27,19 @@ const executeSource = readFileSync(
 
 describe("DGDH Engine V1 - session compaction defaults", () => {
   it("maxSessionRuns default is 20", () => {
-    expect(heartbeatSource).toContain(
+    expect(workspaceSessionSource).toContain(
       'asNumber(compaction.maxSessionRuns, 20)',
     );
   });
 
   it("maxRawInputTokens default is 500_000", () => {
-    expect(heartbeatSource).toContain(
+    expect(workspaceSessionSource).toContain(
       'asNumber(compaction.maxRawInputTokens, 500_000)',
     );
   });
 
   it("maxSessionAgeHours default is 48", () => {
-    expect(heartbeatSource).toContain(
+    expect(workspaceSessionSource).toContain(
       'asNumber(compaction.maxSessionAgeHours, 48)',
     );
   });
