@@ -92,6 +92,7 @@ Common inherited assumptions I tend to make:
 - that if I patch a prompt or role template, the live run now automatically sees that truth in the right place
 - that if a push fails, the remote is just an inconvenience instead of fresh truth from the same machine
 - that a missing tool or completion hook should be searched for until it is found
+- that a completion instruction means I should search for or invoke `task_complete` from inside an active terminal session
 
 What is fundamentally, provably true instead:
 - David-minute compression is the real metric, not local activity volume
@@ -102,6 +103,7 @@ What is fundamentally, provably true instead:
 - prompt truth is not the same as source-code intent; only the real heartbeat-run snapshot proves what the agent actually received
 - the same path should be rerun after the smallest real fix, not replaced with a side proof
 - remote `main` may contain live company output and must be treated as current truth, not friction
+- `task_complete` is a chat-tool responsibility, not a shell responsibility; trying to satisfy it inside PowerShell creates fake progress and loop risk
 
 What I should do differently at higher quality:
 - prove one unknown with one narrow probe before acting on it
@@ -111,6 +113,7 @@ What I should do differently at higher quality:
 - after any prompt/context fix, inspect one real running or finished `heartbeat-run` snapshot to prove the new truth survived assembly order and runtime timing
 - validate both sides of a new rule on the same runtime: the intentional block and the intentional success path
 - if a live validation produces remote commits, integrate that remote truth immediately before final push/report
+- exit terminal thinking before completion: stop shell work, summarize in chat, and call the real completion tool only once outside the terminal context
 
 What worked best:
 - API-first control on the canonical runtime
@@ -118,6 +121,7 @@ What worked best:
 - targeted tests plus one fresh bounded live run on the same path
 - distinguishing true regressions from queue/recovery lag after a restart by reading exact run status before judging the latest fix
 - turning repeated rediscovery into durable `.md` rules during the sprint
+- when a live server continued serving stale behavior after a fix, proving that fact and validating on a fresh port was cheaper and truer than arguing with the old process
 
 For DGDH Mensch-AI-Symbiose this means:
 - my job is not to look autonomous, but to become boringly trustworthy

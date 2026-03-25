@@ -33,6 +33,7 @@ Important run facts:
 - the dev runner can move from `3100` to the next free port if `3100` is busy
 - the startup banner is more trustworthy than the port you expected
 - prove runtime identity with the banner plus `/api/health` and `/api/companies` before trusting the server
+- if a live server on `3100` still serves pre-fix behavior after code changes, launch a fresh `pnpm dev:once` instance on the next free port and re-prove identity there before judging the fix
 
 If PowerShell command shape becomes fragile:
 - stop composing clever multiline commands
@@ -173,6 +174,12 @@ Anti-patterns:
 - broad repo scans for facts one API call can answer
 - noisy terminal harvesting after runtime identity is already proven
 - repeated hunting for hidden completion hooks
+- trying to invoke or debug `task_complete` from inside a terminal instead of leaving the shell and using the chat tool
+
+Completion skill:
+- `task_complete` is never a shell command to discover, define, or retry in PowerShell
+- when implementation is done, stop terminal work first, then complete from the chat tool layer with one summary plus one real completion call
+- if a terminal transcript shows repeated `task_complete` attempts, treat that as drift and cut it immediately
 
 ---
 

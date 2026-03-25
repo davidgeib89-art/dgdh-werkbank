@@ -84,6 +84,11 @@ type MergeChildBlocked = {
 
 export type MergeChildResult = MergeChildOutcome | MergeChildConflict | MergeChildBlocked;
 
+function isPullRequestLookupNotFoundError(err: unknown): boolean {
+  if (!(err instanceof Error)) return false;
+  return err.message.includes("GitHub pull request lookup failed (404)");
+}
+
 type OrchestratorNoTriggerReason =
   | "verdict_not_accepted"
   | "child_not_found"
@@ -686,6 +691,8 @@ export function ceoService(db: Db) {
   async function mergeIssuePullRequest(input: {
     issueId: string;
     prNumber: number;
+    prUrl?: string | null;
+    branch?: string | null;
     requestedBy: MergeActor;
   }): Promise<MergeChildResult> {
     if (!Number.isInteger(input.prNumber) || input.prNumber <= 0) {
@@ -695,9 +702,54 @@ export function ceoService(db: Db) {
     const issue = await getIssueById(input.issueId);
     if (!issue) throw badRequest("Issue not found");
 
-    const prDetails = await githubSvc.getGitHubPullRequest({
-      prNumber: input.prNumber,
-    });
+    let prDetails: {
+      prNumber: number;
+      prUrl: string | null;
+      branch: string | null;
+    };
+    try {
+      prDetails = await githubSvc.getGitHubPullRequest({
+        prNumber: input.prNumber,
+      });
+    } catch (err) {
+      if (!isPullRequestLookupNotFoundError(err)) {
+        throw err;
+      }
+      const message = err instanceof Error ? err.message : String(err);
+      const activityRunId = await resolvePersistedActivityRunId(
+        input.requestedBy.runId,
+      );
+      await issuesSvc.update(issue.id, { status: MERGE_CONFLICT_STATUS });
+      await logActivity(db, {
+        companyId: issue.companyId,
+        actorType: input.requestedBy.actorType,
+        actorId: input.requestedBy.actorId,
+        agentId: input.requestedBy.agentId ?? null,
+        runId: activityRunId,
+        action: "issue.merge_conflict_detected",
+        entityType: "issue",
+        entityId: issue.id,
+        details: withApiRunIdFallbackDetails(
+          {
+            identifier: issue.identifier,
+            prNumber: input.prNumber,
+            prUrl: input.prUrl ?? null,
+            branch: input.branch ?? null,
+            message,
+            reason: "pull_request_lookup_failed",
+          },
+          input.requestedBy.runId,
+          activityRunId,
+        ),
+      });
+      return {
+        outcome: "merge_conflict",
+        prNumber: input.prNumber,
+        prUrl: input.prUrl ?? null,
+        branch: input.branch ?? null,
+        message,
+      };
+    }
     const workerMergeScope = await getWorkerMergeScopeForIssue(issue.id);
     if (!workerMergeScope) {
       const message = "Merge blocked: missing canonical worker-done summary.files metadata for this issue.";
@@ -1085,6 +1137,8 @@ export function ceoService(db: Db) {
           mergeIssuePullRequest({
             issueId: targetChildIssue.id,
             prNumber: pr.prNumber,
+            prUrl: pr.prUrl,
+            branch: pr.branch,
             requestedBy: {
               actorType: "agent",
               actorId: ceoAgentId ?? input.reviewerAgentId,

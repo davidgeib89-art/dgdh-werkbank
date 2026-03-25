@@ -1,18 +1,22 @@
 # CURRENT - Live Baton
 
-focus: die erste Produktantwort auf die Post-Handoff-Reibung ist jetzt issue-branch-truth im Worker-Handoff auf canonical `main`; der naechste Hebel ist den naechsten Downstream-Verlust erst nach dieser gelandeten Handoff-Haertung wieder live zu lesen
-active_issue: `PAPERCLIP_WORKSPACE_BRANCH` wird jetzt nach Workspace-Realize in den live `paperclipTaskPrompt` gehoben und im Worker-Template als kanonische Reuse-Regel erzwungen; `run-truth-surface-v1` ist damit vorerst wieder nur spaeterer Kandidat, nicht der aktuelle Sprint
+focus: der naechste wirklich bewiesene Post-Handoff-Verlust nach issue-branch-truth ist merge-reconciliation-loss; nach `reviewer_accepted` durfte ein GitHub-PR-Lookup-404 den Lauf nicht weiter in `running`/`reviewer_accepted` haengen lassen und ist jetzt als explizite Produktkante auf canonical `main` gehaertet
+active_issue: `ceo.mergeIssuePullRequest` behandelt nicht aufloesbare PR-Wahrheit jetzt als expliziten `merge_conflict` statt den Reviewer-/Merge-Pfad mit einem rohen GitHub-404 abzubrechen; die offene Restpflicht ist jetzt ein weiterer frischer Firmenlauf hinter dieser gelandeten Haertung
 
 next:
-  1) denselben bounded Firmenlauf auf canonical `main` erneut live lesen und pruefen, welche Verlustklasse nach dem gelandeten Worker-Handoff-Fix als naechstes wirklich zuerst schmerzt
-  2) erst danach den naechsten grossen Sprint schneiden; moegliche Restklassen bleiben Reviewer-, Merge-, Recovery- oder Run-Truth-Reibung
+  1) denselben bounded Firmenlauf auf canonical `main` weiter live lesen und erst nach dieser gelandeten Merge-Reconciliation-Haertung den naechsten echten Restverlust schneiden
+  2) aus `DAV-63`/`DAV-64` keinen neuen Sprint raten, solange der frische Worker-Lauf noch keinen terminalen neuen Verlust bewiesen hat
 blockers:
-  - kein neuer Bereichsblocker ist bewiesen; offene Restpflicht ist nur die erneute Live-Revalidierung nach gelandeter Worker-Handoff-Haertung
+  - kein weiterer neuer Bereichsblocker ist bewiesen; offene Restpflicht bleibt nur ein weiterer frischer Live-Pfad nach gelandeter Merge-Reconciliation-Haertung
 strategy_anchor:
   - `doc/plans/2026-03-24-dgdh-first-principles-operating-doctrine.md`
   - `doc/plans/2026-03-21-dgdh-north-star-roadmap.md`
   - `doc/plans/2026-03-23-focus-freeze.md`
 notes:
+  - `DAV-61` -> `DAV-62` beweist die neue Restklasse live: Worker-Handoff und Reviewer-Run liefen durch (`d6d283cf-1c7e-4100-b278-0d68e5fac09c`, `e5b11f6e-84b2-45d8-98df-bb87034d2d46`), aber `POST /api/issues/:id/reviewer-verdict` strandete danach an `GitHub pull request lookup failed (404): Not Found`; der Child-Issue-Status blieb `reviewer_accepted`, waehrend der Reviewer-Run `running` blieb
+  - Die minimale Produktantwort ist jetzt auf canonical `main` gelandet: nicht aufloesbare PR-Metadaten werden im CEO-Merge-Service als expliziter `merge_conflict` geloggt und zurueckgegeben, statt den Reviewer-/Merge-Pfad mit einem rohen Fehler abzubrechen
+  - Live-Revalidierung des Fixes lief auf einer frischen Serverinstanz auf Port `3101`, weil der alte 3100-Prozess weiter alten Code servierte: derselbe `DAV-62`-`merge-pr`-Call liefert jetzt sauber `status = merge_conflict` mit Message `GitHub pull request lookup failed (404): Not Found`, und der persistierte Issue-Status sprang auf `merge_conflict`
+  - Frischer bounded Firmenlauf `DAV-63` auf canonical main ist wieder gestartet; Child `DAV-64` wurde im selben Firmenpfad vom CEO erzeugt und dem Worker zugewiesen, war beim Handoff aber noch nicht terminal und beweist darum noch keine neue Verlustklasse
   - Der Produktfix fuer den ersten Post-Handoff-Verlust ist jetzt auf canonical `main` gelandet (`d6a7ea2`): die kanonische Issue-Branch-Wahrheit wird fuer Worker schmal doppelt sichtbar gemacht, im live Prompt ueber `PAPERCLIP_WORKSPACE_BRANCH` und im Role-Template als Reuse-Regel fuer Commit-/PR-/worker-done-Handoffs
   - Die zugehoerigen Tests `heartbeat-issue-prompt-context` und `role-templates` decken die neue Branch-Reuse-Wahrheit explizit ab
   - Lokale Verifikation fuer diesen bounded Fix ist gruen: gezielte Vitest-Tests, `pnpm -r typecheck`, `pnpm test:run`, `pnpm build`
@@ -52,5 +56,5 @@ notes:
   - Validiert wurden `pnpm -r typecheck` sowie gezielte Server-Tests fuer `gemini-local`, control-plane resolver und gemini pipeline; kein voller `pnpm test:run` oder `pnpm build` in diesem Sprint behauptet
   - Fuer den Routing-Fix liefen zusaetzlich die gezielten Tests `gemini-routing-engine`, `gemini-control-plane-resolver`, `gemini-local-execute` und `gemini-pipeline-e2e` gruen
   - Kein Meta-Umbau als Reaktion: der Sprint endet bewusst ohne neue Reflexionsdatei; der naechste Schritt ist wieder echter Firmenfortschritt
-last_updated_by: Codex (post-worker-branch-truth landing)
+last_updated_by: Codex (merge-reconciliation-loss landing)
 updated_at: 2026-03-25

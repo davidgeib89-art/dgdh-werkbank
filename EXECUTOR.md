@@ -159,6 +159,7 @@ Tooling rule for real runs:
 - prefer exact workspace tools and direct API probes over broad terminal searches
 - reserve terminal use for starting/stopping the runtime, one focused process probe, or one precise command when no better tool exists
 - if a command would spill large logs, redirect it to a file or choose a narrower probe and read only the exact lines you need
+- terminal commands are for runtime/process/API work, not for chat-only completion hooks; never try to satisfy `task_complete` from inside a shell session
 
 Quality and token rule for real runs:
 - once the loop basically works, inspect one real assigned run for prompt identity completeness before calling the path truly learned
@@ -255,6 +256,12 @@ Additional correction:
 > If the shell itself becomes the blocker, shell cleverness is no longer progress.
 
 Switch to a simpler command shape, a script file, or a fresh process. The target is the company path, not terminal virtuosity.
+
+Completion correction:
+
+> `task_complete` belongs to the chat/tool layer, not to PowerShell.
+
+If you catch yourself searching for, defining, or repeatedly invoking `task_complete` inside a terminal, stop immediately. Exit the shell workflow, return to the chat tool context, give the short completion summary there, and call the actual completion tool once.
 
 ---
 
