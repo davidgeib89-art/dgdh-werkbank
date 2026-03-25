@@ -1,13 +1,13 @@
 # CURRENT - Live Baton
 
-focus: `boring-repeatable-work-class-v1` ist am Gate gestoppt; die erste neue Reibung auf canonical `main` ist noch vor jeder Arbeitsklasse eine assignment-to-run kickoff loss im Core-Loop
-active_issue: frisch zugewiesene CEO-Parent-Issues erzeugen auf canonical `main` gerade keinen Parent-Run mehr; ohne `executionRunId`, `live-runs` oder Child-Erzeugung darf kein grosser Arbeitsklassen-Sprint weiterlaufen
+focus: `boring-repeatable-work-class-v1` bleibt gestoppt, aber die Reibung ist enger geschnitten: frische ready-Parent-Issues erzeugen auf canonical `main` wieder Parent-Runs; der naechste Truth Cut sitzt jetzt innerhalb des laufenden CEO-Parent-Runs vor der ersten Child-Erzeugung
+active_issue: auf canonical `main` bekommen frische ready-Parent-Issues wieder `executionRunId` und `live-runs`; die offene Frage ist jetzt, warum `DAV-70`/`DAV-71` trotz laufendem bzw. gequeue'dem Parent-Run noch ohne Child-Issue bleiben
 
 next:
-  1) den neuen Pre-Child-Core-Loop-Verlust erst sauber isolieren: warum erzeugt CEO-Zuweisung auf canonical `main` keinen Parent-Run mehr
+  1) den laufenden CEO-Parent-Run selbst lesen: warum erzeugen `DAV-70` und `DAV-71` nach erfolgreichem Kickoff noch kein Child-Issue
   2) erst nach diesem Beweis den Arbeitsklassen-Sprint wieder aufmachen; davor kein `boring-repeatable-work-class`-Weiterbau
 blockers:
-  - Gate-Run blockiert schon vor Child-Erzeugung: `DAV-65` auf Port `3100` und `DAV-66` auf frischer `3101`-Instanz blieben beide nach CEO-Zuweisung ohne `executionRunId`, ohne `live-runs` und ohne Child-Issue
+  - Pre-Child-Blocker bleibt real, aber nicht mehr als reiner Kickoff-Verlust: `DAV-70` und `DAV-71` bekamen beide auf Port `3100` echte Parent-Runs (`executionRunId` gesetzt), blieben im ersten Truth Cut aber noch ohne Child-Issue
 strategy_anchor:
   - `doc/plans/2026-03-24-dgdh-first-principles-operating-doctrine.md`
   - `doc/plans/2026-03-21-dgdh-north-star-roadmap.md`
@@ -18,6 +18,9 @@ notes:
   - Die neue erste Verlustklasse ist damit keine Arbeitsklassen-Reibung, sondern `assignment-to-run kickoff loss` vor dem ersten Parent-Run; truth source sind `GET /api/issues/:id`, `GET /api/issues/:id/live-runs`, `GET /api/companies/:companyId/live-runs` und Agent-Status auf `3100` und `3101`
   - Konsequenz fuer den North-Star-Sprint: sofortiger Stop. Solange eine frische CEO-Zuweisung keinen Parent-Run erzeugt, ist keine `boringly repeatable work class` ernsthaft bewiesen
   - `DAV-61` -> `DAV-62` beweist die neue Restklasse live: Worker-Handoff und Reviewer-Run liefen durch (`d6d283cf-1c7e-4100-b278-0d68e5fac09c`, `e5b11f6e-84b2-45d8-98df-bb87034d2d46`), aber `POST /api/issues/:id/reviewer-verdict` strandete danach an `GitHub pull request lookup failed (404): Not Found`; der Child-Issue-Status blieb `reviewer_accepted`, waehrend der Reviewer-Run `running` blieb
+  - Neuer Truth-Cut auf canonical `main` nach `76d5f1f`: `DAV-70` (`44cf2483-def2-47ee-ab4e-f58d03f95673`) mit explizit ready `doc_update`-Packet bekam nach normaler CEO-Zuweisung sofort `executionRunId = 2c485235-03c4-491c-aa97-be26042ed52b`, `issue live-runs = 1`, `company live-runs = 1`; der alte reine `assignment-to-run kickoff loss` ist damit fuer ready Packets nicht mehr die erste gebrochene Transition
+  - Zweiter Gegenprobe-Lauf im alten DAV-68-Shape bestaetigt dieselbe Verengung: `DAV-71` (`8211a20a-85d5-4607-b281-57d26807de52`) als bounded multi-file regression-test packet bekam nach normaler CEO-Zuweisung ebenfalls sofort `executionRunId = 28ed9b85-ceda-4001-a3fc-a8cd0cfb13f1`; die Packet-Truth-Haertung in `76d5f1f` hat diesen frueheren Gate-Shape geoeffnet
+  - Die neue offene Kante ist damit schmaler: `DAV-70` blieb nach ~20s `running` ohne Child-Issue, `DAV-71` war `queued` ohne Child-Issue; der naechste Truth Cut liegt nicht mehr bei `assignment -> no run`, sondern innerhalb des laufenden Parent-Run-Pfads vor Child-Erzeugung
   - Die minimale Produktantwort ist jetzt auf canonical `main` gelandet: nicht aufloesbare PR-Metadaten werden im CEO-Merge-Service als expliziter `merge_conflict` geloggt und zurueckgegeben, statt den Reviewer-/Merge-Pfad mit einem rohen Fehler abzubrechen
   - Live-Revalidierung des Fixes lief auf einer frischen Serverinstanz auf Port `3101`, weil der alte 3100-Prozess weiter alten Code servierte: derselbe `DAV-62`-`merge-pr`-Call liefert jetzt sauber `status = merge_conflict` mit Message `GitHub pull request lookup failed (404): Not Found`, und der persistierte Issue-Status sprang auf `merge_conflict`
   - Frischer bounded Firmenlauf `DAV-63` auf canonical main ist wieder gestartet; Child `DAV-64` wurde im selben Firmenpfad vom CEO erzeugt und dem Worker zugewiesen, war beim Handoff aber noch nicht terminal und beweist darum noch keine neue Verlustklasse
