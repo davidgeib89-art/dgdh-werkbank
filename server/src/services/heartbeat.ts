@@ -128,6 +128,12 @@ const RUN_KEEPALIVE_INTERVAL_MS = 25_000;
 const RUN_KEEPALIVE_MIN_TOUCH_AGE_MS = 60_000;
 const ABSOLUTE_RUN_TOKEN_HARD_CAP = 150_000;
 const DEFERRED_WAKE_CONTEXT_KEY = "_paperclipWakeContext";
+export const POST_TOOL_CAPACITY_ERROR_CODE = "post_tool_capacity_exhausted";
+export const POST_TOOL_CAPACITY_DEFERRED_WAKE_STATUS =
+  "deferred_capacity_cooldown";
+const POST_TOOL_CAPACITY_COOLDOWN_SEC_DEFAULT = 180;
+const POST_TOOL_CAPACITY_COOLDOWN_SEC_MIN = 30;
+const POST_TOOL_CAPACITY_COOLDOWN_SEC_MAX = 900;
 const CLOSED_ISSUE_STATUSES = new Set([
   "done",
   "cancelled",
@@ -216,6 +222,19 @@ export type UsageTotals = {
   inputTokens: number;
   cachedInputTokens: number;
   outputTokens: number;
+};
+
+export type PostToolCapacityState = {
+  toolCallCount: number;
+  toolResultCount: number;
+  successfulToolResultCount: number;
+  failedToolResultCount: number;
+  firstSuccessfulToolName: string | null;
+  lastSuccessfulToolName: string | null;
+  sessionId: string | null;
+  issueId: string | null;
+  taskKey: string | null;
+  message: string | null;
 };
 
 interface ParsedIssueAssigneeAdapterOverrides {
@@ -876,6 +895,128 @@ export function shouldPromoteDeferredIssueExecution(
 ) {
   const normalized = readNonEmptyString(issueStatus)?.toLowerCase();
   return normalized == null || !CLOSED_ISSUE_STATUSES.has(normalized);
+}
+
+export function resolvePostToolCapacityCooldownSec(runtimeConfig: unknown) {
+  const parsedRuntime = parseObject(runtimeConfig);
+  const heartbeat = parseObject(parsedRuntime.heartbeat);
+  const configured = Math.floor(
+    asNumber(
+      heartbeat.postToolCapacityCooldownSec,
+      asNumber(
+        parsedRuntime.postToolCapacityCooldownSec,
+        POST_TOOL_CAPACITY_COOLDOWN_SEC_DEFAULT,
+      ),
+    ),
+  );
+  if (!Number.isFinite(configured)) {
+    return POST_TOOL_CAPACITY_COOLDOWN_SEC_DEFAULT;
+  }
+  return Math.max(
+    POST_TOOL_CAPACITY_COOLDOWN_SEC_MIN,
+    Math.min(POST_TOOL_CAPACITY_COOLDOWN_SEC_MAX, configured),
+  );
+}
+
+export function readPostToolCapacityState(input: {
+  errorCode?: unknown;
+  resultJson?: unknown;
+  sessionId?: string | null;
+  issueId?: string | null;
+  taskKey?: string | null;
+}): PostToolCapacityState | null {
+  const errorCode = readNonEmptyString(input.errorCode);
+  const resultJson = parseObject(input.resultJson);
+  const type = readNonEmptyString(resultJson.type);
+  if (
+    errorCode !== POST_TOOL_CAPACITY_ERROR_CODE &&
+    type !== POST_TOOL_CAPACITY_ERROR_CODE
+  ) {
+    return null;
+  }
+
+  const capacity = parseObject(resultJson.capacity);
+  return {
+    toolCallCount: Math.max(0, Math.floor(asNumber(capacity.toolCallCount, 0))),
+    toolResultCount: Math.max(
+      0,
+      Math.floor(asNumber(capacity.toolResultCount, 0)),
+    ),
+    successfulToolResultCount: Math.max(
+      0,
+      Math.floor(asNumber(capacity.successfulToolResultCount, 0)),
+    ),
+    failedToolResultCount: Math.max(
+      0,
+      Math.floor(asNumber(capacity.failedToolResultCount, 0)),
+    ),
+    firstSuccessfulToolName:
+      readNonEmptyString(capacity.firstSuccessfulToolName) ?? null,
+    lastSuccessfulToolName:
+      readNonEmptyString(capacity.lastSuccessfulToolName) ?? null,
+    sessionId: input.sessionId ?? null,
+    issueId: input.issueId ?? null,
+    taskKey: input.taskKey ?? null,
+    message:
+      readNonEmptyString(resultJson.message) ??
+      readNonEmptyString(resultJson.summary) ??
+      null,
+  };
+}
+
+export function isPostToolCapacityWakeReady(
+  payload: unknown,
+  now = new Date(),
+) {
+  const parsed = parseObject(payload);
+  if (readNonEmptyString(parsed.resumeKind) !== "post_tool_capacity") {
+    return false;
+  }
+  const notBefore = readNonEmptyString(parsed.notBefore);
+  if (!notBefore) return true;
+  const parsedTs = Date.parse(notBefore);
+  if (!Number.isFinite(parsedTs)) return true;
+  return parsedTs <= now.getTime();
+}
+
+function buildPostToolCapacityResultJson(input: {
+  baseResultJson: unknown;
+  state: PostToolCapacityState;
+  cooldownSec: number;
+  cooldownUntil: string;
+}) {
+  const base = parseObject(input.baseResultJson);
+  const resume = parseObject(base.resume);
+  return {
+    ...base,
+    type: POST_TOOL_CAPACITY_ERROR_CODE,
+    status: "cooldown_pending",
+    result: "deferred",
+    message:
+      input.state.message ??
+      "Model capacity exhausted after successful tool calls.",
+    deferredState: {
+      kind: "post_tool_capacity_cooldown",
+      state: "cooldown_pending",
+      issueId: input.state.issueId,
+      childIssueCreated: false,
+      parentDelegationPath: "active",
+      nextResumePoint: "resume_existing_session_before_child_create",
+      cooldownSec: input.cooldownSec,
+      cooldownUntil: input.cooldownUntil,
+      taskKey: input.state.taskKey,
+    },
+    resume: {
+      ...resume,
+      strategy: "reuse_session",
+      state: "cooldown_pending",
+      sessionId: input.state.sessionId,
+      issueId: input.state.issueId,
+      taskKey: input.state.taskKey,
+      nextWakeStatus: POST_TOOL_CAPACITY_DEFERRED_WAKE_STATUS,
+      nextWakeNotBefore: input.cooldownUntil,
+    },
+  };
 }
 
 function enrichWakeContextSnapshot(input: {
@@ -1899,7 +2040,195 @@ export function heartbeatService(db: Db) {
     return { reaped: reaped.length, runIds: reaped };
   }
 
+  async function promoteDuePostToolCapacityWakeups(now = new Date()) {
+    const deferredWakeups = await db
+      .select()
+      .from(agentWakeupRequests)
+      .where(eq(agentWakeupRequests.status, POST_TOOL_CAPACITY_DEFERRED_WAKE_STATUS))
+      .orderBy(asc(agentWakeupRequests.requestedAt));
+
+    for (const deferred of deferredWakeups) {
+      if (!isPostToolCapacityWakeReady(deferred.payload, now)) continue;
+
+      const promotedRun = await db.transaction(async (tx) => {
+        const liveDeferred = await tx
+          .select()
+          .from(agentWakeupRequests)
+          .where(eq(agentWakeupRequests.id, deferred.id))
+          .then((rows) => rows[0] ?? null);
+        if (
+          !liveDeferred ||
+          liveDeferred.status !== POST_TOOL_CAPACITY_DEFERRED_WAKE_STATUS ||
+          !isPostToolCapacityWakeReady(liveDeferred.payload, now)
+        ) {
+          return null;
+        }
+
+        const payload = parseObject(liveDeferred.payload);
+        const issueId = readNonEmptyString(payload.issueId);
+        if (!issueId) {
+          await tx
+            .update(agentWakeupRequests)
+            .set({
+              status: "failed",
+              finishedAt: now,
+              error: "Deferred capacity wake missing issueId",
+              updatedAt: now,
+            })
+            .where(eq(agentWakeupRequests.id, liveDeferred.id));
+          return null;
+        }
+
+        const deferredAgent = await tx
+          .select()
+          .from(agents)
+          .where(eq(agents.id, liveDeferred.agentId))
+          .then((rows) => rows[0] ?? null);
+        if (
+          !deferredAgent ||
+          deferredAgent.companyId !== liveDeferred.companyId ||
+          deferredAgent.status === "paused" ||
+          deferredAgent.status === "terminated" ||
+          deferredAgent.status === "pending_approval"
+        ) {
+          await tx
+            .update(agentWakeupRequests)
+            .set({
+              status: "failed",
+              finishedAt: now,
+              error:
+                "Deferred capacity wake could not be promoted: agent is not invokable",
+              updatedAt: now,
+            })
+            .where(eq(agentWakeupRequests.id, liveDeferred.id));
+          return null;
+        }
+
+        const issue = await tx
+          .select({
+            id: issues.id,
+            companyId: issues.companyId,
+            status: issues.status,
+            executionRunId: issues.executionRunId,
+          })
+          .from(issues)
+          .where(
+            and(eq(issues.id, issueId), eq(issues.companyId, deferredAgent.companyId)),
+          )
+          .then((rows) => rows[0] ?? null);
+        if (!issue) {
+          await tx
+            .update(agentWakeupRequests)
+            .set({
+              status: "failed",
+              finishedAt: now,
+              error: "Deferred capacity wake issue not found",
+              updatedAt: now,
+            })
+            .where(eq(agentWakeupRequests.id, liveDeferred.id));
+          return null;
+        }
+        if (!shouldPromoteDeferredIssueExecution(issue.status)) {
+          await tx
+            .update(agentWakeupRequests)
+            .set({
+              status: "failed",
+              finishedAt: now,
+              error: `Deferred capacity wake skipped: issue is ${issue.status}`,
+              updatedAt: now,
+            })
+            .where(eq(agentWakeupRequests.id, liveDeferred.id));
+          return null;
+        }
+        if (issue.executionRunId) {
+          return null;
+        }
+
+        const deferredContextSeed = parseObject(payload[DEFERRED_WAKE_CONTEXT_KEY]);
+        const promotedPayload = { ...payload };
+        delete promotedPayload[DEFERRED_WAKE_CONTEXT_KEY];
+        const promotedReason =
+          readNonEmptyString(liveDeferred.reason) ?? "post_tool_capacity_resume";
+        const promotedSource =
+          (readNonEmptyString(liveDeferred.source) as WakeupOptions["source"]) ??
+          "automation";
+        const promotedTriggerDetail =
+          (readNonEmptyString(
+            liveDeferred.triggerDetail,
+          ) as WakeupOptions["triggerDetail"]) ?? null;
+        const {
+          contextSnapshot: promotedContextSnapshot,
+          taskKey: promotedTaskKey,
+        } = enrichWakeContextSnapshot({
+          contextSnapshot: deferredContextSeed,
+          reason: promotedReason,
+          source: promotedSource,
+          triggerDetail: promotedTriggerDetail,
+          payload: promotedPayload,
+        });
+        const sessionBefore = await resolveSessionBeforeForWakeup(
+          deferredAgent,
+          promotedTaskKey,
+        );
+        const newRun = await tx
+          .insert(heartbeatRuns)
+          .values({
+            companyId: deferredAgent.companyId,
+            agentId: deferredAgent.id,
+            invocationSource: promotedSource,
+            triggerDetail: promotedTriggerDetail,
+            status: "queued",
+            wakeupRequestId: liveDeferred.id,
+            contextSnapshot: promotedContextSnapshot,
+            sessionIdBefore: sessionBefore,
+          })
+          .returning()
+          .then((rows) => rows[0]);
+
+        await tx
+          .update(agentWakeupRequests)
+          .set({
+            status: "queued",
+            reason: "post_tool_capacity_resume",
+            runId: newRun.id,
+            claimedAt: null,
+            finishedAt: null,
+            error: null,
+            updatedAt: now,
+          })
+          .where(eq(agentWakeupRequests.id, liveDeferred.id));
+
+        await tx
+          .update(issues)
+          .set({
+            executionRunId: newRun.id,
+            executionAgentNameKey: normalizeAgentNameKey(deferredAgent.name),
+            executionLockedAt: now,
+            updatedAt: now,
+          })
+          .where(eq(issues.id, issue.id));
+
+        return newRun;
+      });
+
+      if (!promotedRun) continue;
+      publishLiveEvent({
+        companyId: promotedRun.companyId,
+        type: "heartbeat.run.queued",
+        payload: {
+          runId: promotedRun.id,
+          agentId: promotedRun.agentId,
+          invocationSource: promotedRun.invocationSource,
+          triggerDetail: promotedRun.triggerDetail,
+          wakeupRequestId: promotedRun.wakeupRequestId,
+        },
+      });
+    }
+  }
+
   async function resumeQueuedRuns() {
+    await promoteDuePostToolCapacityWakeups();
+
     const queuedRuns = await db
       .select({ agentId: heartbeatRuns.agentId })
       .from(heartbeatRuns)
@@ -1909,6 +2238,84 @@ export function heartbeatService(db: Db) {
     for (const agentId of agentIds) {
       await startNextQueuedRunForAgent(agentId);
     }
+  }
+
+  async function schedulePostToolCapacityResume(input: {
+    run: typeof heartbeatRuns.$inferSelect;
+    agent: typeof agents.$inferSelect;
+    issueId: string;
+    contextSnapshot: Record<string, unknown>;
+    source: WakeupSource | undefined;
+    triggerDetail: WakeupOptions["triggerDetail"] | null;
+    cooldownUntil: string;
+    cooldownSec: number;
+    state: PostToolCapacityState;
+  }) {
+    const deferredPayload = {
+      issueId: input.issueId,
+      resumeKind: "post_tool_capacity",
+      notBefore: input.cooldownUntil,
+      cooldownSec: input.cooldownSec,
+      deferredFromRunId: input.run.id,
+      sessionId: input.state.sessionId,
+      toolCallCount: input.state.toolCallCount,
+      successfulToolResultCount: input.state.successfulToolResultCount,
+      failedToolResultCount: input.state.failedToolResultCount,
+      firstSuccessfulToolName: input.state.firstSuccessfulToolName,
+      lastSuccessfulToolName: input.state.lastSuccessfulToolName,
+      [DEFERRED_WAKE_CONTEXT_KEY]: input.contextSnapshot,
+    };
+
+    const existingDeferred = await db
+      .select()
+      .from(agentWakeupRequests)
+      .where(
+        and(
+          eq(agentWakeupRequests.companyId, input.agent.companyId),
+          eq(agentWakeupRequests.agentId, input.agent.id),
+          eq(
+            agentWakeupRequests.status,
+            POST_TOOL_CAPACITY_DEFERRED_WAKE_STATUS,
+          ),
+          sql`${agentWakeupRequests.payload} ->> 'issueId' = ${input.issueId}`,
+        ),
+      )
+      .orderBy(asc(agentWakeupRequests.requestedAt))
+      .limit(1)
+      .then((rows) => rows[0] ?? null);
+
+    if (existingDeferred) {
+      await db
+        .update(agentWakeupRequests)
+        .set({
+          source: input.source ?? existingDeferred.source,
+          triggerDetail: input.triggerDetail,
+          reason: "post_tool_capacity_cooldown",
+          payload: {
+            ...parseObject(existingDeferred.payload),
+            ...deferredPayload,
+          },
+          coalescedCount: (existingDeferred.coalescedCount ?? 0) + 1,
+          updatedAt: new Date(),
+        })
+        .where(eq(agentWakeupRequests.id, existingDeferred.id));
+      return existingDeferred.id;
+    }
+
+    const created = await db
+      .insert(agentWakeupRequests)
+      .values({
+        companyId: input.agent.companyId,
+        agentId: input.agent.id,
+        source: input.source ?? "automation",
+        triggerDetail: input.triggerDetail,
+        reason: "post_tool_capacity_cooldown",
+        payload: deferredPayload,
+        status: POST_TOOL_CAPACITY_DEFERRED_WAKE_STATUS,
+      })
+      .returning()
+      .then((rows) => rows[0] ?? null);
+    return created?.id ?? null;
   }
 
   async function updateRuntimeState(
@@ -3142,6 +3549,30 @@ export function heartbeatService(db: Db) {
           rawUsage,
         });
         const normalizedUsage = sessionUsageResolution.normalizedUsage;
+        const postToolCapacityState = readPostToolCapacityState({
+          errorCode: adapterResult.errorCode,
+          resultJson: adapterResult.resultJson,
+          sessionId:
+            nextSessionState.displayId ?? nextSessionState.legacySessionId,
+          issueId,
+          taskKey,
+        });
+        const postToolCapacityCooldownSec = postToolCapacityState
+          ? resolvePostToolCapacityCooldownSec(agent.runtimeConfig)
+          : null;
+        const postToolCapacityCooldownUntil = postToolCapacityState
+          ? new Date(
+              Date.now() + postToolCapacityCooldownSec! * 1000,
+            ).toISOString()
+          : null;
+        const finalResultJson = postToolCapacityState
+          ? buildPostToolCapacityResultJson({
+              baseResultJson: adapterResult.resultJson,
+              state: postToolCapacityState,
+              cooldownSec: postToolCapacityCooldownSec!,
+              cooldownUntil: postToolCapacityCooldownUntil!,
+            })
+          : adapterResult.resultJson ?? null;
 
         let outcome: "succeeded" | "failed" | "cancelled" | "timed_out" | "blocked" | "awaiting_approval";
         const latestRun = await getRun(run.id);
@@ -3154,6 +3585,8 @@ export function heartbeatService(db: Db) {
         } else if (adapterResult.timedOut) {
           outcome = "timed_out";
         } else if (adapterResult.errorCode === "loop_detected") {
+          outcome = "blocked";
+        } else if (postToolCapacityState) {
           outcome = "blocked";
         } else if (
           (adapterResult.exitCode ?? 0) === 0 &&
@@ -3275,13 +3708,21 @@ export function heartbeatService(db: Db) {
           error:
             outcome === "succeeded"
               ? null
+              : postToolCapacityState
+              ? redactCurrentUserText(
+                  adapterResult.errorMessage ??
+                    postToolCapacityState.message ??
+                    "Model capacity exhausted after successful tool calls.",
+                )
               : budgetExceededMessage
               ? budgetExceededMessage
               : redactCurrentUserText(
                   adapterResult.errorMessage ??
                     (outcome === "timed_out" ? "Timed out" : "Adapter failed"),
                 ),
-          errorCode: budgetExceededMessage
+          errorCode: postToolCapacityState
+            ? POST_TOOL_CAPACITY_ERROR_CODE
+            : budgetExceededMessage
             ? "budget_hard_cap_reached"
             : outcome === "timed_out"
             ? "timeout"
@@ -3293,7 +3734,7 @@ export function heartbeatService(db: Db) {
           exitCode: adapterResult.exitCode,
           signal: adapterResult.signal,
           usageJson,
-          resultJson: adapterResult.resultJson ?? null,
+          resultJson: finalResultJson,
           sessionIdAfter:
             nextSessionState.displayId ?? nextSessionState.legacySessionId,
           stdoutExcerpt,
@@ -3308,12 +3749,51 @@ export function heartbeatService(db: Db) {
           outcome === "succeeded" ? "completed" : status,
           {
             finishedAt: new Date(),
-            error: budgetExceededMessage ?? adapterResult.errorMessage ?? null,
+            error: postToolCapacityState
+              ? adapterResult.errorMessage ?? postToolCapacityState.message ?? null
+              : budgetExceededMessage ?? adapterResult.errorMessage ?? null,
           },
         );
 
         const finalizedRun = await getRun(run.id);
         if (finalizedRun) {
+          if (
+            postToolCapacityState &&
+            issueId &&
+            postToolCapacityCooldownUntil &&
+            postToolCapacityCooldownSec
+          ) {
+            const deferredWakeId = await schedulePostToolCapacityResume({
+              run: finalizedRun,
+              agent,
+              issueId,
+              contextSnapshot: context,
+              source: run.invocationSource as WakeupSource | undefined,
+              triggerDetail: run.triggerDetail as WakeupOptions["triggerDetail"] | null,
+              cooldownUntil: postToolCapacityCooldownUntil,
+              cooldownSec: postToolCapacityCooldownSec,
+              state: postToolCapacityState,
+            });
+            await appendRunEvent(finalizedRun, seq++, {
+              eventType: "lifecycle",
+              stream: "system",
+              level: "warn",
+              message: `post-tool capacity deferred until ${postToolCapacityCooldownUntil}`,
+              payload: {
+                issueId,
+                deferredWakeId,
+                cooldownSec: postToolCapacityCooldownSec,
+                cooldownUntil: postToolCapacityCooldownUntil,
+                sessionId: postToolCapacityState.sessionId,
+                taskKey,
+                toolResultCount: postToolCapacityState.toolResultCount,
+                successfulToolResultCount:
+                  postToolCapacityState.successfulToolResultCount,
+                lastSuccessfulToolName:
+                  postToolCapacityState.lastSuccessfulToolName,
+              },
+            });
+          }
           await appendRunEvent(finalizedRun, seq++, {
             eventType: "lifecycle",
             stream: "system",
@@ -3374,7 +3854,7 @@ export function heartbeatService(db: Db) {
                 agentId: finalizedRun.agentId,
                 runId: finalizedRun.id,
               },
-              "Failed to persist heartbeat episode memory",
+                finalResultJson,
             );
           }
 

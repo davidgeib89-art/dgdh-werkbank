@@ -109,6 +109,47 @@ describe("summarizeHeartbeatRunResultJson", () => {
     });
   });
 
+  it("labels post_tool_capacity_exhausted resultJson as deferred with cooldown message", () => {
+    const summary = summarizeHeartbeatRunResultJson({
+      type: "post_tool_capacity_exhausted",
+      status: "cooldown_pending",
+      result: "deferred",
+      message: "You have exhausted your capacity on this model. Try again later.",
+      deferredState: {
+        state: "cooldown_pending",
+        issueId: "issue-1",
+        nextResumePoint: "resume_existing_session_before_child_create",
+        cooldownUntil: "2026-03-25T10:05:00.000Z",
+      },
+      resume: {
+        state: "cooldown_pending",
+        sessionId: "session-1",
+        taskKey: "issue:issue-1",
+        nextWakeStatus: "deferred_capacity_cooldown",
+        nextWakeNotBefore: "2026-03-25T10:05:00.000Z",
+      },
+    });
+
+    expect(summary).toEqual({
+      result: "deferred",
+      summary: "Post-tool capacity cooldown",
+      message: "Resume after cooldown: 2026-03-25T10:05:00.000Z",
+      deferredState: {
+        state: "cooldown_pending",
+        issueId: "issue-1",
+        nextResumePoint: "resume_existing_session_before_child_create",
+        cooldownUntil: "2026-03-25T10:05:00.000Z",
+      },
+      resume: {
+        state: "cooldown_pending",
+        sessionId: "session-1",
+        taskKey: "issue:issue-1",
+        nextWakeStatus: "deferred_capacity_cooldown",
+        nextWakeNotBefore: "2026-03-25T10:05:00.000Z",
+      },
+    });
+  });
+
   it("does not overwrite explicit summary with routing blocked label when summary is already set", () => {
     const summary = summarizeHeartbeatRunResultJson({
       type: "routing_blocked",

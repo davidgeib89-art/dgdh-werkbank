@@ -29,6 +29,7 @@ import {
 import { DEFAULT_GEMINI_LOCAL_MODEL } from "../index.js";
 import { parseGeminiStdoutLine } from "../ui/parse-stdout.js";
 import {
+  detectGeminiCapacityExhausted,
   describeGeminiFailure,
   detectGeminiAuthRequired,
   isGeminiTurnLimitResult,
@@ -1013,6 +1014,11 @@ export async function execute(
       stdout: attempt.proc.stdout,
       stderr: attempt.proc.stderr,
     });
+    const capacityMeta = detectGeminiCapacityExhausted({
+      parsed: attempt.parsed.resultEvent,
+      stdout: attempt.proc.stdout,
+      stderr: attempt.proc.stderr,
+    });
 
     if (attempt.proc.timedOut) {
       return {
@@ -1075,7 +1081,10 @@ export async function execute(
       structuredFailure ||
       stderrLine ||
       `Gemini exited with code ${attempt.proc.exitCode ?? -1}`;
-    const resultJson = attempt.loopDetectedMessage
+    const postToolCapacityExhausted =
+      capacityMeta.exhausted &&
+      attempt.parsed.toolActivity.successfulToolResultCount > 0;
+    const baseResultJson = attempt.loopDetectedMessage
       ? {
           type: "loop_detected",
           status: "blocked",
@@ -1102,12 +1111,49 @@ export async function execute(
           stdout: attempt.proc.stdout,
           stderr: attempt.proc.stderr,
         };
+    const resultJson = postToolCapacityExhausted
+      ? {
+          ...(typeof baseResultJson === "object" &&
+          baseResultJson !== null &&
+          !Array.isArray(baseResultJson)
+            ? baseResultJson
+            : {}),
+          type: "post_tool_capacity_exhausted",
+          status: "blocked",
+          result: "deferred",
+          summary:
+            attempt.parsed.summary ||
+            "Model capacity exhausted after successful tool calls.",
+          message: capacityMeta.message ?? fallbackErrorMessage,
+          capacity: {
+            toolCallCount: attempt.parsed.toolActivity.toolCallCount,
+            toolResultCount: attempt.parsed.toolActivity.toolResultCount,
+            successfulToolResultCount:
+              attempt.parsed.toolActivity.successfulToolResultCount,
+            failedToolResultCount:
+              attempt.parsed.toolActivity.failedToolResultCount,
+            firstSuccessfulToolName:
+              attempt.parsed.toolActivity.firstSuccessfulToolName,
+            lastSuccessfulToolName:
+              attempt.parsed.toolActivity.lastSuccessfulToolName,
+          },
+          resume: {
+            strategy: "reuse_session",
+            sessionId: resolvedSessionId,
+            sessionDisplayId: resolvedSessionId,
+            clearSession: false,
+          },
+        }
+      : baseResultJson;
 
     return {
       exitCode: attempt.proc.exitCode,
       signal: attempt.proc.signal,
       timedOut: false,
       errorMessage:
+        postToolCapacityExhausted
+          ? capacityMeta.message ?? fallbackErrorMessage
+          :
         (attempt.proc.exitCode ?? 0) === 0 &&
         !strictFloorOutputError &&
         !attempt.loopDetectedMessage
@@ -1117,6 +1163,8 @@ export async function execute(
         ? "non_json_output"
         : attempt.loopDetectedMessage
         ? "loop_detected"
+        : postToolCapacityExhausted
+        ? "post_tool_capacity_exhausted"
         : (attempt.proc.exitCode ?? 0) !== 0 && authMeta.requiresAuth
         ? "gemini_auth_required"
         : null,

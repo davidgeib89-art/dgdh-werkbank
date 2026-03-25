@@ -1,12 +1,12 @@
 # CURRENT - Live Baton
 
-focus: `heartbeat-four-kernel-seams-v1`; `heartbeat.ts` ist jetzt repo-wahr auf vier Kernseams geschnitten (`prepareHeartbeatGeminiRouting`, Prompt/Context-Patch, Workspace/Session-Plan, Run-Finalization), die gezielten Contract-Tests sind gruen, und der frische Live-Probe `DAV-97` zeigt: `flash-first` plus `ready_packet_truth` bleiben intakt; der naechste echte Engpass sitzt weiter bei Capacity-Retries nach dem ersten echten Tool-Call
-active_issue: `DAV-97` (`f4dd4367-d71b-4d3b-a1ec-1044160ad598`) / CEO-Run `22deb79d-dceb-4195-b7eb-21609c65dfe7` beweist auf frischer `3100`-Runtime den neuen Stand nach dem Seam-Split: `paperclipFixedModelLane = gemini-3-flash-preview`, `paperclipRoutingProposalMeta.parseStatus = not_attempted`, `fallbackReason = ready_packet_truth`, `paperclipSkillSelection.source = ready_packet_truth`; im Run-Log kommt zuerst der Pflicht-Call `GET /issues?parentId=...` plus `GET /agents`, danach schlagen wiederholte `You have exhausted your capacity on this model`-Retries ein; nach >60s entsteht noch kein Child
+focus: `gemini-post-tool-capacity-cooldown-state-v1`; die Verlustklasse `erster echter Tool-Call -> capacity exhausted -> diffuser Retry-Sumpf` ist jetzt repo-wahr als expliziter Heartbeat-Zustand geschnitten: der Gemini-Adapter klassifiziert `post_tool_capacity_exhausted`, Heartbeat schreibt `deferredState` plus `resume`, queued einen `deferred_capacity_cooldown`-Wake und promoted ihn spaeter scheduler-gesteuert statt blind full rerun zu verbrennen
+active_issue: `DAV-97` (`f4dd4367-d71b-4d3b-a1ec-1044160ad598`) / finaler CEO-Run `f4bd6cd7-1561-4ed9-9aca-45c48d2a0020` beweist auf frischer `3111`-Runtime den neuen Stand: `runStatus = blocked`, `errorCode = post_tool_capacity_exhausted`, `resultJson.type = post_tool_capacity_exhausted`, `deferredState.state = cooldown_pending`, `resume.strategy = reuse_session`, `resume.nextWakeStatus = deferred_capacity_cooldown`, `resume.nextWakeNotBefore = 2026-03-25T20:15:27.720Z`; der Parent bleibt `todo`, `executionRunId = null`, `active-run = null`, und der naechste Resume-Punkt ist explizit statt diffuser Retry-Schleife
 
 next:
-  1) `gemini-post-tool-capacity-cooldown-state-v1` schneiden: warum der CEO auf dem kleinen Ready-Pfad nach erfolgreichem erstem Tool-Call in Capacity-Retries haengt statt Child-Create sauber zu Ende zu bringen
-  2) den neuen Fast-Truth-Loop nutzen: zuerst Seam-/Replay-/Contract-Tests, dann genau ein Live-Proof auf frischer Runtime
-  3) erst nach dem Capacity-Cut wieder an Child-Create-/Worker-Folgepfade gehen
+  1) verifizieren, dass der scheduler-gesteuerte Resume nach `nextWakeNotBefore` denselben CEO-Sessionpfad billig weiterfuehrt statt neuen Denkpfad aufzubauen
+  2) den verbliebenen Edge-Case entscheiden: ob post-tool capacity bei bereits erzeugtem Child dieselbe cooldown semantics behalten oder enger auf Parent-without-child geschnitten werden soll
+  3) erst danach wieder an Child-Create-/Worker-Folgepfade gehen
 
 blockers:
   - Der alte reine `assignment-to-run kickoff loss` ist fuer frische ready Packets nicht mehr der erste Blocker
@@ -14,7 +14,7 @@ blockers:
   - `worker run blocked -> worker dauerhaft error` gilt ebenfalls nicht mehr; `blocked` finalisiert/reconciled jetzt wieder zu `idle`
   - `CEO claims Paperclip env vars are missing -> no tool calls` gilt nicht mehr; `DAV-88` und `DAV-95` zeigen echte Tool-Calls
   - Der extra `flash_lite_call` fuer fertige Ready-Packets gilt auf dem CEO-Pfad nicht mehr; `DAV-95` laeuft live mit `flash_lite_router_skipped_ready_packet_truth`
-  - Neuer primaerer Live-Blocker auf dem kleinen Delegationspfad: `capacity exhausted after real tool calls`; `DAV-97` zeigt auf frischer `3100`-Runtime wieder denselben engeren Bruch: `GET child issues` und `GET agents` laufen, danach haengt der CEO in Capacity-Retries vor `POST child issue`
+  - Der rohe Blocker `capacity exhausted after real tool calls` ist nicht mehr bloss Retry-Schleife; er ist jetzt als explizite blocker class mit Cooldown-/Resume-Wahrheit modelliert
 
 strategy_anchor:
   - `doc/plans/2026-03-24-dgdh-first-principles-operating-doctrine.md`
@@ -36,8 +36,8 @@ notes:
   - Live-Beweis `DAV-95` auf frischer `3101`-Runtime zeigt den neuen CEO-Standardpfad: `agentRole = ceo`, `paperclipSkillSelection.source = ready_packet_truth`, `paperclipRoutingProposal.taskType = bounded-implementation`, `paperclipRoutingPreflight.selected.selectedBucket = flash`, `tool_calls = 2`, Child `DAV-96` wird erstellt und direkt dem Worker zugewiesen
   - `DAV-96` / Worker-Run `74f821e2-fd4d-4dd2-9559-cf2e6b0f54fa` beweist direkt dahinter, dass derselbe Ready-Packet-Skip jetzt auch auf dem Worker-Pfad stabil bleibt: `selectedBucket = flash-lite`, `effectiveModelLane = gemini-2.5-flash-lite`, Run startet sofort nach CEO-Handoff
   - `heartbeat-four-kernel-seams-v1` ist repo-wahr: `heartbeat.ts` orchestriert jetzt ueber `heartbeat-prompt-context.ts`, `heartbeat-workspace-session.ts`, `heartbeat-run-finalization.ts` plus den bestehenden Routing-Seam; gezielte Tests decken Prompt-Patches, Session-/Workspace-Wahrheit, Finalization und Orchestrations-Reihenfolge ab
-  - Live-Beweis `DAV-97` auf frischer `3100`-Runtime zeigt, dass der Seam-Split keine alte Routing-Regression eingefuehrt hat: `paperclipFixedModelLane = gemini-3-flash-preview`, `paperclipRoutingProposalMeta.parseStatus = not_attempted`, erster Tool-Call ist `GET child issues`/`GET agents`; der offene Blocker bleibt post-tool Capacity statt Router-/Prompt-Truth
-  - Konsequenz fuer den North-Star-Pfad: der Default-Pfad ist jetzt billiger testbar und strukturierter codierbar; der naechste Sprint soll nicht mehr `heartbeat.ts`-Sumpf oder Ready-Packet-Routing schneiden, sondern die verbleibende post-tool Capacity-Instabilitaet als eigene blocker class isolieren
+  - Live-Beweis `DAV-97` auf frischer `3111`-Runtime zeigt den neuen Produktcut end-to-end: der CEO laeuft weiterhin im korrekten `ready_packet_truth`-/Flash-Pfad, scheitert bei Modellkapazitaet nicht mehr als generischer Fail/Budget-Schattenfehler, sondern finalisiert als `post_tool_capacity_exhausted` mit `cooldown_pending` und explizitem Resume-Punkt
+  - Konsequenz fuer den North-Star-Pfad: der verbleibende Schmerz ist nicht mehr "was ist passiert?", sondern nur noch "wann/wie resume ich denselben Sessionpfad weiter?"; genau das sollte der naechste kleine Truth-Cut operationalisieren
 
 last_updated_by: Codex
 updated_at: 2026-03-25

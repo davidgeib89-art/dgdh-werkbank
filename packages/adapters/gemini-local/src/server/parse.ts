@@ -5,6 +5,18 @@ import {
   parseObject,
 } from "@paperclipai/adapter-utils/server-utils";
 
+const GEMINI_CAPACITY_EXHAUSTED_RE =
+  /you have exhausted your capacity on this model|exhausted your capacity on this model|resource_exhausted|capacity exhausted|quota exceeded/i;
+
+type GeminiToolActivity = {
+  toolCallCount: number;
+  toolResultCount: number;
+  successfulToolResultCount: number;
+  failedToolResultCount: number;
+  firstSuccessfulToolName: string | null;
+  lastSuccessfulToolName: string | null;
+};
+
 function collectMessageText(message: unknown): string[] {
   if (typeof message === "string") {
     const trimmed = message.trim();
@@ -54,6 +66,28 @@ function asErrorText(value: unknown): string {
   } catch {
     return "";
   }
+}
+
+function readToolUseId(event: Record<string, unknown>): string | null {
+  return (
+    asString(event.tool_use_id, "").trim() ||
+    asString(event.toolUseId, "").trim() ||
+    asString(event.tool_id, "").trim() ||
+    asString(event.toolId, "").trim() ||
+    asString(event.call_id, "").trim() ||
+    asString(event.id, "").trim() ||
+    null
+  );
+}
+
+function readToolName(event: Record<string, unknown>): string | null {
+  return (
+    asString(event.tool_name, "").trim() ||
+    asString(event.toolName, "").trim() ||
+    asString(event.name, "").trim() ||
+    asString(event.tool, "").trim() ||
+    null
+  );
 }
 
 function accumulateUsage(
@@ -119,6 +153,15 @@ export function parseGeminiJsonl(stdout: string) {
     cachedInputTokens: 0,
     outputTokens: 0,
   };
+  const toolActivity: GeminiToolActivity = {
+    toolCallCount: 0,
+    toolResultCount: 0,
+    successfulToolResultCount: 0,
+    failedToolResultCount: 0,
+    firstSuccessfulToolName: null,
+    lastSuccessfulToolName: null,
+  };
+  const pendingToolNames = new Map<string, string>();
 
   for (const rawLine of stdout.split(/\r?\n/)) {
     const line = rawLine.trim();
@@ -132,6 +175,44 @@ export function parseGeminiJsonl(stdout: string) {
 
     const type = asString(event.type, "").trim();
     const role = asString(event.role, "").trim();
+
+    if (type === "tool_use" || type === "tool_call") {
+      toolActivity.toolCallCount += 1;
+      const toolUseId = readToolUseId(event);
+      const toolName = readToolName(event);
+      if (toolUseId && toolName) {
+        pendingToolNames.set(toolUseId, toolName);
+      }
+      continue;
+    }
+
+    if (type === "tool_result") {
+      toolActivity.toolResultCount += 1;
+      const toolUseId = readToolUseId(event);
+      const toolName =
+        readToolName(event) ??
+        (toolUseId ? pendingToolNames.get(toolUseId) ?? null : null);
+      if (toolUseId) pendingToolNames.delete(toolUseId);
+
+      const status = asString(event.status, "").trim().toLowerCase();
+      const failed =
+        event.is_error === true ||
+        status === "error" ||
+        status === "failed" ||
+        status === "failure";
+      if (failed) {
+        toolActivity.failedToolResultCount += 1;
+      } else {
+        toolActivity.successfulToolResultCount += 1;
+        if (!toolActivity.firstSuccessfulToolName && toolName) {
+          toolActivity.firstSuccessfulToolName = toolName;
+        }
+        if (toolName) {
+          toolActivity.lastSuccessfulToolName = toolName;
+        }
+      }
+      continue;
+    }
 
     if (type === "message" && role === "assistant") {
       const content = asString(event.content, "");
@@ -257,6 +338,7 @@ export function parseGeminiJsonl(stdout: string) {
     errorMessage,
     resultEvent,
     question,
+    toolActivity,
   };
 }
 
@@ -340,6 +422,25 @@ export function detectGeminiAuthRequired(input: {
     GEMINI_AUTH_REQUIRED_RE.test(line),
   );
   return { requiresAuth };
+}
+
+export function detectGeminiCapacityExhausted(input: {
+  parsed: Record<string, unknown> | null;
+  stdout: string;
+  stderr: string;
+}): { exhausted: boolean; message: string | null } {
+  const errors = extractGeminiErrorMessages(input.parsed ?? {});
+  const messages = [...errors, input.stdout, input.stderr]
+    .join("\n")
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  const matched = messages.find((line) => GEMINI_CAPACITY_EXHAUSTED_RE.test(line));
+  return {
+    exhausted: Boolean(matched),
+    message: matched ?? null,
+  };
 }
 
 export function isGeminiTurnLimitResult(

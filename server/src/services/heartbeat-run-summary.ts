@@ -65,5 +65,43 @@ export function summarizeHeartbeatRunResultJson(
     }
   }
 
+  if (resultJson["type"] === "post_tool_capacity_exhausted") {
+    summary.result = "deferred";
+    const deferredState =
+      typeof resultJson["deferredState"] === "object" &&
+      resultJson["deferredState"] !== null &&
+      !Array.isArray(resultJson["deferredState"])
+        ? (resultJson["deferredState"] as Record<string, unknown>)
+        : null;
+    const cooldownUntil = deferredState?.["cooldownUntil"];
+    summary.summary = "Post-tool capacity cooldown";
+    if (typeof cooldownUntil === "string" && cooldownUntil.length > 0) {
+      summary.message = `Resume after cooldown: ${cooldownUntil}`;
+    }
+    if (deferredState) {
+      summary.deferredState = {
+        state: deferredState["state"] ?? null,
+        issueId: deferredState["issueId"] ?? null,
+        nextResumePoint: deferredState["nextResumePoint"] ?? null,
+        cooldownUntil: deferredState["cooldownUntil"] ?? null,
+      };
+    }
+    const resume =
+      typeof resultJson["resume"] === "object" &&
+      resultJson["resume"] !== null &&
+      !Array.isArray(resultJson["resume"])
+        ? (resultJson["resume"] as Record<string, unknown>)
+        : null;
+    if (resume) {
+      summary.resume = {
+        state: resume["state"] ?? null,
+        sessionId: resume["sessionId"] ?? null,
+        taskKey: resume["taskKey"] ?? null,
+        nextWakeStatus: resume["nextWakeStatus"] ?? null,
+        nextWakeNotBefore: resume["nextWakeNotBefore"] ?? null,
+      };
+    }
+  }
+
   return Object.keys(summary).length > 0 ? summary : null;
 }
