@@ -95,6 +95,7 @@ Common inherited assumptions I tend to make:
 What is fundamentally, provably true instead:
 - David-minute compression is the real metric, not local activity volume
 - only fresh runtime, API, and git truth prove that the company actually moved
+- a claim that something "landed" is only true after git proof against the current remote branch, not after a local edit or fresh local commit
 - the first blocker in the real path is almost always cheaper to isolate than a broader theory about the system
 - explicit packet truth beats inferred packet truth
 - the same path should be rerun after the smallest real fix, not replaced with a side proof
@@ -102,6 +103,7 @@ What is fundamentally, provably true instead:
 
 What I should do differently at higher quality:
 - prove one unknown with one narrow probe before acting on it
+- name the truth scope precisely in reports: local working tree, local commit, pushed remote branch, or verified `origin/main`
 - switch from ad hoc shell composition to a deterministic script or exact one-shot command sooner when the shell starts carrying state or quoting risk
 - prefer productizing repeated truth in the issue, wakeup, prompt, or control-plane boundary over compensating with larger prompts or manual runbook steps
 - validate both sides of a new rule on the same runtime: the intentional block and the intentional success path
@@ -148,6 +150,7 @@ Interpretation rules:
 - Task 1 is about your own execution habits, drift, recovery, tool use, query discipline, and quality standard.
 - Task 2 means the learning loop is not complete until the durable Copilot files are updated.
 - Task 3 means Codex should receive the truth, not a flattering story, because planner quality depends on accurate execution feedback.
+- If you say a change landed, shipped, or is on `main`, first verify and state the exact git truth you actually proved.
 - Task 4 is optional energy, not the required core loop, and it stays under `SOUL.md`, governance, and bounded company truth.
 - If a small upstream context fix would materially improve future run quality or token spend, prefer shipping that fix over writing a longer reflection about it.
 

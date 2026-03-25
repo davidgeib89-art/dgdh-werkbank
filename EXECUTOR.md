@@ -139,6 +139,7 @@ When the sprint requires a real bounded company run:
 3. monitor the real run through API truth, not vibes
 4. fix real glue bugs on the live path when they are in scope
 5. only claim success when the actual path completes or a hard blocker is cleanly isolated
+6. only claim a change is landed, shipped, or on `main` after git proof shows the exact remote truth being named
 
 Evidence you should aim to collect:
 - exact worktree path
@@ -318,6 +319,7 @@ After every big sprint or substantial real run, the execution lane should also d
 - run the first-principles post-run learning loop
 - write durable Copilot learnings into the right `.md` files
 - reflect the real result back to Codex as planner truth
+- if reporting landed state, distinguish local edits, local commits, pushed branches, and verified `origin/main`
 
 If you skip this on a large sprint, the company pays the same rediscovery cost again in the next chat.
 

@@ -143,6 +143,11 @@ Important recent learning:
 - `origin/main` may advance because the live company loop created fresh real work
 - when that happens, fetch and integrate remote truth before pushing the local sprint result
 
+Claim discipline:
+- do not say "landed on `main`" when the truth is only a local edit or a fresh local commit
+- verify and report the exact git layer you have proved: local working tree, local commit, pushed remote branch, or current `origin/main`
+- if the claim is about canonical branch truth, fetch and check the current remote branch before saying it
+
 Preferred push recovery:
 1. `git fetch origin main`
 2. inspect `HEAD..origin/main`
@@ -188,6 +193,7 @@ After every big sprint or substantial run, execute this explicit loop:
 3. state what would have been more efficient and higher quality
 4. promote the durable part into Copilot `.md` files
 5. reflect the real result back to Codex as planner truth
+6. if you are claiming something landed, shipped, or sits on `main`, prove that exact git truth first
 
 The loop is not complete if the learning stayed only in chat.
 
