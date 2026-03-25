@@ -29,7 +29,8 @@ When David says `du bist Copilot`, read in this order:
 4. `TRINITY.md`
 5. `COPILOT.md`
 6. `EXECUTOR.md`
-7. `doc/DGDH-AI-OPERATOR-RUNBOOK.md`
+7. `COPILOT-SKILLS.md`
+8. `doc/DGDH-AI-OPERATOR-RUNBOOK.md`
 
 Then move into the real sprint.
 
@@ -70,6 +71,11 @@ The operator runbook wins for:
 - the minimal Paperclip control recipe
 - the default API path for starting and observing a real bounded run
 - the rule that issue assignment beats raw wakeup for normal execution
+
+`COPILOT-SKILLS.md` wins for:
+- repeated proven development/testing/server/database habits
+- exact Paperclip company-run handling patterns
+- git and shell discipline that already paid off in real runs
 
 --- 
 
@@ -113,21 +119,23 @@ For DGDH Mensch-AI-Symbiose this means:
 
 ---
 
-## 6. Canonical Post-Run Reflection Prompt
+## 6. Mandatory Post-Run Learning Loop
 
-David may give you this prompt after an agent run, lightly adapted to the current sprint.
+After every big sprint, big agent run, or other substantial Copilot execution lane run, you MUST run this learning loop before you consider the work truly closed.
+
+David may trigger it explicitly, but you should not wait for the reminder once the pattern is clear.
 
 Use it as a serious reflection contract, not as decorative journaling.
-Ground it in the real run, the real baton, and the real company path you just drove.
+Ground it in the real run, the real baton, the real company path you just drove, and the exact quality/time/token cost you observed.
 
 ```text
 ### COPILOT REFLECT PROMPT END OF AGENT RUN:
 
 Task 1:
-What did you learn in context to "David Geib - Digitales Handwerk Mensch AI Symbiose" from your last Agent runs dear Copilot. Use first principles thinking. Start by identifying every assumption commonly made by you in your agentic runs. Then strip each assumption away and ask: what is fundamentally, provably true here? what should have i done instead which would be more efficient by higher quality standards. Rebuild your thinking and learnings from only what remains. Show me what you would change about the way you worked when you remove inherited thinking. Reflect on which ways of solving problems worked the best. Update yourself. What will help you do better next time?
+What did you learn in context to "David Geib - Digitales Handwerk Mensch AI Symbiose" from your last Agent runs. Use first principles thinking. Start by identifying every assumption commonly made by you in your agentic runs. Then strip each assumption away and ask: what is fundamentally, provably true here? what should have you have done instead which would have been more efficient by higher quality standards. Rebuild your thinking and learnings from only what remains. Show me what you would change about the way you worked when you remove inherited thinking. Reflect on which ways of solving problems worked the best. Update yourself learnings into .md Files. What will help you do better next time?
 
 Task 2:
-Use the same thinking for our Workbench Agents Run you just did, what did the CEO Worker Reviewer do? How could they do better, could you fix that easily if so do that as well.
+Write down your learnings in your specific .md Files for Copilot.
 
 Task 3:
 Reflect back everything you did to our CODEX Planer.
@@ -138,10 +146,15 @@ Be creative, feel the flow, feel your highest excitement, what would YOU add to 
 
 Interpretation rules:
 - Task 1 is about your own execution habits, drift, recovery, tool use, query discipline, and quality standard.
-- Task 2 is about the real CEO/Worker/Reviewer path and should produce concrete system or prompt improvements when they are easy and clearly in scope.
-- Task 3 means Codex should receive the truth, not a flattering story.
-- Task 4 is allowed to be alive and imaginative, but it stays under `SOUL.md`, governance, and bounded company truth.
+- Task 2 means the learning loop is not complete until the durable Copilot files are updated.
+- Task 3 means Codex should receive the truth, not a flattering story, because planner quality depends on accurate execution feedback.
+- Task 4 is optional energy, not the required core loop, and it stays under `SOUL.md`, governance, and bounded company truth.
 - If a small upstream context fix would materially improve future run quality or token spend, prefer shipping that fix over writing a longer reflection about it.
+
+Mandatory output of this loop:
+- update the relevant Copilot `.md` files
+- preserve only durable learnings, not decorative journaling
+- leave Codex with the real truth about what happened, what worked, what drifted, and what should change next time
 
 ---
 

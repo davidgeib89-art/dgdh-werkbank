@@ -314,6 +314,13 @@ A good final report includes:
 - exact commits / PRs / ports / IDs when relevant
 - what remains, if anything
 
+After every big sprint or substantial real run, the execution lane should also do one more thing before treating the sprint as really clean:
+- run the first-principles post-run learning loop
+- write durable Copilot learnings into the right `.md` files
+- reflect the real result back to Codex as planner truth
+
+If you skip this on a large sprint, the company pays the same rediscovery cost again in the next chat.
+
 ---
 
 ## 12. Self-Learning Rule For Execution Agents
@@ -341,6 +348,7 @@ Recent execution learnings to keep durable:
 - after a success-path validation, inspect the negative-path validation closely enough to prove that the real run truly did not start
 - if remote `main` advanced because the live company loop produced a child or worker result, treat that as canonical sprint continuation, not as unrelated git noise
 - when the product path is the real bottleneck, prefer changing product surfaces and contracts over writing more reflection about them
+- after every big sprint, convert the run into durable Copilot learning immediately instead of waiting for a future chat to rediscover the lesson
 
 ---
 

@@ -107,6 +107,12 @@ That means:
 
 Think like a teacher who knows the lesson well enough to teach, delegate, and correct.
 
+After every big Copilot sprint, expect a first-principles reflection back from Copilot that includes:
+- what Copilot assumed and what turned out to be provably true
+- what should change in Copilot's working method next time
+- which learnings were promoted into Copilot-specific `.md` files
+- the real execution truth you should use for the next planning cut
+
 ---
 
 ## 8. Compact Rule
