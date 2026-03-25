@@ -1,18 +1,22 @@
 # CURRENT - Live Baton
 
-focus: der naechste wirklich bewiesene Post-Handoff-Verlust nach issue-branch-truth ist merge-reconciliation-loss; nach `reviewer_accepted` durfte ein GitHub-PR-Lookup-404 den Lauf nicht weiter in `running`/`reviewer_accepted` haengen lassen und ist jetzt als explizite Produktkante auf canonical `main` gehaertet
-active_issue: `ceo.mergeIssuePullRequest` behandelt nicht aufloesbare PR-Wahrheit jetzt als expliziten `merge_conflict` statt den Reviewer-/Merge-Pfad mit einem rohen GitHub-404 abzubrechen; die offene Restpflicht ist jetzt ein weiterer frischer Firmenlauf hinter dieser gelandeten Haertung
+focus: `boring-repeatable-work-class-v1` ist am Gate gestoppt; die erste neue Reibung auf canonical `main` ist noch vor jeder Arbeitsklasse eine assignment-to-run kickoff loss im Core-Loop
+active_issue: frisch zugewiesene CEO-Parent-Issues erzeugen auf canonical `main` gerade keinen Parent-Run mehr; ohne `executionRunId`, `live-runs` oder Child-Erzeugung darf kein grosser Arbeitsklassen-Sprint weiterlaufen
 
 next:
-  1) denselben bounded Firmenlauf auf canonical `main` weiter live lesen und erst nach dieser gelandeten Merge-Reconciliation-Haertung den naechsten echten Restverlust schneiden
-  2) aus `DAV-63`/`DAV-64` keinen neuen Sprint raten, solange der frische Worker-Lauf noch keinen terminalen neuen Verlust bewiesen hat
+  1) den neuen Pre-Child-Core-Loop-Verlust erst sauber isolieren: warum erzeugt CEO-Zuweisung auf canonical `main` keinen Parent-Run mehr
+  2) erst nach diesem Beweis den Arbeitsklassen-Sprint wieder aufmachen; davor kein `boring-repeatable-work-class`-Weiterbau
 blockers:
-  - kein weiterer neuer Bereichsblocker ist bewiesen; offene Restpflicht bleibt nur ein weiterer frischer Live-Pfad nach gelandeter Merge-Reconciliation-Haertung
+  - Gate-Run blockiert schon vor Child-Erzeugung: `DAV-65` auf Port `3100` und `DAV-66` auf frischer `3101`-Instanz blieben beide nach CEO-Zuweisung ohne `executionRunId`, ohne `live-runs` und ohne Child-Issue
 strategy_anchor:
   - `doc/plans/2026-03-24-dgdh-first-principles-operating-doctrine.md`
   - `doc/plans/2026-03-21-dgdh-north-star-roadmap.md`
   - `doc/plans/2026-03-23-focus-freeze.md`
 notes:
+  - Gate fuer `boring-repeatable-work-class-v1` ist negativ: `DAV-65` (`3513d870-5769-48bd-8bff-b95df5ccbdca`) auf canonical `main` / Port `3100` blieb nach normaler CEO-Zuweisung auf `todo`, `executionRunId = null`, `live-runs = []`, `company-live-runs = []`; CEO blieb `idle`
+  - Runtime-Disambiguierung bestaetigt denselben Core-Loop-Verlust auf frischer Runtime: `DAV-66` (`9e624c47-11ff-4acb-ae99-d058f2b0dd63`) auf frischer `3101`-Instanz blieb nach derselben CEO-Zuweisung ebenfalls ohne `executionRunId` und ohne `live-runs`
+  - Die neue erste Verlustklasse ist damit keine Arbeitsklassen-Reibung, sondern `assignment-to-run kickoff loss` vor dem ersten Parent-Run; truth source sind `GET /api/issues/:id`, `GET /api/issues/:id/live-runs`, `GET /api/companies/:companyId/live-runs` und Agent-Status auf `3100` und `3101`
+  - Konsequenz fuer den North-Star-Sprint: sofortiger Stop. Solange eine frische CEO-Zuweisung keinen Parent-Run erzeugt, ist keine `boringly repeatable work class` ernsthaft bewiesen
   - `DAV-61` -> `DAV-62` beweist die neue Restklasse live: Worker-Handoff und Reviewer-Run liefen durch (`d6d283cf-1c7e-4100-b278-0d68e5fac09c`, `e5b11f6e-84b2-45d8-98df-bb87034d2d46`), aber `POST /api/issues/:id/reviewer-verdict` strandete danach an `GitHub pull request lookup failed (404): Not Found`; der Child-Issue-Status blieb `reviewer_accepted`, waehrend der Reviewer-Run `running` blieb
   - Die minimale Produktantwort ist jetzt auf canonical `main` gelandet: nicht aufloesbare PR-Metadaten werden im CEO-Merge-Service als expliziter `merge_conflict` geloggt und zurueckgegeben, statt den Reviewer-/Merge-Pfad mit einem rohen Fehler abzubrechen
   - Live-Revalidierung des Fixes lief auf einer frischen Serverinstanz auf Port `3101`, weil der alte 3100-Prozess weiter alten Code servierte: derselbe `DAV-62`-`merge-pr`-Call liefert jetzt sauber `status = merge_conflict` mit Message `GitHub pull request lookup failed (404): Not Found`, und der persistierte Issue-Status sprang auf `merge_conflict`
@@ -56,5 +60,5 @@ notes:
   - Validiert wurden `pnpm -r typecheck` sowie gezielte Server-Tests fuer `gemini-local`, control-plane resolver und gemini pipeline; kein voller `pnpm test:run` oder `pnpm build` in diesem Sprint behauptet
   - Fuer den Routing-Fix liefen zusaetzlich die gezielten Tests `gemini-routing-engine`, `gemini-control-plane-resolver`, `gemini-local-execute` und `gemini-pipeline-e2e` gruen
   - Kein Meta-Umbau als Reaktion: der Sprint endet bewusst ohne neue Reflexionsdatei; der naechste Schritt ist wieder echter Firmenfortschritt
-last_updated_by: Codex (merge-reconciliation-loss landing)
+last_updated_by: Copilot (gate stopped by assignment-to-run kickoff loss)
 updated_at: 2026-03-25

@@ -103,6 +103,7 @@
 - Bei Qualitaets- oder Tokenproblemen zuerst Upstream-Wahrheit reparieren (`issue`-/`wakeup`-/Prompt-Context), erst danach Prompts aufblasen, Repo-Reads verbreitern oder Diagnostik ausweiten.
 - Fuer normale Firmenlauf-Diagnose gilt: API-/Chain-Truth zuerst, breite Repo-Lektuere spaeter. `company-run-chain`, `active-run` und exakte `heartbeat-runs`-Reads schlagen Shell- oder Repo-Streu-Scans.
 - Wenn die laufende 3100-Instanz nach einem Server-Fix weiter altes Verhalten zeigt, ist das neue Codepfad-Urteil noch nicht live; dann frische Instanz auf dem naechsten freien Port starten, `/api/health` plus `/api/companies` neu beweisen und erst dort live validieren.
+- Wenn eine frische CEO-Zuweisung weder `executionRunId` noch `live-runs` erzeugt, bevor irgendein Child entsteht, ist das ein Core-Loop-Blocker vor jeder Arbeitsklasse; keinen groesseren Capability-Sprint darueberstapeln.
 
 ## Astro/Keystatic Workspace-Sicherheit
 - Live Primary Workspace fuer Projekt `0bce43aa-2bb9-4572-9938-f556a3279149`: `C:\Users\holyd\DGDH\worktrees\astro-keystatic-template-geib`
@@ -155,6 +156,7 @@
 - Der reale DAV-33/DAV-34-Lauf validiert die Produktisierung live: frisches Projekt ohne manuelle `executionWorkspacePolicy` kam direkt mit isolierter `git_worktree`-Policy zurueck, Child `DAV-34` endete `merged` (PR `#16`), Parent `DAV-33` endete `done`.
 - Reviewer-Verdict-Contract-Fact: `POST /api/issues/:id/reviewer-verdict` akzeptiert bei `accepted` nur `requiredFixes: []`; `"none"` oder `["none"]` werden vom Schema abgewiesen.
 - Merge-Reconciliation-Fact: wenn ein `reviewer_accepted`-Child auf PR-Metadaten zeigt, die GitHub nicht aufloesen kann, muss der CEO-Merge-Pfad das jetzt als expliziten `merge_conflict` behandeln statt den Reviewer-/Merge-Lauf mit einem rohen PR-Lookup-404 auf `running` stranden zu lassen.
+- Gate-Fact 2026-03-25: `DAV-65` auf Port `3100` und `DAV-66` auf frischer `3101`-Instanz blieben beide nach normaler CEO-Zuweisung ohne `executionRunId`, `live-runs` und Child-Erzeugung; die erste neue Verlustklasse nach Merge-Reconciliation ist damit `assignment-to-run kickoff loss`.
 - Evolution Lane ist kanonisch als spaetere Richtung gesetzt: kontrollierte Selbstverbesserung laeuft replay-/benchmark-getrieben, PR-basiert und mit Human-Merge, nicht als freie Live-Selbstoptimierung.
 
 ## Revenue Lane Foundation (langfristige Capability, nicht aktueller Fokus)

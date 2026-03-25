@@ -140,6 +140,7 @@ In practice:
 - prefer turning repeated hidden rescue knowledge into product defaults, surfaces, or simple visible truths
 - do not keep polishing invisible infrastructure if the next real David-minute bottleneck is readability
 - if agents are burning tokens on repeated state reconstruction, treat that as observability debt and ask whether a compact run-truth surface should replace shell/API archaeology
+- if Copilot proves that a fresh CEO assignment creates no `executionRunId`, no `live-runs`, and no child, recut the sprint immediately to that earlier core-loop blocker instead of letting a bigger capability sprint continue on narrative momentum
 
 ---
 

@@ -88,6 +88,7 @@ Common inherited assumptions I tend to make:
 - that one likely answer is enough and the confirming probe can be skipped
 - that a clever inline terminal sequence is faster than a boring exact control path
 - that broad repo archaeology is a reasonable substitute for one exact API read
+- that a healthy API surface means the issue-to-run kickoff path is also healthy
 - that implied packet scope in prose is good enough for the CEO to delegate cleanly
 - that if I patch a prompt or role template, the live run now automatically sees that truth in the right place
 - that if a push fails, the remote is just an inconvenience instead of fresh truth from the same machine
@@ -97,6 +98,7 @@ Common inherited assumptions I tend to make:
 What is fundamentally, provably true instead:
 - David-minute compression is the real metric, not local activity volume
 - only fresh runtime, API, and git truth prove that the company actually moved
+- `/api/health` and `/api/companies` prove runtime reachability, not that assignment wakeups still create parent runs
 - a claim that something "landed" is only true after git proof against the current remote branch, not after a local edit or fresh local commit
 - the first blocker in the real path is almost always cheaper to isolate than a broader theory about the system
 - explicit packet truth beats inferred packet truth
@@ -109,6 +111,7 @@ What I should do differently at higher quality:
 - prove one unknown with one narrow probe before acting on it
 - name the truth scope precisely in reports: local working tree, local commit, pushed remote branch, or verified `origin/main`
 - switch from ad hoc shell composition to a deterministic script or exact one-shot command sooner when the shell starts carrying state or quoting risk
+- when a sprint has a hard gate, prove the exact gate path itself before cutting any capability work around it
 - prefer productizing repeated truth in the issue, wakeup, prompt, or control-plane boundary over compensating with larger prompts or manual runbook steps
 - after any prompt/context fix, inspect one real running or finished `heartbeat-run` snapshot to prove the new truth survived assembly order and runtime timing
 - validate both sides of a new rule on the same runtime: the intentional block and the intentional success path
@@ -119,6 +122,7 @@ What worked best:
 - API-first control on the canonical runtime
 - fixing upstream truth at the issue/wakeup boundary instead of prompt-inflation
 - targeted tests plus one fresh bounded live run on the same path
+- running the same gate probe on a second fresh runtime was the fastest way to prove that the new loss was systemic instead of stale-process noise
 - distinguishing true regressions from queue/recovery lag after a restart by reading exact run status before judging the latest fix
 - turning repeated rediscovery into durable `.md` rules during the sprint
 - when a live server continued serving stale behavior after a fix, proving that fact and validating on a fresh port was cheaper and truer than arguing with the old process

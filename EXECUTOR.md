@@ -205,6 +205,11 @@ If a parent looks inert and `/issues/:id/active-run` is already `null`, do not c
 Check `issue.executionRunId` and then read that exact heartbeat run.
 A blocked or finished parent run can already contain the first real cause, even when the issue surface looks quiet.
 
+If a freshly assigned parent issue never gets an `executionRunId` and both `/issues/:id/live-runs` and `/companies/:companyId/live-runs` stay empty after a short wait:
+- treat that as a pre-run kickoff blocker, not as a weak version of a later child/reviewer problem
+- stop any larger capability sprint immediately
+- isolate the assignment-to-run path before cutting work-class or packet-repeatability claims
+
 Observed clean-main truth:
 - project/API truth may still point at a stale historical workspace path even when the current canonical worktree is correct
 - a fresh project on the proven worktree is the right repair, not old-worktree revival
