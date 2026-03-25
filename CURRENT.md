@@ -1,19 +1,19 @@
 # CURRENT - Live Baton
 
-focus: die erste lokale Produktantwort auf die Post-Handoff-Reibung ist jetzt issue-branch-truth im Worker-Handoff; der aktuelle Hebel ist diesen engen Fix auf canonical `main` zu landen und erst danach den naechsten Downstream-Verlust neu zu lesen
+focus: die erste Produktantwort auf die Post-Handoff-Reibung ist jetzt issue-branch-truth im Worker-Handoff auf canonical `main`; der naechste Hebel ist den naechsten Downstream-Verlust erst nach dieser gelandeten Handoff-Haertung wieder live zu lesen
 active_issue: `PAPERCLIP_WORKSPACE_BRANCH` wird jetzt nach Workspace-Realize in den live `paperclipTaskPrompt` gehoben und im Worker-Template als kanonische Reuse-Regel erzwungen; `run-truth-surface-v1` ist damit vorerst wieder nur spaeterer Kandidat, nicht der aktuelle Sprint
 
 next:
-  1) den Worker-Branch-Truth-Fix auf `main` landen und Baton-/Memory-Wahrheit synchron halten
-  2) erst nach dieser Landung den naechsten echten Live-Verlust wieder vom selben Firmenlauf-Pfad lesen; moegliche Restklassen bleiben Reviewer-, Merge-, Recovery- oder Run-Truth-Reibung
+  1) denselben bounded Firmenlauf auf canonical `main` erneut live lesen und pruefen, welche Verlustklasse nach dem gelandeten Worker-Handoff-Fix als naechstes wirklich zuerst schmerzt
+  2) erst danach den naechsten grossen Sprint schneiden; moegliche Restklassen bleiben Reviewer-, Merge-, Recovery- oder Run-Truth-Reibung
 blockers:
-  - kein neuer Bereichsblocker ist bewiesen; offene Restpflicht ist die erneute Live-Revalidierung nach Landung des engen Worker-Handoff-Fixes
+  - kein neuer Bereichsblocker ist bewiesen; offene Restpflicht ist nur die erneute Live-Revalidierung nach gelandeter Worker-Handoff-Haertung
 strategy_anchor:
   - `doc/plans/2026-03-24-dgdh-first-principles-operating-doctrine.md`
   - `doc/plans/2026-03-21-dgdh-north-star-roadmap.md`
   - `doc/plans/2026-03-23-focus-freeze.md`
 notes:
-  - Der lokale Produktfix fuer den ersten Post-Handoff-Verlust sitzt schmal in `server/src/services/heartbeat.ts` und `server/config/role-templates/worker.json`: die kanonische Issue-Branch-Wahrheit wird fuer Worker jetzt doppelt sichtbar gemacht, im live Prompt ueber `PAPERCLIP_WORKSPACE_BRANCH` und im Role-Template als Reuse-Regel fuer Commit-/PR-/worker-done-Handoffs
+  - Der Produktfix fuer den ersten Post-Handoff-Verlust ist jetzt auf canonical `main` gelandet (`d6a7ea2`): die kanonische Issue-Branch-Wahrheit wird fuer Worker schmal doppelt sichtbar gemacht, im live Prompt ueber `PAPERCLIP_WORKSPACE_BRANCH` und im Role-Template als Reuse-Regel fuer Commit-/PR-/worker-done-Handoffs
   - Die zugehoerigen Tests `heartbeat-issue-prompt-context` und `role-templates` decken die neue Branch-Reuse-Wahrheit explizit ab
   - Lokale Verifikation fuer diesen bounded Fix ist gruen: gezielte Vitest-Tests, `pnpm -r typecheck`, `pnpm test:run`, `pnpm build`
   - Planner-Lehre: der erste lokale Post-Handoff-Verlustkandidat ist nicht neue Observability allgemein, sondern schmale Worker-Handoff-Branch-Wahrheit; der naechste grosse Sprint wird erst nach frischer Live-Reibung geschnitten
@@ -52,5 +52,5 @@ notes:
   - Validiert wurden `pnpm -r typecheck` sowie gezielte Server-Tests fuer `gemini-local`, control-plane resolver und gemini pipeline; kein voller `pnpm test:run` oder `pnpm build` in diesem Sprint behauptet
   - Fuer den Routing-Fix liefen zusaetzlich die gezielten Tests `gemini-routing-engine`, `gemini-control-plane-resolver`, `gemini-local-execute` und `gemini-pipeline-e2e` gruen
   - Kein Meta-Umbau als Reaktion: der Sprint endet bewusst ohne neue Reflexionsdatei; der naechste Schritt ist wieder echter Firmenfortschritt
-last_updated_by: Codex (post-Copilot worker-branch-truth landing prep)
+last_updated_by: Codex (post-worker-branch-truth landing)
 updated_at: 2026-03-25
