@@ -513,7 +513,22 @@ Use that prompt after a real agent run when the goal is:
 
 ---
 
-## 15. Keep This Document Stable
+## 15. Post-Handoff Loss Classes
+
+A **loss class** is a systematic drop in context or intent during the handoff between agents (e.g., from CEO to Worker).
+
+### 15.1 Identifying Loss Classes
+
+To diagnose a loss class, compare the **intended baseline** (the child issue packet) against the **actual worker behavior**:
+- **Scope Leak**: The worker touches files outside the `targetFolder` or `Scope` field.
+- **Criteria Decay**: The implementation misses specific constraints defined in the `doneWhen` field.
+- **Tool Selection Failure**: The worker reverts to generic file-searching when the CEO provided a specific target file.
+
+If a loss class is identified, promote the missing constraint into the **Execution Packet Readiness Standards (#7.4)** or the agent's role template to prevent future recurrence.
+
+---
+
+## 16. Keep This Document Stable
 
 This runbook should only contain repeatable operating truth.
 
