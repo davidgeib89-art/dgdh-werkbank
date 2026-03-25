@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { evaluateAgentHealth } from "../services/agent-health.js";
+import { resolvePersistedAgentStatusTruth } from "../services/agents.js";
 import {
   estimateTotalTokens,
   resolveNextAgentStatusAfterRun,
@@ -78,6 +79,52 @@ describe("evaluateAgentHealth — blocked / awaiting_approval status", () => {
   });
 });
 
+describe("resolvePersistedAgentStatusTruth", () => {
+  it("heals a stranded error agent back to idle after process_lost with no active run", () => {
+    expect(
+      resolvePersistedAgentStatusTruth({
+        currentStatus: "error",
+        latestRunStatus: "failed",
+        latestRunErrorCode: "process_lost",
+        runningCount: 0,
+      }),
+    ).toBe("idle");
+  });
+
+  it("keeps ordinary failures in error", () => {
+    expect(
+      resolvePersistedAgentStatusTruth({
+        currentStatus: "error",
+        latestRunStatus: "failed",
+        latestRunErrorCode: "adapter_failed",
+        runningCount: 0,
+      }),
+    ).toBe("error");
+  });
+
+  it("maps stale error to running when another run is active", () => {
+    expect(
+      resolvePersistedAgentStatusTruth({
+        currentStatus: "error",
+        latestRunStatus: "failed",
+        latestRunErrorCode: "process_lost",
+        runningCount: 1,
+      }),
+    ).toBe("running");
+  });
+
+  it("heals a blocked agent back to idle when no active run remains", () => {
+    expect(
+      resolvePersistedAgentStatusTruth({
+        currentStatus: "error",
+        latestRunStatus: "blocked",
+        latestRunErrorCode: "risk_high_large_implementation",
+        runningCount: 0,
+      }),
+    ).toBe("idle");
+  });
+});
+
 // ---------------------------------------------------------------------------
 // B) Budget warning threshold
 // ---------------------------------------------------------------------------
@@ -137,6 +184,16 @@ describe("resolveNextAgentStatusAfterRun", () => {
       }),
     ).toBe("running");
   });
+
+  it("treats blocked runs as recoverable and returns idle when no other runs are active", () => {
+    expect(
+      resolveNextAgentStatusAfterRun({
+        runningCount: 0,
+        outcome: "blocked",
+        errorCode: "risk_high_large_implementation",
+      }),
+    ).toBe("idle");
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -168,5 +225,9 @@ describe("DGDH State Truth — gate finalization wiring", () => {
     expect(heartbeatSource).toContain(
       'outcome === "awaiting_approval"',
     );
+  });
+
+  it("blocked maps to idle in finalizeAgentStatus (not error)", () => {
+    expect(heartbeatSource).toContain('outcome === "blocked"');
   });
 });

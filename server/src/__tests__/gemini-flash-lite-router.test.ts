@@ -493,4 +493,63 @@ describe("produceFlashLiteRoutingProposal", () => {
     expect(result.parseStatus).toBe("ok");
     expect(result.proposal?.allowedSkills).toEqual([]);
   });
+
+  it("prefers compact issue text over assignment prompt boilerplate", async () => {
+    hoisted.runChildProcessMock.mockResolvedValue({
+      exitCode: 0,
+      signal: null,
+      timedOut: false,
+      stdout: JSON.stringify({
+        type: "assistant",
+        message: {
+          content: [
+            {
+              type: "output_text",
+              text: JSON.stringify({
+                taskClass: "bounded-implementation",
+                budgetClass: "medium",
+                chosenBucket: "flash",
+                chosenModelLane: "gemini-3-flash-preview",
+                fallbackBucket: "pro",
+                rationale: "bounded doc packet",
+              }),
+            },
+          ],
+        },
+      }),
+      stderr: "",
+    });
+
+    await produceFlashLiteRoutingProposal({
+      ...baseInput,
+      runtimeConfig: { routingPolicy: { llmRouter: { enabled: true } } },
+      context: {
+        paperclipTaskPrompt: [
+          "Paperclip issue assignment:",
+          "PAPERCLIP_API_URL: http://127.0.0.1:3101",
+          "Execution workspace:",
+          "Branch rule: reuse PAPERCLIP_WORKSPACE_BRANCH.",
+        ].join("\n"),
+        paperclipIssue: {
+          title: "Add kickoff-probe note to Runbook",
+          description: [
+            "packetType: free_api",
+            "executionIntent: implement",
+            "targetFile: doc/DGDH-AI-OPERATOR-RUNBOOK.md",
+            "targetFolder: doc",
+            "artifactKind: doc_update",
+            "doneWhen: Add one tiny kickoff-probe note and keep the file coherent.",
+          ].join("\n"),
+        },
+      },
+    });
+
+    const [, , , options] = hoisted.runChildProcessMock.mock.calls.at(-1) ?? [];
+    expect(options.stdin).toContain("Add kickoff-probe note to Runbook");
+    expect(options.stdin).toContain(
+      "targetFile: doc/DGDH-AI-OPERATOR-RUNBOOK.md",
+    );
+    expect(options.stdin).not.toContain("PAPERCLIP_API_URL");
+    expect(options.stdin).not.toContain("Execution workspace");
+  });
 });

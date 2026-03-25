@@ -346,6 +346,22 @@ function normalizeProposalFromRaw(
 }
 
 function normalizeFreeTextTask(context: Record<string, unknown>): string {
+  const paperclipIssue = asObject(context.paperclipIssue);
+  const issueTitle =
+    asString(paperclipIssue.title) ??
+    asString(context.issueIdentifier) ??
+    asString(context.title) ??
+    "";
+  const issueDescription = asString(paperclipIssue.description) ?? "";
+  const issueTaskText = [issueTitle, issueDescription]
+    .map((part) => part.trim())
+    .filter((part) => part.length > 0)
+    .join("\n")
+    .slice(0, 1200);
+  if (issueTaskText.length > 0) {
+    return issueTaskText;
+  }
+
   const prompt = asString(context.paperclipTaskPrompt) ?? "";
   const wakeReason = asString(context.wakeReason) ?? "";
   const title = asString(context.title) ?? "";

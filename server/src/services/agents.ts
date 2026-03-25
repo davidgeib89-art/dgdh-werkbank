@@ -61,6 +61,25 @@ interface AgentShortnameCollisionOptions {
   excludeAgentId?: string | null;
 }
 
+export function resolvePersistedAgentStatusTruth(input: {
+  currentStatus: string;
+  latestRunStatus: string | null;
+  latestRunErrorCode: string | null;
+  runningCount: number;
+}) {
+  if (input.currentStatus !== "error") return input.currentStatus;
+  if (input.runningCount > 0) return "running";
+  if (input.latestRunStatus === "failed" && input.latestRunErrorCode === "process_lost") {
+    return "idle";
+  }
+  return input.latestRunStatus === "succeeded" ||
+    input.latestRunStatus === "blocked" ||
+    input.latestRunStatus === "cancelled" ||
+    input.latestRunStatus === "awaiting_approval"
+    ? "idle"
+    : input.currentStatus;
+}
+
 function isPlainRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -196,13 +215,59 @@ export function agentService(db: Db) {
     });
   }
 
+  async function reconcileRecoverableAgentStatus(row: typeof agents.$inferSelect) {
+    if (row.status !== "error") return row;
+
+    const [latestRun, runningRows] = await Promise.all([
+      db
+        .select({
+          status: heartbeatRuns.status,
+          errorCode: heartbeatRuns.errorCode,
+        })
+        .from(heartbeatRuns)
+        .where(eq(heartbeatRuns.agentId, row.id))
+        .orderBy(desc(heartbeatRuns.createdAt))
+        .limit(1)
+        .then((rows) => rows[0] ?? null),
+      db
+        .select({ id: heartbeatRuns.id })
+        .from(heartbeatRuns)
+        .where(
+          and(
+            eq(heartbeatRuns.agentId, row.id),
+            inArray(heartbeatRuns.status, ["queued", "running"]),
+          ),
+        )
+        .limit(1),
+    ]);
+
+    const nextStatus = resolvePersistedAgentStatusTruth({
+      currentStatus: row.status,
+      latestRunStatus: latestRun?.status ?? null,
+      latestRunErrorCode: latestRun?.errorCode ?? null,
+      runningCount: runningRows.length,
+    });
+    if (nextStatus === row.status) return row;
+
+    const updated = await db
+      .update(agents)
+      .set({ status: nextStatus, updatedAt: new Date() })
+      .where(and(eq(agents.id, row.id), eq(agents.status, row.status)))
+      .returning()
+      .then((rows) => rows[0] ?? null);
+
+    return updated ?? row;
+  }
+
   async function getById(id: string) {
     const row = await db
       .select()
       .from(agents)
       .where(eq(agents.id, id))
       .then((rows) => rows[0] ?? null);
-    return row ? normalizeAgentRow(row) : null;
+    if (!row) return null;
+    const reconciled = await reconcileRecoverableAgentStatus(row);
+    return normalizeAgentRow(reconciled);
   }
 
   async function ensureManager(companyId: string, managerId: string) {
@@ -331,7 +396,10 @@ export function agentService(db: Db) {
         conditions.push(ne(agents.status, "terminated"));
       }
       const rows = await db.select().from(agents).where(and(...conditions));
-      return rows.map(normalizeAgentRow);
+      const reconciledRows = await Promise.all(
+        rows.map((row) => reconcileRecoverableAgentStatus(row)),
+      );
+      return reconciledRows.map(normalizeAgentRow);
     },
 
     getById,

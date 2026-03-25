@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import { applyIssuePromptContext } from "../services/heartbeat.js";
 
 describe("applyIssuePromptContext", () => {
@@ -42,5 +44,17 @@ describe("applyIssuePromptContext", () => {
     );
     if (previousApiUrl === undefined) delete process.env.PAPERCLIP_API_URL;
     else process.env.PAPERCLIP_API_URL = previousApiUrl;
+  });
+
+  it("keeps company and project ids in the wakeup issue-context select", () => {
+    const heartbeatSource = readFileSync(
+      path.resolve(__dirname, "../../..", "server/src/services/heartbeat.ts"),
+      "utf8",
+    );
+
+    expect(heartbeatSource).toContain("companyId: issues.companyId");
+    expect(heartbeatSource).toContain("projectId: issues.projectId");
+    expect(heartbeatSource).toContain("goalId: issues.goalId");
+    expect(heartbeatSource).toContain("parentId: issues.parentId");
   });
 });

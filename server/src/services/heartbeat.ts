@@ -577,6 +577,7 @@ export function resolveNextAgentStatusAfterRun(input: {
     return "idle" as const;
   }
   return input.outcome === "succeeded" ||
+    input.outcome === "blocked" ||
     input.outcome === "cancelled" ||
     input.outcome === "awaiting_approval"
     ? ("idle" as const)
@@ -5429,6 +5430,10 @@ export function heartbeatService(db: Db) {
       ? await db
           .select({
             id: issues.id,
+            companyId: issues.companyId,
+            projectId: issues.projectId,
+            goalId: issues.goalId,
+            parentId: issues.parentId,
             identifier: issues.identifier,
             title: issues.title,
             description: issues.description,

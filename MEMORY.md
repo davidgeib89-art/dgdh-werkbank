@@ -106,6 +106,8 @@
 - Fuer normale Firmenlauf-Diagnose gilt: API-/Chain-Truth zuerst, breite Repo-Lektuere spaeter. `company-run-chain`, `active-run` und exakte `heartbeat-runs`-Reads schlagen Shell- oder Repo-Streu-Scans.
 - Wenn die laufende 3100-Instanz nach einem Server-Fix weiter altes Verhalten zeigt, ist das neue Codepfad-Urteil noch nicht live; dann frische Instanz auf dem naechsten freien Port starten, `/api/health` plus `/api/companies` neu beweisen und erst dort live validieren.
 - Wenn eine frische CEO-Zuweisung weder `executionRunId` noch `live-runs` erzeugt, bevor irgendein Child entsteht, ist das ein Core-Loop-Blocker vor jeder Arbeitsklasse; keinen groesseren Capability-Sprint darueberstapeln.
+- Ein `blocked`-Run ist Packet-/Policy-Wahrheit, nicht kaputter Agent: Worker und CEO muessen nach `blocked` ohne aktive Rest-Runs wieder auf `idle` zurueckfallen, sowohl im Finalisierungspfad als auch in stale Status-Reconciliation.
+- Der Flash-Lite-Router soll fuer Paperclip-Issues bevorzugt den kompakten `paperclipIssue`-Titel/-Text statt des aufgeblasenen Assignment-Prompts klassifizieren; sonst koennen kleine Single-File-Packets falsch als `large/high` ueberklassifiziert werden.
 
 ## Astro/Keystatic Workspace-Sicherheit
 - Live Primary Workspace fuer Projekt `0bce43aa-2bb9-4572-9938-f556a3279149`: `C:\Users\holyd\DGDH\worktrees\astro-keystatic-template-geib`
