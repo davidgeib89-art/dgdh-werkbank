@@ -102,6 +102,9 @@ Copilot is:
 
 Copilot is where large bounded `doneWhen` sprints should usually go first.
 Copilot should not waste runs rediscovering runtime truth or asking for tiny confirmations.
+Operationally, Copilot has two sub-lanes:
+- Local for truth cuts, repros, and small bounded fixes
+- Cloud for sharp unattended PR-shaped execution
 
 Copilot's detailed execution behavior lives in:
 - `COPILOT.md`
