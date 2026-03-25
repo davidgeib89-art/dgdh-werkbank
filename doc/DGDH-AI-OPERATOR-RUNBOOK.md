@@ -201,7 +201,7 @@ $projectBody = @{
     cwd = (git rev-parse --show-toplevel)
     isPrimary = $true
   }
-} | ConvertTo-Json -Depth 8
+} | ConvertTo-Json -Depth 10
 
 $project = Invoke-RestMethod -Method Post -Uri "$base/companies/$companyId/projects" -ContentType "application/json" -Body $projectBody
 $projectId = $project.id
@@ -219,7 +219,7 @@ $issueBody = @{
   description = "Real bounded run on the proven canonical local baseline."
   status = "todo"
   priority = "medium"
-} | ConvertTo-Json -Depth 8
+} | ConvertTo-Json -Depth 10
 
 $issue = Invoke-RestMethod -Method Post -Uri "$base/companies/$companyId/issues" -ContentType "application/json" -Body $issueBody
 $issueId = $issue.id
@@ -234,7 +234,7 @@ Otherwise the routing preflight can legitimately stop the CEO run with `missing_
 $assignBody = @{
   assigneeAgentId = $ceo.id
   status = "todo"
-} | ConvertTo-Json -Depth 8
+} | ConvertTo-Json -Depth 10
 
 Invoke-RestMethod -Method Patch -Uri "$base/issues/$issueId" -ContentType "application/json" -Body $assignBody
 ```
@@ -352,6 +352,12 @@ To ensure a smooth transition from CEO to Worker and avoid `missing_inputs` stal
 - **[NEEDS INPUT]**: Must be explicitly set to `none` for the packet to be "ready". If not `none`, the worker may block until the input is provided.
 
 Adhering to this format allows the routing and execution engines to proceed autonomously without pausing for manual clarification.
+
+### 7.5 PowerShell JSON Depth Tip
+
+When using `Invoke-RestMethod` with a JSON body in PowerShell, always use `-Depth 10` (or higher) with `ConvertTo-Json`.
+
+PowerShell's default depth for `ConvertTo-Json` is 2, which often truncates nested objects in Paperclip payloads (like `workspace` or `adapterConfig`), leading to silent API failures or "missing field" errors.
 
 ---
 
