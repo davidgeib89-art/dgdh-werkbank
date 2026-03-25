@@ -1,0 +1,60 @@
+{
+  "name": "dav_91_ceo_ready_flash_first_after_fix",
+  "agent": {
+    "adapterType": "gemini_local"
+  },
+  "resolvedConfig": {
+    "model": "auto",
+    "roleTemplateId": "ceo"
+  },
+  "runtimeConfig": {
+    "routingPolicy": {
+      "mode": "soft_enforced",
+      "bucketState": {
+        "flash": "ok",
+        "pro": "ok",
+        "flash-lite": "ok"
+      },
+      "quotaSnapshot": {
+        "snapshotAt": "2026-03-25T17:10:00.000Z",
+        "buckets": {
+          "flash": {
+            "state": "ok",
+            "usagePercent": 19
+          },
+          "flash-lite": {
+            "state": "ok",
+            "usagePercent": 4
+          },
+          "pro": {
+            "state": "ok",
+            "usagePercent": 1
+          }
+        }
+      }
+    }
+  },
+  "runtimeState": {},
+  "issueRef": {
+    "id": "9fa43079-5fc9-4458-b77c-f5f359112cf1",
+    "companyId": "44850e08-61ce-44de-8ccd-b645c1f292be",
+    "projectId": "dcf315e1-2c4b-4d4b-b516-f2cb03dc1441",
+    "goalId": null,
+    "parentId": null,
+    "identifier": "DAV-91",
+    "title": "Truth cut: CEO flash-first after ready packet router skip",
+    "description": "Titel: CEO flash-first truth cut after ready packet router skip\npacketType: free_api\nexecutionIntent: implement\nreviewPolicy: required\nneedsReview: true\nstatus: todo\nZiel: Prove that the CEO can process a ready packet without an extra flash-lite router call and still move the company path forward.\nScope: Read child status first, then create at most one tiny child packet for a runbook note. If no worker is idle, leave the child unassigned and report [NEEDS WORKER]. No implementation on the parent issue.\ntargetFile: doc/DGDH-AI-OPERATOR-RUNBOOK.md\ntargetFolder: doc\nartifactKind: doc_update\ndoneWhen: The CEO starts on flash, skips the extra router call, and either creates one child packet or cleanly reports [NEEDS WORKER] without stalling.\nAnnahmen:\n[NEEDS INPUT]: none"
+  },
+  "expected": {
+    "roleHint": "ceo",
+    "selectedBucket": "flash",
+    "effectiveModelLane": "gemini-3-flash-preview",
+    "parseStatus": "not_attempted",
+    "fallbackReason": "ready_packet_truth",
+    "readyPacketSkip": true,
+    "allowedSkills": [
+      "repo-read",
+      "repo-write"
+    ]
+  }
+}

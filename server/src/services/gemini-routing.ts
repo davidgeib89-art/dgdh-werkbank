@@ -179,6 +179,16 @@ function normalizeRoleHint(context: Record<string, unknown>): RoleHint | null {
   return isRoleHint(normalized) ? normalized : null;
 }
 
+function getFreeApiBucketPreference(roleHint: RoleHint | null): BucketName[] {
+  if (roleHint === "ceo") {
+    // CEO parent runs still need stable reasoning and multi-step delegation.
+    // Flash-lite is great for cheap worker lanes, but it is too fragile as the
+    // first choice for live CEO orchestration.
+    return ["flash", "flash-lite", "pro"];
+  }
+  return ["flash-lite", "flash", "pro"];
+}
+
 type LaneDecisionSource = "packet_type" | "role_hint" | "control_plane_default";
 
 export interface GeminiRoutingLaneDecision {
@@ -466,7 +476,9 @@ export function resolveGeminiRoutingPreflight(
   };
 
   if (shouldApplyLaneOverride && laneDecision.lane === "free_api") {
-    const nextBucket = chooseBucket(["flash-lite", "flash", "pro"]);
+    const nextBucket = chooseBucket(
+      getFreeApiBucketPreference(laneDecision.roleHint),
+    );
     selected.selectedBucket = nextBucket;
     selected.effectiveBucket = nextBucket;
     selected.recommendedModelLane = policy.bucketModels[nextBucket];

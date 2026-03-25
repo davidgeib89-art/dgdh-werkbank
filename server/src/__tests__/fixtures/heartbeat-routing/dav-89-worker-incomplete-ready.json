@@ -1,0 +1,56 @@
+{
+  "name": "dav_89_worker_ready_incomplete_header_stays_worker_lane",
+  "agent": {
+    "adapterType": "gemini_local"
+  },
+  "resolvedConfig": {
+    "model": "auto",
+    "roleTemplateId": "worker"
+  },
+  "runtimeConfig": {
+    "routingPolicy": {
+      "mode": "soft_enforced",
+      "bucketState": {
+        "flash": "ok",
+        "pro": "ok",
+        "flash-lite": "ok"
+      },
+      "quotaSnapshot": {
+        "snapshotAt": "2026-03-25T17:10:00.000Z",
+        "buckets": {
+          "flash": {
+            "state": "ok",
+            "usagePercent": 19
+          },
+          "flash-lite": {
+            "state": "ok",
+            "usagePercent": 4
+          },
+          "pro": {
+            "state": "ok",
+            "usagePercent": 1
+          }
+        }
+      }
+    }
+  },
+  "runtimeState": {},
+  "issueRef": {
+    "id": "2470a85c-56a3-4eb7-95e5-bba06967d2bb",
+    "companyId": "44850e08-61ce-44de-8ccd-b645c1f292be",
+    "projectId": "dcf315e1-2c4b-4d4b-b516-f2cb03dc1441",
+    "goalId": null,
+    "parentId": "f3342630-eb17-46e7-aaa5-c8f0046d7966",
+    "identifier": "DAV-89",
+    "title": "Runbook Update: Paperclip Runtime Environment Visibility",
+    "description": "Titel: Runbook Update: Paperclip Runtime Environment Visibility\nZiel: Verify that the Paperclip runtime environment variables are visible to the CEO agent by creating and assigning a small documentation update task to the Worker Agent.\nScope: The CEO agent will create exactly one child issue for a small documentation update related to the runbook. This issue will be assigned to the Worker Agent. No implementation work is to be done on the parent issue by the CEO agent.\ntargetFile: doc/DGDH-AI-OPERATOR-RUNBOOK.md\ntargetFolder: doc\nartifactKind: doc_update\ndoneWhen: The CEO creates one child issue for a tiny runbook note and assigns it to the Worker Agent.\nAnnahmen:\n[NEEDS INPUT]: none"
+  },
+  "expected": {
+    "roleHint": "worker",
+    "selectedBucket": "flash-lite",
+    "effectiveModelLane": "gemini-2.5-flash-lite",
+    "parseStatus": "not_attempted",
+    "fallbackReason": "ready_packet_truth",
+    "readyPacketSkip": true
+  }
+}

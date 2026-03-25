@@ -285,6 +285,29 @@ describe("resolveGeminiRoutingPreflight extended fields", () => {
     expect(result!.routingReason).toContain("lane=free_api");
   });
 
+  it("packetType free_api on ceo prefers flash before flash-lite", () => {
+    const result = resolveGeminiRoutingPreflight({
+      adapterType: "gemini_local",
+      adapterConfig: { model: "gemini-3.1-pro-preview" },
+      runtimeConfig: {
+        routingPolicy: {
+          mode: "soft_enforced",
+          bucketState: { flash: "ok", pro: "ok", "flash-lite": "ok" },
+        },
+      },
+      context: {
+        packetType: "free_api",
+        role: "ceo",
+      },
+    });
+
+    expect(result).not.toBeNull();
+    expect(result!.laneDecision.lane).toBe("free_api");
+    expect(result!.selected.selectedBucket).toBe("flash");
+    expect(result!.selected.effectiveModelLane).toBe("gemini-3-flash-preview");
+    expect(result!.routingReason).toContain("role=ceo");
+  });
+
   it("packetType premium_model prefers pro and degrades to flash if pro is exhausted", () => {
     const result = resolveGeminiRoutingPreflight({
       adapterType: "gemini_local",

@@ -29,8 +29,8 @@ describe("loadConfig heartbeat recovery grace", () => {
 
     const config = loadConfig();
 
-    expect(config.heartbeatRecoveryGraceMs).toBe(10 * 60 * 1000);
-    expect(config.heartbeatStartupRecoveryGraceMs).toBe(15 * 60 * 1000);
+    expect(config.heartbeatRecoveryGraceMs).toBe(2 * 60 * 1000);
+    expect(config.heartbeatStartupRecoveryGraceMs).toBe(3 * 60 * 1000);
   });
 
   it("clamps recovery grace and keeps startup grace at least as large", () => {

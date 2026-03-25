@@ -59,16 +59,12 @@ import {
 } from "../log-redaction.js";
 import { runPromptResolverPreflight } from "./prompt-resolver-preflight.js";
 import type { PromptResolverInput } from "./prompt-resolver-schema.js";
-import {
-  getGeminiRoutingPolicy,
-  resolveGeminiRoutingPreflight,
-} from "./gemini-routing.js";
 import { refreshGeminiRuntimeQuotaSnapshot } from "./gemini-quota-producer.js";
-import { produceFlashLiteRoutingProposal } from "./gemini-flash-lite-router.js";
 import { fetchLiveGeminiQuota } from "./gemini-quota-api.js";
 import { resolveAssignedRoleTemplate } from "./role-templates.js";
 import { logActivity } from "./activity-log.js";
 import { resolveIssueExecutionPacketTruth } from "./issue-execution-packet.js";
+import { prepareHeartbeatGeminiRouting } from "./heartbeat-gemini-routing.js";
 
 const MAX_LIVE_LOG_CHUNK_BYTES = 8 * 1024;
 const HEARTBEAT_MAX_CONCURRENT_RUNS_DEFAULT = 1;
@@ -582,6 +578,25 @@ export function resolveNextAgentStatusAfterRun(input: {
     input.outcome === "awaiting_approval"
     ? ("idle" as const)
     : ("error" as const);
+}
+
+export function resolveHeartbeatModelOverride(input: {
+  adapterType: string;
+  configuredModel?: string | null;
+  applyModelLane: boolean;
+  effectiveModelLane?: string | null;
+}) {
+  const configuredModel = input.configuredModel?.trim() || null;
+  const effectiveModelLane = input.effectiveModelLane?.trim() || null;
+  if (!input.applyModelLane || !effectiveModelLane) return configuredModel;
+  if (input.adapterType !== "gemini_local") return effectiveModelLane;
+  if (configuredModel && configuredModel !== "auto") return effectiveModelLane;
+
+  const normalizedLane = effectiveModelLane.toLowerCase();
+  // Live probes showed `auto` stalling on `auto-gemini-3` while explicit flash
+  // lanes recover and reach the first tool call. Keep only pro-style lanes on auto.
+  if (normalizedLane.includes("flash")) return effectiveModelLane;
+  return configuredModel;
 }
 
 export function isPhaseBExecution(context: Record<string, unknown>) {
@@ -3734,32 +3749,11 @@ export function heartbeatService(db: Db) {
         );
       const resolvedConfig = { ...configWithSecrets };
       const roleTemplateResolution = resolveAssignedRoleTemplate(resolvedConfig);
+      delete context.agentRole;
+      delete context.roleName;
       delete context.paperclipRoleTemplate;
       delete context.paperclipRoleTemplatePrompt;
       delete context.paperclipRoleTemplateError;
-      if (roleTemplateResolution.error) {
-        context.paperclipRoleTemplateError = roleTemplateResolution.error;
-        logger.warn(
-          {
-            companyId: agent.companyId,
-            agentId: agent.id,
-            roleTemplateId: roleTemplateResolution.requestedRoleTemplateId,
-            error: roleTemplateResolution.error,
-          },
-          "[paperclip:role-template] failed to resolve assigned role template",
-        );
-      } else if (roleTemplateResolution.assigned) {
-        context.paperclipRoleTemplate = {
-          id: roleTemplateResolution.assigned.template.id,
-          version: roleTemplateResolution.assigned.template.version,
-          label: roleTemplateResolution.assigned.template.label,
-          description: roleTemplateResolution.assigned.template.description,
-          sourcePath: roleTemplateResolution.assigned.sourcePath,
-          roleAppendPrompt: roleTemplateResolution.assigned.roleAppendPrompt,
-        };
-        context.paperclipRoleTemplatePrompt =
-          roleTemplateResolution.assigned.prompt;
-      }
       const issueRef = issueId
         ? await db
             .select({
@@ -3831,140 +3825,49 @@ export function heartbeatService(db: Db) {
         }
       }
 
-      const preflightQuotaRefresh = refreshGeminiRuntimeQuotaSnapshot({
+      const routingPlan = await prepareHeartbeatGeminiRouting({
+        agent,
+        resolvedConfig,
         runtimeConfig: runtimeConfigForRouting,
         runtimeState: runtimeStateForRouting,
-        trigger: "before_preflight",
+        issueRef,
+        context,
       });
-      if (preflightQuotaRefresh.runtimeStateChanged) {
-        await persistRuntimeStatePatch(
-          agent.id,
-          preflightQuotaRefresh.runtimeStatePatch,
-        );
+      if (Object.keys(routingPlan.runtimeStatePatch).length > 0) {
+        await persistRuntimeStatePatch(agent.id, routingPlan.runtimeStatePatch);
         runtimeStateForRouting = {
           ...runtimeStateForRouting,
-          ...preflightQuotaRefresh.runtimeStatePatch,
+          ...routingPlan.runtimeStatePatch,
           controlPlane: {
             ...parseObject(runtimeStateForRouting.controlPlane),
-            ...parseObject(
-              preflightQuotaRefresh.runtimeStatePatch.controlPlane,
-            ),
+            ...parseObject(routingPlan.runtimeStatePatch.controlPlane),
           },
         };
       }
-
-      const quotaRefreshWarnings = preflightQuotaRefresh.warnings.map(
-        (warning) =>
-          `Quota snapshot refresh (${
-            preflightQuotaRefresh.refreshSource ?? "none"
-          }) reported ${warning}`,
+      for (const [key, value] of Object.entries(routingPlan.contextPatch)) {
+        if (value === null) {
+          delete context[key];
+          continue;
+        }
+        context[key] = value;
+      }
+      Object.assign(resolvedConfig, routingPlan.resolvedConfigPatch);
+      const routingRoleTemplateError = readNonEmptyString(
+        routingPlan.contextPatch.paperclipRoleTemplateError,
       );
-
-      const manualOverrideForRouter = parseObject(
-        parseObject(runtimeConfigForRouting.routingPolicy).manualOverride,
-      );
-
-      const { policy } = getGeminiRoutingPolicy();
-      const flashLiteProposal = await produceFlashLiteRoutingProposal({
-        adapterType: agent.adapterType,
-        adapterConfig: resolvedConfig,
-        runtimeConfig: runtimeConfigForRouting,
-        runtimeState: runtimeStateForRouting,
-        context,
-        quotaSnapshot: {
-          source: preflightQuotaRefresh.snapshot.source,
-          accountLabel: preflightQuotaRefresh.snapshot.accountLabel,
-          snapshotAt: preflightQuotaRefresh.snapshot.snapshotAt,
-          resetAt: preflightQuotaRefresh.snapshot.resetAt,
-          resetReason: preflightQuotaRefresh.snapshot.resetReason,
-          isStale: preflightQuotaRefresh.snapshot.isStale,
-          staleReason: preflightQuotaRefresh.snapshot.staleReason,
-          ageSec: preflightQuotaRefresh.snapshot.ageSec,
-          maxAgeSec: preflightQuotaRefresh.snapshot.maxAgeSec,
-          buckets: preflightQuotaRefresh.snapshot.buckets,
-        },
-        allowedBuckets: ["flash", "pro", "flash-lite"],
-        allowedModelLanes: Object.values(policy.bucketModels),
-        allowedSkillPool: [
-          "repo-read",
-          "repo-write",
-          "web-search",
-          "test-runner",
-          "status-summary",
-        ],
-        manualOverride:
-          Object.keys(manualOverrideForRouter).length > 0
-            ? manualOverrideForRouter
-            : null,
-      });
-
-      if (Object.keys(flashLiteProposal.runtimeStatePatch).length > 0) {
-        await persistRuntimeStatePatch(
-          agent.id,
-          flashLiteProposal.runtimeStatePatch,
-        );
-        runtimeStateForRouting = {
-          ...runtimeStateForRouting,
-          ...flashLiteProposal.runtimeStatePatch,
-          controlPlane: {
-            ...parseObject(runtimeStateForRouting.controlPlane),
-            ...parseObject(flashLiteProposal.runtimeStatePatch.controlPlane),
+      if (routingRoleTemplateError) {
+        logger.warn(
+          {
+            companyId: agent.companyId,
+            agentId: agent.id,
+            roleTemplateId: roleTemplateResolution.requestedRoleTemplateId,
+            error: routingRoleTemplateError,
           },
-        };
+          "[paperclip:role-template] failed to resolve assigned role template",
+        );
       }
-
-      if (flashLiteProposal.proposal) {
-        context.paperclipRoutingProposal = {
-          taskType: flashLiteProposal.proposal.taskClass,
-          taskClass: flashLiteProposal.proposal.taskClass,
-          budgetClass: flashLiteProposal.proposal.budgetClass,
-          executionIntent: flashLiteProposal.proposal.executionIntent,
-          targetFolder: flashLiteProposal.proposal.targetFolder,
-          doneWhen: flashLiteProposal.proposal.doneWhen,
-          riskLevel: flashLiteProposal.proposal.riskLevel,
-          missingInputs: flashLiteProposal.proposal.missingInputs,
-          needsApproval: flashLiteProposal.proposal.needsApproval,
-          chosenBucket: flashLiteProposal.proposal.chosenBucket,
-          chosenModelLane: flashLiteProposal.proposal.chosenModelLane,
-          fallbackBucket: flashLiteProposal.proposal.fallbackBucket,
-          rationale: flashLiteProposal.proposal.rationale,
-        };
-      } else {
-        delete context.paperclipRoutingProposal;
-      }
-
-      context.paperclipRoutingProposalMeta = {
-        source: flashLiteProposal.source,
-        parseStatus: flashLiteProposal.parseStatus,
-        latencyMs: flashLiteProposal.latencyMs,
-        attempted: flashLiteProposal.attempted,
-        cacheHit: flashLiteProposal.cacheHit,
-        fallbackReason: flashLiteProposal.fallbackReason,
-        routerHealth: flashLiteProposal.routerHealth,
-      };
-
-      if (flashLiteProposal.warning) {
-        quotaRefreshWarnings.push(flashLiteProposal.warning);
-      }
-
-      const routingPreflight = resolveGeminiRoutingPreflight({
-        adapterType: agent.adapterType,
-        adapterConfig: resolvedConfig,
-        runtimeConfig: runtimeConfigForRouting,
-        runtimeState: runtimeStateForRouting,
-        context,
-      });
-
-      if (
-        flashLiteProposal.proposal?.allowedSkills &&
-        flashLiteProposal.proposal.allowedSkills.length > 0
-      ) {
-        resolvedConfig.includeSkills = flashLiteProposal.proposal.allowedSkills;
-        context.paperclipSkillSelection = {
-          allowedSkills: flashLiteProposal.proposal.allowedSkills,
-          source: "flash_lite_proposal",
-        };
-      }
+      const routingPreflight = routingPlan.routingPreflight;
+      const routingWarnings = [...routingPlan.warnings];
 
       const executionWorkspace = await realizeExecutionWorkspace({
         base: {
@@ -3993,7 +3896,7 @@ export function heartbeatService(db: Db) {
       });
       const runtimeSessionParams = runtimeSessionResolution.sessionParams;
       const runtimeWorkspaceWarnings = [
-        ...quotaRefreshWarnings,
+        ...routingWarnings,
         ...resolvedWorkspace.warnings,
         ...executionWorkspace.warnings,
         ...(runtimeSessionResolution.warning
@@ -4058,30 +3961,48 @@ export function heartbeatService(db: Db) {
         readNonEmptyString(runtimeSessionParams?.sessionId) ??
         runtimeSessionFallback;
       let runtimeSessionParamsForAdapter = runtimeSessionParams;
+      const thinDefaultExecutionPath =
+        readNonEmptyString(context.paperclipDefaultExecutionPath) ===
+        "ready_small_default";
+      let sessionCompaction: SessionCompactionDecision = {
+        rotate: false,
+        reason: null,
+        handoffMarkdown: null,
+        previousRunId: null,
+      };
 
-      const sessionCompaction = await evaluateSessionCompaction({
-        agent,
-        sessionId: previousSessionDisplayId ?? runtimeSessionIdForAdapter,
-        issueId,
-      });
-      if (sessionCompaction.rotate) {
-        context.paperclipSessionHandoffMarkdown =
-          sessionCompaction.handoffMarkdown;
-        context.paperclipSessionRotationReason = sessionCompaction.reason;
-        context.paperclipPreviousSessionId =
-          previousSessionDisplayId ?? runtimeSessionIdForAdapter;
+      if (thinDefaultExecutionPath || context.forceFreshSession === true) {
         runtimeSessionIdForAdapter = null;
         runtimeSessionParamsForAdapter = null;
         previousSessionDisplayId = null;
-        if (sessionCompaction.reason) {
-          runtimeWorkspaceWarnings.push(
-            `Starting a fresh session because ${sessionCompaction.reason}.`,
-          );
-        }
-      } else {
         delete context.paperclipSessionHandoffMarkdown;
         delete context.paperclipSessionRotationReason;
         delete context.paperclipPreviousSessionId;
+      } else {
+        sessionCompaction = await evaluateSessionCompaction({
+          agent,
+          sessionId: previousSessionDisplayId ?? runtimeSessionIdForAdapter,
+          issueId,
+        });
+        if (sessionCompaction.rotate) {
+          context.paperclipSessionHandoffMarkdown =
+            sessionCompaction.handoffMarkdown;
+          context.paperclipSessionRotationReason = sessionCompaction.reason;
+          context.paperclipPreviousSessionId =
+            previousSessionDisplayId ?? runtimeSessionIdForAdapter;
+          runtimeSessionIdForAdapter = null;
+          runtimeSessionParamsForAdapter = null;
+          previousSessionDisplayId = null;
+          if (sessionCompaction.reason) {
+            runtimeWorkspaceWarnings.push(
+              `Starting a fresh session because ${sessionCompaction.reason}.`,
+            );
+          }
+        } else {
+          delete context.paperclipSessionHandoffMarkdown;
+          delete context.paperclipSessionRotationReason;
+          delete context.paperclipPreviousSessionId;
+        }
       }
 
       const runtimeForAdapter = {
@@ -4377,17 +4298,18 @@ export function heartbeatService(db: Db) {
         // Bypass: if this run was already approved, skip Gate 2 to avoid infinite loop.
         // Gate 2 (routine operator approval) is intentionally disabled for now.
         // Valid runs should continue unless they hit the hard block above.
-        // Apply model lane override from routing preflight.
-        // Keep gemini_local agents on CLI auto-selection unless they already carry an explicit model,
-        // because forcing --model has caused live CEO runs to stall before any model output.
-        if (routingPreflight?.applyModelLane) {
-          const configuredModel = readNonEmptyString(resolvedConfig.model);
-          const keepGeminiAutoModel =
-            agent.adapterType === "gemini_local" &&
-            (!configuredModel || configuredModel === "auto");
-          if (!keepGeminiAutoModel) {
-            resolvedConfig.model = routingPreflight.selected.effectiveModelLane;
-          }
+        // Apply routed model lanes. For gemini_local, keep pro-style auto selection,
+        // but pin flash/flash-lite explicitly because live CEO runs otherwise default
+        // to auto-gemini-3 and can stall before the first tool call.
+        const routedModelOverride = resolveHeartbeatModelOverride({
+          adapterType: agent.adapterType,
+          configuredModel: readNonEmptyString(resolvedConfig.model),
+          applyModelLane: Boolean(routingPreflight?.applyModelLane),
+          effectiveModelLane:
+            routingPreflight?.selected.effectiveModelLane ?? null,
+        });
+        if (routedModelOverride) {
+          resolvedConfig.model = routedModelOverride;
         }
 
         const singleFileBenchmarkPreflight =

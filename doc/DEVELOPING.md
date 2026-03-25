@@ -63,7 +63,7 @@ Important notes:
 - `pnpm dev:once` is preferred over calling the server package directly because it still runs the same root bootstrap flow used by local development.
 - UI source edits can still be exercised through the dev middleware without forcing a backend restart.
 - During a long adapter invocation, the heartbeat runner now performs throttled keepalive touches on `heartbeat_runs.updatedAt` (no extra lifecycle/transcript events).
-- Recovery grace is configurable via `HEARTBEAT_RECOVERY_GRACE_MS` (periodic sweep, default: 10 minutes) and `HEARTBEAT_STARTUP_RECOVERY_GRACE_MS` (startup sweep, default: 15 minutes, never less than periodic).
+- Recovery grace is configurable via `HEARTBEAT_RECOVERY_GRACE_MS` (periodic sweep, default: 2 minutes) and `HEARTBEAT_STARTUP_RECOVERY_GRACE_MS` (startup sweep, default: 3 minutes, never less than periodic).
 
 Observed watch-mode behavior in this repo:
 

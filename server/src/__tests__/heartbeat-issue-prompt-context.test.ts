@@ -57,4 +57,24 @@ describe("applyIssuePromptContext", () => {
     expect(heartbeatSource).toContain("goalId: issues.goalId");
     expect(heartbeatSource).toContain("parentId: issues.parentId");
   });
+
+  it("stores assigned role template ids into heartbeat context for routing", () => {
+    const heartbeatSource = readFileSync(
+      path.resolve(__dirname, "../../..", "server/src/services/heartbeat.ts"),
+      "utf8",
+    );
+    const routingSource = readFileSync(
+      path.resolve(
+        __dirname,
+        "../../..",
+        "server/src/services/heartbeat-gemini-routing.ts",
+      ),
+      "utf8",
+    );
+
+    expect(heartbeatSource).toContain("delete context.agentRole;");
+    expect(heartbeatSource).toContain("prepareHeartbeatGeminiRouting({");
+    expect(routingSource).toContain("patch.agentRole = assigned.template.id;");
+    expect(routingSource).toContain("patch.roleName = assigned.template.label;");
+  });
 });

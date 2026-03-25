@@ -36,11 +36,11 @@ describe("collectDeploymentEnvRows", () => {
     );
 
     expect(recoveryRow).toMatchObject({
-      value: "600000",
+      value: "120000",
       source: "default",
     });
     expect(startupRow).toMatchObject({
-      value: "900000",
+      value: "180000",
       source: "default",
     });
   });

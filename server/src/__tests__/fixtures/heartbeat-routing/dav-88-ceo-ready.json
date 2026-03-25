@@ -1,0 +1,60 @@
+{
+  "name": "dav_88_ceo_ready_child_status_path",
+  "agent": {
+    "adapterType": "gemini_local"
+  },
+  "resolvedConfig": {
+    "model": "auto",
+    "roleTemplateId": "ceo"
+  },
+  "runtimeConfig": {
+    "routingPolicy": {
+      "mode": "soft_enforced",
+      "bucketState": {
+        "flash": "ok",
+        "pro": "ok",
+        "flash-lite": "ok"
+      },
+      "quotaSnapshot": {
+        "snapshotAt": "2026-03-25T17:10:00.000Z",
+        "buckets": {
+          "flash": {
+            "state": "ok",
+            "usagePercent": 19
+          },
+          "flash-lite": {
+            "state": "ok",
+            "usagePercent": 4
+          },
+          "pro": {
+            "state": "ok",
+            "usagePercent": 1
+          }
+        }
+      }
+    }
+  },
+  "runtimeState": {},
+  "issueRef": {
+    "id": "f3342630-eb17-46e7-aaa5-c8f0046d7966",
+    "companyId": "44850e08-61ce-44de-8ccd-b645c1f292be",
+    "projectId": "dcf315e1-2c4b-4d4b-b516-f2cb03dc1441",
+    "goalId": null,
+    "parentId": null,
+    "identifier": "DAV-88",
+    "title": "Truth cut: CEO after live runtime reload with explicit Paperclip env note",
+    "description": "Titel: Truth cut after live runtime reload with explicit Paperclip env note\npacketType: free_api\nexecutionIntent: implement\nreviewPolicy: required\nneedsReview: true\nstatus: todo\nZiel: Prove that the CEO now sees the injected Paperclip runtime env clearly enough to create and assign one tiny worker packet after the runtime reload.\nScope: CEO should read child status, create exactly one tiny worker packet for a small runbook note, and assign it to the worker. No implementation on the parent issue.\ntargetFile: doc/DGDH-AI-OPERATOR-RUNBOOK.md\ntargetFolder: doc\nartifactKind: doc_update\ndoneWhen: The CEO creates one child issue for a tiny runbook note and assigns it to the Worker Agent.\nAnnahmen:\n[NEEDS INPUT]: none"
+  },
+  "expected": {
+    "roleHint": "ceo",
+    "selectedBucket": "flash",
+    "effectiveModelLane": "gemini-3-flash-preview",
+    "parseStatus": "not_attempted",
+    "fallbackReason": "ready_packet_truth",
+    "readyPacketSkip": true,
+    "allowedSkills": [
+      "repo-read",
+      "repo-write"
+    ]
+  }
+}

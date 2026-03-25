@@ -85,6 +85,7 @@ function renderApiAccessNote(env: Record<string, string>): string {
   return [
     "Paperclip API access note:",
     "This adapter runs in Windows PowerShell.",
+    "PAPERCLIP_API_KEY and PAPERCLIP_RUN_ID are already injected into this run's shell environment. Do not ask the user to provide them.",
     "Do not search for a Paperclip CLI for issue management. Use Invoke-RestMethod directly.",
     "Execute the Paperclip API calls with run_shell_command. Do not stop at sample code or a prose plan.",
     "Use the exact PAPERCLIP_* environment variables shown here. Do not replace them with guessed titles, slugs, or localhost ports.",
@@ -359,12 +360,117 @@ function renderRoleTemplateNote(context: Record<string, unknown>): string {
   return `${roleTemplatePrompt}\n\n`;
 }
 
+function isThinReadySmallDefaultContext(
+  context: Record<string, unknown>,
+): boolean {
+  return (
+    asString(context.paperclipDefaultExecutionPath, "").trim() ===
+    "ready_small_default"
+  );
+}
+
 function buildPromptHeader(prompt: string, maxLines = 18): string {
   return prompt.split(/\r?\n/).slice(0, maxLines).join("\n").trim();
 }
 
 function geminiSkillsHome(): string {
   return path.join(os.homedir(), ".gemini", "skills");
+}
+
+function geminiSystemSettingsPath(
+  platform: NodeJS.Platform = os.platform(),
+): string {
+  if (platform === "win32") return "C:\\ProgramData\\gemini-cli\\settings.json";
+  if (platform === "darwin") {
+    return "/Library/Application Support/GeminiCli/settings.json";
+  }
+  return "/etc/gemini-cli/settings.json";
+}
+
+function sanitizeRunIdForFileName(runId: string): string {
+  return runId.replace(/[^a-zA-Z0-9_-]/g, "_");
+}
+
+async function ensureWindowsGeminiSystemSettingsOverride(input: {
+  runId: string;
+  env: Record<string, string>;
+  onLog: AdapterExecutionContext["onLog"];
+  platform?: NodeJS.Platform;
+}): Promise<null | { cleanup: () => Promise<void> }> {
+  const platform = input.platform ?? os.platform();
+  if (platform !== "win32") return null;
+
+  const configuredSettingsPath = asString(
+    input.env.GEMINI_CLI_SYSTEM_SETTINGS_PATH,
+    "",
+  ).trim();
+  const baseSettingsPath =
+    configuredSettingsPath || geminiSystemSettingsPath(platform);
+  let baseSettings: Record<string, unknown> = {};
+
+  try {
+    const raw = await fs.readFile(baseSettingsPath, "utf8");
+    const parsed = JSON.parse(raw) as unknown;
+    if (typeof parsed === "object" && parsed !== null && !Array.isArray(parsed)) {
+      baseSettings = parsed as Record<string, unknown>;
+    } else {
+      await input.onLog(
+        "stderr",
+        `[paperclip] Gemini system settings at ${baseSettingsPath} were not a JSON object; continuing with a Paperclip override only.\n`,
+      );
+    }
+  } catch (error) {
+    const code =
+      typeof error === "object" && error !== null && "code" in error
+        ? String((error as { code?: unknown }).code)
+        : null;
+    if (code !== "ENOENT") {
+      await input.onLog(
+        "stderr",
+        `[paperclip] Failed to read Gemini system settings ${baseSettingsPath}: ${
+          error instanceof Error ? error.message : String(error)
+        }\n`,
+      );
+    }
+  }
+
+  const mergedSettings: Record<string, unknown> = {
+    ...baseSettings,
+    tools: {
+      ...parseObject(baseSettings.tools),
+      shell: {
+        ...parseObject(parseObject(baseSettings.tools).shell),
+        enableInteractiveShell: false,
+      },
+    },
+  };
+
+  const overrideDir = path.join(os.tmpdir(), "paperclip-gemini-cli");
+  const overridePath = path.join(
+    overrideDir,
+    `${sanitizeRunIdForFileName(input.runId)}-system-settings.json`,
+  );
+  await fs.mkdir(overrideDir, { recursive: true });
+  await fs.writeFile(
+    overridePath,
+    JSON.stringify(mergedSettings, null, 2),
+    "utf8",
+  );
+  input.env.GEMINI_CLI_SYSTEM_SETTINGS_PATH = overridePath;
+  await input.onLog(
+    "stderr",
+    `[paperclip] Windows Gemini shell override active: tools.shell.enableInteractiveShell=false (${overridePath})\n`,
+  );
+
+  return {
+    cleanup: async () => {
+      try {
+        await fs.rm(overridePath, { force: true });
+      } catch {
+        // Best-effort cleanup only.
+      }
+    },
+  };
 }
 
 /**
@@ -480,6 +586,8 @@ export async function execute(
     context.paperclipStrictFloorMode === true ||
     benchmarkFamily.toLowerCase().startsWith("t1-floor-v") ||
     benchmarkFamily.toLowerCase().startsWith("t1-floor-normalized-v");
+  const thinDefaultExecution =
+    !strictFloorMode && isThinReadySmallDefaultContext(context);
 
   const promptTemplate = strictFloorMode
     ? asString(
@@ -622,6 +730,12 @@ export async function execute(
   if (!hasExplicitApiKey && authToken) {
     env.PAPERCLIP_API_KEY = authToken;
   }
+  const geminiSystemSettingsOverride =
+    await ensureWindowsGeminiSystemSettingsOverride({
+      runId,
+      env,
+      onLog,
+    });
   const billingType = resolveGeminiBillingType(env);
   const runtimeEnv = ensurePathInEnv({ ...process.env, ...env });
   await ensureCommandResolvable(command, cwd, runtimeEnv);
@@ -646,6 +760,8 @@ export async function execute(
       path.resolve(runtimeSessionCwd) === path.resolve(cwd));
   const sessionId = strictFloorMode
     ? null
+    : thinDefaultExecution
+    ? null
     : canResumeSession
     ? runtimeSessionId
     : null;
@@ -661,7 +777,7 @@ export async function execute(
     ? `${path.dirname(instructionsFilePath)}/`
     : "";
   let instructionsPrefix = "";
-  if (!strictFloorMode && instructionsFilePath) {
+  if (!strictFloorMode && !thinDefaultExecution && instructionsFilePath) {
     try {
       const instructionsContents = await fs.readFile(
         instructionsFilePath,
@@ -693,8 +809,14 @@ export async function execute(
         "Strict floor mode: no skill injection, no instruction prefix, no session handoff note, and no Paperclip API access note.",
       );
     }
+    if (thinDefaultExecution) {
+      notes.push(
+        "Thin ready-small default execution active: no resume, no session handoff note, no API/env note, and no instructions prefix.",
+      );
+    }
     if (!instructionsFilePath) return notes;
     if (strictFloorMode) return notes;
+    if (thinDefaultExecution) return notes;
     if (instructionsPrefix.length > 0) {
       notes.push(
         `Loaded agent instructions from ${instructionsFilePath}`,
@@ -720,7 +842,10 @@ export async function execute(
   };
   const renderedPrompt = renderTemplate(promptTemplate, templateData);
   const renderedBootstrapPrompt =
-    !strictFloorMode && !sessionId && bootstrapPromptTemplate.trim().length > 0
+    !strictFloorMode &&
+    !thinDefaultExecution &&
+    !sessionId &&
+    bootstrapPromptTemplate.trim().length > 0
       ? renderTemplate(bootstrapPromptTemplate, templateData).trim()
       : "";
   const roleTemplateNote = strictFloorMode ? "" : renderRoleTemplateNote(context);
@@ -735,15 +860,20 @@ export async function execute(
         .toLowerCase();
   const sessionHandoffNote = strictFloorMode
     ? ""
+    : thinDefaultExecution
+    ? ""
     : asString(context.paperclipSessionHandoffMarkdown, "").trim();
   const issueTaskNote = renderIssueTaskNote(context);
   const engineDirectiveNote = strictFloorMode ? "" : renderEngineDirectiveNote(context);
   const includePaperclipEnvNote =
-    !strictFloorMode && asBoolean(config.includePaperclipEnvNote, false);
+    !strictFloorMode &&
+    !thinDefaultExecution &&
+    asBoolean(config.includePaperclipEnvNote, false);
   const includeApiAccessNote =
     !strictFloorMode &&
+    !thinDefaultExecution &&
     (roleTemplateId === "ceo" || asBoolean(config.includeApiAccessNote, false));
-  const paperclipEnvNote = includePaperclipEnvNote
+  const paperclipEnvNote = includePaperclipEnvNote || includeApiAccessNote
     ? renderPaperclipEnvNote(env)
     : "";
   const apiAccessNote = includeApiAccessNote ? renderApiAccessNote(env) : "";
@@ -758,7 +888,7 @@ export async function execute(
         "",
       ].join("\n")
     : "";
-  const powerShellNote = renderPowerShellNote();
+  const powerShellNote = thinDefaultExecution ? "" : renderPowerShellNote();
   const prompt = joinPromptSections([
     strictFloorMode ? "" : instructionsPrefix,
     roleTemplateNote,
@@ -1007,20 +1137,24 @@ export async function execute(
     };
   };
 
-  const initial = await runAttempt(sessionId);
-  if (
-    sessionId &&
-    !initial.proc.timedOut &&
-    (initial.proc.exitCode ?? 0) !== 0 &&
-    isGeminiUnknownSessionError(initial.proc.stdout, initial.proc.stderr)
-  ) {
-    await onLog(
-      "stderr",
-      `[paperclip] Gemini resume session "${sessionId}" is unavailable; retrying with a fresh session.\n`,
-    );
-    const retry = await runAttempt(null);
-    return toResult(retry, true, true);
-  }
+  try {
+    const initial = await runAttempt(sessionId);
+    if (
+      sessionId &&
+      !initial.proc.timedOut &&
+      (initial.proc.exitCode ?? 0) !== 0 &&
+      isGeminiUnknownSessionError(initial.proc.stdout, initial.proc.stderr)
+    ) {
+      await onLog(
+        "stderr",
+        `[paperclip] Gemini resume session "${sessionId}" is unavailable; retrying with a fresh session.\n`,
+      );
+      const retry = await runAttempt(null);
+      return toResult(retry, true, true);
+    }
 
-  return toResult(initial);
+    return toResult(initial);
+  } finally {
+    await geminiSystemSettingsOverride?.cleanup();
+  }
 }

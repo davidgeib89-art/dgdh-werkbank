@@ -371,6 +371,32 @@ function normalizeFreeTextTask(context: Record<string, unknown>): string {
   return parts.join("\n").slice(0, 1200);
 }
 
+function hasReadyExecutionPacketTruth(
+  context: Record<string, unknown>,
+): boolean {
+  const packetTruth = asObject(context.paperclipIssueExecutionPacketTruth);
+  const ready =
+    asBoolean(packetTruth.ready) === true ||
+    asString(packetTruth.status) === "ready";
+  if (!ready) return false;
+
+  const targetFile =
+    asString(packetTruth.targetFile) ??
+    asString(context.paperclipExecutionPacketTargetFile);
+  const targetFolder =
+    asString(packetTruth.targetFolder) ??
+    asString(context.paperclipExecutionPacketTargetFolder);
+  const artifactKind =
+    normalizeArtifactKind(packetTruth.artifactKind) ??
+    normalizeArtifactKind(context.paperclipExecutionPacketArtifactKind);
+  const doneWhen =
+    asString(packetTruth.doneWhen) ??
+    asString(context.paperclipExecutionPacketDoneWhen);
+
+  const hasTarget = Boolean(targetFile || targetFolder);
+  return hasTarget && Boolean(artifactKind) && Boolean(doneWhen);
+}
+
 function normalizeSimilarityKey(input: {
   taskText: string;
   allowedBuckets: BucketName[];
@@ -854,6 +880,20 @@ export async function produceFlashLiteRoutingProposal(
       latencyMs: null,
       warning: "flash_lite_router_fallback_only",
       fallbackReason: "router_fallback_only",
+      cacheHit: false,
+      cacheKey: null,
+    });
+  }
+
+  if (hasReadyExecutionPacketTruth(input.context)) {
+    return finalize({
+      attempted: false,
+      source: "heuristic_policy",
+      proposal: null,
+      parseStatus: "not_attempted",
+      latencyMs: null,
+      warning: "flash_lite_router_skipped_ready_packet_truth",
+      fallbackReason: "ready_packet_truth",
       cacheHit: false,
       cacheKey: null,
     });

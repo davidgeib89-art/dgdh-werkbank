@@ -241,7 +241,7 @@ export function loadConfig(): Config {
   );
   const heartbeatRecoveryGraceMs = Math.max(
     10_000,
-    Number(process.env.HEARTBEAT_RECOVERY_GRACE_MS) || 10 * 60 * 1000,
+    Number(process.env.HEARTBEAT_RECOVERY_GRACE_MS) || 2 * 60 * 1000,
   );
   const heartbeatStartupRecoveryGraceFromEnv = Number(
     process.env.HEARTBEAT_STARTUP_RECOVERY_GRACE_MS,
@@ -251,7 +251,7 @@ export function loadConfig(): Config {
     Number.isFinite(heartbeatStartupRecoveryGraceFromEnv) &&
       heartbeatStartupRecoveryGraceFromEnv > 0
       ? heartbeatStartupRecoveryGraceFromEnv
-      : Math.max(heartbeatRecoveryGraceMs, 15 * 60 * 1000),
+      : Math.max(heartbeatRecoveryGraceMs, 3 * 60 * 1000),
   );
 
   return {

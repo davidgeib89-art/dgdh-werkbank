@@ -21,15 +21,29 @@ async function writeFakeGeminiCommand(
   const assistantText = options?.assistantText ?? "hello";
   const resultText = options?.resultText ?? "ok";
   const model = options?.model ?? "gemini-2.5-pro";
-  const script = `#!/usr/bin/env node
+const script = `#!/usr/bin/env node
 const fs = require("node:fs");
 
 const capturePath = process.env.PAPERCLIP_TEST_CAPTURE_PATH;
+const geminiSystemSettingsPath =
+  process.env.GEMINI_CLI_SYSTEM_SETTINGS_PATH ?? null;
+let geminiSystemSettings = null;
+if (geminiSystemSettingsPath) {
+  try {
+    geminiSystemSettings = JSON.parse(
+      fs.readFileSync(geminiSystemSettingsPath, "utf8"),
+    );
+  } catch {
+    geminiSystemSettings = null;
+  }
+}
 const payload = {
   argv: process.argv.slice(2),
   paperclipEnvKeys: Object.keys(process.env)
     .filter((key) => key.startsWith("PAPERCLIP_"))
     .sort(),
+  geminiSystemSettingsPath,
+  geminiSystemSettings,
 };
 if (capturePath) {
   fs.writeFileSync(capturePath, JSON.stringify(payload), "utf8");
@@ -117,6 +131,8 @@ process.exit(0);
 type CapturePayload = {
   argv: string[];
   paperclipEnvKeys: string[];
+  geminiSystemSettingsPath?: string | null;
+  geminiSystemSettings?: Record<string, unknown> | null;
 };
 
 describe("gemini execute", () => {
@@ -265,6 +281,153 @@ describe("gemini execute", () => {
       expect(capture.argv).not.toContain("--allow-all");
       expect(capture.argv).not.toContain("--allow-read");
     } finally {
+      if (previousHome === undefined) {
+        delete process.env.HOME;
+      } else {
+        process.env.HOME = previousHome;
+      }
+      await fs.rm(root, { recursive: true, force: true });
+    }
+  });
+
+  it("disables Gemini interactive shell for Windows Paperclip runs", async () => {
+    const root = await fs.mkdtemp(
+      path.join(os.tmpdir(), "paperclip-gemini-win-shell-"),
+    );
+    const workspace = path.join(root, "workspace");
+    const commandPath = path.join(root, "gemini");
+    const capturePath = path.join(root, "capture.json");
+    await fs.mkdir(workspace, { recursive: true });
+    const executablePath = await writeFakeGeminiCommand(commandPath);
+
+    const previousHome = process.env.HOME;
+    process.env.HOME = root;
+    const platformSpy = vi.spyOn(os, "platform").mockReturnValue("win32");
+
+    try {
+      await execute({
+        runId: "run-win-shell",
+        agent: {
+          id: "agent-1",
+          companyId: "company-1",
+          name: "Gemini Coder",
+          adapterType: "gemini_local",
+          adapterConfig: {},
+        },
+        runtime: {
+          sessionId: null,
+          sessionParams: null,
+          sessionDisplayId: null,
+          taskKey: null,
+        },
+        config: {
+          command: executablePath,
+          cwd: workspace,
+          env: {
+            PAPERCLIP_TEST_CAPTURE_PATH: capturePath,
+          },
+          promptTemplate: "Follow the paperclip heartbeat.",
+        },
+        context: {},
+        authToken: "run-jwt-token",
+        onLog: async () => {},
+      });
+
+      const capture = JSON.parse(
+        await fs.readFile(capturePath, "utf8"),
+      ) as CapturePayload;
+      expect(capture.geminiSystemSettingsPath).toBeTruthy();
+      expect(capture.geminiSystemSettings).toMatchObject({
+        tools: {
+          shell: {
+            enableInteractiveShell: false,
+          },
+        },
+      });
+    } finally {
+      platformSpy.mockRestore();
+      if (previousHome === undefined) {
+        delete process.env.HOME;
+      } else {
+        process.env.HOME = previousHome;
+      }
+      await fs.rm(root, { recursive: true, force: true });
+    }
+  });
+
+  it("merges existing Gemini system settings into the Windows override", async () => {
+    const root = await fs.mkdtemp(
+      path.join(os.tmpdir(), "paperclip-gemini-win-merge-"),
+    );
+    const workspace = path.join(root, "workspace");
+    const commandPath = path.join(root, "gemini");
+    const capturePath = path.join(root, "capture.json");
+    const baseSystemSettingsPath = path.join(root, "system-settings.json");
+    await fs.mkdir(workspace, { recursive: true });
+    const executablePath = await writeFakeGeminiCommand(commandPath);
+    await fs.writeFile(
+      baseSystemSettingsPath,
+      JSON.stringify(
+        {
+          output: { format: "json" },
+          tools: { shell: { showColor: true } },
+        },
+        null,
+        2,
+      ),
+      "utf8",
+    );
+
+    const previousHome = process.env.HOME;
+    process.env.HOME = root;
+    const platformSpy = vi.spyOn(os, "platform").mockReturnValue("win32");
+
+    try {
+      await execute({
+        runId: "run-win-merge",
+        agent: {
+          id: "agent-1",
+          companyId: "company-1",
+          name: "Gemini Coder",
+          adapterType: "gemini_local",
+          adapterConfig: {},
+        },
+        runtime: {
+          sessionId: null,
+          sessionParams: null,
+          sessionDisplayId: null,
+          taskKey: null,
+        },
+        config: {
+          command: executablePath,
+          cwd: workspace,
+          env: {
+            PAPERCLIP_TEST_CAPTURE_PATH: capturePath,
+            GEMINI_CLI_SYSTEM_SETTINGS_PATH: baseSystemSettingsPath,
+          },
+          promptTemplate: "Follow the paperclip heartbeat.",
+        },
+        context: {},
+        authToken: "run-jwt-token",
+        onLog: async () => {},
+      });
+
+      const capture = JSON.parse(
+        await fs.readFile(capturePath, "utf8"),
+      ) as CapturePayload;
+      expect(capture.geminiSystemSettingsPath).toBeTruthy();
+      expect(capture.geminiSystemSettingsPath).not.toBe(baseSystemSettingsPath);
+      expect(capture.geminiSystemSettings).toMatchObject({
+        output: { format: "json" },
+        tools: {
+          shell: {
+            showColor: true,
+            enableInteractiveShell: false,
+          },
+        },
+      });
+    } finally {
+      platformSpy.mockRestore();
       if (previousHome === undefined) {
         delete process.env.HOME;
       } else {
@@ -503,10 +666,6 @@ describe("gemini execute", () => {
       const capturePath = path.join(root, "capture.json");
       await fs.mkdir(workspace, { recursive: true });
       const executablePath = await writeFakeGeminiCommand(commandPath);
-      const runtimeCommand =
-        process.platform === "win32" ? process.execPath : executablePath;
-      const runtimeExtraArgs =
-        process.platform === "win32" ? [`${commandPath}.cjs`] : undefined;
 
       const previousHome = process.env.HOME;
       process.env.HOME = root;
@@ -531,9 +690,8 @@ describe("gemini execute", () => {
             taskKey: null,
           },
           config: {
-            command: runtimeCommand,
+            command: executablePath,
             cwd: workspace,
-            ...(runtimeExtraArgs ? { extraArgs: runtimeExtraArgs } : {}),
             env: {
               PAPERCLIP_TEST_CAPTURE_PATH: capturePath,
             },
@@ -570,6 +728,73 @@ describe("gemini execute", () => {
         expect(invocationPrompt).toContain("PAPERCLIP_PROJECT_ID");
         expect(invocationPrompt).toContain(
           "/api/companies/$env:PAPERCLIP_COMPANY_ID/issues",
+        );
+      } finally {
+        if (previousHome === undefined) {
+          delete process.env.HOME;
+        } else {
+          process.env.HOME = previousHome;
+        }
+        await fs.rm(root, { recursive: true, force: true });
+      }
+    },
+  );
+
+  it(
+    "includes runtime env note when CEO API access guidance is active",
+    async () => {
+      const root = await fs.mkdtemp(
+        path.join(os.tmpdir(), "paperclip-gemini-ceo-env-note-"),
+      );
+      const workspace = path.join(root, "workspace");
+      const commandPath = path.join(root, "gemini");
+      await fs.mkdir(workspace, { recursive: true });
+      const executablePath = await writeFakeGeminiCommand(commandPath);
+
+      const previousHome = process.env.HOME;
+      process.env.HOME = root;
+
+      let invocationPrompt = "";
+      try {
+        await execute({
+          runId: "run-ceo-env-note",
+          agent: {
+            id: "agent-1",
+            companyId: "company-1",
+            name: "Gemini CEO",
+            adapterType: "gemini_local",
+            adapterConfig: {
+              roleTemplateId: "ceo",
+            },
+          },
+          runtime: {
+            sessionId: null,
+            sessionParams: null,
+            sessionDisplayId: null,
+            taskKey: null,
+          },
+          config: {
+            command: executablePath,
+            cwd: workspace,
+            promptTemplate: "Delegate the next packet.",
+          },
+          context: {
+            issueId: "issue-123",
+            taskId: "issue-123",
+            projectId: "project-456",
+          },
+          authToken: "run-jwt-token",
+          onLog: async () => {},
+          onMeta: async (meta) => {
+            invocationPrompt = meta.prompt ?? "";
+          },
+        });
+
+        expect(invocationPrompt).toContain("Paperclip runtime note:");
+        expect(invocationPrompt).toContain("PAPERCLIP_API_KEY");
+        expect(invocationPrompt).toContain("PAPERCLIP_RUN_ID");
+        expect(invocationPrompt).toContain(
+          "PAPERCLIP_API_KEY and PAPERCLIP_RUN_ID are already injected into this run's shell environment.",
         );
       } finally {
         if (previousHome === undefined) {
@@ -648,6 +873,94 @@ describe("gemini execute", () => {
         expect(invocationPrompt).toContain(
           "Stay inside scope. Do not redefine the mission.",
         );
+      } finally {
+        if (previousHome === undefined) {
+          delete process.env.HOME;
+        } else {
+          process.env.HOME = previousHome;
+        }
+        await fs.rm(root, { recursive: true, force: true });
+      }
+    },
+  );
+
+  itGeminiExecute(
+    "uses the thin ready-small default prompt and skips session resume",
+    async () => {
+      const root = await fs.mkdtemp(
+        path.join(os.tmpdir(), "paperclip-gemini-thin-default-"),
+      );
+      const workspace = path.join(root, "workspace");
+      const commandPath = path.join(root, "gemini");
+      const capturePath = path.join(root, "capture.json");
+      await fs.mkdir(workspace, { recursive: true });
+      const executablePath = await writeFakeGeminiCommand(commandPath);
+      const runtimeCommand =
+        process.platform === "win32" ? process.execPath : executablePath;
+      const runtimeExtraArgs =
+        process.platform === "win32" ? [`${commandPath}.cjs`] : undefined;
+
+      const previousHome = process.env.HOME;
+      process.env.HOME = root;
+
+      let invocationPrompt = "";
+      try {
+        await execute({
+          runId: "run-thin-default",
+          agent: {
+            id: "agent-1",
+            companyId: "company-1",
+            name: "Gemini CEO",
+            adapterType: "gemini_local",
+            adapterConfig: {
+              roleTemplateId: "ceo",
+            },
+          },
+          runtime: {
+            sessionId: "session-old",
+            sessionParams: {
+              sessionId: "session-old",
+              cwd: workspace,
+            },
+            sessionDisplayId: "session-old",
+            taskKey: null,
+          },
+          config: {
+            command: runtimeCommand,
+            cwd: workspace,
+            ...(runtimeExtraArgs ? { extraArgs: runtimeExtraArgs } : {}),
+            env: {
+              PAPERCLIP_TEST_CAPTURE_PATH: capturePath,
+            },
+            promptTemplate: "Ship the small ready packet.",
+          },
+          context: {
+            paperclipDefaultExecutionPath: "ready_small_default",
+            paperclipSessionHandoffMarkdown:
+              "Paperclip session handoff:\n- stale summary",
+            paperclipRoleTemplatePrompt: [
+              "Canonical role template: CEO (ceo@v1)",
+              "Stay inside the assigned packet.",
+            ].join("\n"),
+          },
+          authToken: "run-jwt-token",
+          onLog: async () => {},
+          onMeta: async (meta) => {
+            invocationPrompt = meta.prompt ?? "";
+          },
+        });
+
+        const capture = JSON.parse(
+          await fs.readFile(capturePath, "utf8"),
+        ) as CapturePayload;
+        expect(capture.argv).not.toContain("--resume");
+        expect(invocationPrompt).toContain(
+          "Canonical role template: CEO (ceo@v1)",
+        );
+        expect(invocationPrompt).toContain("Ship the small ready packet.");
+        expect(invocationPrompt).not.toContain("Paperclip session handoff:");
+        expect(invocationPrompt).not.toContain("Paperclip API access note:");
+        expect(invocationPrompt).not.toContain("Paperclip runtime note:");
       } finally {
         if (previousHome === undefined) {
           delete process.env.HOME;

@@ -237,7 +237,7 @@ pnpm db:migrate       # Apply migrations
 ```
 
 For long-running heartbeat runs, the server performs throttled run keepalive updates while adapters execute.
-Recovery grace is configurable with `HEARTBEAT_RECOVERY_GRACE_MS` and `HEARTBEAT_STARTUP_RECOVERY_GRACE_MS`.
+Recovery grace is configurable with `HEARTBEAT_RECOVERY_GRACE_MS` and `HEARTBEAT_STARTUP_RECOVERY_GRACE_MS` (defaults: 2 minutes periodic, 3 minutes at startup).
 
 See [doc/DEVELOPING.md](doc/DEVELOPING.md) for the full development guide.
 

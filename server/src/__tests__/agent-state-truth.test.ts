@@ -3,6 +3,7 @@ import { evaluateAgentHealth } from "../services/agent-health.js";
 import { resolvePersistedAgentStatusTruth } from "../services/agents.js";
 import {
   estimateTotalTokens,
+  resolveHeartbeatModelOverride,
   resolveNextAgentStatusAfterRun,
 } from "../services/heartbeat.js";
 import { readFileSync } from "node:fs";
@@ -193,6 +194,41 @@ describe("resolveNextAgentStatusAfterRun", () => {
         errorCode: "risk_high_large_implementation",
       }),
     ).toBe("idle");
+  });
+});
+
+describe("resolveHeartbeatModelOverride", () => {
+  it("pins gemini auto-model runs to explicit flash lanes", () => {
+    expect(
+      resolveHeartbeatModelOverride({
+        adapterType: "gemini_local",
+        configuredModel: "auto",
+        applyModelLane: true,
+        effectiveModelLane: "gemini-2.5-flash-lite",
+      }),
+    ).toBe("gemini-2.5-flash-lite");
+  });
+
+  it("keeps gemini auto-model runs on auto for pro lanes", () => {
+    expect(
+      resolveHeartbeatModelOverride({
+        adapterType: "gemini_local",
+        configuredModel: "auto",
+        applyModelLane: true,
+        effectiveModelLane: "gemini-3.1-pro-preview",
+      }),
+    ).toBe("auto");
+  });
+
+  it("still applies routed lanes when the adapter already carries an explicit model", () => {
+    expect(
+      resolveHeartbeatModelOverride({
+        adapterType: "gemini_local",
+        configuredModel: "gemini-3-flash-preview",
+        applyModelLane: true,
+        effectiveModelLane: "gemini-2.5-flash-lite",
+      }),
+    ).toBe("gemini-2.5-flash-lite");
   });
 });
 

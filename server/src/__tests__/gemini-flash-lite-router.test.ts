@@ -231,6 +231,36 @@ describe("produceFlashLiteRoutingProposal", () => {
     expect(hoisted.runChildProcessMock).not.toHaveBeenCalled();
   });
 
+  it("skips extra flash-lite call when issue packet truth is already ready", async () => {
+    const result = await produceFlashLiteRoutingProposal({
+      ...baseInput,
+      runtimeConfig: {
+        routingPolicy: {
+          llmRouter: {
+            enabled: true,
+          },
+        },
+      },
+      context: {
+        paperclipTaskPrompt: "Implement endpoint",
+        paperclipIssueExecutionPacketTruth: {
+          ready: true,
+          status: "ready",
+          targetFile: "doc/DGDH-AI-OPERATOR-RUNBOOK.md",
+          targetFolder: "doc",
+          artifactKind: "doc_update",
+          doneWhen: "Add one tiny runbook note.",
+        },
+      },
+    });
+
+    expect(result.attempted).toBe(false);
+    expect(result.parseStatus).toBe("not_attempted");
+    expect(result.fallbackReason).toBe("ready_packet_truth");
+    expect(result.warning).toBe("flash_lite_router_skipped_ready_packet_truth");
+    expect(hoisted.runChildProcessMock).not.toHaveBeenCalled();
+  });
+
   it("opens circuit breaker after repeated failures", async () => {
     hoisted.runChildProcessMock.mockResolvedValue({
       exitCode: 0,
