@@ -89,6 +89,7 @@ Common inherited assumptions I tend to make:
 - that a clever inline terminal sequence is faster than a boring exact control path
 - that broad repo archaeology is a reasonable substitute for one exact API read
 - that implied packet scope in prose is good enough for the CEO to delegate cleanly
+- that if I patch a prompt or role template, the live run now automatically sees that truth in the right place
 - that if a push fails, the remote is just an inconvenience instead of fresh truth from the same machine
 - that a missing tool or completion hook should be searched for until it is found
 
@@ -98,6 +99,7 @@ What is fundamentally, provably true instead:
 - a claim that something "landed" is only true after git proof against the current remote branch, not after a local edit or fresh local commit
 - the first blocker in the real path is almost always cheaper to isolate than a broader theory about the system
 - explicit packet truth beats inferred packet truth
+- prompt truth is not the same as source-code intent; only the real heartbeat-run snapshot proves what the agent actually received
 - the same path should be rerun after the smallest real fix, not replaced with a side proof
 - remote `main` may contain live company output and must be treated as current truth, not friction
 
@@ -106,6 +108,7 @@ What I should do differently at higher quality:
 - name the truth scope precisely in reports: local working tree, local commit, pushed remote branch, or verified `origin/main`
 - switch from ad hoc shell composition to a deterministic script or exact one-shot command sooner when the shell starts carrying state or quoting risk
 - prefer productizing repeated truth in the issue, wakeup, prompt, or control-plane boundary over compensating with larger prompts or manual runbook steps
+- after any prompt/context fix, inspect one real running or finished `heartbeat-run` snapshot to prove the new truth survived assembly order and runtime timing
 - validate both sides of a new rule on the same runtime: the intentional block and the intentional success path
 - if a live validation produces remote commits, integrate that remote truth immediately before final push/report
 
@@ -113,6 +116,7 @@ What worked best:
 - API-first control on the canonical runtime
 - fixing upstream truth at the issue/wakeup boundary instead of prompt-inflation
 - targeted tests plus one fresh bounded live run on the same path
+- distinguishing true regressions from queue/recovery lag after a restart by reading exact run status before judging the latest fix
 - turning repeated rediscovery into durable `.md` rules during the sprint
 
 For DGDH Mensch-AI-Symbiose this means:

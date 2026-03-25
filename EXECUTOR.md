@@ -164,6 +164,7 @@ Quality and token rule for real runs:
 - once the loop basically works, inspect one real assigned run for prompt identity completeness before calling the path truly learned
 - verify the run still carries `companyId`, `projectId`, `issueIdentifier`, and the expected task context, not just that the issue eventually merged
 - if that truth is thin or wrong, treat it as an upstream system defect at the issue/wakeup boundary
+- if you change prompt/context composition, verify the new truth in the actual `heartbeat-runs/{runId}` snapshot after workspace realization; passing unit tests and edited prompt files are not yet live proof
 - if routing preflight blocks with `missing_inputs`, treat that as packet-truth feedback, not as model failure; sharpen `target file` / `target folder` / concrete artifact truth upstream before rerunning
 - fix missing context before adding more prompt text, more repo reading, or more recovery logic
 - narrower truthful inputs beat larger ambiguous context windows
@@ -210,6 +211,7 @@ Observed clean-main truth:
 - if the agent record says `model: auto` but `adapter.invoke` still passes explicit `--model ...`, treat that as a real routing/adapter blocker worth isolating
 - `/instance/scheduler-heartbeats` is only timer-scheduler truth; an empty list does not prove that assignment wakeups are broken when agents use `intervalSec = 0`
 - if a run is technically alive but reads as low-quality, slow, or token-wasteful, inspect its exact heartbeat/run context before reopening broad code paths; thin identity/context is usually cheaper to fix than prompt drift
+- a queued child run after restart may reflect an older worker run stuck in `recovering`, not failure of the latest fix; prove worker occupancy and the stale run state before blaming the new path
 
 ---
 

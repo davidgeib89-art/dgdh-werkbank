@@ -87,6 +87,7 @@ What worked best in recent runs:
 - assignment beats raw wakeup
 - `company-run-chain` is the narrowest operator truth surface for the normal company path
 - if a CEO run blocks before child creation, fix packet truth first and rerun the same path
+- if a worker handoff fails on branch contract, prove whether the live worker prompt actually carries `PAPERCLIP_WORKSPACE_BRANCH` after workspace realization; a workspace comment or env var alone is weaker than prompt-visible branch truth
 
 ---
 

@@ -1053,6 +1053,35 @@ function buildIssueTaskPrompt(issue: IssuePromptContext) {
   ].join("\n");
 }
 
+function buildIssueWorkspacePrompt(
+  contextSnapshot: Record<string, unknown>,
+) {
+  const workspace = parseObject(contextSnapshot.paperclipWorkspace);
+  const workspaceCwd = readNonEmptyString(workspace.cwd);
+  const workspaceBranch = readNonEmptyString(workspace.branchName);
+  const worktreePath = readNonEmptyString(workspace.worktreePath);
+
+  if (!workspaceCwd && !workspaceBranch && !worktreePath) {
+    return null;
+  }
+
+  const lines = [
+    "",
+    "Execution workspace:",
+    `- PAPERCLIP_WORKSPACE_CWD: ${workspaceCwd ?? "none"}`,
+    `- PAPERCLIP_WORKSPACE_BRANCH: ${workspaceBranch ?? "none"}`,
+    `- PAPERCLIP_WORKTREE_PATH: ${worktreePath ?? "none"}`,
+  ];
+
+  if (workspaceBranch) {
+    lines.push(
+      "- Branch rule: reuse PAPERCLIP_WORKSPACE_BRANCH for commits, worker-pr, and worker-done. Do not create a different ad hoc branch.",
+    );
+  }
+
+  return lines.join("\n");
+}
+
 function buildReviewerTaskPrompt(input: {
   issue: IssuePromptContext;
   reviewTarget: ReviewTargetPromptContext | null;
@@ -1583,7 +1612,12 @@ export function applyIssuePromptContext(
   contextSnapshot.paperclipExecutionPacketTargetFolder = packetTruth.targetFolder;
   contextSnapshot.paperclipExecutionPacketArtifactKind = packetTruth.artifactKind;
   contextSnapshot.paperclipExecutionPacketDoneWhen = packetTruth.doneWhen;
-  const issueTaskPrompt = buildIssueTaskPrompt(normalizedIssue);
+  const issueTaskPrompt = [
+    buildIssueTaskPrompt(normalizedIssue),
+    buildIssueWorkspacePrompt(contextSnapshot),
+  ]
+    .filter((value): value is string => Boolean(value))
+    .join("\n");
   contextSnapshot.paperclipTaskPrompt = issueTaskPrompt;
 
   if (isTestRunContext(contextSnapshot)) {
@@ -3959,6 +3993,9 @@ export function heartbeatService(db: Db) {
         worktreePath: executionWorkspace.worktreePath,
         agentHome: resolveDefaultAgentWorkspaceDir(agent.id),
       };
+      if (issueRef && roleTemplateResolution.assigned?.template.id !== "reviewer") {
+        applyIssuePromptContext(context, issueRef);
+      }
       context.paperclipWorkspaces = resolvedWorkspace.workspaceHints;
       const runtimeServiceIntents = (() => {
         const runtimeConfig = parseObject(resolvedConfig.workspaceRuntime);

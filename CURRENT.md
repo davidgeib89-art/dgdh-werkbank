@@ -1,18 +1,22 @@
 # CURRENT - Live Baton
 
-focus: die operator-visible Firmenlauf-Wahrheit und execution-packet-readiness sind jetzt im Produkt auf canonical `main` sichtbar; der naechste Engpass liegt nach dem ersten CEO-Child-Handoff, nicht mehr davor
-active_issue: die schmale operator-facing Truth-Surface plus Packet-Readiness-V1 sind geliefert und live validiert; der naechste grosse Sprint soll die naechste echte David-Minuten-Reibung nach erfolgreicher Child-Erzeugung schneiden
+focus: die erste lokale Produktantwort auf die Post-Handoff-Reibung ist jetzt issue-branch-truth im Worker-Handoff; der aktuelle Hebel ist diesen engen Fix auf canonical `main` zu landen und erst danach den naechsten Downstream-Verlust neu zu lesen
+active_issue: `PAPERCLIP_WORKSPACE_BRANCH` wird jetzt nach Workspace-Realize in den live `paperclipTaskPrompt` gehoben und im Worker-Template als kanonische Reuse-Regel erzwungen; `run-truth-surface-v1` ist damit vorerst wieder nur spaeterer Kandidat, nicht der aktuelle Sprint
 
 next:
-  1) die neue Issue-Detail-Truth-Surface inkl. Packet-Readiness als Default-Operator-Leseflaeche benutzen und den naechsten echten Firmenlauf wieder von dort lesen
-  2) den naechsten echten Live-Blocker erst nach erfolgreicher CEO-Child-Erzeugung isolieren, statt weiter Packet-Wahrheit vor dem Start nachzuschaerfen
+  1) den Worker-Branch-Truth-Fix auf `main` landen und Baton-/Memory-Wahrheit synchron halten
+  2) erst nach dieser Landung den naechsten echten Live-Verlust wieder vom selben Firmenlauf-Pfad lesen; moegliche Restklassen bleiben Reviewer-, Merge-, Recovery- oder Run-Truth-Reibung
 blockers:
-  - fuer diesen Sprint kein offener Surface-Blocker mehr: DAV-35 ist `done`, DAV-36 ist `merged`
+  - kein neuer Bereichsblocker ist bewiesen; offene Restpflicht ist die erneute Live-Revalidierung nach Landung des engen Worker-Handoff-Fixes
 strategy_anchor:
   - `doc/plans/2026-03-24-dgdh-first-principles-operating-doctrine.md`
   - `doc/plans/2026-03-21-dgdh-north-star-roadmap.md`
   - `doc/plans/2026-03-23-focus-freeze.md`
 notes:
+  - Der lokale Produktfix fuer den ersten Post-Handoff-Verlust sitzt schmal in `server/src/services/heartbeat.ts` und `server/config/role-templates/worker.json`: die kanonische Issue-Branch-Wahrheit wird fuer Worker jetzt doppelt sichtbar gemacht, im live Prompt ueber `PAPERCLIP_WORKSPACE_BRANCH` und im Role-Template als Reuse-Regel fuer Commit-/PR-/worker-done-Handoffs
+  - Die zugehoerigen Tests `heartbeat-issue-prompt-context` und `role-templates` decken die neue Branch-Reuse-Wahrheit explizit ab
+  - Lokale Verifikation fuer diesen bounded Fix ist gruen: gezielte Vitest-Tests, `pnpm -r typecheck`, `pnpm test:run`, `pnpm build`
+  - Planner-Lehre: der erste lokale Post-Handoff-Verlustkandidat ist nicht neue Observability allgemein, sondern schmale Worker-Handoff-Branch-Wahrheit; der naechste grosse Sprint wird erst nach frischer Live-Reibung geschnitten
   - Execution-Packet-Readiness-V1 ist jetzt produktisiert: Issues tragen strukturierte `executionPacketTruth` mit `targetFile`, `targetFolder`, `artifactKind`, `doneWhen`, `status` und kleinen `reasonCodes`; die Issue-Detail-Seite zeigt diese Wahrheit direkt vor dem Run
   - Assignment-/Status-Wakeups blocken execution-heavy Issues jetzt frueh auf `not_ready`, statt den CEO erst spaet im Parent-Run an `missing_inputs` haengen zu lassen
   - Die minimalen `reasonCodes` fuer fruehe Packet-Blocker sind jetzt `target_file_missing`, `target_folder_missing`, `artifact_kind_missing`, `donewhen_missing` und `execution_scope_ambiguous`
@@ -48,5 +52,5 @@ notes:
   - Validiert wurden `pnpm -r typecheck` sowie gezielte Server-Tests fuer `gemini-local`, control-plane resolver und gemini pipeline; kein voller `pnpm test:run` oder `pnpm build` in diesem Sprint behauptet
   - Fuer den Routing-Fix liefen zusaetzlich die gezielten Tests `gemini-routing-engine`, `gemini-control-plane-resolver`, `gemini-local-execute` und `gemini-pipeline-e2e` gruen
   - Kein Meta-Umbau als Reaktion: der Sprint endet bewusst ohne neue Reflexionsdatei; der naechste Schritt ist wieder echter Firmenfortschritt
-last_updated_by: Copilot (post-DAV-35 operator truth surface validation)
-updated_at: 2026-03-24
+last_updated_by: Codex (post-Copilot worker-branch-truth landing prep)
+updated_at: 2026-03-25

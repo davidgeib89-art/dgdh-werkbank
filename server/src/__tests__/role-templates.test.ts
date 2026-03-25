@@ -57,8 +57,14 @@ describe("resolveAssignedRoleTemplate", () => {
     expect(result.assigned?.prompt).toContain(
       "Ensure `summary.files`, your Files Changed section, and the actual changed files in the issue branch all agree before you call worker-done.",
     );
+    expect(result.assigned?.prompt).toContain(
+      "If PAPERCLIP_WORKSPACE_BRANCH is present in the prompt or environment, reuse it exactly for commits and API handoff. Do not invent a different ad hoc branch.",
+    );
     expect(result.assigned?.template.constraints).toContain(
       "Before worker-done, verify that summary.files matches the real changed-file set in the issue branch.",
+    );
+    expect(result.assigned?.template.constraints).toContain(
+      "If PAPERCLIP_WORKSPACE_BRANCH is present, reuse it exactly for git and API handoff instead of inventing a new branch name.",
     );
   });
 

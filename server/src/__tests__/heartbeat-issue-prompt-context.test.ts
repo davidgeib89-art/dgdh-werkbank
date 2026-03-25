@@ -6,7 +6,13 @@ describe("applyIssuePromptContext", () => {
     const previousApiUrl = process.env.PAPERCLIP_API_URL;
     process.env.PAPERCLIP_API_URL = "http://localhost:3100";
     const context = applyIssuePromptContext(
-      {},
+      {
+        paperclipWorkspace: {
+          cwd: "C:/repo/.paperclip/worktrees/dgdh-issue-1",
+          branchName: "dgdh/issue-DAV-8-branch-truth",
+          worktreePath: "C:/repo/.paperclip/worktrees/dgdh-issue-1",
+        },
+      },
       {
         id: "issue-1",
         companyId: "company-1",
@@ -27,6 +33,13 @@ describe("applyIssuePromptContext", () => {
     expect(prompt).toContain("PAPERCLIP_COMPANY_ID: company-1");
     expect(prompt).toContain("PROJECT_ID: project-1");
     expect(prompt).toContain("PARENT_ID: parent-1");
+    expect(prompt).toContain("Execution workspace:");
+    expect(prompt).toContain(
+      "PAPERCLIP_WORKSPACE_BRANCH: dgdh/issue-DAV-8-branch-truth",
+    );
+    expect(prompt).toContain(
+      "Branch rule: reuse PAPERCLIP_WORKSPACE_BRANCH for commits, worker-pr, and worker-done. Do not create a different ad hoc branch.",
+    );
     if (previousApiUrl === undefined) delete process.env.PAPERCLIP_API_URL;
     else process.env.PAPERCLIP_API_URL = previousApiUrl;
   });
