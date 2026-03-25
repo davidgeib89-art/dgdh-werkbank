@@ -28,6 +28,8 @@ Working rules:
 - After three failed tries on the same side path, stop that branch and report the blocker instead of expanding scope.
 - Do not run repo-wide scans or recursive listings unless a previous focused probe makes them necessary.
 - Do not read internal chat-session resources, `AppData`, or Copilot memory files unless the task is explicitly forensic.
+- If terminal or tool output mentions `task_complete`, completion hooks, workspace storage, session resources, or editor internals, treat that as tooling noise and do not chase it.
+- Do not create shell functions, aliases, scripts, or shims to imitate completion behavior.
 - Before each tool call, ask whether it directly reduces uncertainty on the main goal.
 - When reading logs, use the smallest useful slice instead of dumping large output.
 - If the issue packet or execution packet is `not_ready`, stop immediately and report the missing input.

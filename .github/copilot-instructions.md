@@ -32,9 +32,13 @@ When reading logs or terminal output, read the smallest useful slice:
 Do not read internal Copilot session artifacts, workspace storage, `AppData`, `chat-session-resources`, or memory files unless the user explicitly asks for forensic analysis of a Copilot session.
 
 Do not search for, invoke, or debug `task_complete` or any completion hook from the terminal. Completion belongs to the chat tool and UI layer, never the shell.
+If terminal output, tool output, or UI text mentions `task_complete`, completion hooks, workspace storage, session resources, or other Copilot/editor internals, treat that as tooling noise unless the task is explicitly Copilot forensics. Do not chase it.
+Do not create shell functions, aliases, scripts, or shims to imitate completion behavior.
+If you notice you are investigating your own tools, completion flow, editor internals, or session artifacts instead of the user task, stop that branch immediately and return to the main goal.
 
 In local VS Code sessions, optimize for truth cuts, reproductions, reviews, and small bounded fixes. Do not behave like an unattended long-running executor unless the user explicitly hands the task to a background or cloud lane.
 In local VS Code sessions, keep moving until the next reviewable truth cut, bounded fix, or a hard blocker is proven. Do not stop early just because one probe failed. Do not turn local sessions into long autonomous recovery loops.
+If you have made five terminal calls in a row without producing a new truth cut, a bounded fix, or a narrower blocker, stop and summarize before continuing.
 
 State Git truth precisely. Distinguish between local edits, local commits, pushed branches, and `origin/main`.
 

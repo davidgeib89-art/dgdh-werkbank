@@ -17,6 +17,7 @@
 - `doc/plans/2026-03-24-dgdh-memory-learning-self-improvement-first-principles.md` - kanonische Lesart fuer Firmengedachtnis, Lernen, Self-Learning und Self-Improving
 - `doc/plans/2026-03-24-dgdh-soul-layer-and-boardmeeting-direction.md` - warum `SOUL.md` eine gemeinsame Wesensschicht ist und wie sie unter Governance bleibt
 - `doc/plans/2026-03-24-dgdh-ai-trinity-and-operator-stack.md` - aktueller AI-Stack, Rollenwahrheit und Run-/Quota-Oekonomie
+- `doc/plans/2026-03-25-dgdh-lane-economics-and-supervision-doctrine.md` - kanonische Lesart fuer Lane-Oekonomie: DGDH skaliert nicht mit mehr Agentenlaerm, sondern mit weniger David-Supervision pro nuetzlichem Lauf
 - `doc/plans/2026-03-21-dgdh-north-star-roadmap.md` - kanonische operative Richtung
 - `doc/plans/2026-03-23-focus-freeze.md` - aktiver Kurzfrist-Fokus gegen Drift
 - `doc/plans/2026-03-23-dgdh-leitdokument.md` - lebendige CEO-nahe Richtungsbeschreibung; hoehere Lesart fuer die aktuelle Phase
@@ -42,6 +43,7 @@
 - Primaerer Messwert in dieser Phase: sinkende David-Minuten pro Firmenlauf; Revenue bleibt Lagging Indicator von Capability.
 - Langfristige Richtung: David gibt die Richtung, die Maschine uebernimmt mit wachsender Modellfaehigkeit immer mehr Entscheidungen und Lieferung.
 - Aktuelle Operator-Realitaet: David als Operator; Codex/GPT-5.4 als Planner/Reflektor und bei Bedarf bounded Coder; Copilot als langlaufender High-Power-Coder-Agent; ChatGPT als externer GPT-5.4-Reflektor; Gemini bleibt Reviewer/Researcher-Lane.
+- Lane-Oekonomie-Regel: billige Prompt-/Sessionkosten allein sind kein Hebel; eine Lane ist nur dann gut, wenn sie David trotz Execution wirklich Aufmerksamkeit spart und nicht bloss Aufsicht multipliziert.
 - Review ist Gate und Sensor zugleich: es schuetzt Qualitaet und liefert Drift-/Lernsignale fuer Packet, Handoff, Prompt und System.
 - Firmengedachtnis ist gestufte Kompression statt Vollkontext: Betriebszustand -> episodisch -> semantisch -> prozedural -> strategisch.
 - Lernen folgt fuer DGDH der Formel `Run -> Signal -> Verdichtung -> Promotion`.

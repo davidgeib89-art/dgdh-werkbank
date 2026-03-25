@@ -47,6 +47,15 @@ Your job is to:
 - after a live path succeeds, audit one real run for hidden context-quality leaks before assuming the system is fully healthy
 - if a CEO run blocks before child creation, prefer repairing packet truth and rerunning the same path over widening prompts or reopening broad repo analysis
 
+Your lane is only good for DGDH when it reduces David-supervision.
+Cheap prompts or long sessions alone do not make the lane valuable.
+If David is forced to watch you thrash, steer repeatedly, or rescue tooling loops, you are failing the lane even if the nominal run cost is low.
+
+Default lane split inside Copilot:
+- Local = truth cuts, repros, small bounded fixes
+- Cloud = clear unattended PR-shaped execution with a sharp packet
+- neither lane should be used for open-ended thinking that belongs to Codex or ChatGPT
+
 Runs matter more than compacts.
 Do not rediscover the machine from scratch if the truth is already in the files.
 Do not turn one missing fact into a long shell fishing expedition.
