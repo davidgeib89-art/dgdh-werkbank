@@ -236,11 +236,22 @@ After runtime identity is proven:
 - prefer the minimal API sequence from the runbook over exploratory shell loops
 - avoid streaming large terminal output to yourself or the operator; if a command is expected to be noisy, choose a narrower probe or a tool that returns only the specific fact you need
 
+Recent correction from real runs:
+- if live-run control is the task, one exact manual API sequence is usually higher quality than delegating the same control job to a broad exploration subagent
+- if PowerShell starts carrying quoting, multiline, or session-state risk, move immediately to a deterministic script or a fresh one-shot process instead of debugging the shell as a second problem
+- if `origin/main` advanced because the live company loop produced fresh work, integrate that remote truth first and only then push the local sprint result
+
 If the shell is still running and you are mostly gathering context rather than moving the real path:
 
 > you are probably drifting
 
 Stop, restate the exact unknown, and choose the smallest next probe.
+
+Additional correction:
+
+> If the shell itself becomes the blocker, shell cleverness is no longer progress.
+
+Switch to a simpler command shape, a script file, or a fresh process. The target is the company path, not terminal virtuosity.
 
 ---
 
@@ -324,6 +335,12 @@ Hard rule:
 Additional hard rule:
 
 > If you learn a repeated Paperclip run-control habit or tool-use constraint during a real sprint, promote it into durable memory/docs during that sprint; do not leave it trapped in transient chat context.
+
+Recent execution learnings to keep durable:
+- do not infer `artifactKind` from vague prose when packet truth is meant to gate execution; explicit bounded packet truth is higher quality than smart guessing
+- after a success-path validation, inspect the negative-path validation closely enough to prove that the real run truly did not start
+- if remote `main` advanced because the live company loop produced a child or worker result, treat that as canonical sprint continuation, not as unrelated git noise
+- when the product path is the real bottleneck, prefer changing product surfaces and contracts over writing more reflection about them
 
 ---
 
