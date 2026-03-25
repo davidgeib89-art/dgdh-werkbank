@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { evaluateAgentHealth } from "../services/agent-health.js";
-import { estimateTotalTokens } from "../services/heartbeat.js";
+import {
+  estimateTotalTokens,
+  resolveNextAgentStatusAfterRun,
+} from "../services/heartbeat.js";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 
@@ -101,6 +104,38 @@ describe("estimateTotalTokens — budget threshold math", () => {
     expect(60_000 >= threshold).toBe(true);
     // Below threshold: no warning
     expect(59_999 >= threshold).toBe(false);
+  });
+});
+
+describe("resolveNextAgentStatusAfterRun", () => {
+  it("treats process_lost as recoverable and returns idle when no other runs are active", () => {
+    expect(
+      resolveNextAgentStatusAfterRun({
+        runningCount: 0,
+        outcome: "failed",
+        errorCode: "process_lost",
+      }),
+    ).toBe("idle");
+  });
+
+  it("keeps ordinary failed runs in error when no other runs are active", () => {
+    expect(
+      resolveNextAgentStatusAfterRun({
+        runningCount: 0,
+        outcome: "failed",
+        errorCode: "adapter_failed",
+      }),
+    ).toBe("error");
+  });
+
+  it("keeps agent running when another run is still active", () => {
+    expect(
+      resolveNextAgentStatusAfterRun({
+        runningCount: 1,
+        outcome: "failed",
+        errorCode: "process_lost",
+      }),
+    ).toBe("running");
   });
 });
 

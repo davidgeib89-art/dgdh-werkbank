@@ -171,6 +171,14 @@ export type UsageTotals = {
   outputTokens: number;
 };
 
+export type AgentFinalizationOutcome =
+  | "succeeded"
+  | "failed"
+  | "cancelled"
+  | "timed_out"
+  | "blocked"
+  | "awaiting_approval";
+
 type SessionCompactionPolicy = {
   enabled: boolean;
   maxSessionRuns: number;
@@ -555,6 +563,24 @@ export function estimateTotalTokens(usage: UsageTotals | null) {
       usage.inputTokens + usage.cachedInputTokens + usage.outputTokens,
     ),
   );
+}
+
+export function resolveNextAgentStatusAfterRun(input: {
+  runningCount: number;
+  outcome: AgentFinalizationOutcome;
+  errorCode?: string | null;
+}) {
+  if (input.runningCount > 0) return "running" as const;
+  if (input.outcome === "failed" && input.errorCode === "process_lost") {
+    // A lost process during restart/recovery should fail the run, but it should
+    // not strand the whole agent in permanent error.
+    return "idle" as const;
+  }
+  return input.outcome === "succeeded" ||
+    input.outcome === "cancelled" ||
+    input.outcome === "awaiting_approval"
+    ? ("idle" as const)
+    : ("error" as const);
 }
 
 export function isPhaseBExecution(context: Record<string, unknown>) {
@@ -3206,7 +3232,8 @@ export function heartbeatService(db: Db) {
 
   async function finalizeAgentStatus(
     agentId: string,
-    outcome: "succeeded" | "failed" | "cancelled" | "timed_out" | "blocked" | "awaiting_approval",
+    outcome: AgentFinalizationOutcome,
+    opts?: { errorCode?: string | null },
   ) {
     const existing = await getAgent(agentId);
     if (!existing) return;
@@ -3216,14 +3243,11 @@ export function heartbeatService(db: Db) {
     }
 
     const runningCount = await countRunningRunsForAgent(agentId);
-    const nextStatus =
-      runningCount > 0
-        ? "running"
-        : outcome === "succeeded" ||
-          outcome === "cancelled" ||
-          outcome === "awaiting_approval"
-        ? "idle"
-        : "error";
+    const nextStatus = resolveNextAgentStatusAfterRun({
+      runningCount,
+      outcome,
+      errorCode: opts?.errorCode ?? null,
+    });
 
     const updated = await db
       .update(agents)
@@ -3336,7 +3360,9 @@ export function heartbeatService(db: Db) {
         });
         await releaseIssueExecutionAndPromote(updatedRun);
       }
-      await finalizeAgentStatus(run.agentId, "failed");
+      await finalizeAgentStatus(run.agentId, "failed", {
+        errorCode: "process_lost",
+      });
       await startNextQueuedRunForAgent(run.agentId);
       reaped.push(run.id);
     }
