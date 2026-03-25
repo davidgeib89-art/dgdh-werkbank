@@ -384,6 +384,8 @@ What counts as real evidence:
 
 Do not trust a single surface in isolation.
 
+**Validation Recording**: When validating a bounded live company run, the operator should record the exact parent issue ID, child issue ID, and run IDs to ensure full traceability across the execution chain.
+
 ---
 
 ## 9. Canonical Worker and Reviewer Handoffs
