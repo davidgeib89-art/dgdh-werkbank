@@ -158,6 +158,8 @@ Assume:
 - API truth beats browser state
 - use exact tools or direct API/file probes first; do not start with broad terminal scans when one precise check would answer the question
 
+> **Kickoff-Probe Rule:** Perform a minimal, non-destructive API check (e.g., `GET /api/companies`) right at the start to verify connectivity and identity before assigning issues or creating projects. This prevents "kickoff loss" before committing to a run.
+
 PowerShell pattern:
 
 ```powershell
