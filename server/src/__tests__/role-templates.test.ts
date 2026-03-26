@@ -154,20 +154,20 @@ describe("resolveAssignedRoleTemplate", () => {
       "use the native `paperclipai` CLI primitives already available in this run",
     );
     expect(result.assigned?.prompt).toContain(
-      "Run these primitives from `PAPERCLIP_CLI_CWD` so they execute from the repo root.",
+      "pnpm --dir $env:PAPERCLIP_CLI_CWD paperclipai ...",
     );
     expect(result.assigned?.prompt).toContain(
-      "pnpm paperclipai agent list --company-id $env:PAPERCLIP_COMPANY_ID --json",
+      "pnpm --dir $env:PAPERCLIP_CLI_CWD paperclipai agent list --company-id $env:PAPERCLIP_COMPANY_ID --json",
     );
     expect(result.assigned?.prompt).toContain(
       "adapterConfig.roleTemplateId == \"worker\" and status == \"idle\"",
     );
     expect(result.assigned?.prompt).toContain(
-      "pnpm paperclipai issue create --company-id $env:PAPERCLIP_COMPANY_ID --project-id $env:PAPERCLIP_PROJECT_ID --parent-id $env:PAPERCLIP_TASK_ID",
+      "pnpm --dir $env:PAPERCLIP_CLI_CWD paperclipai issue create --company-id $env:PAPERCLIP_COMPANY_ID --project-id $env:PAPERCLIP_PROJECT_ID --parent-id $env:PAPERCLIP_TASK_ID",
     );
     expect(result.assigned?.prompt).toContain("status: todo");
     expect(result.assigned?.prompt).toContain(
-      "pnpm paperclipai issue assign CHILD_ISSUE_ID --agent-id WORKER_AGENT_ID --json",
+      "pnpm --dir $env:PAPERCLIP_CLI_CWD paperclipai issue assign CHILD_ISSUE_ID --agent-id WORKER_AGENT_ID --json",
     );
     expect(result.assigned?.prompt).toContain("[NEEDS WORKER]");
     expect(result.assigned?.prompt).toContain("Direct Answer Mode");
@@ -189,7 +189,7 @@ describe("resolveAssignedRoleTemplate", () => {
     expect(result.assigned?.prompt).toContain("Aggregation Mode");
     expect(result.assigned?.prompt).toContain("parentId");
     expect(result.assigned?.prompt).toContain(
-      "pnpm paperclipai issue list --company-id $env:PAPERCLIP_COMPANY_ID --parent-id $env:PAPERCLIP_TASK_ID --json",
+      "pnpm --dir $env:PAPERCLIP_CLI_CWD paperclipai issue list --company-id $env:PAPERCLIP_COMPANY_ID --parent-id $env:PAPERCLIP_TASK_ID --json",
     );
     expect(result.assigned?.prompt).toContain(
       "GET /api/issues/CHILD_ISSUE_ID/approvals",
@@ -210,7 +210,7 @@ describe("resolveAssignedRoleTemplate", () => {
       "If and only if all child packets are complete under policy, PATCH parent issue status to done and report the mission complete.",
     );
     expect(result.assigned?.template.constraints).toContain(
-      "After creating child issues, list available agents with paperclipai agent list and assign each packet to an idle worker (adapterConfig.roleTemplateId == worker) when available.",
+      "After creating child issues, list available agents with `pnpm --dir $env:PAPERCLIP_CLI_CWD paperclipai agent list --company-id $env:PAPERCLIP_COMPANY_ID --json` and assign each packet to an idle worker (adapterConfig.roleTemplateId == worker) when available.",
     );
     expect(result.assigned?.template.constraints).toContain(
       "If a packet should start immediately, create it with status=todo because backlog intentionally blocks assignment-triggered wakeup.",

@@ -726,17 +726,17 @@ describe("gemini execute", () => {
           "The four preferred primitives are:",
         );
         expect(invocationPrompt).toContain(
-          "pnpm paperclipai issue list --company-id $env:PAPERCLIP_COMPANY_ID --parent-id $env:PAPERCLIP_TASK_ID --json",
+          "pnpm --dir $env:PAPERCLIP_CLI_CWD paperclipai issue list --company-id $env:PAPERCLIP_COMPANY_ID --parent-id $env:PAPERCLIP_TASK_ID --json",
         );
         expect(invocationPrompt).toContain("PAPERCLIP_PROJECT_ID");
         expect(invocationPrompt).toContain(
-          "pnpm paperclipai issue create --company-id $env:PAPERCLIP_COMPANY_ID --project-id $env:PAPERCLIP_PROJECT_ID --parent-id $env:PAPERCLIP_TASK_ID",
+          "pnpm --dir $env:PAPERCLIP_CLI_CWD paperclipai issue create --company-id $env:PAPERCLIP_COMPANY_ID --project-id $env:PAPERCLIP_PROJECT_ID --parent-id $env:PAPERCLIP_TASK_ID",
         );
         expect(invocationPrompt).toContain(
-          "pnpm paperclipai agent list --company-id $env:PAPERCLIP_COMPANY_ID --json",
+          "pnpm --dir $env:PAPERCLIP_CLI_CWD paperclipai agent list --company-id $env:PAPERCLIP_COMPANY_ID --json",
         );
         expect(invocationPrompt).toContain(
-          "pnpm paperclipai issue assign CHILD_ISSUE_ID --agent-id WORKER_AGENT_ID --json",
+          "pnpm --dir $env:PAPERCLIP_CLI_CWD paperclipai issue assign CHILD_ISSUE_ID --agent-id WORKER_AGENT_ID --json",
         );
         expect(invocationPrompt).toContain("PAPERCLIP_CLI_CWD");
       } finally {
