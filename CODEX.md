@@ -109,6 +109,7 @@ Do not silently assume it.
 Copilot is your main execution student/partner lane.
 
 That means:
+- by default, you write and refresh the current execution assignments for Copilot and comparable coder lanes
 - give large, clear, bounded sprints
 - prefer `doneWhen` over step micromanagement
 - review the result honestly

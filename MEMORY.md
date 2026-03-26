@@ -104,6 +104,7 @@
 
 ## Stabile Arbeitsregeln
 - `CURRENT.md` traegt Fokus, naechsten Schritt und Blocker; `MEMORY.md` bleibt kompakt und stabil.
+- Default-Orchestrierungsregel: Codex schreibt und aktualisiert die aktuellen Copilot-/Agenten-Auftraege, solange David das nicht bewusst anders verteilt.
 - `main` ist die einzige kanonische operative Branch-Wahrheit. `main-local` ist nur noch Legacy-/Uebergangsrest und soll nicht mehr als aktive Sprint-Basis verwendet werden.
 - Branch-Truthfulness-Regel: `local edit`, `local commit`, `pushed branch` und `current origin/main` sind verschiedene Wahrheiten; "gelandet auf main" darf erst nach Git-Beweis fuer die aktuelle Remote-Wahrheit behauptet werden.
 - Planer (Perplexity MCP) kann das private Repo lesen, aber Commit-Verifikation laeuft ueber Branch-Namen (`sha='main'`), nicht ueber rohen Commit-Hash.
