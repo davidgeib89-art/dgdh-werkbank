@@ -13,6 +13,7 @@ anti_slop_gate:
   - Ab jetzt jede relevante Aenderung, Idee und Lane durch denselben Filter ziehen: spart das David auf einem echten Firmenlauf messbar Minuten, erhoeht es echte Firmenfaehigkeit statt bloss AI-Aktivitaet, bleibt es fuer David pruefbar ohne Blindvertrauen, traegt es auch ohne AI-Prosa und ist es jetzt wirklich dran
   - Wenn 2 oder mehr Antworten `nein` sind: parken, kleiner schneiden oder streichen; DGDH darf nicht zur AI-Aufsichtsmaschine werden
   - Hauptfilter: `Hilft das DGDH dabei, mit weniger David-Supervision pro nuetzlichem Lauf echte reviewbare Realitaet zu liefern - oder produziert es nur mehr AI-Aufsicht?`
+  - Zusatzregel: `go with the flow / follow your highest excitement` ist erlaubt und gewollt, solange es in bounded Schritte, ehrliche Branch-Wahrheit und reviewbare Bewegung uebersetzt wird statt in ungeprueftes Momentum-Theater
 
 next:
   1) `dgdh-skill-contract-and-verify-v1` eng freigeben: nur Skill-Contract, Verify-Gate und Promotion-State fuer bereits bewiesene Primitive; keine Registry, kein Router, keine Self-Learning-Plattform

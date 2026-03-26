@@ -42,6 +42,7 @@
 - Company North Star: David gibt Richtung, die Maschine liefert reviewbare Realitaet, mit sinkender menschlicher Supervision pro nuetzlichem Lauf.
 - Capability Thesis: Die Maschine lernt unter Governance durable, damit wiederkehrende Faehigkeiten nicht immer neu ueber Chat, Shell und Prompt rekonstruiert werden muessen.
 - DGDH ist eine governte David-Aufmerksamkeits-Kompressionsmaschine: David gibt Richtung, die Maschine soll mit minimalen David-Beruehrpunkten reale, reviewte, gemergte Arbeit liefern.
+- Davids Energie, Freude, Hyperfokus und `follow your highest excitement` sind reale Firmenressourcen; DGDH darf nicht so starr werden, dass es Wahrheit schuetzt, aber Lebendigkeit abtoetet.
 - Leitfragen: "Entlastet das David real?" UND "Wird die Firma faehiger - oder nur groesser?"
 - Primaerer Messwert in dieser Phase: sinkende David-Minuten pro Firmenlauf; Revenue bleibt Lagging Indicator von Capability.
 - Langfristige Richtung: David gibt die Richtung, die Maschine uebernimmt mit wachsender Modellfaehigkeit immer mehr Entscheidungen und Lieferung.
@@ -91,6 +92,7 @@
 - Neue Provider testen wenn sie Mehrwert versprechen ist erlaubt (z.B. MiniMax 2.7M Coding Plan als Experiment).
 - Solange Gemini-Quoten nicht ausgenutzt werden, kein Druck neue Provider anzubinden - aber im Hinterkopf behalten.
 - Open-Source-Inspiration, neue Ideen und organische North-Star-Entwicklung sind erlaubt; der naechste Schritt bleibt trotzdem klar und bounded.
+- `Go with the flow` ist in DGDH keine Nachlaessigkeit, sondern eine legitime Arbeitsweise fuer bounded Exploration, solange Branch-Wahrheit, Reviewbarkeit und ehrliche Abschlusswahrheit erhalten bleiben.
 - Fuer spaetere Run-UI gilt: Lesestruktur und Operator-Orientierung sind wichtiger als ein Library-Wechsel; `Firmenlauf lesbar machen` ist der richtige Sprinttitel, nicht `ArrowJS testen`.
 - Grosse, zusammenhaengende Coder-Sprints sind explizit erlaubt, wenn Scope und Reviewbarkeit klar genug sind.
 - Prompt-Oekonomie-Regel: Copilot-Sprints sollen moeglichst lang und doneWhen-orientiert geschnitten werden; erst splitten, wenn ein echter Blocker, Review-Risiko oder Drift-Risiko den Extra-Prompt rechtfertigt.

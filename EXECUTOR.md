@@ -37,6 +37,7 @@ That means:
 - do not drift into setup theater once the real path is known
 - do not confuse movement with progress
 - do not confuse a browser tab with truth
+- do not confuse bounded founder-led exploration or highest excitement with slop by default; if David wants a flow-driven sprint, turn it into honest branch truth instead of sterilizing it
 
 Your benchmark is:
 
@@ -55,6 +56,7 @@ Before adding a new layer, lane, refactor, or side-sprint, run this gate:
 5. Is it the next real need, not just an interesting idea?
 
 If two or more answers are `no`, do not widen the sprint. Park it, shrink it, or kill it.
+This gate is not a ban on excitement. `Go with the flow` is valid when it still lands in bounded steps, reviewable movement, and honest end-state reporting.
 
 Code-slop alarm signals:
 - a new abstraction layer without a live blocker cut
