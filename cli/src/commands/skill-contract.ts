@@ -1,4 +1,4 @@
-import { readFile } from "node:fs/promises";
+import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import { Command } from "commander";
 import {
@@ -19,6 +19,11 @@ interface SkillContractValidateOptions {
 }
 
 interface SkillContractVerifyOptions extends BaseClientOptions {
+  logLimitBytes?: string;
+}
+
+interface SkillContractVerifyAllOptions extends BaseClientOptions {
+  dir?: string;
   logLimitBytes?: string;
 }
 
@@ -58,6 +63,14 @@ export interface SkillVerificationReport {
   runs: SkillVerificationRunResult[];
 }
 
+export interface SkillVerificationBatchReport {
+  passed: boolean;
+  totalContracts: number;
+  passedContracts: number;
+  failedContracts: number;
+  reports: SkillVerificationReport[];
+}
+
 export async function loadCapabilitySkillContract(
   inputPath: string,
 ): Promise<CapabilitySkillContractInput> {
@@ -65,6 +78,22 @@ export async function loadCapabilitySkillContract(
   const raw = await readFile(resolved, "utf8");
   const parsed = JSON.parse(raw) as unknown;
   return capabilitySkillContractSchema.parse(parsed);
+}
+
+function isCapabilityContractFile(entryName: string): boolean {
+  return entryName.toLowerCase().endsWith(".json");
+}
+
+export async function listCapabilityContractFiles(
+  rootDir: string,
+): Promise<string[]> {
+  const resolvedRoot = path.resolve(rootDir);
+  const entries = await readdir(resolvedRoot, { withFileTypes: true });
+  const files = entries
+    .filter((entry) => entry.isFile() && isCapabilityContractFile(entry.name))
+    .map((entry) => path.join(resolvedRoot, entry.name))
+    .sort((a, b) => a.localeCompare(b));
+  return files;
 }
 
 function resolveRequiredPrimitiveIds(
@@ -209,7 +238,9 @@ async function buildRunEvidence(
     run.error,
     run.stdoutExcerpt,
     run.stderrExcerpt,
+    JSON.stringify(run.usageJson ?? {}),
     JSON.stringify(run.resultJson ?? {}),
+    JSON.stringify(run.contextSnapshot ?? {}),
     log?.content ?? "",
   ]
     .filter((value): value is string => typeof value === "string" && value.length > 0)
@@ -219,6 +250,57 @@ async function buildRunEvidence(
     runId,
     status: run.status ?? null,
     text: searchText,
+  };
+}
+
+export async function verifyCapabilitySkillContractWithApi(
+  contract: CapabilitySkillContractInput,
+  opts: {
+    logLimitBytes: number;
+    api: ReturnType<typeof resolveCommandContext>["api"];
+  },
+): Promise<SkillVerificationReport> {
+  const runEvidence: SkillVerificationRunInput[] = [];
+  for (const runId of contract.verify.runIds) {
+    runEvidence.push(
+      await buildRunEvidence(runId, {
+        logLimitBytes: opts.logLimitBytes,
+        api: opts.api,
+      }),
+    );
+  }
+
+  return evaluateSkillContractVerification(contract, runEvidence);
+}
+
+export async function verifyCapabilityContractsInDirectory(
+  rootDir: string,
+  opts: {
+    logLimitBytes: number;
+    api: ReturnType<typeof resolveCommandContext>["api"];
+  },
+): Promise<SkillVerificationBatchReport> {
+  const files = await listCapabilityContractFiles(rootDir);
+  const reports: SkillVerificationReport[] = [];
+
+  for (const filePath of files) {
+    const contract = await loadCapabilitySkillContract(filePath);
+    reports.push(
+      await verifyCapabilitySkillContractWithApi(contract, {
+        logLimitBytes: opts.logLimitBytes,
+        api: opts.api,
+      }),
+    );
+  }
+
+  const passedContracts = reports.filter((report) => report.passed).length;
+  const failedContracts = reports.length - passedContracts;
+  return {
+    passed: failedContracts === 0,
+    totalContracts: reports.length,
+    passedContracts,
+    failedContracts,
+    reports,
   };
 }
 
@@ -269,19 +351,45 @@ export function registerSkillContractCommands(program: Command): void {
           const ctx = resolveCommandContext(opts);
           const logLimitBytes = parsePositiveInt(opts.logLimitBytes, 200000);
 
-          const runEvidence: SkillVerificationRunInput[] = [];
-          for (const runId of parsed.verify.runIds) {
-            runEvidence.push(
-              await buildRunEvidence(runId, {
-                logLimitBytes,
-                api: ctx.api,
-              }),
-            );
-          }
-
-          const report = evaluateSkillContractVerification(parsed, runEvidence);
+          const report = await verifyCapabilitySkillContractWithApi(parsed, {
+            logLimitBytes,
+            api: ctx.api,
+          });
           printOutput(report, { json: Boolean(opts.json) });
 
+          if (!report.passed) {
+            process.exitCode = 1;
+          }
+        } catch (err) {
+          handleCommandError(err);
+        }
+      }),
+  );
+
+  addCommonClientOptions(
+    contract
+      .command("verify-all")
+      .description("Verify all capability contracts in a directory")
+      .option(
+        "--dir <path>",
+        "Directory containing capability contract JSON files",
+        "company-hq/capabilities",
+      )
+      .option(
+        "--log-limit-bytes <n>",
+        "Max bytes fetched per run from /api/heartbeat-runs/:id/log",
+        "200000",
+      )
+      .action(async (opts: SkillContractVerifyAllOptions) => {
+        try {
+          const ctx = resolveCommandContext(opts);
+          const logLimitBytes = parsePositiveInt(opts.logLimitBytes, 200000);
+          const contractDir = opts.dir?.trim() || "company-hq/capabilities";
+          const report = await verifyCapabilityContractsInDirectory(contractDir, {
+            logLimitBytes,
+            api: ctx.api,
+          });
+          printOutput(report, { json: Boolean(opts.json) });
           if (!report.passed) {
             process.exitCode = 1;
           }

@@ -1,0 +1,89 @@
+{
+  "schemaVersion": "v1",
+  "capabilityId": "same-session-resume-after-post-tool-capacity",
+  "title": "Same Session Resume After Post Tool Capacity",
+  "summary": "Governed capability for resuming a blocked run on the same session after post-tool model capacity exhaustion.",
+  "owners": [
+    "david"
+  ],
+  "maturity": "verified",
+  "updatedAt": "2026-03-26T21:15:00.000Z",
+  "contract": {
+    "intent": "Preserve expensive post-tool progress by resuming the same session path after capacity cooldown instead of full reruns.",
+    "scopeIn": [
+      "blocked run finalized as post_tool_capacity_exhausted",
+      "deferred cooldown wakeup is queued",
+      "scheduler resumes with same session",
+      "resume run reaches succeeded"
+    ],
+    "scopeOut": [
+      "provider migration",
+      "new retry framework",
+      "manual shell replay as default recovery path"
+    ],
+    "inputsRequired": [
+      "blocked run id",
+      "resume run id",
+      "deferred cooldown scheduling"
+    ],
+    "allowedActions": [
+      "finalize blocked run with errorCode post_tool_capacity_exhausted",
+      "queue deferred_capacity_cooldown wakeup",
+      "resume existing session before child create",
+      "record same-session reuse in run usage/result truth"
+    ],
+    "forbiddenActions": [
+      "blind full rerun without same-session attempt",
+      "hiding blocked-to-resume transition from operator-facing truth",
+      "treating post-tool capacity as generic failed without resume metadata"
+    ],
+    "successCriteria": [
+      "blocked and resume runs are both present",
+      "blocked run carries explicit post_tool_capacity_exhausted/deferred metadata",
+      "resume run shows same-session reuse and succeeds"
+    ],
+    "failureModes": [
+      "blocked run lacks deferred cooldown metadata",
+      "scheduler never resumes",
+      "resume starts fresh session instead of reuse"
+    ],
+    "rollbackPlan": "If this capability regresses, revert to the last commit where blocked-to-resume chain is proven and re-verify one bounded pair of runs before further changes."
+  },
+  "primitives": [
+    {
+      "id": "blocked-capacity-truth",
+      "title": "Blocked Capacity Truth",
+      "description": "Blocked run stores explicit post-tool capacity error and deferred resume metadata.",
+      "required": true,
+      "evidenceMarkers": [
+        "post_tool_capacity_exhausted",
+        "deferred_capacity_cooldown",
+        "resume_existing_session_before_child_create"
+      ]
+    },
+    {
+      "id": "same-session-resume-success",
+      "title": "Same Session Resume Success",
+      "description": "Resume run proves reused session and non-fresh path.",
+      "required": true,
+      "evidenceMarkers": [
+        "\"sessionreused\":true",
+        "\"freshsession\":false"
+      ]
+    }
+  ],
+  "verify": {
+    "method": "heartbeat_run_log_markers",
+    "runIds": [
+      "011bbf57-c596-4008-8d2c-5d2b003d7d0f",
+      "fd981453-1b54-44da-8d7a-8f3fe4a396c1"
+    ],
+    "requiredMarkers": [],
+    "requiredPrimitiveIds": [
+      "blocked-capacity-truth",
+      "same-session-resume-success"
+    ],
+    "minDistinctRuns": 2,
+    "notes": "Pair captured in DAV-131 chain: blocked run deferred to cooldown, scheduler resumed same session and succeeded."
+  }
+}

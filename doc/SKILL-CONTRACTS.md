@@ -26,6 +26,7 @@ Core sections:
 Reference example:
 
 - `company-hq/capabilities/ceo-native-issue-handoff-primitives.v1.json`
+- `company-hq/capabilities/same-session-resume-after-post-tool-capacity.v1.json`
 
 ## CLI commands
 
@@ -55,6 +56,18 @@ pnpm paperclipai skill contract verify company-hq/capabilities/ceo-native-issue-
   --json
 ```
 
+Verify all seeded contracts in one reusable pass:
+
+```bash
+pnpm paperclipai skill contract verify-all --api-base http://127.0.0.1:3114 --json
+```
+
+Use a custom contract directory:
+
+```bash
+pnpm paperclipai skill contract verify-all --dir company-hq/capabilities --api-base http://127.0.0.1:3114
+```
+
 ## Verification model (current)
 
 Current method: `heartbeat_run_log_markers`
@@ -66,6 +79,15 @@ Pass conditions:
 - evidence appears in at least `minDistinctRuns` runs
 
 If verification fails, treat the capability as not promoted.
+
+## Reuse proof rule (v1)
+
+`v1` is considered reuse-capable only when the same CLI verify path can validate more than one contract without custom code.
+
+Current seeded contracts:
+
+- `ceo-native-issue-handoff-primitives`
+- `same-session-resume-after-post-tool-capacity`
 
 ## Suggested maturity flow
 

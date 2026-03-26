@@ -4,7 +4,10 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   evaluateSkillContractVerification,
+  listCapabilityContractFiles,
   loadCapabilitySkillContract,
+  verifyCapabilitySkillContractWithApi,
+  verifyCapabilityContractsInDirectory,
 } from "../commands/skill-contract.js";
 
 function writeTempContract(data: unknown): string {
@@ -75,6 +78,24 @@ function buildContractFixture() {
   };
 }
 
+function buildContractFixtureWithRun(
+  capabilityId: string,
+  runId: string,
+  assignMarker: string,
+) {
+  const base = buildContractFixture();
+  return {
+    ...base,
+    capabilityId,
+    title: capabilityId,
+    verify: {
+      ...base.verify,
+      runIds: [runId],
+      requiredMarkers: [assignMarker],
+    },
+  };
+}
+
 describe("skill contract verification", () => {
   it("loads and validates a capability skill contract file", async () => {
     const contractPath = writeTempContract(buildContractFixture());
@@ -129,5 +150,132 @@ describe("skill contract verification", () => {
       report.primitives.find((primitive) => primitive.primitiveId === "issue-assign")
         ?.matched,
     ).toBe(false);
+  });
+
+  it("lists capability contracts from a directory", async () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-skill-contracts-"));
+    fs.writeFileSync(path.join(dir, "a.json"), JSON.stringify(buildContractFixture()), "utf8");
+    fs.writeFileSync(path.join(dir, "b.json"), JSON.stringify(buildContractFixture()), "utf8");
+    fs.writeFileSync(path.join(dir, "notes.txt"), "ignore", "utf8");
+
+    const files = await listCapabilityContractFiles(dir);
+
+    expect(files).toHaveLength(2);
+    expect(files[0]?.endsWith("a.json")).toBe(true);
+    expect(files[1]?.endsWith("b.json")).toBe(true);
+  });
+
+  it("verifies all contracts in a directory via one reusable path", async () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-skill-batch-"));
+    const runA = "11111111-1111-4111-8111-111111111111";
+    const runB = "22222222-2222-4222-8222-222222222222";
+
+    fs.writeFileSync(
+      path.join(dir, "seed-a.json"),
+      JSON.stringify(buildContractFixtureWithRun("seed-a", runA, "marker-a"), null, 2),
+      "utf8",
+    );
+    fs.writeFileSync(
+      path.join(dir, "seed-b.json"),
+      JSON.stringify(buildContractFixtureWithRun("seed-b", runB, "marker-b"), null, 2),
+      "utf8",
+    );
+
+    const fakeApi = {
+      get: async (pathValue: string) => {
+        if (pathValue.includes(`/api/heartbeat-runs/${runA}/log`)) {
+          return {
+            content:
+              "marker-a paperclipai issue list --company-id --parent-id " +
+              "paperclipai agent list --company-id " +
+              "paperclipai issue create --company-id " +
+              "paperclipai issue assign",
+          };
+        }
+        if (pathValue.includes(`/api/heartbeat-runs/${runB}/log`)) {
+          return {
+            content:
+              "marker-b paperclipai issue list --company-id --parent-id " +
+              "paperclipai agent list --company-id " +
+              "paperclipai issue create --company-id " +
+              "paperclipai issue assign",
+          };
+        }
+        if (pathValue === `/api/heartbeat-runs/${runA}`) {
+          return {
+            id: runA,
+            status: "succeeded",
+            error: null,
+            stdoutExcerpt: null,
+            stderrExcerpt: null,
+            resultJson: {},
+          };
+        }
+        if (pathValue === `/api/heartbeat-runs/${runB}`) {
+          return {
+            id: runB,
+            status: "succeeded",
+            error: null,
+            stdoutExcerpt: null,
+            stderrExcerpt: null,
+            resultJson: {},
+          };
+        }
+        throw new Error(`Unexpected path ${pathValue}`);
+      },
+    } as any;
+
+    const batch = await verifyCapabilityContractsInDirectory(dir, {
+      api: fakeApi,
+      logLimitBytes: 10000,
+    });
+
+    expect(batch.passed).toBe(true);
+    expect(batch.totalContracts).toBe(2);
+    expect(batch.failedContracts).toBe(0);
+    expect(batch.reports.map((report) => report.capabilityId).sort()).toEqual([
+      "seed-a",
+      "seed-b",
+    ]);
+  });
+
+  it("uses usageJson markers during verify to avoid false negatives", async () => {
+    const runId = "33333333-3333-4333-8333-333333333333";
+    const contract = buildContractFixtureWithRun(
+      "usage-proof",
+      runId,
+      '"sessionreused":true',
+    );
+
+    const parsed = await loadCapabilitySkillContract(writeTempContract(contract));
+
+    const fakeApi = {
+      get: async (pathValue: string) => {
+        if (pathValue.includes(`/api/heartbeat-runs/${runId}/log`)) {
+          return { content: "paperclipai issue list --company-id --parent-id paperclipai agent list --company-id paperclipai issue create --company-id paperclipai issue assign" };
+        }
+        if (pathValue === `/api/heartbeat-runs/${runId}`) {
+          return {
+            id: runId,
+            status: "succeeded",
+            error: null,
+            stdoutExcerpt: null,
+            stderrExcerpt: null,
+            usageJson: { sessionReused: true },
+            resultJson: {},
+            contextSnapshot: {},
+          };
+        }
+        throw new Error(`Unexpected path ${pathValue}`);
+      },
+    } as any;
+
+    const report = await verifyCapabilitySkillContractWithApi(parsed, {
+      api: fakeApi,
+      logLimitBytes: 10000,
+    });
+
+    expect(report.passed).toBe(true);
+    expect(report.matchedMarkers).toContain('"sessionreused":true');
   });
 });
