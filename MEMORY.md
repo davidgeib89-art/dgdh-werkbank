@@ -17,6 +17,7 @@
 - `doc/plans/2026-03-24-dgdh-memory-learning-self-improvement-first-principles.md` - kanonische Lesart fuer Firmengedachtnis, Lernen, Self-Learning und Self-Improving
 - `doc/plans/2026-03-24-dgdh-soul-layer-and-boardmeeting-direction.md` - warum `SOUL.md` eine gemeinsame Wesensschicht ist und wie sie unter Governance bleibt
 - `doc/plans/2026-03-24-dgdh-ai-trinity-and-operator-stack.md` - aktueller AI-Stack, Rollenwahrheit und Run-/Quota-Oekonomie
+- `doc/plans/2026-03-26-dgdh-roadmap-snapshot.md` - aktuelle Entwicklungslandkarte zwischen North Star, Main-Stand und den naechsten echten Schritten; hilft neuen AI-Chats gegen Roadmap-Drift
 - `doc/plans/2026-03-25-dgdh-lane-economics-and-supervision-doctrine.md` - kanonische Lesart fuer Lane-Oekonomie: DGDH skaliert nicht mit mehr Agentenlaerm, sondern mit weniger David-Supervision pro nuetzlichem Lauf
 - `doc/plans/2026-03-21-dgdh-north-star-roadmap.md` - kanonische operative Richtung
 - `doc/plans/2026-03-23-focus-freeze.md` - aktiver Kurzfrist-Fokus gegen Drift

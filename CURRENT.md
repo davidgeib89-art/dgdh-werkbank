@@ -32,6 +32,7 @@ blockers:
   - Der naechste oekonomische Schmerz ist nicht mehr fehlende Primitive-Ausfuehrung, sondern wiederholte prozedurale Rekonstruktion ueber Chat, Prompt und Shell statt governter durable Capability
 
 strategy_anchor:
+  - `doc/plans/2026-03-26-dgdh-roadmap-snapshot.md`
   - `doc/plans/2026-03-24-dgdh-first-principles-operating-doctrine.md`
   - `doc/plans/2026-03-21-dgdh-north-star-roadmap.md`
   - `doc/plans/2026-03-23-focus-freeze.md`
