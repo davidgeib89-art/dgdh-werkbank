@@ -1,0 +1,112 @@
+{
+  "schemaVersion": "v1",
+  "capabilityId": "ceo-native-issue-handoff-primitives",
+  "title": "CEO Native Issue Handoff Primitives",
+  "summary": "Governed capability for the CEO agent to execute native paperclipai handoff primitives in real runs.",
+  "owners": [
+    "david"
+  ],
+  "maturity": "verified",
+  "updatedAt": "2026-03-26T12:55:00.000Z",
+  "contract": {
+    "intent": "Convert execution delegation from prompt-only behavior into a firm-owned, verifiable capability.",
+    "scopeIn": [
+      "list child issues with parent filter",
+      "list available agents",
+      "create one or more child issues",
+      "assign created child issues to eligible workers"
+    ],
+    "scopeOut": [
+      "implementation work by the CEO on parent issue",
+      "provider architecture changes",
+      "ad-hoc dependency installs in isolated worktrees"
+    ],
+    "inputsRequired": [
+      "PAPERCLIP_COMPANY_ID",
+      "PAPERCLIP_TASK_ID",
+      "PAPERCLIP_PROJECT_ID",
+      "PAPERCLIP_CLI_CWD"
+    ],
+    "allowedActions": [
+      "pnpm --dir $env:PAPERCLIP_CLI_CWD paperclipai issue list --company-id ... --parent-id ... --json",
+      "pnpm --dir $env:PAPERCLIP_CLI_CWD paperclipai agent list --company-id ... --json",
+      "pnpm --dir $env:PAPERCLIP_CLI_CWD paperclipai issue create --company-id ... --project-id ... --parent-id ... --json",
+      "pnpm --dir $env:PAPERCLIP_CLI_CWD paperclipai issue assign ... --agent-id ... --json"
+    ],
+    "forbiddenActions": [
+      "prompt-only delegation without real child issues",
+      "switching providers or global model strategy during proof",
+      "broad repo exploration before mandatory child-status read"
+    ],
+    "successCriteria": [
+      "all four primitives are visible in one fresh real CEO run",
+      "child issue is created and assigned to an eligible worker",
+      "proof uses canonical repo-root CLI boundary"
+    ],
+    "failureModes": [
+      "model admission capacity before first tool call",
+      "run shell launched from isolated worktree without repo-root --dir usage",
+      "missing parent/project/company context"
+    ],
+    "rollbackPlan": "If verification fails after regression, revert to the last verified commit and rerun exactly one bounded CEO proof before further changes."
+  },
+  "primitives": [
+    {
+      "id": "issue-list-parent",
+      "title": "List Child Issues",
+      "description": "Reads child issue truth for the current parent issue before any further decision.",
+      "required": true,
+      "evidenceMarkers": [
+        "paperclipai issue list --company-id",
+        "--parent-id"
+      ]
+    },
+    {
+      "id": "agent-list",
+      "title": "List Agents",
+      "description": "Lists current agents to locate an eligible worker.",
+      "required": true,
+      "evidenceMarkers": [
+        "paperclipai agent list --company-id"
+      ]
+    },
+    {
+      "id": "issue-create-child",
+      "title": "Create Child Issue",
+      "description": "Creates child packet issue with project and parent linkage.",
+      "required": true,
+      "evidenceMarkers": [
+        "paperclipai issue create --company-id",
+        "--project-id",
+        "--parent-id"
+      ]
+    },
+    {
+      "id": "issue-assign-child",
+      "title": "Assign Child Issue",
+      "description": "Assigns created child issue to worker agent.",
+      "required": true,
+      "evidenceMarkers": [
+        "paperclipai issue assign",
+        "--agent-id"
+      ]
+    }
+  ],
+  "verify": {
+    "method": "heartbeat_run_log_markers",
+    "runIds": [
+      "7b3e0c29-9b34-499b-a793-0d557b2e870f"
+    ],
+    "requiredMarkers": [
+      "pnpm --dir $env:PAPERCLIP_CLI_CWD"
+    ],
+    "requiredPrimitiveIds": [
+      "issue-list-parent",
+      "agent-list",
+      "issue-create-child",
+      "issue-assign-child"
+    ],
+    "minDistinctRuns": 1,
+    "notes": "Run reached post-tool capacity cooldown after proving all four primitives in one real CEO run."
+  }
+}

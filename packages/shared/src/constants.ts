@@ -123,6 +123,22 @@ export type IssueStatus = (typeof ISSUE_STATUSES)[number];
 export const ISSUE_PRIORITIES = ["critical", "high", "medium", "low"] as const;
 export type IssuePriority = (typeof ISSUE_PRIORITIES)[number];
 
+export const CAPABILITY_MATURITY_STATES = [
+  "draft",
+  "verified",
+  "promoted",
+  "quarantined",
+  "deprecated",
+] as const;
+export type CapabilityMaturityState =
+  (typeof CAPABILITY_MATURITY_STATES)[number];
+
+export const CAPABILITY_VERIFY_METHODS = [
+  "heartbeat_run_log_markers",
+] as const;
+export type CapabilityVerifyMethod =
+  (typeof CAPABILITY_VERIFY_METHODS)[number];
+
 export const GOAL_LEVELS = ["company", "team", "agent", "task"] as const;
 export type GoalLevel = (typeof GOAL_LEVELS)[number];
 
