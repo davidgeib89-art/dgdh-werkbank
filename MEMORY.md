@@ -41,6 +41,7 @@
 - Overarching Goal: Mensch-AI-Symbiose der Welt beweisen und sie zu einem besseren Ort machen.
 - Company North Star: David gibt Richtung, die Maschine liefert reviewbare Realitaet, mit sinkender menschlicher Supervision pro nuetzlichem Lauf.
 - Capability Thesis: Die Maschine lernt unter Governance durable, damit wiederkehrende Faehigkeiten nicht immer neu ueber Chat, Shell und Prompt rekonstruiert werden muessen.
+- Erster governed capability cut ist jetzt auf `main`: `ceo-native-issue-handoff-primitives` lebt als verifizierbarer Skill-Contract mit Maturity-/Verify-Modell; das ist der erste prozedurale Capability-Container, aber noch keine breite Skill-Plattform.
 - DGDH ist eine governte David-Aufmerksamkeits-Kompressionsmaschine: David gibt Richtung, die Maschine soll mit minimalen David-Beruehrpunkten reale, reviewte, gemergte Arbeit liefern.
 - Davids Energie, Freude, Hyperfokus und `follow your highest excitement` sind reale Firmenressourcen; DGDH darf nicht so starr werden, dass es Wahrheit schuetzt, aber Lebendigkeit abtoetet.
 - Leitfragen: "Entlastet das David real?" UND "Wird die Firma faehiger - oder nur groesser?"
@@ -98,7 +99,7 @@
 - Prompt-Oekonomie-Regel: Copilot-Sprints sollen moeglichst lang und doneWhen-orientiert geschnitten werden; erst splitten, wenn ein echter Blocker, Review-Risiko oder Drift-Risiko den Extra-Prompt rechtfertigt.
 - Copilot-Run-Oekonomie-Regel: Runs sind endliche Firmenmunition; wir nutzen sie nicht aengstlich, aber bewusst. Wenige starke Sprints schlagen viele Nachschnitt-Prompts, und Codex steuert Schwierigkeit/Modus pro Auftrag nach Hebel, Risiko und verbleibendem Run-Budget.
 - Praktische Budget-Lesart Ende Maerz 2026: ca. `75%` von rund `300` monatlichen Copilot-Agentenruns sind noch uebrig; das ist genug fuer mutige Core-Sprints, aber kein Grund fuer promptgetriebene Kleinteiligkeit. Ein moegliches Upgrade auf hoehere Run-Limits ist spaeter sinnvoll, wenn die aktuelle Run-Disziplin bereits guten ROI zeigt.
-- Nach dem repo-wahren Same-Session-Resume-Beweis und dem gelieferten nativen CEO-Handoff-Pfad ist der naechste wahrscheinliche `Core`-Produktcut `dgdh-skill-contract-and-verify-v1`; aber nur eng als `Contract + Verify + Promotion-State`, nicht als Registry-, Router- oder Self-Learning-Plattform.
+- Nach dem repo-wahren Same-Session-Resume-Beweis und dem gelieferten nativen CEO-Handoff-Pfad ist `dgdh-skill-contract-and-verify-v1` als erster enger Cut jetzt auf `main` gelandet; der naechste Test ist Reuse/Hebel im Alltag, nicht Registry-, Router- oder Self-Learning-Plattformbau.
 - Copilot soll bevorzugt grosse DoneWhen-orientierte Sprints ziehen; knapper budgetierte Codex-Interaktionen werden fuer Reflexion, Sprint-Schnitt und gezielte Eingriffe genutzt.
 - Reale Firmenlaeufe sind bevorzugte Prototyping-Schleifen; kein Test-Theater wenn ein echter Lauf bereits den naechsten Hebel sichtbar macht.
 - Coder committen und pushen vor dem Bericht; Statusberichte beginnen mit `CODEX STATUSBERICHT`, `Von: Codex`, `An: Planer`.
