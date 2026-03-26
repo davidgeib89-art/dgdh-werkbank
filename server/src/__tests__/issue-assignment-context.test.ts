@@ -83,13 +83,20 @@ describe("issue assignment wakeup context", () => {
       parentId: null,
       identifier: "DAV-100",
       title: "Test",
+      description: "verifiedSkill: ceo-native-issue-handoff-primitives",
       status: "todo",
       assigneeAgentId: agentId1,
     });
 
     const res = await request(createApp())
       .post(`/api/companies/${companyId}/issues`)
-      .send({ title: "Test", projectId: projectId1, status: "todo", assigneeAgentId: agentId1 });
+      .send({
+        title: "Test",
+        description: "verifiedSkill: ceo-native-issue-handoff-primitives",
+        projectId: projectId1,
+        status: "todo",
+        assigneeAgentId: agentId1,
+      });
 
     expect(res.status).toBe(201);
     expect(mockHeartbeatService.wakeup).toHaveBeenCalledWith(
@@ -101,6 +108,13 @@ describe("issue assignment wakeup context", () => {
           companyId,
           projectId: projectId1,
           issueIdentifier: "DAV-100",
+          requestedCapabilityIds: ["ceo-native-issue-handoff-primitives"],
+          issueCapabilityReferences: [
+            expect.objectContaining({
+              capabilityId: "ceo-native-issue-handoff-primitives",
+              maturity: "verified",
+            }),
+          ],
           source: "issue.create",
         }),
       }),
@@ -116,6 +130,7 @@ describe("issue assignment wakeup context", () => {
       parentId: null,
       identifier: "DAV-101",
       title: "Reassign me",
+      description: "verifiedSkill: ceo-native-issue-handoff-primitives",
       status: "todo",
       assigneeAgentId: null,
       assigneeUserId: null,
@@ -128,6 +143,7 @@ describe("issue assignment wakeup context", () => {
       parentId: null,
       identifier: "DAV-101",
       title: "Reassign me",
+      description: "verifiedSkill: ceo-native-issue-handoff-primitives",
       status: "todo",
       assigneeAgentId: agentId2,
       assigneeUserId: null,
@@ -147,6 +163,13 @@ describe("issue assignment wakeup context", () => {
           companyId,
           projectId: projectId2,
           issueIdentifier: "DAV-101",
+          requestedCapabilityIds: ["ceo-native-issue-handoff-primitives"],
+          issueCapabilityReferences: [
+            expect.objectContaining({
+              capabilityId: "ceo-native-issue-handoff-primitives",
+              maturity: "verified",
+            }),
+          ],
           source: "issue.update",
         }),
       }),

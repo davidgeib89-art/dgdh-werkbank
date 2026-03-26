@@ -46,6 +46,38 @@ describe("applyIssuePromptContext", () => {
     else process.env.PAPERCLIP_API_URL = previousApiUrl;
   });
 
+  it("injects an explicit verified skill brief into the task prompt", () => {
+    const context = applyIssuePromptContext(
+      {},
+      {
+        id: "issue-2",
+        companyId: "company-1",
+        projectId: "project-1",
+        goalId: null,
+        parentId: null,
+        identifier: "DAV-201",
+        title: "Use skill bridge",
+        description: [
+          "verifiedSkill: same-session-resume-after-post-tool-capacity",
+          "doneWhen: Reuse the same session path after post-tool capacity.",
+        ].join("\n"),
+      },
+    ) as Record<string, unknown>;
+
+    const prompt = String(context.paperclipTaskPrompt ?? "");
+
+    expect(prompt).toContain("Verified skill references (explicit opt-in):");
+    expect(prompt).toContain(
+      "capabilityId: same-session-resume-after-post-tool-capacity",
+    );
+    expect(prompt).toContain(
+      "resume existing session before child create",
+    );
+    expect(context.paperclipVerifiedSkillRequestedIds).toEqual([
+      "same-session-resume-after-post-tool-capacity",
+    ]);
+  });
+
   it("keeps company and project ids in the wakeup issue-context select", () => {
     const heartbeatSource = readFileSync(
       path.resolve(__dirname, "../../..", "server/src/services/heartbeat.ts"),

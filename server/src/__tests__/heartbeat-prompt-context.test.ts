@@ -47,6 +47,68 @@ describe("buildHeartbeatIssuePromptContextPatch", () => {
     );
   });
 
+  it("injects verified skill references into the issue prompt context when explicitly requested", () => {
+    const patch = buildHeartbeatIssuePromptContextPatch({
+      contextSnapshot: {},
+      issue: {
+        id: "issue-skill-1",
+        companyId: "company-1",
+        projectId: "project-1",
+        goalId: null,
+        parentId: null,
+        identifier: "DAV-201",
+        title: "Use the native handoff skill",
+        description: [
+          "verifiedSkill: ceo-native-issue-handoff-primitives",
+          "Goal: Delegate using the already verified native child handoff path.",
+        ].join("\n"),
+      },
+    });
+
+    expect(patch.paperclipVerifiedSkillRequestedIds).toEqual([
+      "ceo-native-issue-handoff-primitives",
+    ]);
+    expect(patch.paperclipVerifiedSkillReferences).toEqual([
+      expect.objectContaining({
+        capabilityId: "ceo-native-issue-handoff-primitives",
+        maturity: "verified",
+      }),
+    ]);
+    expect(String(patch.paperclipTaskPrompt ?? "")).toContain(
+      "Verified skill references (explicit opt-in):",
+    );
+    expect(String(patch.paperclipTaskPrompt ?? "")).toContain(
+      "capabilityId: ceo-native-issue-handoff-primitives",
+    );
+    expect(String(patch.paperclipTaskPrompt ?? "")).toContain(
+      "paperclipai issue list --company-id",
+    );
+  });
+
+  it("surfaces invalid verified skill references as prompt warnings", () => {
+    const patch = buildHeartbeatIssuePromptContextPatch({
+      contextSnapshot: {},
+      issue: {
+        id: "issue-skill-2",
+        companyId: "company-1",
+        projectId: "project-1",
+        goalId: null,
+        parentId: null,
+        identifier: "DAV-202",
+        title: "Bad skill ref",
+        description: "verifiedSkill: does-not-exist",
+      },
+    });
+
+    expect(patch.paperclipVerifiedSkillReferences).toBeNull();
+    expect(patch.paperclipVerifiedSkillReferenceErrors).toEqual([
+      expect.stringContaining("does-not-exist"),
+    ]);
+    expect(String(patch.paperclipTaskPrompt ?? "")).toContain(
+      "Capability reference warnings:",
+    );
+  });
+
   it("raises the hard cap for explicit same-session post-tool proofs", () => {
     const patch = buildHeartbeatIssuePromptContextPatch({
       contextSnapshot: {},

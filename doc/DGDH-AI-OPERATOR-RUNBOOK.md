@@ -148,6 +148,7 @@ Operational rule:
 - `skill contract list` tells you what is already verified
 - `skill contract use <capabilityId>` gives the shortest bounded reuse brief
 - `skill contract verify` or `verify-all` proves the evidence again on the current runtime when needed
+- when the run should explicitly reuse a verified skill, attach it on the issue packet with `verifiedSkill: <capabilityId>` so the runtime prompt carries the brief without broad rediscovery
 
 This is intentionally not a router or registry.
 It is the smallest operator-facing bridge from `verified` to `used`.
@@ -244,7 +245,7 @@ Only send an explicit policy when you want to override that default or when the 
 $issueBody = @{
   projectId = $projectId
   title = "Bounded canonical company run"
-  description = "Real bounded run on the proven canonical local baseline."
+  description = "Real bounded run on the proven canonical local baseline.`nverifiedSkill: ceo-native-issue-handoff-primitives"
   status = "todo"
   priority = "medium"
 } | ConvertTo-Json -Depth 10
@@ -255,6 +256,9 @@ $issueId = $issue.id
 
 For bounded implementation packets, specify the concrete target file or target folder in the issue description when you already know it.
 Otherwise the routing preflight can legitimately stop the CEO run with `missing_inputs` before any child issue is created.
+
+If the packet should consciously reuse a verified skill, add `verifiedSkill: <capabilityId>` to the description.
+That keeps the bridge explicit, reviewable, and small.
 
 5. Start the loop by assigning the issue, not by raw wakeup.
 

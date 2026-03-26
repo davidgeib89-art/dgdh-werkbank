@@ -1,6 +1,6 @@
 # CURRENT - Live Baton
 
-focus: `dgdh-skill-contract-and-verify-v1` hat jetzt reuse proof und zwei verifizierte Seed-Skills auf `main`; nach Same-Session-Resume-Beweis, nativer CEO-Issue-Handoff-Primitive und `verify-all` als gemeinsamem Pfad ist der naechste echte Hebel nicht Registry/Router/Evolution, sondern zu pruefen, ob dieser kleine governed capability layer im Alltag wirklich Wiederentdecken spart und operative Reuse bringt
+focus: die kleine governed capability layer hat jetzt nicht nur operator-facing `list|use`, sondern auch einen ersten expliziten runtime bridge cut: Issue-Packets koennen per `verifiedSkill: <capabilityId>` einen verifizierten Skill bewusst in den echten Wakeup-/Prompt-Pfad ziehen; der naechste Hebel ist nun zu pruefen, ob dieser explizite Bridge-Pfad auf realen Firmenlaeufen wirklich Broad-Read-/Repo-Archaeologie spart
 active_issue: `DAV-131` (`6c608432-6133-403a-88ad-7ec84ad1bddd`) bleibt der letzte harte Resume-Truth-Cut: blocked CEO-Run `011bbf57-c596-4008-8d2c-5d2b003d7d0f` auf `3113` endete mit `errorCode = post_tool_capacity_exhausted`, `sessionIdAfter = 66edfbee-8a20-41ae-94a5-dca731d5ac3a`, `resume.strategy = reuse_session`, `resume.nextWakeStatus = deferred_capacity_cooldown`, `deferredState.nextResumePoint = resume_existing_session_before_child_create`; nach Cooldown promotete der Scheduler Resume-Run `fd981453-1b54-44da-8d7a-8f3fe4a396c1` erfolgreich mit `sessionIdBefore = 66edfbee-8a20-41ae-94a5-dca731d5ac3a`, `usageJson.sessionReused = true`, `freshSession = false`, und `/api/issues/DAV-131/company-run-chain` zeigt `resumeRunStatus = succeeded` sowie `sameSessionPath = true`
 
 north_star_stack:
@@ -16,9 +16,9 @@ anti_slop_gate:
   - Zusatzregel: `go with the flow / follow your highest excitement` ist erlaubt und gewollt, solange es in bounded Schritte, ehrliche Branch-Wahrheit und reviewbare Bewegung uebersetzt wird statt in ungeprueftes Momentum-Theater
 
 next:
-  1) die Baton-Wahrheit auf der neuen Lage halten: Skill-v1 hat jetzt zwei verifizierte Seeds, einen gemeinsamen Reuse-Pfad und den operator-facing Reuse-Shortcut `skill contract list|use`; jetzt nicht sofort Plattformbau starten, sondern pruefen, ob dieser kleine Bridge-Pfad auf realen Firmenlaeufen wirklich Wiederentdecken spart
-  2) nur wenn derselbe enge Hebel weiter traegt: Verify-Evidence weiter haerten, operator-facing reuse an mehr echte Laufpfade haengen oder hoechstens einen dritten kleinen Seed ueber denselben Pfad anfuegen
-  3) erst danach wieder urteilen, ob lokale Skill-Registry, Replay-backed Promotion, skill-aware Runtime-Nutzung oder `child-created`-Resume-Edge-Cases wirklich `Core` statt `Later` sind
+  1) die Baton-Wahrheit auf der neuen Lage halten: Skill-v1 hat jetzt zwei verifizierte Seeds, `list|use|verify|verify-all` und die erste explizite runtime bridge `verifiedSkill:` -> Wakeup-Context -> Prompt-Brief; jetzt nicht sofort Plattformbau starten, sondern pruefen, ob dieser opt-in Bridge-Pfad auf realen Firmenlaeufen wirklich Wiederentdecken spart
+  2) nur wenn derselbe enge Hebel weiter traegt: hoechstens an 1-2 weitere reale Laufpfade haengen oder Verify-Evidence weiter haerten; keine implizite Skill-Magic bauen
+  3) erst danach wieder urteilen, ob lokale Skill-Registry, Replay-backed Promotion, skill-aware Runtime-Nutzung fuer mehr als opt-in hints oder `child-created`-Resume-Edge-Cases wirklich `Core` statt `Later` sind
 
 blockers:
   - Der alte reine `assignment-to-run kickoff loss` ist fuer frische ready Packets nicht mehr der erste Blocker
@@ -45,8 +45,9 @@ notes:
   - `68dd18d7` liefert jetzt den ersten echten governed capability container auf `main`: Shared Capability-Type + Validator, CLI `skill contract validate|verify`, Seed `company-hq/capabilities/ceo-native-issue-handoff-primitives.v1.json` und `doc/SKILL-CONTRACTS.md`
   - `fa4a88cb` beweist jetzt reuse auf demselben Skill-Pfad: `paperclipai skill contract verify-all`, gehaertete Evidence ueber `usageJson` + `contextSnapshot` und zweiter Seed `same-session-resume-after-post-tool-capacity.v1.json`
   - `skill-layer-operational-reuse-v1` haengt jetzt den kleinsten operator-facing Bridge-Pfad daran: `paperclipai skill contract list --maturity verified` zeigt vorhandene bewiesene Faehigkeiten und `paperclipai skill contract use <capabilityId>` liefert den kuerzesten Reuse-Brief inklusive Inputs, Guardrails und Verify-Kommando ohne Dateipfad-/Repo-Archaeologie
-  - Der Skill-Layer bleibt bewusst `v1`: zwei verifizierte Seeds plus `list|use|verify|verify-all` sind echter Firmenhebel, aber noch keine breite Skill-Plattform und noch kein freies Self-Learning
-  - Der naechste Core-Test ist deshalb nicht mehr "koennen wir Skill-Reuse beweisen?", sondern "spart dieser kleine governed capability layer im Alltag genug Wiederentdecken, um spaeter weitere Reuse-/Evidence-Schnitte zu rechtfertigen?"
+  - `skill-layer-runtime-bridge-v1` haengt jetzt die erste explizite Skill->Run Bruecke an denselben Layer: `verifiedSkill: <capabilityId>` im Issue-Description-Packet wird in Wakeup-Context und `paperclipTaskPrompt` als kompakter verified skill brief sichtbar, ohne Router-/Retrieval-Magic
+  - Der Skill-Layer bleibt bewusst `v1`: zwei verifizierte Seeds plus `list|use|verify|verify-all` und opt-in `verifiedSkill`-Bridge sind echter Firmenhebel, aber noch keine breite Skill-Plattform und noch kein freies Self-Learning
+  - Der naechste Core-Test ist deshalb nicht mehr "koennen wir Skill-Reuse beweisen?", sondern "spart dieser kleine governed capability layer auf echten Firmenlaeufen und echten Wakeup-/Prompt-Pfaden genug Wiederentdecken, um spaeter weitere Reuse-/Evidence-Schnitte zu rechtfertigen?"
   - Salvage-Worktree/Branch fuer diesen Truth Cut: `C:\Users\holyd\DGDH\worktrees\dgdh-werkbank-salvage`, `copilot/resume-proof-budget-gate-salvage-v1`; Basis war sauberes `origin/main`, nicht der alte schmutzige Branch
   - Nur die nuetzlichen Resume-/Operator-Truth-Aenderungen wurden portiert; alte Artefakte `doc/archive/chat.json`, `server-3112.out.log`, `server-3112.err.log` blieben bewusst draussen
   - `DAV-131` beweist jetzt reviewbar die Zielkette: blocked Run `011bbf57-c596-4008-8d2c-5d2b003d7d0f` -> scheduler Resume `fd981453-1b54-44da-8d7a-8f3fe4a396c1`; `sessionIdAfter(blocked)` entspricht `sessionIdBefore(resume)` exakt

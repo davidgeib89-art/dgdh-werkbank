@@ -1,4 +1,8 @@
 import { parseObject } from "../adapters/utils.js";
+import {
+  buildVerifiedCapabilityPromptBlock,
+  resolveVerifiedCapabilityRuntimeBridge,
+} from "./capability-contracts.js";
 import { resolveIssueExecutionPacketTruth } from "./issue-execution-packet.js";
 import { runPromptResolverPreflight } from "./prompt-resolver-preflight.js";
 import type { PromptResolverInput } from "./prompt-resolver-schema.js";
@@ -269,10 +273,18 @@ export function normalizeReviewTargetWorkerHandoff(input: {
   };
 }
 
-function buildIssueTaskPrompt(issue: IssuePromptContext) {
+function buildIssueTaskPrompt(
+  issue: IssuePromptContext,
+  input?: { skillPromptBlock?: string | null },
+) {
   const ref = issue.identifier ?? issue.id;
   const title = trimIssueText(issue.title);
   const description = trimIssueText(issue.description);
+  const skillPromptBlock =
+    input?.skillPromptBlock ??
+    buildVerifiedCapabilityPromptBlock(
+      resolveVerifiedCapabilityRuntimeBridge(description),
+    );
   const summary = title ? `${ref} - ${title}` : ref;
   const apiUrl = trimIssueText(process.env.PAPERCLIP_API_URL);
   const companyId = trimIssueText(issue.companyId);
@@ -322,6 +334,7 @@ function buildIssueTaskPrompt(issue: IssuePromptContext) {
     "",
     "Execution packet truth:",
     ...packetLines,
+    ...(skillPromptBlock ? ["", skillPromptBlock] : []),
     ...(description ? ["", description] : []),
   ].join("\n");
 }
@@ -571,8 +584,15 @@ export function buildHeartbeatIssuePromptContextPatch(input: {
     title: normalizedIssue.title,
     description: normalizedIssue.description,
   });
+  const skillBridge = resolveVerifiedCapabilityRuntimeBridge(
+    normalizedIssue.description,
+  );
+  const skillPromptBlock = buildVerifiedCapabilityPromptBlock(skillBridge);
   const workspacePrompt = buildIssueWorkspacePrompt(input.contextSnapshot);
-  const issueTaskPrompt = [buildIssueTaskPrompt(normalizedIssue), workspacePrompt]
+  const issueTaskPrompt = [
+    buildIssueTaskPrompt(normalizedIssue, { skillPromptBlock }),
+    workspacePrompt,
+  ]
     .filter((value): value is string => Boolean(value))
     .join("\n");
 
@@ -587,6 +607,14 @@ export function buildHeartbeatIssuePromptContextPatch(input: {
     paperclipExecutionPacketDoneWhen: packetTruth.doneWhen,
     paperclipWorkspacePrompt: workspacePrompt,
     paperclipTaskPrompt: issueTaskPrompt,
+    paperclipVerifiedSkillRequestedIds:
+      skillBridge.requestedCapabilityIds.length > 0
+        ? skillBridge.requestedCapabilityIds
+        : null,
+    paperclipVerifiedSkillReferences:
+      skillBridge.briefs.length > 0 ? skillBridge.briefs : null,
+    paperclipVerifiedSkillReferenceErrors:
+      skillBridge.errors.length > 0 ? skillBridge.errors : null,
     paperclipPromptResolverPreflight: null,
     paperclipSingleFileTargetPath: null,
     paperclipAbortOnMissingFile: null,

@@ -36,6 +36,7 @@ import { forbidden, HttpError, unauthorized } from "../errors.js";
 import { assertCompanyAccess, getActorInfo } from "./authz.js";
 import { shouldWakeAssigneeOnCheckout } from "./issues-checkout-wakeup.js";
 import { isAllowedContentType, MAX_ATTACHMENT_BYTES } from "../attachment-types.js";
+import { resolveVerifiedCapabilityRuntimeBridge } from "../services/capability-contracts.js";
 import { resolveIssueExecutionPacketTruth } from "../services/issue-execution-packet.js";
 import { summarizeHeartbeatRunResultJson } from "../services/heartbeat-run-summary.js";
 
@@ -361,6 +362,9 @@ export function issueRoutes(db: Db, storage: StorageService) {
       title: issue.title ?? null,
       description: issue.description ?? null,
     });
+    const capabilityBridge = resolveVerifiedCapabilityRuntimeBridge(
+      issue.description ?? null,
+    );
     return {
       issueId: issue.id,
       taskId: issue.id,
@@ -383,6 +387,9 @@ export function issueRoutes(db: Db, storage: StorageService) {
       packetReadinessStatus: executionPacketTruth.status,
       packetReadinessReasonCodes: executionPacketTruth.reasonCodes,
       issueExecutionPacketTruth: executionPacketTruth,
+      requestedCapabilityIds: capabilityBridge.requestedCapabilityIds,
+      issueCapabilityReferences: capabilityBridge.briefs,
+      issueCapabilityReferenceErrors: capabilityBridge.errors,
       source,
       ...(extras ?? {}),
     };

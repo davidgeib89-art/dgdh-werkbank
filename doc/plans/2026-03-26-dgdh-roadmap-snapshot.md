@@ -80,6 +80,8 @@ Repo-wahr geliefert:
   - `paperclipai skill contract verify-all`
 - operator-facing Reuse-Bridge:
   - `paperclipai skill contract list|use`
+- runtime-facing Reuse-Bridge:
+  - `verifiedSkill: <capabilityId>` on an issue packet injects the verified skill brief into wakeup context and `paperclipTaskPrompt`
 
 Wichtig:
 
@@ -107,7 +109,7 @@ sondern:
 
 - spart diese kleine Skill-Layer auf realen Firmenlaeufen Wiederentdecken?
 - wird sie im Alltag wirklich wiederverwendbar?
-- bleibt er governbar und reviewbar?
+- bleibt ihr expliziter Skill->Run bridge path governbar und reviewbar?
 
 ## 5. Aktuelle Prioritaetenfolge
 

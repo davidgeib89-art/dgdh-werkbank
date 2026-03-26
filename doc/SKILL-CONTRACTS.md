@@ -23,6 +23,22 @@ Core sections:
 - `primitives`: atomic required actions and their evidence markers
 - `verify`: run IDs and marker requirements used for proof
 
+## Runtime bridge (current)
+
+The current explicit runtime bridge is issue-level opt-in via description metadata:
+
+```text
+verifiedSkill: ceo-native-issue-handoff-primitives
+```
+
+When present on an issue packet, the run path carries the skill in two places:
+
+- wakeup/run context includes the requested capability ids and resolved verified skill refs
+- the generated `paperclipTaskPrompt` injects a compact verified skill brief for the run
+
+This is intentionally explicit and small.
+It is not automatic skill discovery, a router, or retrieval.
+
 Reference example:
 
 - `company-hq/capabilities/ceo-native-issue-handoff-primitives.v1.json`
@@ -52,6 +68,12 @@ Show the shortest operator reuse brief for one skill:
 
 ```bash
 pnpm paperclipai skill contract use ceo-native-issue-handoff-primitives
+```
+
+Attach a verified skill explicitly to an issue packet:
+
+```text
+verifiedSkill: ceo-native-issue-handoff-primitives
 ```
 
 Verify evidence against real heartbeat run logs:
