@@ -1,6 +1,6 @@
 # CURRENT - Live Baton
 
-focus: `dgdh-skill-contract-and-verify-v1` ist jetzt als erster enger governed capability cut repo-wahr geliefert; nach Same-Session-Resume-Beweis, nativer CEO-Issue-Handoff-Primitive und erstem verifiziertem Skill-Seed ist der naechste echte Hebel nicht Registry/Router/Evolution, sondern zu pruefen, ob dieser v1-Skill-Layer auf realen Firmenlaeufen Wiederentdecken spart und wiederverwendbar traegt
+focus: `dgdh-skill-contract-and-verify-v1` hat jetzt reuse proof und zwei verifizierte Seed-Skills auf `main`; nach Same-Session-Resume-Beweis, nativer CEO-Issue-Handoff-Primitive und `verify-all` als gemeinsamem Pfad ist der naechste echte Hebel nicht Registry/Router/Evolution, sondern zu pruefen, ob dieser kleine governed capability layer im Alltag wirklich Wiederentdecken spart und operative Reuse bringt
 active_issue: `DAV-131` (`6c608432-6133-403a-88ad-7ec84ad1bddd`) bleibt der letzte harte Resume-Truth-Cut: blocked CEO-Run `011bbf57-c596-4008-8d2c-5d2b003d7d0f` auf `3113` endete mit `errorCode = post_tool_capacity_exhausted`, `sessionIdAfter = 66edfbee-8a20-41ae-94a5-dca731d5ac3a`, `resume.strategy = reuse_session`, `resume.nextWakeStatus = deferred_capacity_cooldown`, `deferredState.nextResumePoint = resume_existing_session_before_child_create`; nach Cooldown promotete der Scheduler Resume-Run `fd981453-1b54-44da-8d7a-8f3fe4a396c1` erfolgreich mit `sessionIdBefore = 66edfbee-8a20-41ae-94a5-dca731d5ac3a`, `usageJson.sessionReused = true`, `freshSession = false`, und `/api/issues/DAV-131/company-run-chain` zeigt `resumeRunStatus = succeeded` sowie `sameSessionPath = true`
 
 north_star_stack:
@@ -16,9 +16,9 @@ anti_slop_gate:
   - Zusatzregel: `go with the flow / follow your highest excitement` ist erlaubt und gewollt, solange es in bounded Schritte, ehrliche Branch-Wahrheit und reviewbare Bewegung uebersetzt wird statt in ungeprueftes Momentum-Theater
 
 next:
-  1) die Baton-Wahrheit auf der neuen Lage halten: `dgdh-skill-contract-and-verify-v1` ist als erster v1-Cut geliefert, jetzt nicht sofort Registry/Router/Evolution aufmachen, sondern erst pruefen, ob der erste Skill-Container im Alltag wirklich Wiederentdecken spart
-  2) hoechstens einen zweiten kleinen Seed-Skill oder einen echten Reuse-Beweis an denselben Contract+Verify-Pfad haengen; keine Skill-Plattform bauen, solange der Hebel nicht wiederholt reviewbar ist
-  3) erst danach wieder urteilen, ob Verify-Evidence haerter werden muss und ob lokale Skill-Registry, Replay-backed Promotion oder `child-created`-Resume-Edge-Cases wirklich `Core` statt `Later` sind
+  1) die Baton-Wahrheit auf der neuen Lage halten: Skill-v1 hat jetzt zwei verifizierte Seeds und einen gemeinsamen Reuse-Pfad; jetzt nicht sofort Plattformbau starten, sondern pruefen, ob Skills auf realen Firmenlaeufen und Operator-Pfaden wirklich Wiederentdecken sparen
+  2) nur wenn derselbe enge Hebel weiter traegt: Verify-Evidence weiter haerten oder hoechstens einen dritten kleinen Seed ueber denselben Pfad anfuegen
+  3) erst danach wieder urteilen, ob lokale Skill-Registry, Replay-backed Promotion, skill-aware Runtime-Nutzung oder `child-created`-Resume-Edge-Cases wirklich `Core` statt `Later` sind
 
 blockers:
   - Der alte reine `assignment-to-run kickoff loss` ist fuer frische ready Packets nicht mehr der erste Blocker
@@ -43,8 +43,9 @@ notes:
   - Das Primitive-Gate fuer `dgdh-skill-contract-and-verify-v1` gilt damit als faktisch erfuellt: der CEO-Standardpfad ist jetzt real billiger/robuster/lesbarer, ohne weitere Shell-/HTTP-Bastelei auf dem Handoff-Kernpfad
   - North-Star-Entscheidungsregel ab jetzt: Mission / Overarching Goal bleibt stabil; Self-Learning ist Capability-Thesis unterhalb des Company North Star, nicht neuer Produktzweck
   - `68dd18d7` liefert jetzt den ersten echten governed capability container auf `main`: Shared Capability-Type + Validator, CLI `skill contract validate|verify`, Seed `company-hq/capabilities/ceo-native-issue-handoff-primitives.v1.json` und `doc/SKILL-CONTRACTS.md`
-  - Der erste Skill-Seed `ceo-native-issue-handoff-primitives` ist bewusst nur `v1`: verifiziert ueber `heartbeat_run_log_markers`, benannt, bounded und promotable, aber noch keine breite Skill-Plattform und noch kein freies Self-Learning
-  - Der naechste Core-Test ist deshalb nicht mehr "koennen wir einen Skill-Contract bauen?", sondern "spart dieser erste Skill-Container auf realen Firmenlaeufen wirklich Wiederentdecken, ohne Registry-/Router-Slop zu oeffnen?"
+  - `fa4a88cb` beweist jetzt reuse auf demselben Skill-Pfad: `paperclipai skill contract verify-all`, gehaertete Evidence ueber `usageJson` + `contextSnapshot` und zweiter Seed `same-session-resume-after-post-tool-capacity.v1.json`
+  - Der Skill-Layer bleibt bewusst `v1`: zwei verifizierte Seeds und gemeinsamer Verify-Pfad sind echter Firmenhebel, aber noch keine breite Skill-Plattform und noch kein freies Self-Learning
+  - Der naechste Core-Test ist deshalb nicht mehr "koennen wir Skill-Reuse beweisen?", sondern "spart dieser kleine governed capability layer im Alltag genug Wiederentdecken, um spaeter weitere Reuse-/Evidence-Schnitte zu rechtfertigen?"
   - Salvage-Worktree/Branch fuer diesen Truth Cut: `C:\Users\holyd\DGDH\worktrees\dgdh-werkbank-salvage`, `copilot/resume-proof-budget-gate-salvage-v1`; Basis war sauberes `origin/main`, nicht der alte schmutzige Branch
   - Nur die nuetzlichen Resume-/Operator-Truth-Aenderungen wurden portiert; alte Artefakte `doc/archive/chat.json`, `server-3112.out.log`, `server-3112.err.log` blieben bewusst draussen
   - `DAV-131` beweist jetzt reviewbar die Zielkette: blocked Run `011bbf57-c596-4008-8d2c-5d2b003d7d0f` -> scheduler Resume `fd981453-1b54-44da-8d7a-8f3fe4a396c1`; `sessionIdAfter(blocked)` entspricht `sessionIdBefore(resume)` exakt

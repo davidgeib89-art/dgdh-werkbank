@@ -65,7 +65,7 @@ Repo-wahr geliefert:
 
 Das ist nicht mehr nur Prompt-Idee, sondern echter bewiesener Run-Pfad.
 
-### Phase D - First Governed Capability Container
+### Phase D - First Governed Capability Layer
 
 Repo-wahr geliefert:
 
@@ -74,11 +74,15 @@ Repo-wahr geliefert:
 - Promotion-/Maturity-State-v1
 - erster Seed:
   - `ceo-native-issue-handoff-primitives`
+- zweiter Seed:
+  - `same-session-resume-after-post-tool-capacity`
+- gemeinsamer Reuse-Pfad:
+  - `paperclipai skill contract verify-all`
 
 Wichtig:
 
 > Das ist noch keine Skill-Plattform.
-> Es ist der erste governte Capability-Container fuer eine bereits bewiesene Firmenfaehigkeit.
+> Es ist die erste kleine governed capability layer fuer bereits bewiesene Firmenfaehigkeiten.
 
 ## 4. Wo wir jetzt wirklich stehen
 
@@ -95,11 +99,12 @@ Wir sind jetzt in der Phase:
 Der naechste echte Test ist deshalb nicht mehr:
 
 - koennen wir einen Skill-Contract bauen?
+- koennen wir Skill-Reuse auf demselben Pfad beweisen?
 
 sondern:
 
-- spart der erste Skill-Container auf realen Firmenlaeufen Wiederentdecken?
-- ist er wirklich wiederverwendbar?
+- spart diese kleine Skill-Layer auf realen Firmenlaeufen Wiederentdecken?
+- wird sie im Alltag wirklich wiederverwendbar?
 - bleibt er governbar und reviewbar?
 
 ## 5. Aktuelle Prioritaetenfolge
@@ -107,16 +112,16 @@ sondern:
 ### `Core now`
 
 1. Firmenloop weiter boring und reviewbar halten.
-2. Den ersten Skill-Contract im Alltag gegen echte Reuse pruefen.
+2. Die kleine Skill-Layer im Alltag gegen echten Reuse-Hebel pruefen.
 3. Nur wenn der Hebel real ist:
    - zweiten kleinen Seed-Skill anfuegen
    - Verify-Evidence haerten
 
 ### `Likely next`
 
-1. Reuse-Beweis fuer `ceo-native-issue-handoff-primitives`
-2. eventuell ein zweiter kleiner Seed aus einem bereits bewiesenen Pfad
-3. Verify-Modell von rohen Marker-Checks Richtung haertere Evidence bewegen, wenn es noetig wird
+1. Reuse-Hebel der zwei Seeds im Alltag pruefen
+2. Verify-Modell von rohen Marker-Checks Richtung haertere Evidence bewegen, wenn es noetig wird
+3. hoechstens ein dritter kleiner Seed, wenn derselbe Pfad weiter traegt
 
 ### `Later`
 
