@@ -979,6 +979,28 @@ export function isPostToolCapacityWakeReady(
   return parsedTs <= now.getTime();
 }
 
+export function buildPostToolCapacityDeferredContextSnapshot(input: {
+  contextSnapshot: Record<string, unknown>;
+  source?: WakeupSource;
+  triggerDetail?: WakeupOptions["triggerDetail"] | null;
+  cooldownUntil?: string | null;
+}) {
+  const next = { ...input.contextSnapshot };
+  delete next.forceFreshSession;
+  next.wakeReason = "post_tool_capacity_resume";
+  next.postToolCapacityResume = true;
+  if (input.source) {
+    next.wakeSource = input.source;
+  }
+  if (input.triggerDetail) {
+    next.wakeTriggerDetail = input.triggerDetail;
+  }
+  if (input.cooldownUntil) {
+    next.postToolCapacityCooldownUntil = input.cooldownUntil;
+  }
+  return next;
+}
+
 function buildPostToolCapacityResultJson(input: {
   baseResultJson: unknown;
   state: PostToolCapacityState;
@@ -2251,6 +2273,14 @@ export function heartbeatService(db: Db) {
     cooldownSec: number;
     state: PostToolCapacityState;
   }) {
+    const deferredContextSnapshot = buildPostToolCapacityDeferredContextSnapshot(
+      {
+        contextSnapshot: input.contextSnapshot,
+        source: input.source,
+        triggerDetail: input.triggerDetail,
+        cooldownUntil: input.cooldownUntil,
+      },
+    );
     const deferredPayload = {
       issueId: input.issueId,
       resumeKind: "post_tool_capacity",
@@ -2263,7 +2293,7 @@ export function heartbeatService(db: Db) {
       failedToolResultCount: input.state.failedToolResultCount,
       firstSuccessfulToolName: input.state.firstSuccessfulToolName,
       lastSuccessfulToolName: input.state.lastSuccessfulToolName,
-      [DEFERRED_WAKE_CONTEXT_KEY]: input.contextSnapshot,
+      [DEFERRED_WAKE_CONTEXT_KEY]: deferredContextSnapshot,
     };
 
     const existingDeferred = await db
@@ -3843,7 +3873,7 @@ export function heartbeatService(db: Db) {
               issueId,
               projectId: executionProjectId,
               resultSummary: summarizeHeartbeatRunResultJson(
-                adapterResult.resultJson,
+                finalResultJson,
               ),
             });
           } catch (err) {
@@ -3853,8 +3883,9 @@ export function heartbeatService(db: Db) {
                 companyId: finalizedRun.companyId,
                 agentId: finalizedRun.agentId,
                 runId: finalizedRun.id,
-              },
                 finalResultJson,
+              },
+              "Failed to persist heartbeat episode memory",
             );
           }
 

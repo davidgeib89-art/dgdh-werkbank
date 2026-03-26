@@ -1083,7 +1083,10 @@ export async function execute(
       `Gemini exited with code ${attempt.proc.exitCode ?? -1}`;
     const postToolCapacityExhausted =
       capacityMeta.exhausted &&
-      attempt.parsed.toolActivity.successfulToolResultCount > 0;
+      attempt.parsed.toolActivity.successfulToolResultCount > 0 &&
+      !attempt.loopDetectedMessage &&
+      !strictFloorOutputError &&
+      !authMeta.requiresAuth;
     const baseResultJson = attempt.loopDetectedMessage
       ? {
           type: "loop_detected",

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  buildPostToolCapacityDeferredContextSnapshot,
   POST_TOOL_CAPACITY_DEFERRED_WAKE_STATUS,
   POST_TOOL_CAPACITY_ERROR_CODE,
   isPostToolCapacityWakeReady,
@@ -88,5 +89,29 @@ describe("post-tool capacity helpers", () => {
         heartbeat: { postToolCapacityCooldownSec: 1200 },
       }),
     ).toBe(900);
+  });
+
+  it("sanitizes deferred resume context so session reuse can actually happen", () => {
+    expect(
+      buildPostToolCapacityDeferredContextSnapshot({
+        contextSnapshot: {
+          wakeReason: "issue_assigned",
+          wakeSource: "assignment",
+          wakeTriggerDetail: "system",
+          forceFreshSession: true,
+          untouched: "keep-me",
+        },
+        source: "automation",
+        triggerDetail: "system",
+        cooldownUntil: "2026-03-25T10:05:00.000Z",
+      }),
+    ).toEqual({
+      wakeReason: "post_tool_capacity_resume",
+      wakeSource: "automation",
+      wakeTriggerDetail: "system",
+      postToolCapacityResume: true,
+      postToolCapacityCooldownUntil: "2026-03-25T10:05:00.000Z",
+      untouched: "keep-me",
+    });
   });
 });
