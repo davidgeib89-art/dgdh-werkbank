@@ -659,8 +659,9 @@ export async function prepareHeartbeatGeminiRouting(
     context: workingContext,
   });
 
+  let finalRoutingPreflight = routingPreflight;
   if (routingPreflight) {
-    const finalRoutingPreflight =
+    finalRoutingPreflight =
       thinDefaultExecution && routingProposal
         ? {
             ...routingPreflight,
@@ -726,7 +727,7 @@ export async function prepareHeartbeatGeminiRouting(
   return {
     contextPatch,
     resolvedConfigPatch,
-    routingPreflight,
+    routingPreflight: finalRoutingPreflight,
     routingProposalMeta,
     runtimeStatePatch: accumulatedRuntimeStatePatch,
     warnings,

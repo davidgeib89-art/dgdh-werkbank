@@ -106,6 +106,11 @@ describe("prepareHeartbeatGeminiRouting", () => {
       "gemini-3-flash-preview",
     );
     expect(plan.resolvedConfigPatch.model).toBe("gemini-3-flash-preview");
+    expect(plan.routingPreflight?.selected.selectedBucket).toBe("flash");
+    expect(plan.routingPreflight?.selected.effectiveModelLane).toBe(
+      "gemini-3-flash-preview",
+    );
+    expect(plan.routingPreflight?.applyModelLane).toBe(false);
     expect(plan.routingProposalMeta?.parseStatus).toBe("not_attempted");
     expect(plan.routingProposalMeta?.fallbackReason).toBe("ready_packet_truth");
     expect(plan.contextPatch.paperclipDefaultExecutionPath).toBe(
