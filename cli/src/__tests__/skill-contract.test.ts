@@ -3,9 +3,12 @@ import os from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import {
+  buildSkillOperationalReuseBrief,
   evaluateSkillContractVerification,
   listCapabilityContractFiles,
+  listCapabilityContractSummaries,
   loadCapabilitySkillContract,
+  loadCapabilitySkillContractByRef,
   verifyCapabilitySkillContractWithApi,
   verifyCapabilityContractsInDirectory,
 } from "../commands/skill-contract.js";
@@ -163,6 +166,53 @@ describe("skill contract verification", () => {
     expect(files).toHaveLength(2);
     expect(files[0]?.endsWith("a.json")).toBe(true);
     expect(files[1]?.endsWith("b.json")).toBe(true);
+  });
+
+  it("lists contract summaries filtered by maturity", async () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-skill-summaries-"));
+    const verified = buildContractFixture();
+    const draft = { ...buildContractFixture(), capabilityId: "draft-skill", maturity: "draft" };
+    fs.writeFileSync(path.join(dir, "verified.json"), JSON.stringify(verified), "utf8");
+    fs.writeFileSync(path.join(dir, "draft.json"), JSON.stringify(draft), "utf8");
+
+    const summaries = await listCapabilityContractSummaries(dir, {
+      maturity: "verified",
+    });
+
+    expect(summaries).toHaveLength(1);
+    expect(summaries[0]?.capabilityId).toBe("ceo-native-issue-handoff-primitives");
+  });
+
+  it("loads a capability contract by capability id", async () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-skill-ref-"));
+    const filePath = path.join(dir, "contract.json");
+    fs.writeFileSync(filePath, JSON.stringify(buildContractFixture()), "utf8");
+
+    const loaded = await loadCapabilitySkillContractByRef(
+      "ceo-native-issue-handoff-primitives",
+      { rootDir: dir },
+    );
+
+    expect(loaded.filePath).toBe(filePath);
+    expect(loaded.contract.capabilityId).toBe("ceo-native-issue-handoff-primitives");
+  });
+
+  it("builds an operator reuse brief from a skill contract", async () => {
+    const contract = await loadCapabilitySkillContract(
+      writeTempContract(buildContractFixture()),
+    );
+
+    const brief = buildSkillOperationalReuseBrief(
+      "company-hq\\capabilities\\ceo-native-issue-handoff-primitives.v1.json",
+      contract,
+    );
+
+    expect(brief.capabilityId).toBe("ceo-native-issue-handoff-primitives");
+    expect(brief.verifyPath.filePath).toBe(
+      "company-hq/capabilities/ceo-native-issue-handoff-primitives.v1.json",
+    );
+    expect(brief.verifyPath.verify).toContain("skill contract verify");
+    expect(brief.inputsRequired).toContain("company id");
   });
 
   it("verifies all contracts in a directory via one reusable path", async () => {

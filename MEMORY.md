@@ -42,7 +42,7 @@
 - Overarching Goal: Mensch-AI-Symbiose der Welt beweisen und sie zu einem besseren Ort machen.
 - Company North Star: David gibt Richtung, die Maschine liefert reviewbare Realitaet, mit sinkender menschlicher Supervision pro nuetzlichem Lauf.
 - Capability Thesis: Die Maschine lernt unter Governance durable, damit wiederkehrende Faehigkeiten nicht immer neu ueber Chat, Shell und Prompt rekonstruiert werden muessen.
-- Erster governed capability cut ist jetzt reuse-faehig auf `main`: `ceo-native-issue-handoff-primitives` plus `same-session-resume-after-post-tool-capacity` leben als verifizierbare Skill-Contracts mit gemeinsamem `verify-all`-Pfad; das ist die erste prozedurale Capability-Schicht, aber noch keine breite Skill-Plattform.
+- Erster governed capability cut ist jetzt reuse-faehig auf `main`: `ceo-native-issue-handoff-primitives` plus `same-session-resume-after-post-tool-capacity` leben als verifizierbare Skill-Contracts mit gemeinsamem `verify-all`-Pfad; der neue kleinste operator-facing Bridge-Pfad ist `paperclipai skill contract list|use`, damit verifizierte Skills ohne Dateipfad-/Repo-Archaeologie wiedergefunden und benutzt werden koennen. Das ist die erste prozedurale Capability-Schicht, aber noch keine breite Skill-Plattform.
 - DGDH ist eine governte David-Aufmerksamkeits-Kompressionsmaschine: David gibt Richtung, die Maschine soll mit minimalen David-Beruehrpunkten reale, reviewte, gemergte Arbeit liefern.
 - Davids Energie, Freude, Hyperfokus und `follow your highest excitement` sind reale Firmenressourcen; DGDH darf nicht so starr werden, dass es Wahrheit schuetzt, aber Lebendigkeit abtoetet.
 - Leitfragen: "Entlastet das David real?" UND "Wird die Firma faehiger - oder nur groesser?"

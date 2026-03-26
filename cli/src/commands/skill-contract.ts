@@ -18,6 +18,17 @@ interface SkillContractValidateOptions {
   json?: boolean;
 }
 
+interface SkillContractListOptions {
+  dir?: string;
+  maturity?: string;
+  json?: boolean;
+}
+
+interface SkillContractUseOptions {
+  dir?: string;
+  json?: boolean;
+}
+
 interface SkillContractVerifyOptions extends BaseClientOptions {
   logLimitBytes?: string;
 }
@@ -71,6 +82,33 @@ export interface SkillVerificationBatchReport {
   reports: SkillVerificationReport[];
 }
 
+export interface SkillContractSummary {
+  filePath: string;
+  capabilityId: string;
+  title: string;
+  summary: string;
+  maturity: string;
+  owners: string[];
+  verifyRunCount: number;
+}
+
+export interface SkillOperationalReuseBrief {
+  capabilityId: string;
+  title: string;
+  maturity: string;
+  summary: string;
+  intent: string;
+  inputsRequired: string[];
+  allowedActions: string[];
+  forbiddenActions: string[];
+  successCriteria: string[];
+  verifyPath: {
+    filePath: string;
+    verify: string;
+    verifyAll: string;
+  };
+}
+
 export async function loadCapabilitySkillContract(
   inputPath: string,
 ): Promise<CapabilitySkillContractInput> {
@@ -94,6 +132,89 @@ export async function listCapabilityContractFiles(
     .map((entry) => path.join(resolvedRoot, entry.name))
     .sort((a, b) => a.localeCompare(b));
   return files;
+}
+
+export async function listCapabilityContractSummaries(
+  rootDir: string,
+  opts?: { maturity?: string },
+): Promise<SkillContractSummary[]> {
+  const files = await listCapabilityContractFiles(rootDir);
+  const summaries: SkillContractSummary[] = [];
+
+  for (const filePath of files) {
+    const contract = await loadCapabilitySkillContract(filePath);
+    if (opts?.maturity && contract.maturity !== opts.maturity) {
+      continue;
+    }
+    summaries.push({
+      filePath,
+      capabilityId: contract.capabilityId,
+      title: contract.title,
+      summary: contract.summary,
+      maturity: contract.maturity,
+      owners: contract.owners,
+      verifyRunCount: contract.verify.runIds.length,
+    });
+  }
+
+  return summaries;
+}
+
+export async function loadCapabilitySkillContractByRef(
+  ref: string,
+  opts?: { rootDir?: string },
+): Promise<{ filePath: string; contract: CapabilitySkillContractInput }> {
+  const trimmed = ref.trim();
+  if (!trimmed) {
+    throw new Error("Skill contract reference is required");
+  }
+
+  const looksLikePath =
+    trimmed.includes("\\") || trimmed.includes("/") || trimmed.endsWith(".json");
+  if (looksLikePath) {
+    const filePath = path.resolve(trimmed);
+    return {
+      filePath,
+      contract: await loadCapabilitySkillContract(filePath),
+    };
+  }
+
+  const rootDir = path.resolve(opts?.rootDir ?? "company-hq/capabilities");
+  const summaries = await listCapabilityContractSummaries(rootDir);
+  const match = summaries.find((summary) => summary.capabilityId === trimmed);
+  if (!match) {
+    throw new Error(
+      `Capability contract not found for '${trimmed}'. Re-run with --dir or pass an explicit file path.`,
+    );
+  }
+
+  return {
+    filePath: match.filePath,
+    contract: await loadCapabilitySkillContract(match.filePath),
+  };
+}
+
+export function buildSkillOperationalReuseBrief(
+  filePath: string,
+  contract: CapabilitySkillContractInput,
+): SkillOperationalReuseBrief {
+  const normalizedFilePath = filePath.replace(/\\/g, "/");
+  return {
+    capabilityId: contract.capabilityId,
+    title: contract.title,
+    maturity: contract.maturity,
+    summary: contract.summary,
+    intent: contract.contract.intent,
+    inputsRequired: contract.contract.inputsRequired,
+    allowedActions: contract.contract.allowedActions,
+    forbiddenActions: contract.contract.forbiddenActions,
+    successCriteria: contract.contract.successCriteria,
+    verifyPath: {
+      filePath: normalizedFilePath,
+      verify: `pnpm paperclipai skill contract verify ${normalizedFilePath} --api-base <api-base> --json`,
+      verifyAll: "pnpm paperclipai skill contract verify-all --dir company-hq/capabilities --api-base <api-base> --json",
+    },
+  };
 }
 
 function resolveRequiredPrimitiveIds(
@@ -313,6 +434,85 @@ function parsePositiveInt(value: string | undefined, fallback: number): number {
 export function registerSkillContractCommands(program: Command): void {
   const skill = program.command("skill").description("Capability skill contract utilities");
   const contract = skill.command("contract").description("Skill contract governance commands");
+
+  contract
+    .command("list")
+    .description("List available capability contracts for operator reuse")
+    .option(
+      "--dir <path>",
+      "Directory containing capability contract JSON files",
+      "company-hq/capabilities",
+    )
+    .option("--maturity <state>", "Filter by maturity state (for example verified)")
+    .option("--json", "Output raw JSON")
+    .action(async (opts: SkillContractListOptions) => {
+      try {
+        const dir = opts.dir?.trim() || "company-hq/capabilities";
+        const summaries = await listCapabilityContractSummaries(dir, {
+          maturity: opts.maturity?.trim() || undefined,
+        });
+        if (opts.json) {
+          printOutput(summaries, { json: true });
+          return;
+        }
+
+        if (summaries.length === 0) {
+          printOutput([], { json: false });
+          return;
+        }
+
+        for (const summary of summaries) {
+          console.log(
+            [
+              `capabilityId=${summary.capabilityId}`,
+              `maturity=${summary.maturity}`,
+              `title=${summary.title}`,
+              `owners=${summary.owners.join(",")}`,
+              `verifyRuns=${summary.verifyRunCount}`,
+              `summary=${summary.summary}`,
+            ].join(" "),
+          );
+        }
+      } catch (err) {
+        handleCommandError(err);
+      }
+    });
+
+  contract
+    .command("use")
+    .description("Show the shortest operator reuse brief for a verified capability")
+    .argument("<capabilityIdOrFile>", "Capability id or path to a capability contract JSON file")
+    .option(
+      "--dir <path>",
+      "Directory containing capability contract JSON files",
+      "company-hq/capabilities",
+    )
+    .option("--json", "Output raw JSON")
+    .action(async (capabilityIdOrFile: string, opts: SkillContractUseOptions) => {
+      try {
+        const result = await loadCapabilitySkillContractByRef(capabilityIdOrFile, {
+          rootDir: opts.dir?.trim() || "company-hq/capabilities",
+        });
+        const brief = buildSkillOperationalReuseBrief(result.filePath, result.contract);
+        if (opts.json) {
+          printOutput(brief, { json: true });
+          return;
+        }
+
+        console.log(`${brief.title} (${brief.capabilityId})`);
+        console.log(`maturity=${brief.maturity}`);
+        console.log(`summary=${brief.summary}`);
+        console.log(`intent=${brief.intent}`);
+        console.log(`inputs=${brief.inputsRequired.join(" | ")}`);
+        console.log(`allowed=${brief.allowedActions.join(" | ")}`);
+        console.log(`forbidden=${brief.forbiddenActions.join(" | ")}`);
+        console.log(`success=${brief.successCriteria.join(" | ")}`);
+        console.log(`verify=${brief.verifyPath.verify}`);
+        console.log(`verifyAll=${brief.verifyPath.verifyAll}`);
+      } catch (err) {
+        handleCommandError(err);
+      }
+    });
 
   contract
     .command("validate")

@@ -42,6 +42,18 @@ Validate with JSON output:
 pnpm paperclipai skill contract validate company-hq/capabilities/ceo-native-issue-handoff-primitives.v1.json --json
 ```
 
+List reusable skills before rediscovering a known path:
+
+```bash
+pnpm paperclipai skill contract list --maturity verified
+```
+
+Show the shortest operator reuse brief for one skill:
+
+```bash
+pnpm paperclipai skill contract use ceo-native-issue-handoff-primitives
+```
+
 Verify evidence against real heartbeat run logs:
 
 ```bash
@@ -83,6 +95,12 @@ If verification fails, treat the capability as not promoted.
 ## Reuse proof rule (v1)
 
 `v1` is considered reuse-capable only when the same CLI verify path can validate more than one contract without custom code.
+
+`v1` becomes operationally useful when the same CLI surface also lets an operator or AI:
+
+- list which verified skills already exist
+- open one skill by capability id instead of rediscovering its file path
+- copy the shortest reuse/verify path back into a real run
 
 Current seeded contracts:
 

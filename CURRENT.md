@@ -16,8 +16,8 @@ anti_slop_gate:
   - Zusatzregel: `go with the flow / follow your highest excitement` ist erlaubt und gewollt, solange es in bounded Schritte, ehrliche Branch-Wahrheit und reviewbare Bewegung uebersetzt wird statt in ungeprueftes Momentum-Theater
 
 next:
-  1) die Baton-Wahrheit auf der neuen Lage halten: Skill-v1 hat jetzt zwei verifizierte Seeds und einen gemeinsamen Reuse-Pfad; jetzt nicht sofort Plattformbau starten, sondern pruefen, ob Skills auf realen Firmenlaeufen und Operator-Pfaden wirklich Wiederentdecken sparen
-  2) nur wenn derselbe enge Hebel weiter traegt: Verify-Evidence weiter haerten oder hoechstens einen dritten kleinen Seed ueber denselben Pfad anfuegen
+  1) die Baton-Wahrheit auf der neuen Lage halten: Skill-v1 hat jetzt zwei verifizierte Seeds, einen gemeinsamen Reuse-Pfad und den operator-facing Reuse-Shortcut `skill contract list|use`; jetzt nicht sofort Plattformbau starten, sondern pruefen, ob dieser kleine Bridge-Pfad auf realen Firmenlaeufen wirklich Wiederentdecken spart
+  2) nur wenn derselbe enge Hebel weiter traegt: Verify-Evidence weiter haerten, operator-facing reuse an mehr echte Laufpfade haengen oder hoechstens einen dritten kleinen Seed ueber denselben Pfad anfuegen
   3) erst danach wieder urteilen, ob lokale Skill-Registry, Replay-backed Promotion, skill-aware Runtime-Nutzung oder `child-created`-Resume-Edge-Cases wirklich `Core` statt `Later` sind
 
 blockers:
@@ -44,7 +44,8 @@ notes:
   - North-Star-Entscheidungsregel ab jetzt: Mission / Overarching Goal bleibt stabil; Self-Learning ist Capability-Thesis unterhalb des Company North Star, nicht neuer Produktzweck
   - `68dd18d7` liefert jetzt den ersten echten governed capability container auf `main`: Shared Capability-Type + Validator, CLI `skill contract validate|verify`, Seed `company-hq/capabilities/ceo-native-issue-handoff-primitives.v1.json` und `doc/SKILL-CONTRACTS.md`
   - `fa4a88cb` beweist jetzt reuse auf demselben Skill-Pfad: `paperclipai skill contract verify-all`, gehaertete Evidence ueber `usageJson` + `contextSnapshot` und zweiter Seed `same-session-resume-after-post-tool-capacity.v1.json`
-  - Der Skill-Layer bleibt bewusst `v1`: zwei verifizierte Seeds und gemeinsamer Verify-Pfad sind echter Firmenhebel, aber noch keine breite Skill-Plattform und noch kein freies Self-Learning
+  - `skill-layer-operational-reuse-v1` haengt jetzt den kleinsten operator-facing Bridge-Pfad daran: `paperclipai skill contract list --maturity verified` zeigt vorhandene bewiesene Faehigkeiten und `paperclipai skill contract use <capabilityId>` liefert den kuerzesten Reuse-Brief inklusive Inputs, Guardrails und Verify-Kommando ohne Dateipfad-/Repo-Archaeologie
+  - Der Skill-Layer bleibt bewusst `v1`: zwei verifizierte Seeds plus `list|use|verify|verify-all` sind echter Firmenhebel, aber noch keine breite Skill-Plattform und noch kein freies Self-Learning
   - Der naechste Core-Test ist deshalb nicht mehr "koennen wir Skill-Reuse beweisen?", sondern "spart dieser kleine governed capability layer im Alltag genug Wiederentdecken, um spaeter weitere Reuse-/Evidence-Schnitte zu rechtfertigen?"
   - Salvage-Worktree/Branch fuer diesen Truth Cut: `C:\Users\holyd\DGDH\worktrees\dgdh-werkbank-salvage`, `copilot/resume-proof-budget-gate-salvage-v1`; Basis war sauberes `origin/main`, nicht der alte schmutzige Branch
   - Nur die nuetzlichen Resume-/Operator-Truth-Aenderungen wurden portiert; alte Artefakte `doc/archive/chat.json`, `server-3112.out.log`, `server-3112.err.log` blieben bewusst draussen

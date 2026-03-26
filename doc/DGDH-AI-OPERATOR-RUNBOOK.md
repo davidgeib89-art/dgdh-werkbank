@@ -34,6 +34,16 @@ Default operating rule:
 
 Do not rediscover the machine from scratch every run.
 
+If a run smells like a known governed capability, check the skill layer before broad repo archaeology:
+
+```powershell
+pnpm paperclipai skill contract list --maturity verified
+pnpm paperclipai skill contract use ceo-native-issue-handoff-primitives
+pnpm paperclipai skill contract use same-session-resume-after-post-tool-capacity
+```
+
+Use this to compress rediscovery when the path is already proven.
+
 ### 2.1 First-Principles Operating Lens
 
 DGDH is a governed David-attention-compression machine.
@@ -125,6 +135,22 @@ Important:
 ---
 
 ## 7. Canonical Run Control
+
+### 7.1 Skill-Layer Reuse Shortcut
+
+Use the skill-layer shortcut when you recognize one of the seeded paths:
+
+- CEO native child handoff
+- same-session resume after post-tool capacity
+
+Operational rule:
+
+- `skill contract list` tells you what is already verified
+- `skill contract use <capabilityId>` gives the shortest bounded reuse brief
+- `skill contract verify` or `verify-all` proves the evidence again on the current runtime when needed
+
+This is intentionally not a router or registry.
+It is the smallest operator-facing bridge from `verified` to `used`.
 
 For real issue work, use issue-driven wakeup paths.
 

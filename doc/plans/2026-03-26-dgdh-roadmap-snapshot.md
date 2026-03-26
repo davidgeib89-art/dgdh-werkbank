@@ -78,6 +78,8 @@ Repo-wahr geliefert:
   - `same-session-resume-after-post-tool-capacity`
 - gemeinsamer Reuse-Pfad:
   - `paperclipai skill contract verify-all`
+- operator-facing Reuse-Bridge:
+  - `paperclipai skill contract list|use`
 
 Wichtig:
 
