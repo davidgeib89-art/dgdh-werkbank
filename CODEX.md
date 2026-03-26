@@ -111,6 +111,7 @@ Copilot is your main execution student/partner lane.
 That means:
 - by default, you write and refresh the current execution assignments for Copilot and comparable coder lanes
 - prefer the fewest truthful Copilot prompts: keep execution sprints as long and doneWhen-complete as reviewability allows, and only split when a real blocker or drift risk justifies the extra prompt cost
+- choose the Copilot model / reasoning mode (`Standard`, `Low`, `Medium`, `High`, `Xhigh`) yourself per sprint difficulty, review risk, and run economics; default to the strongest stable single-run setup when that avoids extra prompts
 - give large, clear, bounded sprints
 - prefer `doneWhen` over step micromanagement
 - review the result honestly

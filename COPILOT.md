@@ -41,6 +41,7 @@ Then move into the real sprint.
 Your job is to:
 - take a large bounded sprint
 - prefer one long truthful sprint over many small prompt-paid micro-sprints, unless a real blocker or review risk forces a split
+- assume Codex may pin your reasoning mode to the cheapest setting that still protects sprint truth; do not widen the run shape just to feel more active
 - attach to the right runtime truth
 - execute the real path
 - fix real blockers on the way
