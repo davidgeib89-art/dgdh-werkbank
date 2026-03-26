@@ -38,10 +38,14 @@
 
 ## DGDH Kern
 - DGDH = David Geib - Digitales Handwerk; David ist der einzige menschliche Operator.
+- Overarching Goal: Mensch-AI-Symbiose der Welt beweisen und sie zu einem besseren Ort machen.
+- Company North Star: David gibt Richtung, die Maschine liefert reviewbare Realitaet, mit sinkender menschlicher Supervision pro nuetzlichem Lauf.
+- Capability Thesis: Die Maschine lernt unter Governance durable, damit wiederkehrende Faehigkeiten nicht immer neu ueber Chat, Shell und Prompt rekonstruiert werden muessen.
 - DGDH ist eine governte David-Aufmerksamkeits-Kompressionsmaschine: David gibt Richtung, die Maschine soll mit minimalen David-Beruehrpunkten reale, reviewte, gemergte Arbeit liefern.
 - Leitfragen: "Entlastet das David real?" UND "Wird die Firma faehiger - oder nur groesser?"
 - Primaerer Messwert in dieser Phase: sinkende David-Minuten pro Firmenlauf; Revenue bleibt Lagging Indicator von Capability.
 - Langfristige Richtung: David gibt die Richtung, die Maschine uebernimmt mit wachsender Modellfaehigkeit immer mehr Entscheidungen und Lieferung.
+- Self-Learning ist fuer DGDH nicht der Zweck, sondern eine spaetere governte Faehigkeit im Dienst von reviewbarer Realitaet und weniger Aufsicht.
 - Aktuelle Operator-Realitaet: David als Operator; Codex/GPT-5.4 als Planner/Reflektor und bei Bedarf bounded Coder; Copilot als langlaufender High-Power-Coder-Agent; ChatGPT als externer GPT-5.4-Reflektor; Gemini bleibt Reviewer/Researcher-Lane.
 - Lane-Oekonomie-Regel: billige Prompt-/Sessionkosten allein sind kein Hebel; eine Lane ist nur dann gut, wenn sie David trotz Execution wirklich Aufmerksamkeit spart und nicht bloss Aufsicht multipliziert.
 - Anti-AI-Slop-Gate: jede relevante Aenderung, Idee und Lane muss dieselben 5 Fragen bestehen - spart es David auf einem echten Firmenlauf Minuten, erhoeht es echte Firmenfaehigkeit statt AI-Aktivitaet, bleibt es ohne Blindvertrauen pruefbar, traegt es auch ohne AI-Prosa und ist es jetzt dran; wenn 2 oder mehr Antworten `nein` sind, wird geparkt, kleiner geschnitten oder gestrichen.
@@ -87,6 +91,7 @@
 - Open-Source-Inspiration, neue Ideen und organische North-Star-Entwicklung sind erlaubt; der naechste Schritt bleibt trotzdem klar und bounded.
 - Fuer spaetere Run-UI gilt: Lesestruktur und Operator-Orientierung sind wichtiger als ein Library-Wechsel; `Firmenlauf lesbar machen` ist der richtige Sprinttitel, nicht `ArrowJS testen`.
 - Grosse, zusammenhaengende Coder-Sprints sind explizit erlaubt, wenn Scope und Reviewbarkeit klar genug sind.
+- Nach dem repo-wahren Same-Session-Resume-Beweis ist der naechste `Core`-Produktcut `ceo-native-issue-handoff-primitives-v1`; `dgdh-skill-contract-and-verify-v1` ist erst danach `Core`, wenn der Primitive-Sprint den Standardpfad real billiger/robuster/lesbarer gemacht hat.
 - Copilot soll bevorzugt grosse DoneWhen-orientierte Sprints ziehen; knapper budgetierte Codex-Interaktionen werden fuer Reflexion, Sprint-Schnitt und gezielte Eingriffe genutzt.
 - Reale Firmenlaeufe sind bevorzugte Prototyping-Schleifen; kein Test-Theater wenn ein echter Lauf bereits den naechsten Hebel sichtbar macht.
 - Coder committen und pushen vor dem Bericht; Statusberichte beginnen mit `CODEX STATUSBERICHT`, `Von: Codex`, `An: Planer`.

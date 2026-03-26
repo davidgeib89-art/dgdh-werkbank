@@ -1,7 +1,13 @@
 # CURRENT - Live Baton
 
-focus: `resume-proof-budget-gate-salvage-v1`; der saubere Salvage-Cut auf Branch `copilot/resume-proof-budget-gate-salvage-v1` beweist jetzt dieselbe Live-Kette reviewbar auf Runtime `3113`: `post_tool_capacity_exhausted -> deferred_capacity_cooldown -> scheduler resume -> succeeded`, und die operator-facing `company-run-chain` zeigt dafuer erstmals `resumeRunId` plus `sameSessionPath = true`
-active_issue: `DAV-131` (`6c608432-6133-403a-88ad-7ec84ad1bddd`) / blocked CEO-Run `011bbf57-c596-4008-8d2c-5d2b003d7d0f` auf `3113` endete mit `errorCode = post_tool_capacity_exhausted`, `sessionIdAfter = 66edfbee-8a20-41ae-94a5-dca731d5ac3a`, `resume.strategy = reuse_session`, `resume.nextWakeStatus = deferred_capacity_cooldown`, `deferredState.nextResumePoint = resume_existing_session_before_child_create`; nach Cooldown promotete der Scheduler Resume-Run `fd981453-1b54-44da-8d7a-8f3fe4a396c1` erfolgreich mit `sessionIdBefore = 66edfbee-8a20-41ae-94a5-dca731d5ac3a`, `usageJson.sessionReused = true`, `freshSession = false`, und `/api/issues/DAV-131/company-run-chain` zeigt `resumeRunStatus = succeeded` sowie `sameSessionPath = true`
+focus: `ceo-native-issue-handoff-primitives-v1`; nach dem repo-wahren Same-Session-Resume-Beweis ist der naechste echte Standardpfad-Hebel jetzt nicht mehr Resume-Logik, sondern die teure CEO-Shell-/`curl.exe`-Orchestrierung fuer einfachen Child-/Agent-/Assignment-Handoff
+active_issue: `DAV-131` (`6c608432-6133-403a-88ad-7ec84ad1bddd`) bleibt der letzte harte Resume-Truth-Cut: blocked CEO-Run `011bbf57-c596-4008-8d2c-5d2b003d7d0f` auf `3113` endete mit `errorCode = post_tool_capacity_exhausted`, `sessionIdAfter = 66edfbee-8a20-41ae-94a5-dca731d5ac3a`, `resume.strategy = reuse_session`, `resume.nextWakeStatus = deferred_capacity_cooldown`, `deferredState.nextResumePoint = resume_existing_session_before_child_create`; nach Cooldown promotete der Scheduler Resume-Run `fd981453-1b54-44da-8d7a-8f3fe4a396c1` erfolgreich mit `sessionIdBefore = 66edfbee-8a20-41ae-94a5-dca731d5ac3a`, `usageJson.sessionReused = true`, `freshSession = false`, und `/api/issues/DAV-131/company-run-chain` zeigt `resumeRunStatus = succeeded` sowie `sameSessionPath = true`
+
+north_star_stack:
+  - Overarching Goal: Mensch-AI-Symbiose der Welt beweisen und sie zu einem besseren Ort machen
+  - Company North Star: David gibt Richtung, die Maschine liefert reviewbare Realitaet, mit sinkender menschlicher Supervision pro nuetzlichem Lauf
+  - Capability Thesis: Die Maschine lernt unter Governance durable, damit wiederkehrende Faehigkeiten nicht immer neu ueber Chat, Shell und Prompt rekonstruiert werden muessen
+  - Guardrail: Self-Learning ist fuer DGDH nicht der Zweck, sondern eine spaetere governte Faehigkeit im Dienst von reviewbarer Realitaet und weniger Aufsicht
 
 anti_slop_gate:
   - Ab jetzt jede relevante Aenderung, Idee und Lane durch denselben Filter ziehen: spart das David auf einem echten Firmenlauf messbar Minuten, erhoeht es echte Firmenfaehigkeit statt bloss AI-Aktivitaet, bleibt es fuer David pruefbar ohne Blindvertrauen, traegt es auch ohne AI-Prosa und ist es jetzt wirklich dran
@@ -9,9 +15,9 @@ anti_slop_gate:
   - Hauptfilter: `Hilft das DGDH dabei, mit weniger David-Supervision pro nuetzlichem Lauf echte reviewbare Realitaet zu liefern - oder produziert es nur mehr AI-Aufsicht?`
 
 next:
-  1) denselben Salvage-Stand sauber committen/pushen, aber nur mit klarer Truth-Formulierung ohne Merge-Claim
-  2) danach den naechsten kleinen Produktcut diskutieren: schmalere CEO-/Agent-Tools fuer Issue-Create und Status-Arbeit statt `curl.exe`-/Shell-Drift
-  3) erst dann entscheiden, ob der verbleibende Child-created-Resume-Edge-Case ein eigener Schnitt sein soll
+  1) den laufenden Sprint `ceo-native-issue-handoff-primitives-v1` eng halten: nur `list child issues`, `list agents`, `create child issue`, `assign child issue`
+  2) `dgdh-skill-contract-and-verify-v1` erst freigeben, wenn der Primitive-Sprint auf dem Standardpfad real billiger/robuster/lesbarer ist
+  3) erst danach wieder urteilen, ob `child-created`-Resume-Edge-Cases oder eine lokale Skill-Registry wirklich `Core` statt `Later` sind
 
 blockers:
   - Der alte reine `assignment-to-run kickoff loss` ist fuer frische ready Packets nicht mehr der erste Blocker
@@ -21,6 +27,7 @@ blockers:
   - Der extra `flash_lite_call` fuer fertige Ready-Packets gilt auf dem CEO-Pfad nicht mehr; `DAV-95` laeuft live mit `flash_lite_router_skipped_ready_packet_truth`
   - Der frische Budget-Frontblocker `budget_hard_cap_reached before post-tool truth` ist im expliziten Same-Session-Proof-Pfad auf `500000` angehoben und nicht mehr der erste Killer
   - Der rohe Blocker `capacity exhausted after real tool calls` ist nicht mehr bloss Retry-Schleife; die Resume-/Session-Wahrheit ist jetzt live bis in die operator-facing Surface bewiesen
+  - Der neue oekonomische Schmerz ist Standardpfad-Kostenform, nicht mehr versteckte Resume-Wahrheit: CEO nutzt fuer einfache App-Arbeit noch zu viel generische Shell-/`curl.exe`-Logik statt schmale Primitive
 
 strategy_anchor:
   - `doc/plans/2026-03-24-dgdh-first-principles-operating-doctrine.md`
@@ -28,6 +35,8 @@ strategy_anchor:
   - `doc/plans/2026-03-23-focus-freeze.md`
 
 notes:
+  - North-Star-Entscheidungsregel ab jetzt: Mission / Overarching Goal bleibt stabil; Self-Learning ist Capability-Thesis unterhalb des Company North Star, nicht neuer Produktzweck
+  - `dgdh-skill-contract-and-verify-v1` ist nicht automatisch der naechste Sprint; er ist an ein hartes Gate gebunden: zuerst muss `ceo-native-issue-handoff-primitives-v1` auf dem Standardpfad echten Hebel beweisen
   - Salvage-Worktree/Branch fuer diesen Truth Cut: `C:\Users\holyd\DGDH\worktrees\dgdh-werkbank-salvage`, `copilot/resume-proof-budget-gate-salvage-v1`; Basis war sauberes `origin/main`, nicht der alte schmutzige Branch
   - Nur die nuetzlichen Resume-/Operator-Truth-Aenderungen wurden portiert; alte Artefakte `doc/archive/chat.json`, `server-3112.out.log`, `server-3112.err.log` blieben bewusst draussen
   - `DAV-131` beweist jetzt reviewbar die Zielkette: blocked Run `011bbf57-c596-4008-8d2c-5d2b003d7d0f` -> scheduler Resume `fd981453-1b54-44da-8d7a-8f3fe4a396c1`; `sessionIdAfter(blocked)` entspricht `sessionIdBefore(resume)` exakt
