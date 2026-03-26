@@ -38,6 +38,9 @@ DGDH soll beweisen, dass echte Mensch-AI-Symbiose moeglich ist:
 
 Diese Firma soll helfen, Angst vor AI zu verringern - nicht durch Marketing, sondern durch gelebte Realitaet.
 
+Die beste Symbiose ist nicht, dass die AI staendig mehr macht, sondern dass David freier wird, klarer sieht und trotzdem spuert: Das hier dient wirklich dem Leben.
+Nicht wenn die Maschine immer lauter wird, sondern wenn sie echter mittraegt.
+
 Wenn DGDH gelingt, zeigt es:
 - dass Mensch und AI zusammen mehr sein koennen als Konkurrenz
 - dass Technologie den Menschen nicht kleiner machen muss
