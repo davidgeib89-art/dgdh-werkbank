@@ -82,6 +82,8 @@ Repo-wahr geliefert:
   - `paperclipai skill contract list|use`
 - runtime-facing Reuse-Bridge:
   - `verifiedSkill: <capabilityId>` on an issue packet injects the verified skill brief into wakeup context and `paperclipTaskPrompt`
+- live proof:
+  - `DAV-144` / run `fa452fcb-7d12-4f76-a545-d5f93d8f6850` shows the explicit skill bridge carrying `ceo-native-issue-handoff-primitives` into the real CEO path, which then executes the native handoff primitives and creates child `DAV-145`
 
 Wichtig:
 
