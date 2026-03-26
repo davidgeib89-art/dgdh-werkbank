@@ -714,21 +714,31 @@ describe("gemini execute", () => {
         ) as CapturePayload;
         expect(capture.paperclipEnvKeys).toEqual(
           expect.arrayContaining([
+            "PAPERCLIP_CLI_CWD",
             "PAPERCLIP_PROJECT_ID",
             "PAPERCLIP_TASK_ID",
           ]),
         );
-        expect(invocationPrompt).toContain("Create child issue example:");
         expect(invocationPrompt).toContain(
-          "Do not search for a Paperclip CLI for issue management.",
+          "For the CEO issue-handoff standard path, use native Paperclip CLI commands instead of generic shell-built HTTP requests.",
         );
         expect(invocationPrompt).toContain(
-          "Execute the Paperclip API calls with run_shell_command.",
+          "The four preferred primitives are:",
+        );
+        expect(invocationPrompt).toContain(
+          "pnpm paperclipai issue list --company-id $env:PAPERCLIP_COMPANY_ID --parent-id $env:PAPERCLIP_TASK_ID --json",
         );
         expect(invocationPrompt).toContain("PAPERCLIP_PROJECT_ID");
         expect(invocationPrompt).toContain(
-          "/api/companies/$env:PAPERCLIP_COMPANY_ID/issues",
+          "pnpm paperclipai issue create --company-id $env:PAPERCLIP_COMPANY_ID --project-id $env:PAPERCLIP_PROJECT_ID --parent-id $env:PAPERCLIP_TASK_ID",
         );
+        expect(invocationPrompt).toContain(
+          "pnpm paperclipai agent list --company-id $env:PAPERCLIP_COMPANY_ID --json",
+        );
+        expect(invocationPrompt).toContain(
+          "pnpm paperclipai issue assign CHILD_ISSUE_ID --agent-id WORKER_AGENT_ID --json",
+        );
+        expect(invocationPrompt).toContain("PAPERCLIP_CLI_CWD");
       } finally {
         if (previousHome === undefined) {
           delete process.env.HOME;
