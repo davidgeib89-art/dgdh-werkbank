@@ -1,0 +1,81 @@
+# Skill Contracts
+
+Skill Contracts turn an implicit behavior into a governed, verifiable company capability.
+
+## Why this exists
+
+Without contracts, capabilities are scattered across prompts, code paths, and memory.
+With contracts, each capability is:
+
+- named
+- versioned
+- bounded by allowed/forbidden actions
+- backed by explicit verification evidence
+- promotable, quarantinable, and rollbackable
+
+## Contract format
+
+Use JSON with schema version `v1`.
+
+Core sections:
+
+- `contract`: purpose, scope, guardrails, success/failure modes, rollback plan
+- `primitives`: atomic required actions and their evidence markers
+- `verify`: run IDs and marker requirements used for proof
+
+Reference example:
+
+- `company-hq/capabilities/ceo-native-issue-handoff-primitives.v1.json`
+
+## CLI commands
+
+Validate schema and structure:
+
+```bash
+pnpm paperclipai skill contract validate company-hq/capabilities/ceo-native-issue-handoff-primitives.v1.json
+```
+
+Validate with JSON output:
+
+```bash
+pnpm paperclipai skill contract validate company-hq/capabilities/ceo-native-issue-handoff-primitives.v1.json --json
+```
+
+Verify evidence against real heartbeat run logs:
+
+```bash
+pnpm paperclipai skill contract verify company-hq/capabilities/ceo-native-issue-handoff-primitives.v1.json
+```
+
+Verify with explicit API base and machine-readable output:
+
+```bash
+pnpm paperclipai skill contract verify company-hq/capabilities/ceo-native-issue-handoff-primitives.v1.json \
+  --api-base http://127.0.0.1:3114 \
+  --json
+```
+
+## Verification model (current)
+
+Current method: `heartbeat_run_log_markers`
+
+Pass conditions:
+
+- all required primitive marker sets are present in collected run evidence
+- all explicit `requiredMarkers` are present
+- evidence appears in at least `minDistinctRuns` runs
+
+If verification fails, treat the capability as not promoted.
+
+## Suggested maturity flow
+
+1. `draft`: contract authored, no proof
+2. `verified`: contract passed bounded proof against real run evidence
+3. `promoted`: verified and approved for reuse as a default path
+4. `quarantined`: known regression; usage suspended
+5. `deprecated`: retired capability
+
+## Guardrail
+
+Do not call a capability promoted by prose alone.
+Promotion requires a contract + verify report tied to real evidence.

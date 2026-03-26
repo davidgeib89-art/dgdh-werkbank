@@ -1,5 +1,11 @@
 export type { Company } from "./company.js";
 export type {
+  CapabilityPrimitive,
+  CapabilityContractBody,
+  CapabilityVerificationSpec,
+  CapabilitySkillContract,
+} from "./capability.js";
+export type {
   Agent,
   AgentPermissions,
   AgentKeyCreated,

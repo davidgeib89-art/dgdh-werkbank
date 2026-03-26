@@ -58,6 +58,17 @@ export {
 } from "./project.js";
 
 export {
+  capabilityPrimitiveSchema,
+  capabilityContractBodySchema,
+  capabilityVerificationSchema,
+  capabilitySkillContractSchema,
+  type CapabilityPrimitiveInput,
+  type CapabilityContractBodyInput,
+  type CapabilityVerificationInput,
+  type CapabilitySkillContractInput,
+} from "./capability.js";
+
+export {
   createIssueSchema,
   createIssueLabelSchema,
   updateIssueSchema,
