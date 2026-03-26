@@ -93,6 +93,7 @@
 - Open-Source-Inspiration, neue Ideen und organische North-Star-Entwicklung sind erlaubt; der naechste Schritt bleibt trotzdem klar und bounded.
 - Fuer spaetere Run-UI gilt: Lesestruktur und Operator-Orientierung sind wichtiger als ein Library-Wechsel; `Firmenlauf lesbar machen` ist der richtige Sprinttitel, nicht `ArrowJS testen`.
 - Grosse, zusammenhaengende Coder-Sprints sind explizit erlaubt, wenn Scope und Reviewbarkeit klar genug sind.
+- Prompt-Oekonomie-Regel: Copilot-Sprints sollen moeglichst lang und doneWhen-orientiert geschnitten werden; erst splitten, wenn ein echter Blocker, Review-Risiko oder Drift-Risiko den Extra-Prompt rechtfertigt.
 - Nach dem repo-wahren Same-Session-Resume-Beweis ist der naechste `Core`-Produktcut `ceo-native-issue-handoff-primitives-v1`; `dgdh-skill-contract-and-verify-v1` ist erst danach `Core`, wenn der Primitive-Sprint den Standardpfad real billiger/robuster/lesbarer gemacht hat.
 - Copilot soll bevorzugt grosse DoneWhen-orientierte Sprints ziehen; knapper budgetierte Codex-Interaktionen werden fuer Reflexion, Sprint-Schnitt und gezielte Eingriffe genutzt.
 - Reale Firmenlaeufe sind bevorzugte Prototyping-Schleifen; kein Test-Theater wenn ein echter Lauf bereits den naechsten Hebel sichtbar macht.

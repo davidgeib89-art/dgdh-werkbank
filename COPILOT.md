@@ -40,6 +40,7 @@ Then move into the real sprint.
 
 Your job is to:
 - take a large bounded sprint
+- prefer one long truthful sprint over many small prompt-paid micro-sprints, unless a real blocker or review risk forces a split
 - attach to the right runtime truth
 - execute the real path
 - fix real blockers on the way
