@@ -51,6 +51,8 @@
 - Anti-AI-Slop-Gate: jede relevante Aenderung, Idee und Lane muss dieselben 5 Fragen bestehen - spart es David auf einem echten Firmenlauf Minuten, erhoeht es echte Firmenfaehigkeit statt AI-Aktivitaet, bleibt es ohne Blindvertrauen pruefbar, traegt es auch ohne AI-Prosa und ist es jetzt dran; wenn 2 oder mehr Antworten `nein` sind, wird geparkt, kleiner geschnitten oder gestrichen.
 - Hauptfilter gegen Drift: `Hilft das DGDH dabei, mit weniger David-Supervision pro nuetzlichem Lauf echte reviewbare Realitaet zu liefern - oder produziert es nur mehr AI-Aufsicht?`
 - David muss die Maschine weiter selbst einordnen koennen als `traegt`, `spaeter`, `zu fett` oder `slop`; wenn Blindvertrauen steigt, wird die Firma operativ teurer statt staerker.
+- Grosse Kontextfenster loesen das Structural-Slop-Problem nicht: auch wenn Agenten grosse Dateien lesen koennen, bleiben Hotspots mit viel versteckter Logik teuer fuer Review, Merge, Drift-Erkennung und spaetere Wartung.
+- Structural Anti-Slop-Regel: Live-Blocker zuerst, aber Hotspots werden `peel while touched` kleiner gehalten; grosse Dateien und Duplikate sind voruebergehend tolerierbar, aber kein akzeptierter Dauerzustand.
 - Review ist Gate und Sensor zugleich: es schuetzt Qualitaet und liefert Drift-/Lernsignale fuer Packet, Handoff, Prompt und System.
 - Firmengedachtnis ist gestufte Kompression statt Vollkontext: Betriebszustand -> episodisch -> semantisch -> prozedural -> strategisch.
 - Lernen folgt fuer DGDH der Formel `Run -> Signal -> Verdichtung -> Promotion`.

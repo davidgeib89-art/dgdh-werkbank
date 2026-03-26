@@ -64,6 +64,14 @@ Code-slop alarm signals:
 - cleverness that hides product truth
 - a lot of structure with little live effect
 
+Structural anti-slop rules:
+- large context windows are not a waiver for opaque hotspot files
+- if you touch a hot path file that is already too large, prefer `peel while touched` over leaving new logic inline
+- if a sprint adds new decision logic to a hotspot, either extract the touched block now or explain why the inline addition is still the smallest truthful cut
+- if the same type, parser, or helper exists in multiple touched files, dedupe it in the same sprint unless doing so would widen the blocker cut
+- do not start a beauty refactor sprint just because a file is ugly; structural cleanup becomes `Core` only when it blocks reviewability, mergeability, or the current live path
+- every hotspot-touching sprint should leave the touched area smaller, clearer, or more isolated than before
+
 Lane-slop alarm signals:
 - David becomes a spectator
 - many runs create little judgement

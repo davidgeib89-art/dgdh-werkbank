@@ -56,6 +56,8 @@ Anti-slop rule:
 - if 2 or more of those answers are `no`, stop, recut, or park it
 - if your output is long, active, and impressive but leaves David less able to judge what carries, you are producing lane-slop, not leverage
 - use the `ANTI-SLOP REVIEW` format from `EXECUTOR.md` whenever a cut needs justification
+- large context windows do not justify leaving hotspot files to grow forever; if you touch a bloated core file, prefer a small truthful extraction over another layer of inline drift
+- do not create structural debt just because you personally can still hold the file in context; David, future reviewers, and future runs pay that cost later
 
 Default lane split inside Copilot:
 - Local = truth cuts, repros, small bounded fixes
