@@ -77,4 +77,25 @@ describe("resolveIssueExecutionPacketTruth", () => {
     expect(truth.status).toBe("ready");
     expect(truth.reasonCodes).toEqual([]);
   });
+
+  it("parses metadata fields when a child packet description contains literal escaped newlines", () => {
+    const truth = resolveIssueExecutionPacketTruth({
+      title: "Runbook note update",
+      description:
+        "packetType: free_api\\nexecutionIntent: implement\\nreviewPolicy: required\\nneedsReview: true\\ntargetFile: doc/DGDH-AI-OPERATOR-RUNBOOK.md\\ntargetFolder: doc\\nartifactKind: doc_update\\ndoneWhen: The runbook note reflects the readiness rule and is validated in a bounded run.\\n[NEEDS INPUT]: none",
+    });
+
+    expect(truth.packetType).toBe("free_api");
+    expect(truth.executionIntent).toBe("implement");
+    expect(truth.reviewPolicy).toBe("required");
+    expect(truth.needsReview).toBe(true);
+    expect(truth.targetFile).toBe("doc/DGDH-AI-OPERATOR-RUNBOOK.md");
+    expect(truth.targetFolder).toBe("doc");
+    expect(truth.artifactKind).toBe("doc_update");
+    expect(truth.doneWhen).toBe(
+      "The runbook note reflects the readiness rule and is validated in a bounded run.",
+    );
+    expect(truth.status).toBe("ready");
+    expect(truth.reasonCodes).toEqual([]);
+  });
 });

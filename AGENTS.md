@@ -190,3 +190,6 @@ The repo contains `.github/copilot-instructions.md`. Its rules should be treated
 - Prefer canonical config/routing fixes over local hacks
 - Do not commit logs, generated runtime artifacts, or local investigation files unless asked
 - If you must stop, report the narrowest proven blocker and the exact commands/tests already run
+- For live-run observation, prefer short one-shot API reads over long polling loops
+- If you do poll, set a hard ceiling before you start (normally <= 2 minutes) and stop early on terminal truth such as `active-run = null`, `company-run-chain` no longer advancing, a new child issue becoming `not_ready`, or the same unchanged snapshot repeating a few times
+- Never wait only for the hoped-for success state; always include explicit stop conditions for alternate terminal outcomes so you do not get stuck after the run has already ended

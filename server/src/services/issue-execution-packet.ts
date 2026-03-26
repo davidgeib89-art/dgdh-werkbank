@@ -96,6 +96,12 @@ function stripWrappingQuotes(value: string) {
   return next;
 }
 
+function normalizeMetadataText(value: string | null | undefined): string | null {
+  if (typeof value !== "string") return null;
+  if (value.length === 0) return null;
+  return value.replace(/\\r\\n/g, "\n").replace(/\\n/g, "\n");
+}
+
 function normalizeLineValue(value: string | null | undefined): string | null {
   if (typeof value !== "string") return null;
   const stripped = stripWrappingQuotes(value).replace(/\s+/g, " ").trim();
@@ -117,9 +123,12 @@ function readMetadataField(
   description: string | null | undefined,
   fields: string[],
 ): string | null {
-  if (typeof description !== "string" || description.trim().length === 0) return null;
+  const normalizedDescription = normalizeMetadataText(description);
+  if (!normalizedDescription || normalizedDescription.trim().length === 0) {
+    return null;
+  }
   for (const field of fields) {
-    const match = description.match(
+    const match = normalizedDescription.match(
       new RegExp(`(?:^|\\n)\\s*${escapeRegExp(field)}\\s*:\\s*([^\\n]+)`, "i"),
     );
     const value = normalizeLineValue(match?.[1] ?? null);
@@ -261,7 +270,7 @@ export function resolveIssueExecutionPacketTruth(input: {
   description?: string | null;
 }): IssueExecutionPacketTruth {
   const title = normalizeLineValue(input.title) ?? "";
-  const description = input.description ?? null;
+  const description = normalizeMetadataText(input.description);
   const joinedText = [title, description ?? ""].filter(Boolean).join("\n");
 
   const packetType = normalizeLowerField(

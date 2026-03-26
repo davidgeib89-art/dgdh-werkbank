@@ -287,6 +287,19 @@ Invoke-RestMethod "$base/companies/$companyId/live-runs"
 
 `/issues/{id}/company-run-chain` is the narrowest single read for the normal company path: `assigned -> run started -> worker done -> reviewer assigned -> reviewer run -> merged -> parent done`.
 
+Polling rule for live proofs:
+
+- start with one-shot reads, not an open-ended watch loop
+- if polling is necessary, set a hard timeout before starting (normally <= 2 minutes)
+- stop immediately on terminal non-success truth too, not only on hoped-for success
+- terminal stop conditions include:
+  - `GET /issues/{id}/active-run` returns `null`
+  - `company-run-chain` stops changing across a few polls
+  - a child issue appears with `executionPacketTruth.status = not_ready`
+  - the parent/child issue reaches a stable non-progressing state
+
+If one of those happens, stop the loop and inspect the exact blocking surface once.
+
 If the loop basically works but quality, speed, or token use still looks wrong, inspect one exact run before reopening the repo:
 
 ```powershell
