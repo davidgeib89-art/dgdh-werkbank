@@ -20,6 +20,7 @@ interface IssueBaseOptions extends BaseClientOptions {
   status?: string;
   assigneeAgentId?: string;
   projectId?: string;
+  parentId?: string;
   match?: string;
 }
 
@@ -76,6 +77,7 @@ export function registerIssueCommands(program: Command): void {
       .option("--status <csv>", "Comma-separated statuses")
       .option("--assignee-agent-id <id>", "Filter by assignee agent ID")
       .option("--project-id <id>", "Filter by project ID")
+      .option("--parent-id <id>", "Filter by parent issue ID")
       .option("--match <text>", "Local text match on identifier/title/description")
       .action(async (opts: IssueBaseOptions) => {
         try {
@@ -84,6 +86,7 @@ export function registerIssueCommands(program: Command): void {
           if (opts.status) params.set("status", opts.status);
           if (opts.assigneeAgentId) params.set("assigneeAgentId", opts.assigneeAgentId);
           if (opts.projectId) params.set("projectId", opts.projectId);
+          if (opts.parentId) params.set("parentId", opts.parentId);
 
           const query = params.toString();
           const path = `/api/companies/${ctx.companyId}/issues${query ? `?${query}` : ""}`;

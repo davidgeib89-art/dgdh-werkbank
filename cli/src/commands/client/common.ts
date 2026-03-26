@@ -12,6 +12,7 @@ export interface BaseClientOptions {
   apiBase?: string;
   apiKey?: string;
   companyId?: string;
+  runId?: string;
   json?: boolean;
 }
 
@@ -31,6 +32,7 @@ export function addCommonClientOptions(command: Command, opts?: { includeCompany
     .option("--profile <name>", "CLI context profile name")
     .option("--api-base <url>", "Base URL for the Paperclip API")
     .option("--api-key <token>", "Bearer token for agent-authenticated calls")
+    .option("--run-id <id>", "Paperclip run ID for audit-linked mutating requests")
     .option("--json", "Output raw JSON");
 
   if (opts?.includeCompany) {
@@ -58,6 +60,11 @@ export function resolveCommandContext(
     process.env.PAPERCLIP_API_KEY?.trim() ||
     readKeyFromProfileEnv(profile);
 
+  const runId =
+    options.runId?.trim() ||
+    process.env.PAPERCLIP_RUN_ID?.trim() ||
+    undefined;
+
   const companyId =
     options.companyId?.trim() ||
     process.env.PAPERCLIP_COMPANY_ID?.trim() ||
@@ -69,7 +76,7 @@ export function resolveCommandContext(
     );
   }
 
-  const api = new PaperclipApiClient({ apiBase, apiKey });
+  const api = new PaperclipApiClient({ apiBase, apiKey, runId });
   return {
     api,
     companyId,

@@ -13,6 +13,7 @@ vi.mock("../commands/client/common.js", async () => {
 
 describe("issue commands", () => {
   const mockApi = {
+    get: vi.fn(),
     patch: vi.fn(),
   };
 
@@ -39,6 +40,28 @@ describe("issue commands", () => {
     expect(mockApi.patch).toHaveBeenCalledWith(`/api/issues/${VALID_ISSUE_ID}`, {
       assigneeAgentId: VALID_AGENT_ID,
     });
+  });
+
+  it("lists issues filtered by parent id", async () => {
+    const program = new Command();
+    registerIssueCommands(program);
+
+    mockApi.get = vi.fn().mockResolvedValue([]);
+
+    await program.parseAsync([
+      "node",
+      "test",
+      "issue",
+      "list",
+      "--company-id",
+      "test-company",
+      "--parent-id",
+      VALID_ISSUE_ID,
+    ]);
+
+    expect(mockApi.get).toHaveBeenCalledWith(
+      `/api/companies/test-company/issues?parentId=${VALID_ISSUE_ID}`,
+    );
   });
 
   it("unassigns an issue", async () => {
