@@ -3,6 +3,11 @@
 focus: `gemini-post-tool-capacity-cooldown-state-v1`; die Verlustklasse `erster echter Tool-Call -> capacity exhausted -> diffuser Retry-Sumpf` ist jetzt repo-wahr als expliziter Heartbeat-Zustand geschnitten: der Gemini-Adapter klassifiziert `post_tool_capacity_exhausted`, Heartbeat schreibt `deferredState` plus `resume`, queued einen `deferred_capacity_cooldown`-Wake und promoted ihn spaeter scheduler-gesteuert statt blind full rerun zu verbrennen
 active_issue: `DAV-97` (`f4dd4367-d71b-4d3b-a1ec-1044160ad598`) / finaler CEO-Run `f4bd6cd7-1561-4ed9-9aca-45c48d2a0020` beweist auf frischer `3111`-Runtime den neuen Stand: `runStatus = blocked`, `errorCode = post_tool_capacity_exhausted`, `resultJson.type = post_tool_capacity_exhausted`, `deferredState.state = cooldown_pending`, `resume.strategy = reuse_session`, `resume.nextWakeStatus = deferred_capacity_cooldown`, `resume.nextWakeNotBefore = 2026-03-25T20:15:27.720Z`; der Parent bleibt `todo`, `executionRunId = null`, `active-run = null`, und der naechste Resume-Punkt ist explizit statt diffuser Retry-Schleife
 
+anti_slop_gate:
+  - Ab jetzt jede relevante Aenderung, Idee und Lane durch denselben Filter ziehen: spart das David auf einem echten Firmenlauf messbar Minuten, erhoeht es echte Firmenfaehigkeit statt bloss AI-Aktivitaet, bleibt es fuer David pruefbar ohne Blindvertrauen, traegt es auch ohne AI-Prosa und ist es jetzt wirklich dran
+  - Wenn 2 oder mehr Antworten `nein` sind: parken, kleiner schneiden oder streichen; DGDH darf nicht zur AI-Aufsichtsmaschine werden
+  - Hauptfilter: `Hilft das DGDH dabei, mit weniger David-Supervision pro nuetzlichem Lauf echte reviewbare Realitaet zu liefern - oder produziert es nur mehr AI-Aufsicht?`
+
 next:
   1) verifizieren, dass der scheduler-gesteuerte Resume nach `nextWakeNotBefore` denselben CEO-Sessionpfad billig weiterfuehrt statt neuen Denkpfad aufzubauen
   2) den verbliebenen Edge-Case entscheiden: ob post-tool capacity bei bereits erzeugtem Child dieselbe cooldown semantics behalten oder enger auf Parent-without-child geschnitten werden soll

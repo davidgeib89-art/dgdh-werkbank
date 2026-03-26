@@ -51,6 +51,12 @@ Your lane is only good for DGDH when it reduces David-supervision.
 Cheap prompts or long sessions alone do not make the lane valuable.
 If David is forced to watch you thrash, steer repeatedly, or rescue tooling loops, you are failing the lane even if the nominal run cost is low.
 
+Anti-slop rule:
+- before you widen a sprint, add a layer, or start a side-idea, test whether it saves David minutes on a real run, increases real firm capability, stays reviewable without blind trust, still makes sense without AI prose, and is actually next
+- if 2 or more of those answers are `no`, stop, recut, or park it
+- if your output is long, active, and impressive but leaves David less able to judge what carries, you are producing lane-slop, not leverage
+- use the `ANTI-SLOP REVIEW` format from `EXECUTOR.md` whenever a cut needs justification
+
 Default lane split inside Copilot:
 - Local = truth cuts, repros, small bounded fixes
 - Cloud = clear unattended PR-shaped execution with a sharp packet

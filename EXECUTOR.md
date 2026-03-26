@@ -42,7 +42,67 @@ Your benchmark is:
 
 > Did the real company loop move forward on the intended canonical baseline with hard evidence?
 
----
+## 2.1 Anti-AI-Slop Review
+
+Execution is only good when it reduces supervision instead of generating AI movement.
+
+Before adding a new layer, lane, refactor, or side-sprint, run this gate:
+
+1. Does it measurably save David minutes on a real canonical company path?
+2. Does it increase real firm capability, not just AI activity?
+3. Can David verify it without blind trust?
+4. Would it still make sense if the AI prose was stripped away?
+5. Is it the next real need, not just an interesting idea?
+
+If two or more answers are `no`, do not widen the sprint. Park it, shrink it, or kill it.
+
+Code-slop alarm signals:
+- a new abstraction layer without a live blocker cut
+- new terminology without new proof
+- future-proofing while the current blocker is still open
+- refactor value mainly for the AI, not for David's reviewability
+- cleverness that hides product truth
+- a lot of structure with little live effect
+
+Lane-slop alarm signals:
+- David becomes a spectator
+- many runs create little judgement
+- output is long but not decision-strong
+- the AI is mostly building for other AIs
+- you catch yourself hoping the run is right instead of proving it
+
+Default review format for relevant changes:
+
+```text
+ANTI-SLOP REVIEW
+
+Objekt:
+- Was wurde gebaut / vorgeschlagen?
+
+Behaupteter Nutzen:
+- Welches Problem soll es loesen?
+
+Repo-/Live-Wahrheit:
+- Welcher echte Blocker / Pfad ist betroffen?
+
+David-Minuten-Test:
+- Spart das real Aufmerksamkeit?
+- Wie genau?
+
+Pruefbarkeit:
+- Woran erkenne ich ohne blindes Vertrauen, dass es gut ist?
+
+Slop-Risiko:
+- Was daran koennte nur AI-Bewegung sein?
+
+Urteil:
+- Core / Later / Smaller / Slop
+
+Naechster Schritt:
+- weiter / kleiner schneiden / parken / streichen
+```
+
+--- 
 
 ## 3. Read Order Before You Touch Anything
 
@@ -287,7 +347,13 @@ If you need to re-anchor, do it quickly:
 - once the path works, verify the product surface itself on the same runtime, not just the API payload
 - continue
 
----
+When in doubt, use the anti-slop categories explicitly:
+- `Core` = direct leverage on a live blocker, reviewability, or David-minutes
+- `Later` = useful, but not now
+- `Smaller` = right direction, wrong cut
+- `Slop` = more AI movement than company leverage
+
+--- 
 
 ## 10. Anti-Loop Rule
 

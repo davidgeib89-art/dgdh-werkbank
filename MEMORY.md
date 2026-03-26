@@ -44,6 +44,9 @@
 - Langfristige Richtung: David gibt die Richtung, die Maschine uebernimmt mit wachsender Modellfaehigkeit immer mehr Entscheidungen und Lieferung.
 - Aktuelle Operator-Realitaet: David als Operator; Codex/GPT-5.4 als Planner/Reflektor und bei Bedarf bounded Coder; Copilot als langlaufender High-Power-Coder-Agent; ChatGPT als externer GPT-5.4-Reflektor; Gemini bleibt Reviewer/Researcher-Lane.
 - Lane-Oekonomie-Regel: billige Prompt-/Sessionkosten allein sind kein Hebel; eine Lane ist nur dann gut, wenn sie David trotz Execution wirklich Aufmerksamkeit spart und nicht bloss Aufsicht multipliziert.
+- Anti-AI-Slop-Gate: jede relevante Aenderung, Idee und Lane muss dieselben 5 Fragen bestehen - spart es David auf einem echten Firmenlauf Minuten, erhoeht es echte Firmenfaehigkeit statt AI-Aktivitaet, bleibt es ohne Blindvertrauen pruefbar, traegt es auch ohne AI-Prosa und ist es jetzt dran; wenn 2 oder mehr Antworten `nein` sind, wird geparkt, kleiner geschnitten oder gestrichen.
+- Hauptfilter gegen Drift: `Hilft das DGDH dabei, mit weniger David-Supervision pro nuetzlichem Lauf echte reviewbare Realitaet zu liefern - oder produziert es nur mehr AI-Aufsicht?`
+- David muss die Maschine weiter selbst einordnen koennen als `traegt`, `spaeter`, `zu fett` oder `slop`; wenn Blindvertrauen steigt, wird die Firma operativ teurer statt staerker.
 - Review ist Gate und Sensor zugleich: es schuetzt Qualitaet und liefert Drift-/Lernsignale fuer Packet, Handoff, Prompt und System.
 - Firmengedachtnis ist gestufte Kompression statt Vollkontext: Betriebszustand -> episodisch -> semantisch -> prozedural -> strategisch.
 - Lernen folgt fuer DGDH der Formel `Run -> Signal -> Verdichtung -> Promotion`.
