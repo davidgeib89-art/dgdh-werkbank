@@ -230,12 +230,29 @@ export interface CompanyRunChainChild {
   stages: CompanyRunChainStage[];
 }
 
+export interface CompanyRunChainParentBlocker {
+  blockerClass: string | null;
+  blockerState: string | null;
+  summary: string | null;
+  knownBlocker: boolean;
+  nextResumePoint: string | null;
+  nextWakeStatus: string | null;
+  nextWakeNotBefore: Date | null;
+  resumeStrategy: string | null;
+  resumeSource: string | null;
+  resumeRunId: string | null;
+  resumeRunStatus: string | null;
+  resumeAt: Date | null;
+  sameSessionPath: boolean;
+}
+
 export interface CompanyRunChain {
   parentIssueId: string;
   parentIdentifier: string | null;
   parentTitle: string;
   parentStatus: IssueStatus;
   focusIssueId: string | null;
+  parentBlocker: CompanyRunChainParentBlocker | null;
   children: CompanyRunChainChild[];
 }
 

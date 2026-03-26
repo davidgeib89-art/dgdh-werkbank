@@ -22,6 +22,7 @@ import { IssueProperties } from "../components/IssueProperties";
 import { LiveRunWidget } from "../components/LiveRunWidget";
 import { NeedsInputNotice } from "../components/NeedsInputNotice";
 import { CompanyRunChainCard } from "../components/CompanyRunChainCard";
+import { hasVisibleCompanyRunChainTruth } from "../lib/company-run-truth";
 import { ExecutionPacketReadinessCard } from "../components/ExecutionPacketReadinessCard";
 import type { MentionOption } from "../components/MarkdownEditor";
 import { ScrollToBottom } from "../components/ScrollToBottom";
@@ -973,7 +974,7 @@ export function IssueDetail() {
         missingBehavior="placeholder"
       />
 
-      {companyRunChain && companyRunChain.children.length > 0 && (
+      {hasVisibleCompanyRunChainTruth(companyRunChain) && (
         <CompanyRunChainCard
           chain={companyRunChain}
           currentIssueId={issue.id}

@@ -74,6 +74,11 @@ export function summarizeHeartbeatRunResultJson(
         ? (resultJson["deferredState"] as Record<string, unknown>)
         : null;
     const cooldownUntil = deferredState?.["cooldownUntil"];
+    summary.blockerClass = "post_tool_capacity_exhausted";
+    summary.blockerState =
+      deferredState?.["state"] ?? resultJson["status"] ?? null;
+    summary.knownBlocker = true;
+    summary.nextResumePoint = deferredState?.["nextResumePoint"] ?? null;
     summary.summary = "Post-tool capacity cooldown";
     if (typeof cooldownUntil === "string" && cooldownUntil.length > 0) {
       summary.message = `Resume after cooldown: ${cooldownUntil}`;
@@ -93,6 +98,8 @@ export function summarizeHeartbeatRunResultJson(
         ? (resultJson["resume"] as Record<string, unknown>)
         : null;
     if (resume) {
+      summary.nextWakeStatus = resume["nextWakeStatus"] ?? null;
+      summary.nextWakeNotBefore = resume["nextWakeNotBefore"] ?? null;
       summary.resume = {
         state: resume["state"] ?? null,
         sessionId: resume["sessionId"] ?? null,

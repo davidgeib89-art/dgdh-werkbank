@@ -1,11 +1,15 @@
 import { describe, expect, it } from "vitest";
 import {
   buildPostToolCapacityDeferredContextSnapshot,
+  buildPostToolCapacityResumeWakeMetadata,
   POST_TOOL_CAPACITY_DEFERRED_WAKE_STATUS,
   POST_TOOL_CAPACITY_ERROR_CODE,
   isPostToolCapacityWakeReady,
   readPostToolCapacityState,
+  resolveRunStartSessionIdBefore,
+  resolvePostToolCapacityResumeSessionId,
   resolvePostToolCapacityCooldownSec,
+  shouldRetryFailedPostToolCapacityWake,
 } from "../services/heartbeat.ts";
 
 describe("post-tool capacity helpers", () => {
@@ -113,5 +117,95 @@ describe("post-tool capacity helpers", () => {
       postToolCapacityCooldownUntil: "2026-03-25T10:05:00.000Z",
       untouched: "keep-me",
     });
+  });
+
+  it("forces scheduler-owned wake metadata while preserving the original wake source", () => {
+    expect(
+      buildPostToolCapacityResumeWakeMetadata({
+        source: "assignment",
+        triggerDetail: "manual",
+      }),
+    ).toEqual({
+      source: "automation",
+      triggerDetail: "system",
+      originalSource: "assignment",
+      originalTriggerDetail: "manual",
+    });
+  });
+
+  it("retries failed deferred wakes only for process_lost on still-promotable issues", () => {
+    expect(
+      shouldRetryFailedPostToolCapacityWake({
+        wakeStatus: "failed",
+        payload: {
+          resumeKind: "post_tool_capacity",
+        },
+        runErrorCode: "process_lost",
+        issueStatus: "todo",
+        executionRunId: null,
+      }),
+    ).toBe(true);
+
+    expect(
+      shouldRetryFailedPostToolCapacityWake({
+        wakeStatus: "failed",
+        payload: {
+          resumeKind: "post_tool_capacity",
+        },
+        runErrorCode: "adapter_failed",
+        issueStatus: "todo",
+        executionRunId: null,
+      }),
+    ).toBe(false);
+
+    expect(
+      shouldRetryFailedPostToolCapacityWake({
+        wakeStatus: "failed",
+        payload: {
+          resumeKind: "post_tool_capacity",
+        },
+        runErrorCode: "process_lost",
+        issueStatus: "done",
+        executionRunId: null,
+      }),
+    ).toBe(false);
+  });
+
+  it("falls back to the deferred wake payload session when task-session lookup is empty", () => {
+    expect(
+      resolvePostToolCapacityResumeSessionId({
+        resolvedSessionBefore: null,
+        payload: {
+          sessionId: "session-from-wake",
+        },
+      }),
+    ).toBe("session-from-wake");
+
+    expect(
+      resolvePostToolCapacityResumeSessionId({
+        resolvedSessionBefore: "task-session-id",
+        payload: {
+          sessionId: "session-from-wake",
+        },
+      }),
+    ).toBe("task-session-id");
+  });
+
+  it("preserves queued resume sessionIdBefore when runtime still asks for a fresh adapter session", () => {
+    expect(
+      resolveRunStartSessionIdBefore({
+        existingSessionIdBefore: "queued-session",
+        runtimeSessionDisplayId: null,
+        runtimeSessionId: null,
+      }),
+    ).toBe("queued-session");
+
+    expect(
+      resolveRunStartSessionIdBefore({
+        existingSessionIdBefore: "queued-session",
+        runtimeSessionDisplayId: "runtime-display",
+        runtimeSessionId: null,
+      }),
+    ).toBe("runtime-display");
   });
 });

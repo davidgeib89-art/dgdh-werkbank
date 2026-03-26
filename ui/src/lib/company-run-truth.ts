@@ -1,3 +1,5 @@
+import type { CompanyRunChain } from "@paperclipai/shared";
+
 export interface CompanyRunActiveIdentity {
   id: string;
   status: string;
@@ -12,6 +14,25 @@ export interface RunContextHealth {
   label: string;
   note: string;
   tone: TruthTone;
+}
+
+export interface ParentBlockerTruth {
+  blocker: {
+    value: string;
+    note: string;
+  };
+  state: {
+    value: string;
+    note: string;
+  };
+  resume: {
+    value: string;
+    note: string;
+  };
+  nextPoint: {
+    value: string;
+    note: string;
+  };
 }
 
 function asRecord(value: unknown): Record<string, unknown> | null {
@@ -82,5 +103,58 @@ export function getRunContextHealth(input: {
     label: "Degraded",
     note: `Missing or mismatched: ${missing.join(", ")}`,
     tone: "degraded",
+  };
+}
+
+export function hasVisibleCompanyRunChainTruth(
+  chain: CompanyRunChain | null | undefined,
+): chain is CompanyRunChain {
+  if (!chain) return false;
+  return chain.children.length > 0 || Boolean(chain.parentBlocker?.blockerClass);
+}
+
+export function getParentBlockerTruth(
+  blocker: CompanyRunChain["parentBlocker"],
+): ParentBlockerTruth | null {
+  if (!blocker?.blockerClass) return null;
+
+  const blockerNote = blocker.summary ?? "Parent is blocked before child execution.";
+  const stateNote = blocker.knownBlocker
+    ? "Known blocker class. David does not need to rediscover it."
+    : "Blocker exists but is not yet classified as known.";
+  const resumeNote = blocker.resumeRunId
+    ? blocker.sameSessionPath
+      ? `${blocker.resumeSource ?? "Resume"} queued ${blocker.resumeRunId.slice(0, 8)} on the same CEO session path${blocker.resumeRunStatus ? ` (${blocker.resumeRunStatus})` : ""}.`
+      : `${blocker.resumeSource ?? "Resume"} queued ${blocker.resumeRunId.slice(0, 8)} but same-session proof is missing.`
+    : blocker.nextWakeNotBefore
+      ? `Resume via ${blocker.resumeSource ?? "scheduler"} after ${blocker.nextWakeNotBefore}.`
+      : "No resume wake has been recorded yet.";
+  const nextPointNote = blocker.nextWakeStatus
+    ? `Next wake status: ${blocker.nextWakeStatus}`
+    : "No next wake status recorded.";
+
+  return {
+    blocker: {
+      value: blocker.blockerClass,
+      note: blockerNote,
+    },
+    state: {
+      value: blocker.blockerState ?? "unknown",
+      note: stateNote,
+    },
+    resume: {
+      value: blocker.resumeRunId
+        ? blocker.sameSessionPath
+          ? "Scheduler resumed"
+          : "Resume queued"
+        : blocker.nextWakeNotBefore
+          ? "Scheduler cooldown"
+          : "No resume scheduled",
+      note: resumeNote,
+    },
+    nextPoint: {
+      value: blocker.nextResumePoint ?? "unknown",
+      note: nextPointNote,
+    },
   };
 }

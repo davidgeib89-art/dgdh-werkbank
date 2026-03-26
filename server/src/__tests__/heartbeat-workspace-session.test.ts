@@ -3,6 +3,7 @@ import { resolveDefaultAgentWorkspaceDir } from "../home-paths.js";
 import {
   resolveRuntimeSessionParamsForWorkspace,
   shouldResetTaskSessionForWake,
+  prepareHeartbeatWorkspaceSessionPlan,
   type ResolvedWorkspaceForRun,
 } from "../services/heartbeat.ts";
 
@@ -149,5 +150,98 @@ describe("shouldResetTaskSessionForWake", () => {
         wakeTriggerDetail: "callback",
       }),
     ).toBe(false);
+  });
+});
+
+describe("prepareHeartbeatWorkspaceSessionPlan", () => {
+  it("preserves ready-path session reuse for post-tool capacity resumes", async () => {
+    const plan = await prepareHeartbeatWorkspaceSessionPlan(
+      {
+        db: {} as any,
+        agent: {
+          id: "agent-1",
+          name: "CEO Agent",
+          companyId: "company-1",
+        } as any,
+        context: {
+          paperclipDefaultExecutionPath: "ready_small_default",
+          forceFreshSession: true,
+          wakeReason: "post_tool_capacity_resume",
+          postToolCapacityResume: true,
+        },
+        previousSessionParams: {
+          sessionId: "session-1",
+          cwd: "/tmp/project",
+          workspaceId: "workspace-1",
+        },
+        runtimeSessionId: null,
+        taskKey: "DAV-97",
+        taskSessionForRun: { sessionDisplayId: "session-1" },
+        resetTaskSession: false,
+        resolvedConfig: {},
+        executionWorkspaceMode: "isolated",
+        useProjectWorkspace: true,
+        issueId: "issue-1",
+        issueRef: {
+          id: "issue-1",
+          companyId: "company-1",
+          projectId: "project-1",
+          goalId: null,
+          parentId: null,
+          identifier: "DAV-97",
+          title: "Resume proof",
+          description: null,
+        },
+        sessionCodec: {
+          deserialize: (raw) => raw as Record<string, unknown> | null,
+          serialize: (params) => params,
+          getDisplayId: (params) => (typeof params?.sessionId === "string" ? params.sessionId : null),
+        },
+        realizeExecutionWorkspace: async () => ({
+          cwd: "/tmp/project",
+          source: "project_primary",
+          projectId: "project-1",
+          workspaceId: "workspace-1",
+          repoUrl: null,
+          repoRef: null,
+          branchName: null,
+          worktreePath: null,
+          strategy: "project_primary",
+          warnings: [],
+        }),
+      },
+      {
+        resolveWorkspaceForRun: async () =>
+          buildResolvedWorkspace({ cwd: "/tmp/project", workspaceId: "workspace-1" }),
+        evaluateSessionCompaction: async () => ({
+          rotate: false,
+          reason: null,
+          handoffMarkdown: null,
+          previousRunId: null,
+        }),
+        evaluateSingleFileBenchmarkPreflight: async () => ({
+          required: false,
+          ok: true,
+          reason: null,
+          adapterCwd: "/tmp/project",
+          rawWorkspaceCwd: "/tmp/project",
+          effectiveWorkspaceCwd: "/tmp/project",
+          workspaceSource: "project_primary",
+          configuredCwd: null,
+          configuredCwdExists: false,
+          resolutionStrategy: "workspace",
+          singleFileTargetPath: null,
+          singleFileTargetResolvedPath: null,
+          targetExists: false,
+          targetWithinEffectiveCwd: false,
+          issueTaskPromptPresent: false,
+          issueTaskPromptPreview: null,
+          abortOnMissingFile: false,
+        }),
+      },
+    );
+
+    expect(plan.runtimeForAdapter.sessionId).toBe("session-1");
+    expect(plan.runtimeForAdapter.sessionDisplayId).toBe("session-1");
   });
 });

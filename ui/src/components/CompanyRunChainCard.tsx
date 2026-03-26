@@ -2,7 +2,11 @@ import { Link } from "@/lib/router";
 import type { CompanyRunChain } from "@paperclipai/shared";
 import { StatusBadge } from "./StatusBadge";
 import { relativeTime, cn } from "../lib/utils";
-import { getRunContextHealth, type CompanyRunActiveIdentity } from "../lib/company-run-truth";
+import {
+  getParentBlockerTruth,
+  getRunContextHealth,
+  type CompanyRunActiveIdentity,
+} from "../lib/company-run-truth";
 
 type TruthTone = "full" | "degraded";
 
@@ -124,7 +128,9 @@ export function CompanyRunChainCard({
   projectName,
   activeRun,
 }: CompanyRunChainCardProps) {
-  if (!chain.children.length) {
+  const parentBlockerTruth = getParentBlockerTruth(chain.parentBlocker);
+
+  if (!chain.children.length && !parentBlockerTruth) {
     return null;
   }
 
@@ -195,51 +201,83 @@ export function CompanyRunChainCard({
         />
       </div>
 
-      <div className="space-y-2">
-        {chain.children.map((child) => (
-          <div
-            key={child.issueId}
-            className={cn(
-              "rounded-lg border border-border bg-background/80 p-3 space-y-2",
-              highlightedIssueId === child.issueId && "border-foreground/40",
-            )}
-          >
-            <div className="flex items-center justify-between gap-3 flex-wrap">
-              <div className="min-w-0">
-                <Link
-                  to={`/issues/${child.identifier ?? child.issueId}`}
-                  className="text-sm font-medium hover:underline"
-                >
-                  {child.identifier ?? child.issueId.slice(0, 8)} · {child.title}
-                </Link>
-                <p className="text-xs text-muted-foreground">
-                  {child.assigneeAgentName ? `Current assignee: ${child.assigneeAgentName}` : "No assignee"}
-                </p>
-              </div>
-              <StatusBadge status={child.status} />
-            </div>
+      {parentBlockerTruth && (
+        <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-4">
+          <TruthCell
+            label="Parent blocker"
+            value={parentBlockerTruth.blocker.value}
+            note={parentBlockerTruth.blocker.note}
+            mono
+            tone="degraded"
+          />
+          <TruthCell
+            label="Blocker state"
+            value={parentBlockerTruth.state.value}
+            note={parentBlockerTruth.state.note}
+            mono
+          />
+          <TruthCell
+            label="Resume"
+            value={parentBlockerTruth.resume.value}
+            note={parentBlockerTruth.resume.note}
+          />
+          <TruthCell
+            label="Next point"
+            value={parentBlockerTruth.nextPoint.value}
+            note={parentBlockerTruth.nextPoint.note}
+            mono
+          />
+        </div>
+      )}
 
-            <div className="flex flex-wrap gap-2">
-              {child.stages.map((stage) => (
-                <div
-                  key={stage.key}
-                  className={cn(
-                    "rounded-full border px-2.5 py-1 text-[11px] leading-4",
-                    stage.completed
-                      ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
-                      : "border-border bg-background text-muted-foreground",
-                  )}
-                  title={stage.note ?? undefined}
-                >
-                  <span className="font-medium">{stage.label}</span>
-                  {stage.at && <span className="ml-1 text-[10px] opacity-80">{relativeTime(stage.at)}</span>}
-                  {!stage.at && <span className="ml-1 text-[10px] opacity-70">pending</span>}
+      {chain.children.length > 0 && (
+        <div className="space-y-2">
+          {chain.children.map((child) => (
+            <div
+              key={child.issueId}
+              className={cn(
+                "rounded-lg border border-border bg-background/80 p-3 space-y-2",
+                highlightedIssueId === child.issueId && "border-foreground/40",
+              )}
+            >
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <div className="min-w-0">
+                  <Link
+                    to={`/issues/${child.identifier ?? child.issueId}`}
+                    className="text-sm font-medium hover:underline"
+                  >
+                    {child.identifier ?? child.issueId.slice(0, 8)} · {child.title}
+                  </Link>
+                  <p className="text-xs text-muted-foreground">
+                    {child.assigneeAgentName ? `Current assignee: ${child.assigneeAgentName}` : "No assignee"}
+                  </p>
                 </div>
-              ))}
+                <StatusBadge status={child.status} />
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                {child.stages.map((stage) => (
+                  <div
+                    key={stage.key}
+                    className={cn(
+                      "rounded-full border px-2.5 py-1 text-[11px] leading-4",
+                      stage.completed
+                        ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
+                        : "border-border bg-background text-muted-foreground",
+                    )}
+                    title={stage.note ?? undefined}
+                  >
+                    <span className="font-medium">{stage.label}</span>
+                    {stage.at && <span className="ml-1 text-[10px] opacity-80">{relativeTime(stage.at)}</span>}
+                    {!stage.at && <span className="ml-1 text-[10px] opacity-70">pending</span>}
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
+
     </section>
   );
 }

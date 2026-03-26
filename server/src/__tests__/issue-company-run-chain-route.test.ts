@@ -167,6 +167,7 @@ describe("issue company run chain route", () => {
 
     expect(res.status).toBe(200);
     expect(res.body.parentIdentifier).toBe("DAV-40");
+    expect(res.body.parentBlocker).toBeNull();
     expect(res.body.children).toHaveLength(1);
     expect(res.body.children[0].identifier).toBe("DAV-41");
     expect(res.body.children[0].stages.map((stage: { key: string; completed: boolean }) => [stage.key, stage.completed])).toEqual([
@@ -179,5 +180,92 @@ describe("issue company run chain route", () => {
       ["parent_done", true],
     ]);
     expect(res.body.children[0].stages.find((stage: { key: string; note: string | null }) => stage.key === "merged")?.note).toBe("PR #15");
+  });
+
+  it("returns parent blocker truth when the CEO is waiting on post-tool capacity resume before any child exists", async () => {
+    mockIssueService.getById.mockImplementation(async (id: string) => {
+      if (id === "parent-1") {
+        return {
+          id: "parent-1",
+          companyId: "company-1",
+          identifier: "DAV-97",
+          title: "Resume proof sprint",
+          status: "todo",
+          completedAt: null,
+          parentId: null,
+          assigneeAgentId: "agent-ceo-1",
+        };
+      }
+      return null;
+    });
+    mockCeoService.listChildrenByParentId.mockResolvedValue([]);
+    mockActivityService.forIssue.mockResolvedValue([]);
+    mockActivityService.runsForIssue.mockImplementation(async (_companyId: string, issueId: string) => {
+      if (issueId !== "parent-1") return [];
+      return [
+        {
+          runId: "run-resume-1",
+          status: "queued",
+          agentId: "agent-ceo-1",
+          startedAt: null,
+          finishedAt: null,
+          createdAt: new Date("2026-03-25T10:05:01.000Z"),
+          invocationSource: "automation",
+          sessionIdBefore: "session-1",
+          sessionIdAfter: null,
+          errorCode: null,
+          usageJson: null,
+          resultJson: null,
+        },
+        {
+          runId: "run-blocked-1",
+          status: "blocked",
+          agentId: "agent-ceo-1",
+          startedAt: new Date("2026-03-25T10:00:00.000Z"),
+          finishedAt: new Date("2026-03-25T10:00:10.000Z"),
+          createdAt: new Date("2026-03-25T10:00:00.000Z"),
+          invocationSource: "assignment",
+          sessionIdBefore: "session-1",
+          sessionIdAfter: "session-1",
+          errorCode: "post_tool_capacity_exhausted",
+          usageJson: null,
+          resultJson: {
+            type: "post_tool_capacity_exhausted",
+            status: "cooldown_pending",
+            deferredState: {
+              state: "cooldown_pending",
+              nextResumePoint: "resume_existing_session_before_child_create",
+              cooldownUntil: "2026-03-25T10:05:00.000Z",
+            },
+            resume: {
+              strategy: "reuse_session",
+              sessionId: "session-1",
+              nextWakeStatus: "deferred_capacity_cooldown",
+              nextWakeNotBefore: "2026-03-25T10:05:00.000Z",
+            },
+          },
+        },
+      ];
+    });
+
+    const res = await request(createApp()).get("/api/issues/parent-1/company-run-chain");
+
+    expect(res.status).toBe(200);
+    expect(res.body.children).toEqual([]);
+    expect(res.body.parentBlocker).toEqual({
+      blockerClass: "post_tool_capacity_exhausted",
+      blockerState: "cooldown_pending",
+      summary: "Post-tool capacity cooldown",
+      knownBlocker: true,
+      nextResumePoint: "resume_existing_session_before_child_create",
+      nextWakeStatus: "deferred_capacity_cooldown",
+      nextWakeNotBefore: "2026-03-25T10:05:00.000Z",
+      resumeStrategy: "reuse_session",
+      resumeSource: "scheduler",
+      resumeRunId: "run-resume-1",
+      resumeRunStatus: "queued",
+      resumeAt: "2026-03-25T10:05:01.000Z",
+      sameSessionPath: true,
+    });
   });
 });

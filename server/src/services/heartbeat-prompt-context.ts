@@ -596,6 +596,20 @@ export function buildHeartbeatIssuePromptContextPatch(input: {
     paperclipBlockedTools: null,
   };
 
+  if (packetTruth.ready) {
+    const doneWhen = packetTruth.doneWhen?.toLowerCase() ?? "";
+    if (
+      doneWhen.includes("post-tool capacity") ||
+      doneWhen.includes("same session path") ||
+      doneWhen.includes("same-session path")
+    ) {
+      patch.workPacketBudget = {
+        budgetClass: "large",
+        hardCapTokens: 500000,
+      };
+    }
+  }
+
   if (isTestRunContext(input.contextSnapshot)) {
     patch.paperclipPromptResolverPreflight = runPromptResolverPreflight(
       buildPromptResolverDryRunInput(input.contextSnapshot, issueTaskPrompt),

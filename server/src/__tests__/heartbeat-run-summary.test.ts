@@ -132,6 +132,12 @@ describe("summarizeHeartbeatRunResultJson", () => {
 
     expect(summary).toEqual({
       result: "deferred",
+      blockerClass: "post_tool_capacity_exhausted",
+      blockerState: "cooldown_pending",
+      knownBlocker: true,
+      nextResumePoint: "resume_existing_session_before_child_create",
+      nextWakeStatus: "deferred_capacity_cooldown",
+      nextWakeNotBefore: "2026-03-25T10:05:00.000Z",
       summary: "Post-tool capacity cooldown",
       message: "Resume after cooldown: 2026-03-25T10:05:00.000Z",
       deferredState: {

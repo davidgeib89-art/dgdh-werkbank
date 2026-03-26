@@ -37,6 +37,7 @@ import { assertCompanyAccess, getActorInfo } from "./authz.js";
 import { shouldWakeAssigneeOnCheckout } from "./issues-checkout-wakeup.js";
 import { isAllowedContentType, MAX_ATTACHMENT_BYTES } from "../attachment-types.js";
 import { resolveIssueExecutionPacketTruth } from "../services/issue-execution-packet.js";
+import { summarizeHeartbeatRunResultJson } from "../services/heartbeat-run-summary.js";
 
 const MAX_ISSUE_COMMENT_LIMIT = 500;
 const WORKER_BRANCH_PREFIX = "dgdh/issue-";
@@ -216,9 +217,13 @@ export function issueRoutes(db: Db, storage: StorageService) {
     return trimmed.length > 0 ? trimmed : null;
   }
 
-  function readStageDate(value: Date | string | null | undefined): Date | null {
+  function readStageDate(value: unknown): Date | null {
     if (!value) return null;
-    const parsed = value instanceof Date ? value : new Date(value);
+    if (value instanceof Date) {
+      return Number.isNaN(value.getTime()) ? null : value;
+    }
+    if (typeof value !== "string") return null;
+    const parsed = new Date(value);
     return Number.isNaN(parsed.getTime()) ? null : parsed;
   }
 
@@ -256,6 +261,85 @@ export function issueRoutes(db: Db, storage: StorageService) {
       agentName: input.agentName ?? null,
       runId: input.runId ?? null,
       note: input.note ?? null,
+    };
+  }
+
+  function buildCompanyRunChainParentBlocker(
+    runs: Awaited<ReturnType<typeof activitySvc.runsForIssue>>,
+  ) {
+    const orderedRuns = [...runs].sort(
+      (left, right) => new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime(),
+    );
+    const blockedRun = orderedRuns.find((run) => {
+      const resultJson = asDetailsRecord(run.resultJson);
+      return (
+        readNonEmptyString(run.errorCode) === "post_tool_capacity_exhausted" ||
+        readNonEmptyString(resultJson?.type) === "post_tool_capacity_exhausted"
+      );
+    });
+    if (!blockedRun) return null;
+
+    const blockedResultJson = asDetailsRecord(blockedRun.resultJson);
+    const blockedSummary = summarizeHeartbeatRunResultJson(blockedResultJson);
+    const deferredState = asDetailsRecord(blockedResultJson?.deferredState);
+    const resume = asDetailsRecord(blockedResultJson?.resume);
+    const blockedCreatedAt = readStageDate(blockedRun.createdAt);
+    const blockedSessionId =
+      readNonEmptyString(resume?.sessionId) ?? readNonEmptyString(blockedRun.sessionIdAfter);
+
+    const resumedRun = orderedRuns.find((run) => {
+      if (run.runId === blockedRun.runId) return false;
+      const resumedAt = readStageDate(run.startedAt ?? run.createdAt ?? null);
+      if (
+        blockedCreatedAt &&
+        resumedAt &&
+        resumedAt.getTime() <= blockedCreatedAt.getTime()
+      ) {
+        return false;
+      }
+      if (!blockedSessionId) return false;
+      return readNonEmptyString(run.sessionIdBefore) === blockedSessionId;
+    });
+
+    return {
+      blockerClass:
+        readNonEmptyString(blockedSummary?.blockerClass) ??
+        readNonEmptyString(blockedRun.errorCode) ??
+        readNonEmptyString(blockedResultJson?.type),
+      blockerState:
+        readNonEmptyString(blockedSummary?.blockerState) ??
+        readNonEmptyString(deferredState?.state) ??
+        readNonEmptyString(blockedResultJson?.status),
+      summary:
+        readNonEmptyString(blockedSummary?.summary) ??
+        readNonEmptyString(blockedSummary?.message) ??
+        readNonEmptyString(blockedRun.status),
+      knownBlocker: blockedSummary?.knownBlocker === true,
+      nextResumePoint:
+        readNonEmptyString(blockedSummary?.nextResumePoint) ??
+        readNonEmptyString(deferredState?.nextResumePoint),
+      nextWakeStatus:
+        readNonEmptyString(blockedSummary?.nextWakeStatus) ??
+        readNonEmptyString(resume?.nextWakeStatus),
+      nextWakeNotBefore: readStageDate(
+        blockedSummary?.nextWakeNotBefore ?? resume?.nextWakeNotBefore ?? null,
+      ),
+      resumeStrategy: readNonEmptyString(resume?.strategy),
+      resumeSource: resumedRun
+        ? resumedRun.invocationSource === "automation"
+          ? "scheduler"
+          : resumedRun.invocationSource
+        : readNonEmptyString(resume?.nextWakeStatus)
+          ? "scheduler"
+          : null,
+      resumeRunId: resumedRun?.runId ?? null,
+      resumeRunStatus: resumedRun?.status ?? null,
+      resumeAt: readStageDate(resumedRun?.startedAt ?? resumedRun?.createdAt ?? null),
+      sameSessionPath: Boolean(
+        blockedSessionId &&
+          resumedRun &&
+          readNonEmptyString(resumedRun.sessionIdBefore) === blockedSessionId,
+      ),
     };
   }
 
@@ -834,7 +918,10 @@ export function issueRoutes(db: Db, storage: StorageService) {
       return;
     }
 
-    const listedChildren = await ceoSvc.listChildrenByParentId(rootIssue.id);
+    const [listedChildren, parentRuns] = await Promise.all([
+      ceoSvc.listChildrenByParentId(rootIssue.id),
+      activitySvc.runsForIssue(rootIssue.companyId, rootIssue.id),
+    ]);
     const childIssues = listedChildren.length > 0
       ? await Promise.all(
           listedChildren.map(async (child) => (await svc.getById(child.id)) ?? child),
@@ -846,6 +933,7 @@ export function issueRoutes(db: Db, storage: StorageService) {
     const companyAgents = await agentsSvc.list(rootIssue.companyId);
     const agentById = new Map(companyAgents.map((agent) => [agent.id, agent]));
     const parentDoneAt = issueCompletedAt(rootIssue);
+    const parentBlocker = buildCompanyRunChainParentBlocker(parentRuns);
 
     const children = await Promise.all(
       childIssues.map(async (child) => {
@@ -988,6 +1076,7 @@ export function issueRoutes(db: Db, storage: StorageService) {
       parentTitle: rootIssue.title,
       parentStatus: rootIssue.status,
       focusIssueId: currentIssue.parentId ? currentIssue.id : null,
+      parentBlocker,
       children,
     });
   });

@@ -332,6 +332,13 @@ export function shouldResetTaskSessionForWake(
   return false;
 }
 
+function shouldPreserveSessionForPostToolCapacityResume(
+  contextSnapshot: Record<string, unknown> | null | undefined,
+) {
+  if (contextSnapshot?.postToolCapacityResume === true) return true;
+  return readNonEmptyString(contextSnapshot?.wakeReason) === "post_tool_capacity_resume";
+}
+
 function describeSessionResetReason(
   contextSnapshot: Record<string, unknown> | null | undefined,
 ) {
@@ -1124,6 +1131,8 @@ export async function prepareHeartbeatWorkspaceSessionPlan(input: {
   const thinDefaultExecutionPath =
     readNonEmptyString(input.context.paperclipDefaultExecutionPath) ===
     "ready_small_default";
+  const preserveSessionForPostToolCapacityResume =
+    shouldPreserveSessionForPostToolCapacityResume(input.context);
   let sessionCompaction: SessionCompactionDecision = {
     rotate: false,
     reason: null,
@@ -1131,7 +1140,10 @@ export async function prepareHeartbeatWorkspaceSessionPlan(input: {
     previousRunId: null,
   };
 
-  if (thinDefaultExecutionPath || input.context.forceFreshSession === true) {
+  if (
+    !preserveSessionForPostToolCapacityResume &&
+    (thinDefaultExecutionPath || input.context.forceFreshSession === true)
+  ) {
     runtimeSessionIdForAdapter = null;
     runtimeSessionParamsForAdapter = null;
     previousSessionDisplayId = null;

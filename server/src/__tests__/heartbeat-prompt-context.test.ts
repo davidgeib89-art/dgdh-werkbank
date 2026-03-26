@@ -46,6 +46,36 @@ describe("buildHeartbeatIssuePromptContextPatch", () => {
       "Execution workspace:",
     );
   });
+
+  it("raises the hard cap for explicit same-session post-tool proofs", () => {
+    const patch = buildHeartbeatIssuePromptContextPatch({
+      contextSnapshot: {},
+      issue: {
+        id: "issue-ptc-proof",
+        companyId: "company-1",
+        projectId: "project-1",
+        goalId: null,
+        parentId: null,
+        identifier: "DAV-200",
+        title: "Truth cut: post-tool capacity same-session proof",
+        description: [
+          "packetType: free_api",
+          "executionIntent: implement",
+          "reviewPolicy: required",
+          "needsReview: true",
+          "targetFile: doc/DGDH-AI-OPERATOR-RUNBOOK.md",
+          "targetFolder: doc",
+          "artifactKind: doc_update",
+          "doneWhen: The CEO hits post-tool capacity after real tool calls, the deferred wake is promoted, and the resumed CEO run carries the same session path before any child creation.",
+        ].join("\n"),
+      },
+    });
+
+    expect(patch.workPacketBudget).toEqual({
+      budgetClass: "large",
+      hardCapTokens: 500000,
+    });
+  });
 });
 
 describe("buildHeartbeatReviewerPromptContextPatch", () => {

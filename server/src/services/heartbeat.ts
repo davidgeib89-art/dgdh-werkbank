@@ -110,6 +110,7 @@ export {
 } from "./heartbeat-prompt-context.js";
 export {
   evaluateSingleFileBenchmarkPreflight,
+  prepareHeartbeatWorkspaceSessionPlan,
   resolveAdapterCwdForRun,
   resolveRuntimeSessionParamsForWorkspace,
   shouldResetTaskSessionForWake,
@@ -999,6 +1000,59 @@ export function buildPostToolCapacityDeferredContextSnapshot(input: {
     next.postToolCapacityCooldownUntil = input.cooldownUntil;
   }
   return next;
+}
+
+export function buildPostToolCapacityResumeWakeMetadata(input: {
+  source?: WakeupSource;
+  triggerDetail?: WakeupOptions["triggerDetail"] | null;
+}) {
+  return {
+    source: "automation" as const,
+    triggerDetail: "system" as const,
+    originalSource: input.source ?? null,
+    originalTriggerDetail: input.triggerDetail ?? null,
+  };
+}
+
+export function shouldRetryFailedPostToolCapacityWake(input: {
+  wakeStatus: string | null | undefined;
+  payload: unknown;
+  runErrorCode: string | null | undefined;
+  issueStatus: string | null | undefined;
+  executionRunId?: string | null;
+}) {
+  if (input.wakeStatus !== "failed") return false;
+  if (parseObject(input.payload).resumeKind !== "post_tool_capacity") {
+    return false;
+  }
+  if (input.runErrorCode !== "process_lost") return false;
+  if (input.executionRunId) return false;
+  return typeof input.issueStatus === "string"
+    ? shouldPromoteDeferredIssueExecution(input.issueStatus)
+    : false;
+}
+
+export function resolvePostToolCapacityResumeSessionId(input: {
+  resolvedSessionBefore: string | null;
+  payload: unknown;
+}) {
+  return (
+    input.resolvedSessionBefore ??
+    readNonEmptyString(parseObject(input.payload).sessionId)
+  );
+}
+
+export function resolveRunStartSessionIdBefore(input: {
+  existingSessionIdBefore: string | null | undefined;
+  runtimeSessionDisplayId: string | null | undefined;
+  runtimeSessionId: string | null | undefined;
+}) {
+  return (
+    input.runtimeSessionDisplayId ??
+    input.runtimeSessionId ??
+    input.existingSessionIdBefore ??
+    null
+  );
 }
 
 function buildPostToolCapacityResultJson(input: {
@@ -2188,10 +2242,13 @@ export function heartbeatService(db: Db) {
           triggerDetail: promotedTriggerDetail,
           payload: promotedPayload,
         });
-        const sessionBefore = await resolveSessionBeforeForWakeup(
-          deferredAgent,
-          promotedTaskKey,
-        );
+        const sessionBefore = resolvePostToolCapacityResumeSessionId({
+          resolvedSessionBefore: await resolveSessionBeforeForWakeup(
+            deferredAgent,
+            promotedTaskKey,
+          ),
+          payload,
+        });
         const newRun = await tx
           .insert(heartbeatRuns)
           .values({
@@ -2248,7 +2305,118 @@ export function heartbeatService(db: Db) {
     }
   }
 
+  async function repairFailedPostToolCapacityWakeups(now = new Date()) {
+    const failedWakeups = await db
+      .select()
+      .from(agentWakeupRequests)
+      .where(eq(agentWakeupRequests.status, "failed"))
+      .orderBy(desc(agentWakeupRequests.updatedAt));
+
+    for (const failedWake of failedWakeups) {
+      const payload = parseObject(failedWake.payload);
+      const issueId = readNonEmptyString(payload.issueId);
+      if (!issueId) continue;
+
+      const failedRun = failedWake.runId
+        ? await db
+            .select({
+              errorCode: heartbeatRuns.errorCode,
+            })
+            .from(heartbeatRuns)
+            .where(eq(heartbeatRuns.id, failedWake.runId))
+            .limit(1)
+            .then((rows) => rows[0] ?? null)
+        : null;
+      const issue = await db
+        .select({
+          id: issues.id,
+          status: issues.status,
+          executionRunId: issues.executionRunId,
+        })
+        .from(issues)
+        .where(eq(issues.id, issueId))
+        .limit(1)
+        .then((rows) => rows[0] ?? null);
+      if (!issue) continue;
+
+      if (
+        !shouldRetryFailedPostToolCapacityWake({
+          wakeStatus: failedWake.status,
+          payload,
+          runErrorCode: failedRun?.errorCode ?? null,
+          issueStatus: issue.status,
+          executionRunId: issue.executionRunId,
+        })
+      ) {
+        continue;
+      }
+
+      const competingWake = await db
+        .select({ id: agentWakeupRequests.id })
+        .from(agentWakeupRequests)
+        .where(
+          and(
+            eq(agentWakeupRequests.companyId, failedWake.companyId),
+            eq(agentWakeupRequests.agentId, failedWake.agentId),
+            inArray(agentWakeupRequests.status, [
+              "queued",
+              "claimed",
+              POST_TOOL_CAPACITY_DEFERRED_WAKE_STATUS,
+            ]),
+            sql`${agentWakeupRequests.payload} ->> 'issueId' = ${issueId}`,
+          ),
+        )
+        .limit(1)
+        .then((rows) => rows[0] ?? null);
+      if (competingWake) continue;
+
+      const resumeWake = buildPostToolCapacityResumeWakeMetadata({
+        source:
+          (readNonEmptyString(failedWake.source) as WakeupSource | undefined) ??
+          undefined,
+        triggerDetail:
+          (readNonEmptyString(
+            failedWake.triggerDetail,
+          ) as WakeupOptions["triggerDetail"] | null) ?? null,
+      });
+      const repairedContextSnapshot = buildPostToolCapacityDeferredContextSnapshot(
+        {
+          contextSnapshot: parseObject(payload[DEFERRED_WAKE_CONTEXT_KEY]),
+          source: resumeWake.source,
+          triggerDetail: resumeWake.triggerDetail,
+          cooldownUntil: readNonEmptyString(payload.notBefore),
+        },
+      );
+
+      await db
+        .update(agentWakeupRequests)
+        .set({
+          status: POST_TOOL_CAPACITY_DEFERRED_WAKE_STATUS,
+          source: resumeWake.source,
+          triggerDetail: resumeWake.triggerDetail,
+          reason: "post_tool_capacity_cooldown",
+          payload: {
+            ...payload,
+            originalWakeSource:
+              readNonEmptyString(payload.originalWakeSource) ??
+              resumeWake.originalSource,
+            originalWakeTriggerDetail:
+              readNonEmptyString(payload.originalWakeTriggerDetail) ??
+              resumeWake.originalTriggerDetail,
+            [DEFERRED_WAKE_CONTEXT_KEY]: repairedContextSnapshot,
+          },
+          runId: null,
+          claimedAt: null,
+          finishedAt: null,
+          error: null,
+          updatedAt: now,
+        })
+        .where(eq(agentWakeupRequests.id, failedWake.id));
+    }
+  }
+
   async function resumeQueuedRuns() {
+    await repairFailedPostToolCapacityWakeups();
     await promoteDuePostToolCapacityWakeups();
 
     const queuedRuns = await db
@@ -2273,11 +2441,15 @@ export function heartbeatService(db: Db) {
     cooldownSec: number;
     state: PostToolCapacityState;
   }) {
+    const resumeWake = buildPostToolCapacityResumeWakeMetadata({
+      source: input.source,
+      triggerDetail: input.triggerDetail,
+    });
     const deferredContextSnapshot = buildPostToolCapacityDeferredContextSnapshot(
       {
         contextSnapshot: input.contextSnapshot,
-        source: input.source,
-        triggerDetail: input.triggerDetail,
+        source: resumeWake.source,
+        triggerDetail: resumeWake.triggerDetail,
         cooldownUntil: input.cooldownUntil,
       },
     );
@@ -2293,6 +2465,8 @@ export function heartbeatService(db: Db) {
       failedToolResultCount: input.state.failedToolResultCount,
       firstSuccessfulToolName: input.state.firstSuccessfulToolName,
       lastSuccessfulToolName: input.state.lastSuccessfulToolName,
+      originalWakeSource: resumeWake.originalSource,
+      originalWakeTriggerDetail: resumeWake.originalTriggerDetail,
       [DEFERRED_WAKE_CONTEXT_KEY]: deferredContextSnapshot,
     };
 
@@ -2318,8 +2492,8 @@ export function heartbeatService(db: Db) {
       await db
         .update(agentWakeupRequests)
         .set({
-          source: input.source ?? existingDeferred.source,
-          triggerDetail: input.triggerDetail,
+          source: resumeWake.source,
+          triggerDetail: resumeWake.triggerDetail,
           reason: "post_tool_capacity_cooldown",
           payload: {
             ...parseObject(existingDeferred.payload),
@@ -2337,8 +2511,8 @@ export function heartbeatService(db: Db) {
       .values({
         companyId: input.agent.companyId,
         agentId: input.agent.id,
-        source: input.source ?? "automation",
-        triggerDetail: input.triggerDetail,
+        source: resumeWake.source,
+        triggerDetail: resumeWake.triggerDetail,
         reason: "post_tool_capacity_cooldown",
         payload: deferredPayload,
         status: POST_TOOL_CAPACITY_DEFERRED_WAKE_STATUS,
@@ -2890,8 +3064,11 @@ export function heartbeatService(db: Db) {
           .update(heartbeatRuns)
           .set({
             startedAt,
-            sessionIdBefore:
-              runtimeForAdapter.sessionDisplayId ?? runtimeForAdapter.sessionId,
+            sessionIdBefore: resolveRunStartSessionIdBefore({
+              existingSessionIdBefore: run.sessionIdBefore,
+              runtimeSessionDisplayId: runtimeForAdapter.sessionDisplayId,
+              runtimeSessionId: runtimeForAdapter.sessionId,
+            }),
             contextSnapshot: context,
             updatedAt: new Date(),
           })

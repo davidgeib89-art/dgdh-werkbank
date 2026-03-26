@@ -1,7 +1,7 @@
 # CURRENT - Live Baton
 
-focus: `gemini-post-tool-capacity-cooldown-state-v1`; die Verlustklasse `erster echter Tool-Call -> capacity exhausted -> diffuser Retry-Sumpf` ist jetzt repo-wahr als expliziter Heartbeat-Zustand geschnitten: der Gemini-Adapter klassifiziert `post_tool_capacity_exhausted`, Heartbeat schreibt `deferredState` plus `resume`, queued einen `deferred_capacity_cooldown`-Wake und promoted ihn spaeter scheduler-gesteuert statt blind full rerun zu verbrennen
-active_issue: `DAV-97` (`f4dd4367-d71b-4d3b-a1ec-1044160ad598`) / finaler CEO-Run `f4bd6cd7-1561-4ed9-9aca-45c48d2a0020` beweist auf frischer `3111`-Runtime den neuen Stand: `runStatus = blocked`, `errorCode = post_tool_capacity_exhausted`, `resultJson.type = post_tool_capacity_exhausted`, `deferredState.state = cooldown_pending`, `resume.strategy = reuse_session`, `resume.nextWakeStatus = deferred_capacity_cooldown`, `resume.nextWakeNotBefore = 2026-03-25T20:15:27.720Z`; der Parent bleibt `todo`, `executionRunId = null`, `active-run = null`, und der naechste Resume-Punkt ist explizit statt diffuser Retry-Schleife
+focus: `resume-proof-budget-gate-salvage-v1`; der saubere Salvage-Cut auf Branch `copilot/resume-proof-budget-gate-salvage-v1` beweist jetzt dieselbe Live-Kette reviewbar auf Runtime `3113`: `post_tool_capacity_exhausted -> deferred_capacity_cooldown -> scheduler resume -> succeeded`, und die operator-facing `company-run-chain` zeigt dafuer erstmals `resumeRunId` plus `sameSessionPath = true`
+active_issue: `DAV-131` (`6c608432-6133-403a-88ad-7ec84ad1bddd`) / blocked CEO-Run `011bbf57-c596-4008-8d2c-5d2b003d7d0f` auf `3113` endete mit `errorCode = post_tool_capacity_exhausted`, `sessionIdAfter = 66edfbee-8a20-41ae-94a5-dca731d5ac3a`, `resume.strategy = reuse_session`, `resume.nextWakeStatus = deferred_capacity_cooldown`, `deferredState.nextResumePoint = resume_existing_session_before_child_create`; nach Cooldown promotete der Scheduler Resume-Run `fd981453-1b54-44da-8d7a-8f3fe4a396c1` erfolgreich mit `sessionIdBefore = 66edfbee-8a20-41ae-94a5-dca731d5ac3a`, `usageJson.sessionReused = true`, `freshSession = false`, und `/api/issues/DAV-131/company-run-chain` zeigt `resumeRunStatus = succeeded` sowie `sameSessionPath = true`
 
 anti_slop_gate:
   - Ab jetzt jede relevante Aenderung, Idee und Lane durch denselben Filter ziehen: spart das David auf einem echten Firmenlauf messbar Minuten, erhoeht es echte Firmenfaehigkeit statt bloss AI-Aktivitaet, bleibt es fuer David pruefbar ohne Blindvertrauen, traegt es auch ohne AI-Prosa und ist es jetzt wirklich dran
@@ -9,9 +9,9 @@ anti_slop_gate:
   - Hauptfilter: `Hilft das DGDH dabei, mit weniger David-Supervision pro nuetzlichem Lauf echte reviewbare Realitaet zu liefern - oder produziert es nur mehr AI-Aufsicht?`
 
 next:
-  1) verifizieren, dass der scheduler-gesteuerte Resume nach `nextWakeNotBefore` denselben CEO-Sessionpfad billig weiterfuehrt statt neuen Denkpfad aufzubauen
-  2) den verbliebenen Edge-Case entscheiden: ob post-tool capacity bei bereits erzeugtem Child dieselbe cooldown semantics behalten oder enger auf Parent-without-child geschnitten werden soll
-  3) erst danach wieder an Child-Create-/Worker-Folgepfade gehen
+  1) denselben Salvage-Stand sauber committen/pushen, aber nur mit klarer Truth-Formulierung ohne Merge-Claim
+  2) danach den naechsten kleinen Produktcut diskutieren: schmalere CEO-/Agent-Tools fuer Issue-Create und Status-Arbeit statt `curl.exe`-/Shell-Drift
+  3) erst dann entscheiden, ob der verbleibende Child-created-Resume-Edge-Case ein eigener Schnitt sein soll
 
 blockers:
   - Der alte reine `assignment-to-run kickoff loss` ist fuer frische ready Packets nicht mehr der erste Blocker
@@ -19,7 +19,8 @@ blockers:
   - `worker run blocked -> worker dauerhaft error` gilt ebenfalls nicht mehr; `blocked` finalisiert/reconciled jetzt wieder zu `idle`
   - `CEO claims Paperclip env vars are missing -> no tool calls` gilt nicht mehr; `DAV-88` und `DAV-95` zeigen echte Tool-Calls
   - Der extra `flash_lite_call` fuer fertige Ready-Packets gilt auf dem CEO-Pfad nicht mehr; `DAV-95` laeuft live mit `flash_lite_router_skipped_ready_packet_truth`
-  - Der rohe Blocker `capacity exhausted after real tool calls` ist nicht mehr bloss Retry-Schleife; er ist jetzt als explizite blocker class mit Cooldown-/Resume-Wahrheit modelliert
+  - Der frische Budget-Frontblocker `budget_hard_cap_reached before post-tool truth` ist im expliziten Same-Session-Proof-Pfad auf `500000` angehoben und nicht mehr der erste Killer
+  - Der rohe Blocker `capacity exhausted after real tool calls` ist nicht mehr bloss Retry-Schleife; die Resume-/Session-Wahrheit ist jetzt live bis in die operator-facing Surface bewiesen
 
 strategy_anchor:
   - `doc/plans/2026-03-24-dgdh-first-principles-operating-doctrine.md`
@@ -27,6 +28,11 @@ strategy_anchor:
   - `doc/plans/2026-03-23-focus-freeze.md`
 
 notes:
+  - Salvage-Worktree/Branch fuer diesen Truth Cut: `C:\Users\holyd\DGDH\worktrees\dgdh-werkbank-salvage`, `copilot/resume-proof-budget-gate-salvage-v1`; Basis war sauberes `origin/main`, nicht der alte schmutzige Branch
+  - Nur die nuetzlichen Resume-/Operator-Truth-Aenderungen wurden portiert; alte Artefakte `doc/archive/chat.json`, `server-3112.out.log`, `server-3112.err.log` blieben bewusst draussen
+  - `DAV-131` beweist jetzt reviewbar die Zielkette: blocked Run `011bbf57-c596-4008-8d2c-5d2b003d7d0f` -> scheduler Resume `fd981453-1b54-44da-8d7a-8f3fe4a396c1`; `sessionIdAfter(blocked)` entspricht `sessionIdBefore(resume)` exakt
+  - Die operator-facing Surface zeigt denselben Beweis ohne Shell-Archaeologie: `/api/issues/DAV-131/company-run-chain` liefert `resumeRunId = fd981453-1b54-44da-8d7a-8f3fe4a396c1`, `resumeRunStatus = succeeded`, `sameSessionPath = true`, `resumeSource = scheduler`
+  - Der fruehere Salvage-Frontblocker `budget_hard_cap_reached` wurde fuer explizite Same-Session-Post-Tool-Proof-Pakete in `heartbeat-prompt-context.ts` von `300000` auf `500000` angehoben; erst danach kam `DAV-131` wieder auf den beabsichtigten `post_tool_capacity_exhausted`-Pfad
   - Git/runtime truth fuer diesen Truth Cut startete auf canonical worktree `c:\\Users\\holyd\\DGDH\\worktrees\\dgdh-werkbank`, branch `main`, Company `44850e08-61ce-44de-8ccd-b645c1f292be`
   - Der alte Worker-Fehlerlauf `e8c11351-d916-4c41-ab69-87c9ea54347e` war `failed` mit `errorCode = process_lost`; frische `3101`-Instanz zeigte danach denselben Worker per Agent-Truth-Reconcile wieder auf `status = idle`
   - `DAV-75` (`151a5720-21bb-4915-80ed-f95f3814c0b2`) / Parent-Run `b7af4b38-b009-4c62-8d33-2348ea493393` bewiesen zuerst die Wake-Context-Luecke: ohne `companyId`/`projectId` im Issue-Select fiel der Parent-Prompt auf `none`; nach Fix auf frischer `3102`-Instanz war der Prompt wieder vollstaendig
@@ -44,5 +50,5 @@ notes:
   - Live-Beweis `DAV-97` auf frischer `3111`-Runtime zeigt den neuen Produktcut end-to-end: der CEO laeuft weiterhin im korrekten `ready_packet_truth`-/Flash-Pfad, scheitert bei Modellkapazitaet nicht mehr als generischer Fail/Budget-Schattenfehler, sondern finalisiert als `post_tool_capacity_exhausted` mit `cooldown_pending` und explizitem Resume-Punkt
   - Konsequenz fuer den North-Star-Pfad: der verbleibende Schmerz ist nicht mehr "was ist passiert?", sondern nur noch "wann/wie resume ich denselben Sessionpfad weiter?"; genau das sollte der naechste kleine Truth-Cut operationalisieren
 
-last_updated_by: Codex
-updated_at: 2026-03-25
+last_updated_by: OpenCode
+updated_at: 2026-03-26
