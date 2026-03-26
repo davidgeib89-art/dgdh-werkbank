@@ -1,3 +1,4 @@
+import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { buildPaperclipEnv } from "../adapters/utils.js";
 
@@ -6,6 +7,7 @@ const ORIGINAL_PAPERCLIP_LISTEN_HOST = process.env.PAPERCLIP_LISTEN_HOST;
 const ORIGINAL_PAPERCLIP_LISTEN_PORT = process.env.PAPERCLIP_LISTEN_PORT;
 const ORIGINAL_HOST = process.env.HOST;
 const ORIGINAL_PORT = process.env.PORT;
+const ORIGINAL_CWD = process.cwd();
 
 afterEach(() => {
   if (ORIGINAL_PAPERCLIP_API_URL === undefined) delete process.env.PAPERCLIP_API_URL;
@@ -22,6 +24,8 @@ afterEach(() => {
 
   if (ORIGINAL_PORT === undefined) delete process.env.PORT;
   else process.env.PORT = ORIGINAL_PORT;
+
+  process.chdir(ORIGINAL_CWD);
 });
 
 describe("buildPaperclipEnv", () => {
@@ -54,5 +58,13 @@ describe("buildPaperclipEnv", () => {
     const env = buildPaperclipEnv({ id: "agent-1", companyId: "company-1" });
 
     expect(env.PAPERCLIP_API_URL).toBe("http://[::1]:3101");
+  });
+
+  it("resolves PAPERCLIP_CLI_CWD to the repo root from nested server cwd", () => {
+    process.chdir(path.join(ORIGINAL_CWD, "server"));
+
+    const env = buildPaperclipEnv({ id: "agent-1", companyId: "company-1" });
+
+    expect(env.PAPERCLIP_CLI_CWD).toBe(ORIGINAL_CWD);
   });
 });

@@ -151,21 +151,24 @@ describe("resolveAssignedRoleTemplate", () => {
       "Create real child issues in Paperclip",
     );
     expect(result.assigned?.prompt).toContain(
-      "Do not search for a `pc` or `paperclip` CLI.",
+      "use the native `paperclipai` CLI primitives already available in this run",
     );
     expect(result.assigned?.prompt).toContain(
-      "Execute the issue creation calls. Do not merely print sample commands",
+      "Run these primitives from `PAPERCLIP_CLI_CWD` so they execute from the repo root.",
     );
     expect(result.assigned?.prompt).toContain(
-      "fetch available agents with GET /api/companies/PAPERCLIP_COMPANY_ID/agents",
+      "pnpm paperclipai agent list --company-id $env:PAPERCLIP_COMPANY_ID --json",
     );
     expect(result.assigned?.prompt).toContain(
       "adapterConfig.roleTemplateId == \"worker\" and status == \"idle\"",
     );
     expect(result.assigned?.prompt).toContain(
-      "set status to \"todo\" in the create request body",
+      "pnpm paperclipai issue create --company-id $env:PAPERCLIP_COMPANY_ID --project-id $env:PAPERCLIP_PROJECT_ID --parent-id $env:PAPERCLIP_TASK_ID",
     );
     expect(result.assigned?.prompt).toContain("status: todo");
+    expect(result.assigned?.prompt).toContain(
+      "pnpm paperclipai issue assign CHILD_ISSUE_ID --agent-id WORKER_AGENT_ID --json",
+    );
     expect(result.assigned?.prompt).toContain("[NEEDS WORKER]");
     expect(result.assigned?.prompt).toContain("Direct Answer Mode");
     expect(result.assigned?.prompt).toContain(
@@ -186,7 +189,7 @@ describe("resolveAssignedRoleTemplate", () => {
     expect(result.assigned?.prompt).toContain("Aggregation Mode");
     expect(result.assigned?.prompt).toContain("parentId");
     expect(result.assigned?.prompt).toContain(
-      "GET /api/companies/PAPERCLIP_COMPANY_ID/issues?parentId=PAPERCLIP_TASK_ID",
+      "pnpm paperclipai issue list --company-id $env:PAPERCLIP_COMPANY_ID --parent-id $env:PAPERCLIP_TASK_ID --json",
     );
     expect(result.assigned?.prompt).toContain(
       "GET /api/issues/CHILD_ISSUE_ID/approvals",
@@ -198,7 +201,7 @@ describe("resolveAssignedRoleTemplate", () => {
       "review-optional child is complete only when its issue status is done",
     );
     expect(result.assigned?.template.constraints).toContain(
-      "Aggregation Mode: MUST execute GET /api/companies/.../issues?parentId=... before any decision. Do not trust injected context for child statuses. The API call is mandatory and non-optional. Do not create new packets if all children are already done.",
+      "Aggregation Mode: MUST execute the child issue list read before any decision. Do not trust injected context for child statuses. The read is mandatory and non-optional. Do not create new packets if all children are already done.",
     );
     expect(result.assigned?.template.constraints).toContain(
       "Aggregation Mode: A child with reviewPolicy optional is complete only when status=done; review-required children still require latest approval status=approved.",
@@ -207,7 +210,7 @@ describe("resolveAssignedRoleTemplate", () => {
       "If and only if all child packets are complete under policy, PATCH parent issue status to done and report the mission complete.",
     );
     expect(result.assigned?.template.constraints).toContain(
-      "After creating child issues, fetch /api/companies/{companyId}/agents and assign each packet to an idle worker (adapterConfig.roleTemplateId == worker) when available.",
+      "After creating child issues, list available agents with paperclipai agent list and assign each packet to an idle worker (adapterConfig.roleTemplateId == worker) when available.",
     );
     expect(result.assigned?.template.constraints).toContain(
       "If a packet should start immediately, create it with status=todo because backlog intentionally blocks assignment-triggered wakeup.",

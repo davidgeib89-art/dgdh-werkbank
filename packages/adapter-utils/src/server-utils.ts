@@ -1,5 +1,5 @@
 import { spawn, type ChildProcess } from "node:child_process";
-import { constants as fsConstants, promises as fs } from "node:fs";
+import { constants as fsConstants, existsSync, promises as fs } from "node:fs";
 import path from "node:path";
 
 export interface RunProcessResult {
@@ -130,6 +130,21 @@ export function redactEnvForLogs(env: Record<string, string>): Record<string, st
   return redacted;
 }
 
+export function resolvePaperclipCliCwd(startCwd = process.cwd()): string {
+  let cursor = path.resolve(startCwd);
+  while (true) {
+    const isRepoRoot =
+      existsSync(path.join(cursor, "pnpm-workspace.yaml")) &&
+      existsSync(path.join(cursor, "package.json")) &&
+      existsSync(path.join(cursor, "server")) &&
+      existsSync(path.join(cursor, "packages", "adapter-utils"));
+    if (isRepoRoot) return cursor;
+    const parent = path.dirname(cursor);
+    if (parent === cursor) return path.resolve(startCwd);
+    cursor = parent;
+  }
+}
+
 export function buildPaperclipEnv(agent: { id: string; companyId: string }): Record<string, string> {
   const resolveHostForUrl = (rawHost: string): string => {
     const host = rawHost.trim();
@@ -147,7 +162,7 @@ export function buildPaperclipEnv(agent: { id: string; companyId: string }): Rec
   const runtimePort = process.env.PAPERCLIP_LISTEN_PORT ?? process.env.PORT ?? "3100";
   const apiUrl = process.env.PAPERCLIP_API_URL ?? `http://${runtimeHost}:${runtimePort}`;
   vars.PAPERCLIP_API_URL = apiUrl;
-  vars.PAPERCLIP_CLI_CWD = process.cwd();
+  vars.PAPERCLIP_CLI_CWD = resolvePaperclipCliCwd();
   return vars;
 }
 
