@@ -17,6 +17,7 @@ import {
   type GeminiFlashLiteRouterResult,
 } from "./gemini-flash-lite-router.js";
 import { refreshGeminiRuntimeQuotaSnapshot } from "./gemini-quota-producer.js";
+import { resolveDirectAnswerAuditTruth } from "./direct-answer-audit.js";
 import { resolveIssueExecutionPacketTruth } from "./issue-execution-packet.js";
 import { resolveAssignedRoleTemplate } from "./role-templates.js";
 
@@ -420,6 +421,21 @@ function shouldPinRouterFlashLane(input: {
   return input.routingProposal.chosenModelLane.toLowerCase().includes("flash");
 }
 
+function readDirectAnswerAuditTruth(
+  context: Record<string, unknown>,
+  issueRef: HeartbeatGeminiRoutingIssueRef | null,
+) {
+  const existing = asObject(context.paperclipDirectAnswerAuditTruth);
+  if (Object.keys(existing).length > 0) {
+    return existing as unknown as ReturnType<typeof resolveDirectAnswerAuditTruth>;
+  }
+  if (!issueRef) return null;
+  return resolveDirectAnswerAuditTruth({
+    title: issueRef.title,
+    description: issueRef.description,
+  });
+}
+
 export interface HeartbeatGeminiRoutingIssueRef {
   id?: string | null;
   companyId?: string | null;
@@ -553,6 +569,19 @@ export async function prepareHeartbeatGeminiRouting(
   );
 
   const readyPacketTruth = readReadyPacketTruth(workingContext, input.issueRef);
+  const directAnswerAuditTruth = readDirectAnswerAuditTruth(
+    workingContext,
+    input.issueRef,
+  );
+  if (directAnswerAuditTruth?.bounded === true) {
+    contextPatch.paperclipDirectAnswerAuditTruth = directAnswerAuditTruth;
+    contextPatch.paperclipSkillSelection = {
+      allowedSkills: ["repo-read"],
+      source: "direct_answer_audit_truth",
+    };
+    workingContext.paperclipSkillSelection = contextPatch.paperclipSkillSelection;
+    resolvedConfigPatch.includeSkills = ["repo-read"];
+  }
   const { policy } = getGeminiRoutingPolicy();
   const manualOverrideForRouter = parseObject(
     parseObject(runtimeConfigForRouting.routingPolicy).manualOverride,
@@ -648,7 +677,11 @@ export async function prepareHeartbeatGeminiRouting(
   }
   Object.assign(workingContext, contextPatch);
 
-  if (routingProposal?.allowedSkills && routingProposal.allowedSkills.length > 0) {
+  if (
+    directAnswerAuditTruth?.bounded !== true &&
+    routingProposal?.allowedSkills &&
+    routingProposal.allowedSkills.length > 0
+  ) {
     resolvedConfigPatch.includeSkills = routingProposal.allowedSkills;
     contextPatch.paperclipSkillSelection = {
       allowedSkills: routingProposal.allowedSkills,
@@ -658,7 +691,7 @@ export async function prepareHeartbeatGeminiRouting(
           : "flash_lite_proposal",
     };
     workingContext.paperclipSkillSelection = contextPatch.paperclipSkillSelection;
-  } else {
+  } else if (directAnswerAuditTruth?.bounded !== true) {
     contextPatch.paperclipSkillSelection = null;
   }
 

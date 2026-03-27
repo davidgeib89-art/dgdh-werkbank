@@ -270,4 +270,91 @@ describe("prepareHeartbeatGeminiRouting", () => {
     expect(plan.resolvedConfigPatch.model).toBe("gemini-2.5-flash-lite");
     expect(plan.contextPatch.bucket).toBe("flash-lite");
   });
+
+  it("forces bounded audit runs onto repo-read only skills", async () => {
+    const plan = await prepareHeartbeatGeminiRouting({
+      agent: { adapterType: "gemini_local" },
+      resolvedConfig: {
+        model: "auto",
+        roleTemplateId: "ceo",
+      },
+      runtimeConfig: buildRuntimeConfig(),
+      runtimeState: {},
+      issueRef: {
+        id: "issue-ceo-audit",
+        identifier: "DAV-156",
+        title: "Resume proof audit via verified skill bridge",
+        description:
+          "verifiedSkill: same-session-resume-after-post-tool-capacity\n" +
+          "Titel: Resume proof audit via verified skill bridge\n" +
+          "Ziel: Give a direct answer on whether DAV-131 still proves same-session resume and whether the verified skill brief keeps the audit path narrow.\n" +
+          "Scope: Direct answer only. Read child issue status first, then inspect only DAV-131 company-run-chain and the two referenced heartbeat runs. No child creation. No code. No file edits. No git. No repo reads. No resume-trigger chase.\n" +
+          "doneWhen: Answer directly from the named audit surfaces without archaeology.\n" +
+          "Annahmen:\n" +
+          "[NEEDS INPUT]: none",
+      },
+      context: {},
+    }, {
+      produceRoutingProposal: async () => ({
+        attempted: true,
+        source: "flash_lite_call",
+        proposal: {
+          taskClass: "research-light",
+          budgetClass: "small",
+          executionIntent: "investigate",
+          targetFile: "n/a",
+          targetFolder: "n/a",
+          artifactKind: "multi_file_change",
+          doneWhen:
+            "Provide a direct answer on DAV-131's same-session resume capability and the verified skill brief's audit path.",
+          riskLevel: "low",
+          missingInputs: [],
+          needsApproval: false,
+          chosenBucket: "flash-lite",
+          chosenModelLane: "gemini-2.5-flash-lite",
+          fallbackBucket: "flash",
+          allowedSkills: ["repo-read", "repo-write", "status-summary"],
+          rationale:
+            "research-light task, small budget, uses flash-lite bucket, requires multiple skills to inspect DAV-131 and heartbeat runs.",
+        },
+        parseStatus: "ok",
+        latencyMs: 25,
+        warning: null,
+        fallbackReason: null,
+        cacheHit: false,
+        runtimeStatePatch: {},
+        routerHealth: {
+          successCount: 1,
+          fallbackCount: 0,
+          timeoutCount: 0,
+          parseFailCount: 0,
+          commandErrorCount: 0,
+          cacheHitCount: 0,
+          circuitOpenCount: 0,
+          consecutiveFailures: 0,
+          breakerOpenUntil: null,
+          lastLatencyMs: 25,
+          lastErrorReason: null,
+        },
+      }),
+    });
+
+    expect(plan.resolvedConfigPatch.includeSkills).toEqual(["repo-read"]);
+    expect(plan.contextPatch.paperclipSkillSelection).toEqual({
+      allowedSkills: ["repo-read"],
+      source: "direct_answer_audit_truth",
+    });
+    expect(plan.contextPatch.paperclipDirectAnswerAuditTruth).toEqual(
+      expect.objectContaining({
+        bounded: true,
+        namedTruthSurfaces: [
+          "DAV-131 company-run-chain",
+          "the two referenced heartbeat runs",
+        ],
+        forbidRepoReads: true,
+        forbidChildCreation: true,
+        forbidResumeTriggerChase: true,
+      }),
+    );
+  });
 });
