@@ -1,0 +1,162 @@
+{
+  "schemaVersion": "v1",
+  "missionCellId": "first-live-mission-cell-proof-v1",
+  "title": "First Live Mission Cell Proof V1",
+  "summary": "Use one real mission cell on a bounded internal self-improvement target so DGDH proves launch, live proof, hardening, and promotion on the same path.",
+  "owners": [
+    "david",
+    "copilot"
+  ],
+  "status": "active",
+  "updatedAt": "2026-03-27T23:30:00.000Z",
+  "charter": {
+    "objective": "Run one real mission cell on a bounded self-improvement target around long-autonomy continuity, survive the first real friction, harden that friction once, and leave durable truth that makes the next run easier to carry.",
+    "primaryMetric": "A mission launched from `missionCell: first-live-mission-cell-proof-v1` completes launch, live proof, at least one proof-discovered hardening cut, and one promotion step without David restating the lane mid-run.",
+    "guardMetrics": [
+      "No first-green closure is mistaken for mission completion.",
+      "No unrelated platform or provider expansion is opened.",
+      "No Type-1 boundary is crossed without escalation."
+    ],
+    "budget": "One long autonomous branch-sized mission with multiple coherent sister cuts and midpoint commits allowed.",
+    "runtime": "A single live proof container that may span compacts, context loss, and several pushed branch states.",
+    "blastRadius": [
+      "company-hq/**",
+      "doc/plans/**",
+      "CURRENT.md",
+      "MEMORY.md",
+      ".github/**",
+      "cli/**",
+      "packages/shared/**",
+      "server/**"
+    ],
+    "allowedZones": [
+      "mission contracts",
+      "mission-cell contracts",
+      "active mission and memory promotion",
+      "prompt, issue, wakeup, and portability seams",
+      "targeted tests and bounded runtime proof"
+    ],
+    "forbiddenZones": [
+      "provider migration",
+      "broad UI redesign",
+      "destructive DB resets",
+      "deploys or live external effects",
+      "benchmark or AGI detours"
+    ]
+  },
+  "decisionPolicy": {
+    "type2Autonomy": [
+      "bounded branch edits inside the stated blast radius",
+      "compact-safe mission continuity and mission-state truth improvements",
+      "targeted replay, eval, portability, CLI, or runtime bridge cuts that stay reversible"
+    ],
+    "type1Escalations": [
+      "main branch mutation outside reviewed merge flow",
+      "deploys and live external effects",
+      "global secrets or permission changes",
+      "irreversible data or cost consequences",
+      "global policy changes beyond this mission cell"
+    ],
+    "escalationPath": [
+      "stop at the boundary instead of guessing",
+      "state the exact action and why it is Type-1",
+      "escalate to David or the Oberreviewer gate with concrete evidence"
+    ]
+  },
+  "riskGate": {
+    "oberreviewerTriggers": [
+      "the mission widens beyond continuity and live-proof hardening",
+      "promotion would affect default behavior without enough replay or runtime truth",
+      "the same friction repeats and suggests the mission cell was cut badly"
+    ],
+    "requiredEvidence": [
+      "exact git truth",
+      "targeted tests, replay truth, or runtime proof",
+      "the smallest truthful statement of the current blocker or promotion claim"
+    ],
+    "stopReasons": [
+      "true Type-1 point",
+      "external hard blocker",
+      "remaining work has widened into a new program"
+    ]
+  },
+  "eval": {
+    "replayChecks": [
+      "the mission cell starts from repo truth instead of chat reconstruction",
+      "the live run preserves mission-state truth across at least one major transition",
+      "the proof-discovered hardening cut measurably reduces the same friction path"
+    ],
+    "guardChecks": [
+      "launch, live proof, hardening, and promotion remain distinct phases",
+      "the mission does not collapse into first-green closure",
+      "promotion still requires durable value instead of narrative activity"
+    ],
+    "successSignals": [
+      "one live mission-cell run completes more than one phase",
+      "at least one hardening cut exists only because the live proof exposed it",
+      "the next run would require less David restating than before"
+    ]
+  },
+  "promotion": {
+    "defaultTargets": [
+      "company-hq/ACTIVE-MISSION.md",
+      "company-hq/mission-contracts/first-live-mission-cell-proof-v1.md",
+      "company-hq/mission-cells/first-live-mission-cell-proof-v1.json",
+      "CURRENT.md",
+      "MEMORY.md",
+      "the minimal runtime seam that now carries the truth durably"
+    ],
+    "promoteWhen": [
+      "the next run can start with less chat restatement",
+      "the same friction is less likely to recur on the same path",
+      "launch, hardening, and promotion truth are reviewable from repo and run evidence"
+    ],
+    "stayExperimentalWhen": [
+      "the gain only worked in one local moment",
+      "the result is mostly narrative without runtime or git proof",
+      "future runs still depend on fragile human retelling"
+    ],
+    "demoteWhen": [
+      "the mission-state truth becomes stale or misleading",
+      "the new lane creates more supervision load than it removes",
+      "the proof cannot be replayed or honestly reconstructed"
+    ]
+  },
+  "boundaries": {
+    "firmBound": [
+      "the four-phase live-proof shape",
+      "the strong-success definition",
+      "mission continuity and promotion truth",
+      "the rule that proof-discovered hardening must land before completion"
+    ],
+    "carrierBound": [
+      "current Paperclip issue transport",
+      "prompt and wakeup context injection",
+      "current CLI and portability loading path",
+      "the present runtime-specific proof surfaces"
+    ]
+  },
+  "starterPath": {
+    "trigger": "Create or update a bounded internal self-improvement issue with `missionCell: first-live-mission-cell-proof-v1` and a clear live-proof target around long-autonomy continuity.",
+    "issueTemplate": [
+      "missionCell: first-live-mission-cell-proof-v1",
+      "Objective: <bounded live-proof target>",
+      "Scope: <explicit in/out>",
+      "doneWhen: <launch + live proof + hardening + promotion condition>",
+      "artifactKind: <code_patch | doc_update | multi_file_change>"
+    ],
+    "startupSequence": [
+      "Validate the mission cell contract with `paperclipai mission cell validate`.",
+      "Reference the mission cell directly in the issue packet.",
+      "Confirm the live-proof target is narrower than a platform rewrite.",
+      "Carry launch and live proof before deciding whether the mission is really open.",
+      "After the first real friction, land one proof-discovered hardening cut.",
+      "Promote durable truth before calling the mission complete."
+    ],
+    "firstProbe": [
+      "Read prompt or wakeup context and confirm the live-proof mission-cell brief is present.",
+      "Check that the mission still names launch, live proof, hardening, and promotion as distinct phases.",
+      "Run the smallest test, replay, or runtime proof that validates the first changed continuity seam."
+    ]
+  }
+}

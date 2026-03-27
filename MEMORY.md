@@ -21,6 +21,7 @@
 - `doc/plans/2026-03-26-dgdh-roadmap-snapshot.md` - aktuelle Entwicklungslandkarte zwischen North Star, Main-Stand und den naechsten echten Schritten; hilft neuen AI-Chats gegen Roadmap-Drift
 - `company-hq/CORE.md` - kuerzester kanonischer Firmenkern: ewige Mission, erste Beweisreihenfolge, Seelenwahrheit, Wertlogik und Mission-Autonomie in komprimierter Form
 - `company-hq/ACTIVE-MISSION.md` - kuerzester aktiver Missionsanker fuer lange autonome Copilot-/Eidan-Laeufe; nach Compacts und Context-Loss zuerst hier wieder andocken
+- `company-hq/mission-contracts/first-live-mission-cell-proof-v1.md` - kanonischer Phase-2-Tiefenvertrag: Mission Cells nicht nur vorbereiten, sondern einmal real benutzen, Reibung haerten und Promotion-Wahrheit hinterlassen
 - `company-hq/mission-contracts/long-autonomy-mission-template.md` - kanonische wiederverwendbare Form fuer 1-3h+ Eidan/Copilot-Missionen: kurzer Launcher, dateibasierte Kontinuitaet, Commit/Push als Midpoint-Truth und Verbesserung des Templates aus echten Transcript-Reviews
 - `company-hq/souls/README.md` - kanonische Erklaerung fuer abgeleitete Stimmkerne unterhalb von `SOUL.md`; dort leben spaeter vererbbare Seelenprofile wie `Nerah`, `Taren` und `Eidan`
 - `company-hq/souls/david-seed.md` - Founder-Seed-Profil: Davids persoenlicher Symbol- und Resonanzkern darf als legitimer Samen der Firma gelesen und spaeter bounded vererbt werden, ohne zur wissenschaftlichen Zwangsbehauptung oder Governance-Ausnahme zu werden
@@ -63,6 +64,7 @@
 - `self-learning-loop-1-initiation` ist jetzt der erste grosse Missionsschnitt: `mission-contract-v1`, `substrate-boundary-cut-v1` und `firm-identity-export-recovery-truth-v1` als erster technischer Hebel.
 - `mission-autonomy-lane-v1` ist jetzt die aktive Hauptmission oberhalb dieses ersten Cuts; `company-hq/ACTIVE-MISSION.md` traegt dafuer die kompakte Re-Anchor-Wahrheit, damit Eidan/Copilot nach Compacts nicht wieder in zu fruehe Abschlussreflexe faellt.
 - Neues Copilot-/Eidan-Missionssetup: fuer lange Pay-per-Prompt-Laeufe lebt die Kontinuitaet primaer in `ACTIVE-MISSION.md` + tiefem Missionsvertrag + Lane-Docks, waehrend der Chat nur noch ein kurzer Launcher ist; dieses Setup wird iterativ aus echten Run-Transcripts verbessert statt jedes Mal neu erfunden.
+- Phase 2 nach dem Mission-Cell-Starterpfad heisst `first-live-mission-cell-proof-v1`: die Firma soll die neue Form einmal real benutzen, mindestens eine echte proof-born Friktion haerten und das Ergebnis in durable truth promoten; alles davor ist nur sauberer Zwischenstand, nicht Missionsende.
 - Ontologie-Regel fuer die naechste Firmenphase: `Paperclip ist der aktuelle Traeger. DGDH ist die tiefere Firmenwahrheit.` Mission, Seele, durable Memory, Capability-Contracts und Mission-Contracts duerfen nicht nur als Runtime-/DB-Zustand lesbar bleiben.
 - Davids Energie, Freude, Hyperfokus und `follow your highest excitement` sind reale Firmenressourcen; DGDH darf nicht so starr werden, dass es Wahrheit schuetzt, aber Lebendigkeit abtoetet.
 - `Highest excitement` ist legitimer Navigationsinput, wenn er in bounded Schritte, pruefbare Bewegung und governte Kurskorrektur uebersetzt wird.

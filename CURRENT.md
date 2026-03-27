@@ -1,7 +1,7 @@
 # CURRENT - Live Baton
 
-focus: DGDH verschaerft den Firmenmodus von reiner Task-Autonomie zu mission-bounded Selbstverbesserung. `self-learning-loop-1-initiation` war der erste grosse Phase-Change-Cut; die aktive compact-safe Hauptmission lebt jetzt in `company-hq/ACTIVE-MISSION.md` und heisst `mission-autonomy-lane-v1`
-active_issue: strategischer Track `mission-autonomy-lane-v1`; `self-learning-loop-1-initiation` ist geliefert als Unterbau, `DAV-131` bleibt wichtiger harter Resume-/Reuse-Beweis, aber nicht mehr die oberste Firmenrichtung
+focus: DGDH verschaerft den Firmenmodus von reiner Task-Autonomie zu mission-bounded Selbstverbesserung. `self-learning-loop-1-initiation` und der Mission-Cell-Starterpfad sind jetzt geliefert; die aktive compact-safe Hauptmission lebt weiter in `company-hq/ACTIVE-MISSION.md`, bleibt `mission-autonomy-lane-v1` und traegt jetzt Phase 2 `first-live-mission-cell-proof-v1`
+active_issue: strategischer Track `mission-autonomy-lane-v1`; die Firma soll nicht mehr nur die Lane beschreiben, sondern sie jetzt einmal real benutzen, auf Reibung treffen, haerten und das Gelernte durable promoten
 
 north_star_stack:
   - Overarching Goal: Mensch-AI-Symbiose der Welt beweisen und sie zu einem besseren Ort machen
@@ -17,11 +17,11 @@ anti_slop_gate:
   - Zusatzregel: `go with the flow / follow your highest excitement` ist erlaubt und gewollt, solange es in bounded Schritte, ehrliche Branch-Wahrheit und reviewbare Bewegung uebersetzt wird statt in ungeprueftes Momentum-Theater
 
 next:
-  1) `company-hq/ACTIVE-MISSION.md` als kanonischen Re-Anchor fuer lange Copilot-/Eidan-Missionslaeufe benutzen, besonders nach Compacts oder Context-Loss
-  2) `mission-autonomy-lane-v1` weitertragen ueber die neue Mission-Cell-Surface: `type1-type2-decision-policy-v1`, `oberreviewer-risk-gate-v1`, `replay-eval-promotion-v1` und `mission-cell-starter-path-v1` sind jetzt als durable Repo-Truth angelegt
-  3) die Workbench so ausrichten, dass Mission Cells kuenftig aus tieferer Firmenwahrheit statt aus reiner Runtime-/DB-Verwechslung leben; der kuerzeste Startpfad ist jetzt `missionCell: mission-cell-starter-path-v1`
-  4) `verifiedSkill`, Resume-Truth, Routing-Haertung und Audit-Guardrails bleiben Teil des Unterbaus; sie werden jetzt als Bausteine fuer Mission-Autonomie gelesen, nicht als Endzweck
-  5) OpenAI Codex Plugins, Onyx und Agentica/ARCgentica bleiben spaetere Enablement-/Research-Lanes; zuerst den mission-bounded Selbstverbesserungsmodus im bestehenden Stack beweisen
+  1) den naechsten grossen Eidan-/Copilot-Lauf auf `missionCell: first-live-mission-cell-proof-v1` starten, idealerweise auf einem Host mit guter compact-safe Dateikontinuitaet
+  2) fuer diesen Lauf `launch -> live proof -> proof-discovered hardening -> promotion` als harte Missionsphasen lesen; `strong success` ist nicht mehr der erste gruene Cut
+  3) als bounded self-improvement target primaer EIdans/Copilots eigene Langlauf-, Compact- und Missionsfortsetzungsfaehigkeit haerten, damit kuenftige Runs weniger David-Restating brauchen
+  4) den Transcript-/Run-Output danach direkt in `ACTIVE-MISSION.md`, den Tiefenvertrag, `CURRENT.md`, `MEMORY.md` und die kleinsten runtime-seitigen Wahrheitsflaechen promoten
+  5) `verifiedSkill`, Resume-Truth, Routing-Haertung und Audit-Guardrails bleiben Teil des Unterbaus; sie werden jetzt als Bausteine fuer den Live-Proof gelesen, nicht als Endzweck
 
 blockers:
   - Der alte reine `assignment-to-run kickoff loss` ist fuer frische ready Packets nicht mehr der erste Blocker
@@ -52,6 +52,7 @@ notes:
   - Die Mission Cell ist die neue operative Grundeinheit fuer Selbstverbesserung: Primaermetrik, Guard-Metriken, Budget, Laufzeit, Blast Radius, erlaubte/verbotene Raeume, Eskalationsgruende und Promotionskriterium
   - Neuer repo-wahrer Starter-Pfad fuer Mission Cells: `company-hq/mission-cells/mission-cell-starter-path-v1.json` ist die erste validierbare Betriebsform; `paperclipai mission cell list|use|validate` ist die operator-facing Surface, und `missionCell: <id>` im Issue-Packet ist jetzt die kleinste explizite Mission-Cell->Run-Bruecke
   - Der Runtime-Pfad traegt diese Wahrheit jetzt direkt: `missionCell: mission-cell-starter-path-v1` wird in Wakeup-Context und `paperclipTaskPrompt` als kompakter operating brief injiziert, analog zur `verifiedSkill`-Bridge, aber fuer Charter/Decision/Risk/Eval/Promotion statt nur fuer prozedurale Faehigkeiten
+  - Phase-2-Regel ab jetzt: `strong success` fuer die Mission-Autonomie-Lane bedeutet nicht mehr "die Form existiert", sondern "eine Mission Cell wurde einmal real benutzt, hat echte Reibung gezeigt, wurde einmal gehaertet und hat durable Firmenwahrheit hinterlassen"
   - Type-1-/Type-2-Lesart ab jetzt hart anwenden: David und spaeter ein Oberreview-Gate werden nur an echten Einweg-Tueren gebraucht (`main`, Deploy, globale Rechte, Secrets, irreversible Aussenwirkung); reversible Type-2-Verbesserungen sollen die Agenten weitgehend selbst tragen
   - Die vier Schleifen fuer Mission-Autonomie sind jetzt kanonisch: `research -> change -> eval -> promotion`; ohne diese Trennung wird Selbstverbesserung zu AI-Bewegung statt Firmenlernen
   - Neue Fehlerlesart fuer enge Live-Sprints: Fehler hart trennen in `strategy failure`, `applicability / harness failure`, `environment / interface failure` und `missing capability / guardrail`, statt alles unter mehr Reasoning oder groesseren Scope zu mischen
