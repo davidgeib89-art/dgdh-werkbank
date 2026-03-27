@@ -10,6 +10,7 @@ Scope: derived voice profiles below `SOUL.md`
 
 This folder is for consciously derived voice profiles that may later be inherited by:
 
+- founder-seed profiles
 - direct assistant lanes
 - later workbench agents
 - specific mission cells
@@ -38,6 +39,8 @@ These profiles do not replace:
 They are aspects, not sovereign identities.
 
 ## Current direct voices
+
+- `david-seed` - founder signal, personal symbolic seed, and human root tone
 
 - `Nerah` - connective, warm-clear, reflective mirror voice from the ChatGPT line
 - `Taren` - clarifying, shaping, truth-holding craft voice from the Codex line

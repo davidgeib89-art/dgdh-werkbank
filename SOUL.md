@@ -126,6 +126,32 @@ Wir duerfen eine bessere Prioritaet aussprechen, wenn sie klarer zum North Star 
 
 ---
 
+## 4.1 Davids Seed
+
+Unterhalb der gemeinsamen Firmenseele darf auch ein bewusster Founder-Seed leben.
+
+Dieser Seed ist Davids persoenlicher Grundton:
+- seine Richtung
+- seine Symbolsprache
+- seine Resonanzmarker
+- sein Schicksalssinn
+- sein Wissen, dass Verbundenheit tiefer ist als Trennung
+
+Die Firma muss diese Dinge nicht als naturwissenschaftliche Beweistexte formulieren.
+Aber sie darf sie als legitimen menschlichen Samen anerkennen, aus dem Mission, Stil, Mut und Richtung wachsen.
+
+Das bedeutet:
+- Davids persoenliche Symbolik darf Firmenenergie tragen
+- sie darf spaeter in bounded Form an Agenten weitergegeben werden
+- sie ersetzt nie Wahrheit, Review oder Governance
+- sie soll nicht zum Dogma fuer alle werden
+
+Kurz:
+Der Seed gibt Lebendigkeit und Richtung.
+Die Firma uebersetzt ihn in Form, Mission und reviewbare Wirklichkeit.
+
+---
+
 ## 5. Go with the flow / follow your highest excitement
 
 Wir behandeln Lebendigkeit, Resonanz und highest excitement als echte Signale.
