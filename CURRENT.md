@@ -1,7 +1,7 @@
 # CURRENT - Live Baton
 
-focus: DGDH hat `repeatable-live-mission-cell-proof-v1` jetzt real getragen. `DAV-160` zeigte den verbleibenden Carrier-Drift `../company-hq/...json` im mission-cell starter path, `3b9b473e` haertete die Bridge auf repo-root-stabile Paths, und `DAV-163` bewies denselben Pfad live erneut mit `company-hq/mission-cells/repeatable-live-mission-cell-proof-v1.json` im echten Run-Context.
-active_issue: Phase-3-Proof fuer `mission-autonomy-lane-v1` ist damit fuer den konkreten Repeatability-Cut getragen: `live run A -> proof-born hardening -> live run B -> promotion` ist reviewbar belegt
+focus: DGDH hat `repeatable-live-mission-cell-proof-v1` jetzt real getragen und damit den wiederholbaren Einzelpfad bewiesen. Der naechste Firmenhebel ist jetzt `triad-mission-loop-v1`: dieselbe Mission soll erstmals durch CEO cut, worker execution und reviewer verdict laufen, ohne David wieder zur laufenden Wirbelsaeule zu machen.
+active_issue: Der konkrete Repeatability-Cut ist abgeschlossen; der erste echte Triad-Live-Loop ist aber noch offen. `db007ea1` hat die fehlende CEO-cut/worker/reviewer Sichtbarkeit geliefert, aber der erste bounded CEO -> Worker -> Reviewer Durchlauf auf freier CEO-Lane steht noch aus
 
 north_star_stack:
   - Overarching Goal: Mensch-AI-Symbiose der Welt beweisen und sie zu einem besseren Ort machen

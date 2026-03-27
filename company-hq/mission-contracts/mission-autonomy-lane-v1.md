@@ -38,12 +38,22 @@ Phase 3 is now the next proving container:
 That phase exists to rerun the hardened path on the same bounded target and prove that the first
 hardening actually reduced the original friction instead of only describing it better.
 
+Phase 4 is now the next proving container after repeatability:
+
+- `triad-mission-loop-v1`
+
+That phase exists to prove that one bounded mission can move through CEO cut, worker execution,
+reviewer verdict, and only true Type-1 escalation, so the firm starts behaving like a small company
+instead of one execution lane plus repeated David steering.
+
 ## Primary Metric
 
 - DGDH gains the first reviewable, reusable mission-autonomy operating lane with a real mission charter,
   explicit decision boundaries, risk/eval/promotion logic, and at least one starter path a future mission cell can actually use.
 - the lane is then used once for real on a bounded internal target, not only prepared as doctrine and scaffolding
 - the hardened path is then run again so the firm proves repeatability, not just first-use luck
+- the next missing truth after repeatability is then carried through the first real triad loop,
+  so direction, work, and judgment become separate but connected operating functions
 
 ## Guard Metrics
 
@@ -106,6 +116,9 @@ This mission should push as far as reviewably possible toward these durable outc
 11. `repeatable-live-mission-cell-proof-v1` as the next proving container
 12. one second live mission-cell run on the hardened path
 13. proof that the second pass reduced the same friction the first pass exposed
+14. `triad-mission-loop-v1` as the first small-firm proving container
+15. one real mission that travels through CEO packet, worker packet, and reviewer verdict
+16. proof that David is only needed for true Type-1 boundaries, not for ongoing mission spine
 
 Not every sub-cut must be perfect, but the lane should clearly become more real than doctrine alone.
 
