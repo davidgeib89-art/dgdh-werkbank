@@ -1,7 +1,7 @@
 # CURRENT - Live Baton
 
-focus: DGDH hat `repeatable-live-mission-cell-proof-v1` jetzt real getragen und damit den wiederholbaren Einzelpfad bewiesen. Der naechste Firmenhebel ist jetzt `triad-mission-loop-v1`: dieselbe Mission soll erstmals durch CEO cut, worker execution und reviewer verdict laufen, ohne David wieder zur laufenden Wirbelsaeule zu machen.
-active_issue: Der konkrete Repeatability-Cut ist abgeschlossen; der erste echte Triad-Live-Loop ist aber noch offen. `db007ea1` hat die fehlende CEO-cut/worker/reviewer Sichtbarkeit geliefert, aber der erste bounded CEO -> Worker -> Reviewer Durchlauf auf freier CEO-Lane steht noch aus
+focus: DGDH hat jetzt den ersten echten `triad-mission-loop-v1` ehrlich getragen: `DAV-165` startete als bounded David-seed auf der bestaetigten 3100-Runtime, der CEO schnitt `DAV-166`, der Worker lieferte branch-/PR-Wahrheit, der Reviewer gab einen expliziten Accept-Verdict, und der CEO-Merge landete die bounded Aenderung auf `origin/main`.
+active_issue: Der erste echte Triad-Live-Loop ist damit nicht mehr offen. Die naechste reale Friktion ist jetzt enger: Nach realer Worker-Arbeit und `post_tool_capacity_exhausted` brauchte `DAV-166` noch manuelle Lane-Rettung fuer kanonisches `worker-pr` / `worker-done` und den expliziten Reviewer-Verdict, statt den gesamten Schlussweg selbst boringly zu tragen
 
 north_star_stack:
   - Overarching Goal: Mensch-AI-Symbiose der Welt beweisen und sie zu einem besseren Ort machen
@@ -17,11 +17,11 @@ anti_slop_gate:
   - Zusatzregel: `go with the flow / follow your highest excitement` ist erlaubt und gewollt, solange es in bounded Schritte, ehrliche Branch-Wahrheit und reviewbare Bewegung uebersetzt wird statt in ungeprueftes Momentum-Theater
 
 next:
-  1) den abgeschlossenen Repeatability-Proof als firmenwahren Missionsschritt lesen, nicht nur als guten Einzel-Fix
-  2) die naechste bounded Mission erst dort oeffnen, wo nach der wiederholbaren mission-cell continuity wirklich neue Firmenfriktion beginnt
-  3) den ersten echten Triad-Live-Loop erst auf einer Runtime mit freiem CEO-Lane und sauber lesbarer Projektoberflaeche starten; `db007ea1` hat dafuer jetzt die fehlende CEO-cut/worker/reviewer Sichtbarkeit geliefert
+  1) den ersten echten Triad-Live-Loop als firmenwahren Strong-Success lesen, nicht nur als guten Doc-/PR-Einzelfall
+  2) den naechsten bounded Firmenhebel dort schneiden, wo `worker execution -> reviewer verdict -> promotion` nach `post_tool_capacity_exhausted` noch zu viel manuelle Lane-Rettung braucht
+  3) denselben Triad-Pfad auf einer zweiten bounded Mission wiederholen, aber mit weniger manueller Execution-/Reviewer-Intervention als bei `DAV-165` / `DAV-166`
   4) Copilot-/Editor-Interna-Forensik weiter explizit tabu halten; keine AppData-/workspaceStorage-/chat-session-resources-Reads ohne klare Forensik-Mission
-  5) bei kuenftigen mission-cell runtime briefs repo-root-stabile Datei- und Validate-Pfade als Invariante halten
+  5) repo-root-stabile Datei-/Validate-Pfade und explizite reviewer packet truth als Invarianten fuer kuenftige Mission Cells halten
 
 blockers:
   - Der alte reine `assignment-to-run kickoff loss` ist fuer frische ready Packets nicht mehr der erste Blocker
@@ -33,7 +33,8 @@ blockers:
   - Der rohe Blocker `capacity exhausted after real tool calls` ist nicht mehr bloss Retry-Schleife; die Resume-/Session-Wahrheit ist jetzt live bis in die operator-facing Surface bewiesen
   - Der alte Standardpfad-Schmerz `CEO nutzt fuer einfache App-Arbeit generische Shell-/curl.exe-Logik` ist nicht mehr der erste Blocker; `DAV-141` beweist jetzt den nativen `paperclipai`-Handoff-Pfad im echten CEO-Run
   - Der naechste oekonomische Schmerz ist nicht mehr fehlende Primitive-Ausfuehrung, sondern wiederholte prozedurale Rekonstruktion ueber Chat, Prompt und Shell statt governter durable Capability
-  - Der erste echte Triad-Live-Loop ist noch nicht ehrlich durchgetragen: auf der frischen lokalen 3100-Runtime war der CEO-Lane bereits in einem laufenden Automation-Run (`4f2da0e6-8a35-48ac-b453-8bdf59687eb3`) gebunden, und der kompakte Projekt-Read fuer sofortigen bounded Kickoff blieb in diesem Turn nicht sauber genug, um ohne neue Operationsarbeit zu starten
+  - Der erste echte Triad-Live-Loop ist nicht mehr der Blocker; `DAV-165` / `DAV-166` haben ihn real getragen
+  - Die neue enge Restfriktion ist stattdessen: nach echter Worker-Arbeit plus `post_tool_capacity_exhausted` darf der Schlussweg nicht stumm auf manuelle Agent-Key-/Run-Rescue fuer `worker-pr`, `worker-done` und `reviewer-verdict` angewiesen bleiben
 
 strategy_anchor:
   - `company-hq/CORE.md`

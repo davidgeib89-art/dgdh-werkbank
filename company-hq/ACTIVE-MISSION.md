@@ -52,19 +52,28 @@ That triad visibility is now landed on `main` in `db007ea1`:
 - company-run-chain exposes explicit triad state and reviewer verdict surfaces
 - the issue-detail UI shows the same separation to the operator
 
-What is still missing is the first honest live triad loop.
+The first honest live triad loop is now also real.
+
+`DAV-165` / parent run `70e6ea6e-3055-4863-98c4-813e1dc915ef`
+started the first bounded triad mission on the confirmed 3100 runtime.
+The CEO cut child `DAV-166`, the worker produced real branch/PR truth,
+the reviewer recorded an explicit `accepted` verdict,
+and the CEO merge landed PR `#24` on `origin/main` in `22314039`.
+
+The live path did expose the next narrow friction:
+after real worker progress, `DAV-166` fell into `post_tool_capacity_exhausted`
+and still needed manual lane rescue to complete canonical `worker-pr`, `worker-done`,
+and `reviewer-verdict` truth instead of boringly carrying the closing path itself.
 
 ## Current direction
 
-Use the new triad visibility on one bounded internal target:
-David gives only the seed,
-the CEO lane cuts worker and reviewer packets,
-Eidan carries execution,
-and the reviewer lane must genuinely affect what happens next.
+The next real missing truth is no longer `can one triad loop happen?`.
+It is `can the same bounded triad closing path keep carrying after quota interruptions
+with less manual lane rescue than DAV-165 / DAV-166 still needed?`.
 
-The lane is no longer proving only that one mission cell can learn.
-It is now proving that one mission can be shared across
+The lane has now proved that one mission can be shared across
 direction, work, and judgment without collapsing back into David micro-steering.
+The next cut should reduce the remaining manual rescue on the worker->reviewer->promotion seam.
 
 Keep the ontology clear:
 
@@ -86,11 +95,10 @@ Keep the ontology clear:
 
 ## Likely next cuts
 
-- start one bounded triad mission on a runtime with a free CEO lane
-- cut one explicit CEO packet that yields both worker and reviewer truth
-- carry one worker-to-reviewer handoff to a real reviewable state
-- require one real reviewer verdict that changes the path
-- promote only if the next triad mission would need less David steering than before
+- cut the narrowest fix that removes manual rescue after `post_tool_capacity_exhausted` on the triad closing path
+- rerun the same bounded triad shape on a second mission with less Eidan/Copilot intervention
+- keep reviewer verdict explicit and promotion reviewer-gated
+- promote only if the next triad mission would need less David and less manual execution-lane rescue than before
 
 These are candidates, not a forced order.
 Choose the next one by leverage, reviewability, and David-minute savings.
