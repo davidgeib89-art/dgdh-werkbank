@@ -365,7 +365,7 @@ function buildIssueTaskPrompt(
           "- Preferred step 1: `pnpm --dir $env:PAPERCLIP_CLI_CWD paperclipai issue list --company-id $env:PAPERCLIP_COMPANY_ID --parent-id $env:PAPERCLIP_TASK_ID --json`",
           ...(directAnswerAuditTruth.issueIdentifiers.length > 0
             ? [
-                `- Preferred step 2: resolve the exact issue UUID with \`$issue = pnpm --dir $env:PAPERCLIP_CLI_CWD paperclipai issue get ${directAnswerAuditTruth.issueIdentifiers[0]} --json | ConvertFrom-Json\``,
+                `- Preferred step 2: resolve the exact issue UUID with \`$issue = (Invoke-RestMethod -Headers @{ Authorization = \"Bearer $env:PAPERCLIP_API_KEY\" } -Uri \"$env:PAPERCLIP_API_URL/api/companies/$env:PAPERCLIP_COMPANY_ID/issues?q=${directAnswerAuditTruth.issueIdentifiers[0]}\") | Where-Object { $_.identifier -eq \"${directAnswerAuditTruth.issueIdentifiers[0]}\" } | Select-Object -First 1\``,
                 `- Preferred step 3: read company-run-chain with \`Invoke-RestMethod -Headers @{ Authorization = \"Bearer $env:PAPERCLIP_API_KEY\" } -Uri \"$env:PAPERCLIP_API_URL/api/issues/$($issue.id)/company-run-chain\"\``,
               ]
             : []),
