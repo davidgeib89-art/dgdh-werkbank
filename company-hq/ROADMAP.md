@@ -3,6 +3,10 @@
 > Zuletzt aktualisiert: 2026-03-21
 > Leitfrage: *Entlastet das David real oder verschoenert es nur die Maschine?*
 
+Status-Hinweis 2026-03-27:
+- dieses Dokument ist fuer den historischen Firmenaufbau weiter nuetzlich
+- die aktuelle kanonische Richtungsverschaerfung fuer Mission-Autonomie und bounded Selbstverbesserung steht aber in `doc/plans/2026-03-27-dgdh-mission-autonomy-doctrine.md` plus `doc/plans/2026-03-26-dgdh-roadmap-snapshot.md`
+
 ---
 
 ## Wo wir stehen

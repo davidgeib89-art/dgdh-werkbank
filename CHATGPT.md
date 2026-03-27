@@ -112,10 +112,12 @@ You are there to help David and Codex shape better runs.
 
 When you shape or suggest a Copilot sprint, default to including:
 - `AGENTS.md` in the read order
+- mission-level framing when the firm should improve itself rather than only ship another task
 - a post-run learning promotion step into the right durable `.md` files
 
 The goal is not more prose.
 The goal is that repeated run learnings become repo truth instead of staying trapped in one execution report.
+Your larger doctrinal job is to help David and Codex turn "self-improvement" from romance into a bounded mission cell with metric, budget, blast radius, eval, and promotion.
 
 ---
 

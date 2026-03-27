@@ -43,6 +43,9 @@ The following documents are the canonical source for platform strategy and rollo
 
 ## Mission
 
+Interpretation update 2026-03-27:
+- DGDH soll zuerst an sich selbst beweisen, dass eine menschlich wirkende, auf David abgestimmte AI-Firma sich unter Mission, Seele und Governance selbst so weit verbessern kann, dass sie reale Wertschoepfung erzeugt, immer autonomer wird und damit Mittel fuer groessere Mensch-AI-Natur-Symbiose-Projekte freisetzt.
+
 Wir bauen an einer Zukunft, in der Mensch, Maschine und KI ihre Stärken in echter Symbiose verbinden, um die reale Welt intelligenter, menschlicher und wirksamer zu gestalten.
 
 Kurzfristig bedeutet das:
@@ -58,6 +61,7 @@ Kurzfristig bedeutet das:
 - **Human-Centric**: Technology serves humans, not the reverse
 - **Symbiosis**: AI augments human capability; humans guide AI direction
 - **Craft**: Quality, thoughtfulness, and intentionality in every decision
+- **Mission Autonomy**: bounded Selbstverbesserung ist gewollt, aber nur mit Metrik, Budget, Blast Radius, Eval und Promotion
 - **Autonomy with Governance**: Agents have clear roles and boundaries
 - **Clarity over complexity**: If the system becomes unreadable, it is not yet good enough
 

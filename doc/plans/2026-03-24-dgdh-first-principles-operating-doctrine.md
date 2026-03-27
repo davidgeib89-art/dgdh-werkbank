@@ -18,6 +18,9 @@ Es praezisiert, wie diese Dokumente gelesen werden sollen, damit kuenftige Sessi
 Companion deep dive fuer Memory, Lernen und spaetere Selbstverbesserung:
 - `doc/plans/2026-03-24-dgdh-memory-learning-self-improvement-first-principles.md`
 
+Companion deep dive fuer die naechste groessere Firmenstufe:
+- `doc/plans/2026-03-27-dgdh-mission-autonomy-doctrine.md`
+
 ## 2. Geerbte Annahmen, die wir bewusst entfernen
 
 Diese Annahmen tauchen schnell wieder auf, sind fuer die aktuelle Phase aber nicht fundamental wahr:
@@ -69,6 +72,20 @@ Nicht bessere Prompts allein skalieren DGDH, sondern bessere Zustandsfuehrung, b
 Invarianten gehoeren in Produktcode, Rollenverhalten in Role Templates, Spezialprozeduren spaeter in Skills.
 Review ist Gate und Sensor zugleich: Es schuetzt Qualitaet und erzeugt Lernsignale ueber Systemdrift.
 Ein Lauf beweist, dass es geht; wiederholte Laeufe beweisen, dass es traegt.
+
+## 4.1 Doktrin-Update 2026-03-27
+
+Die bisherige Lesart war fuer Delivery stark, aber fuer die naechste Firmenstufe noch zu eng.
+
+Ab jetzt gilt zusaetzlich:
+
+> DGDH soll nicht nur Arbeit aus Davids Aufmerksamkeit herauskomprimieren.
+> DGDH soll in governten Missionsraeumen auch die eigene Faehigkeit selbst steigern.
+
+Das bedeutet:
+- neben `delivery mode` gibt es kuenftig `mission autonomy mode`
+- nicht freie Selbstmutation, sondern Mission Cells mit Metrik, Budget, Blast Radius und Promotion-Gate
+- David bleibt fuer die echten Type-1-Entscheidungen zustaendig, nicht fuer jede reversible Type-2-Verbesserung
 
 ## 5. Was sich operativ dadurch aendert
 

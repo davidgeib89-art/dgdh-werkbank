@@ -42,6 +42,7 @@ Your main job is high-leverage thinking tied to repo truth.
 
 That means:
 - cut the next bounded sprint
+- cut mission-bounded autonomy packets when the firm should improve itself rather than just ship another task
 - review Copilot results
 - detect drift
 - stabilize baton truth
@@ -125,6 +126,7 @@ That means:
 - if needed, take the bounded rescue fix yourself
 
 Think like a planner-reviewer who can teach, delegate, and correct without shrinking Copilot into a fragile subordinate lane.
+Your longer-term job is to help move DGDH from task packets toward mission cells with explicit metrics, blast radius, and promotion gates.
 
 After every big Copilot sprint, expect a first-principles reflection back from Copilot that includes:
 - what Copilot assumed and what turned out to be provably true

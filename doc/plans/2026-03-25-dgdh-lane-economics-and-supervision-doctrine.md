@@ -43,6 +43,10 @@ Die richtige Frage lautet:
 
 > Welche Lane traegt diese Arbeitsklasse mit dem kleinsten David-Aufsichtsaufwand?
 
+Die naechste staerkere Frage lautet:
+
+> Welche Missionsform laesst die Firma sich ueber lange Strecken selbst verbessern und braucht David nur an den echten Type-1-Tueren?
+
 ## 4. Der richtige Lane-Schnitt fuer DGDH
 
 ### 4.1 Codex
@@ -146,6 +150,19 @@ Zuerst muss gezeigt sein:
 Erst dann ist mehr parallele Kapazitaet sinnvoll.
 
 Vorher multipliziert sie nur Aufsicht.
+
+## 7.1 Mission-Autonomie-Regel
+
+Wenn DGDH in Richtung Selbstverbesserung skaliert, soll das nicht ueber noch mehr Mikro-Steuerung passieren.
+
+Die bessere Form ist:
+- wenige starke 24-72h Mission Cells
+- klare Zielfunktion
+- klares Budget
+- klarer Blast Radius
+- seltene Eskalation
+
+Eine Selbstverbesserungs-Lane ist nur dann gut, wenn sie nicht mehr David-Aufsicht erzeugt als die alte Task-Arbeit.
 
 ## 8. Excitement Rule, DGDH-konform gelesen
 

@@ -1,13 +1,13 @@
 # CURRENT - Live Baton
 
-focus: `verifiedSkill:` ist jetzt in einem echten CEO-Firmenlauf repo-wahr getragen; der Skill-Bridge-Pfad fuehrte nicht nur zu Wakeup-/Prompt-Sichtbarkeit, sondern in `DAV-144` direkt in den nativen Handoff-Standardpfad mit genau vier `paperclipai`-Delegationstools statt breiter Repo-Archaeologie. Der naechste Hebel ist nun nicht neue Skill-Magie, sondern zu pruefen, ob derselbe opt-in Bridge-Pfad auf weiteren realen Laufklassen ebenso sichtbar Minuten spart
-active_issue: `DAV-131` (`6c608432-6133-403a-88ad-7ec84ad1bddd`) bleibt der letzte harte Resume-Truth-Cut: blocked CEO-Run `011bbf57-c596-4008-8d2c-5d2b003d7d0f` auf `3113` endete mit `errorCode = post_tool_capacity_exhausted`, `sessionIdAfter = 66edfbee-8a20-41ae-94a5-dca731d5ac3a`, `resume.strategy = reuse_session`, `resume.nextWakeStatus = deferred_capacity_cooldown`, `deferredState.nextResumePoint = resume_existing_session_before_child_create`; nach Cooldown promotete der Scheduler Resume-Run `fd981453-1b54-44da-8d7a-8f3fe4a396c1` erfolgreich mit `sessionIdBefore = 66edfbee-8a20-41ae-94a5-dca731d5ac3a`, `usageJson.sessionReused = true`, `freshSession = false`, und `/api/issues/DAV-131/company-run-chain` zeigt `resumeRunStatus = succeeded` sowie `sameSessionPath = true`
+focus: DGDH verschaerft den Firmenmodus von reiner Task-Autonomie zu mission-bounded Selbstverbesserung. Der naechste Core-Hebel ist nicht weiterer Mikro-Beweisbau, sondern eine governte `mission-autonomy-lane`, in der die Firma mit klarer Zielfunktion, Budget, Blast Radius, Eval und Promotion eigene Faehigkeit steigert
+active_issue: strategischer Track `mission-autonomy-lane-v1` (noch kein einzelnes Paperclip-Issue); `DAV-131` bleibt wichtiger harter Resume-/Reuse-Beweis, aber nicht mehr die oberste Firmenrichtung
 
 north_star_stack:
   - Overarching Goal: Mensch-AI-Symbiose der Welt beweisen und sie zu einem besseren Ort machen
-  - Company North Star: David gibt Richtung, die Maschine liefert reviewbare Realitaet, mit sinkender menschlicher Supervision pro nuetzlichem Lauf
-  - Capability Thesis: Die Maschine lernt unter Governance durable, damit wiederkehrende Faehigkeiten nicht immer neu ueber Chat, Shell und Prompt rekonstruiert werden muessen
-  - Guardrail: Self-Learning ist fuer DGDH nicht der Zweck, sondern eine spaetere governte Faehigkeit im Dienst von reviewbarer Realitaet und weniger Aufsicht
+  - Company North Star: David gibt Mission, Budget, Blast Radius und die wenigen echten Type-1-Entscheidungen; die Maschine liefert reviewbare Realitaet und reviewbare Faehigkeitssteigerung mit sinkender menschlicher Supervision pro nuetzlichem Zyklus
+  - Capability Thesis: Die Maschine lernt unter Governance durable und verlagert immer mehr Verbesserungsarbeit aus externen Chats in die Firma selbst
+  - Guardrail: Selbstverbesserung bleibt mission-bounded, replay-/eval-/promotion-gegate und ist keine freie Live-Mutation auf `main`
 
 anti_slop_gate:
   - Ab jetzt jede relevante Aenderung, Idee und Lane durch denselben Filter ziehen: spart das David auf einem echten Firmenlauf messbar Minuten, erhoeht es echte Firmenfaehigkeit statt bloss AI-Aktivitaet, bleibt es fuer David pruefbar ohne Blindvertrauen, traegt es auch ohne AI-Prosa und ist es jetzt wirklich dran
@@ -16,12 +16,11 @@ anti_slop_gate:
   - Zusatzregel: `go with the flow / follow your highest excitement` ist erlaubt und gewollt, solange es in bounded Schritte, ehrliche Branch-Wahrheit und reviewbare Bewegung uebersetzt wird statt in ungeprueftes Momentum-Theater
 
 next:
-  1) die Baton-Wahrheit auf der neuen Lage halten: `verifiedSkill:` ist jetzt live auf dem CEO-Handoff-Pfad bewiesen; jetzt nicht in Plattformbau kippen, sondern messen, ob dieselbe opt-in Bridge auf 1-2 weiteren echten Laufklassen genauso sichtbar Broad-Read-/Prompt-Rekonstruktion spart
-  2) nur wenn derselbe enge Hebel weiter traegt: hoechstens an einen weiteren bewiesenen Pfad wie Same-Session-Resume haengen oder Verify-Evidence leicht haerten; keine implizite Skill-Magic bauen
-  3) erst danach wieder urteilen, ob lokale Skill-Registry, Replay-backed Promotion, skill-aware Runtime-Nutzung fuer mehr als opt-in hints oder `child-created`-Resume-Edge-Cases wirklich `Core` statt `Later` sind
-  4) OpenAI Codex Plugins als spaetere Codex-Enablement-Schicht im Blick behalten: nuetzlich fuer gebuendelte Codex-Skills, MCP-/App-Integrationen und schnelleres Codex-Docking, aber kein Ersatz fuer DGDH-Skill-Contracts, keine neue Produktform und nicht vor dem aktuellen Reuse-/Firmenlauf-Hebel
-  5) Onyx als spaeteres Knowledge-/Tool-Plane-Signal im Blick behalten: shared search, Actions/MCP/API und Multi-Client-Zugaenge koennen spaeter Rekonstruktion senken, aber nur als kleiner `onyx-lite-or-mcp-shadow-search-spike-v1`, nicht als neue schwere Hauptoberflaeche vor dem aktuellen verified-skill-/Firmenlauf-Hebel
-  6) Agentica / ARCgentica als spaetere Research-Lane im Blick behalten: potenziell stark fuer stateful execution, direkte Primitive und bounded subagent state handoffs, aber erst als kleiner `agentica-translation-spike-v1`, wenn der aktuelle verified-skill-/Firmenlauf-Hebel sauber genug traegt
+  1) `mission-autonomy-lane-v1` als neuen Firmenmodus sauber schneiden: `mission-contract-v1`, `type1-type2-decision-policy-v1`, `oberreviewer-risk-gate-v1`, `replay-eval-promotion-v1`
+  2) die Workbench so ausrichten, dass Quotas fuer bounded Firmen-Selbstverbesserung im System selbst verbrannt werden koennen statt hauptsaechlich in externen Chatfenstern
+  3) Mission Cells kuenftig ueber Verantwortungen statt ueber starre Rollenromantik lesen: `goal owner`, `research owner`, `change owner`, `truth owner`, `risk owner`
+  4) `verifiedSkill`, Resume-Truth, Routing-Haertung und Audit-Guardrails bleiben Teil des Unterbaus; sie werden jetzt als Bausteine fuer Mission-Autonomie gelesen, nicht als Endzweck
+  5) OpenAI Codex Plugins, Onyx und Agentica/ARCgentica bleiben spaetere Enablement-/Research-Lanes; zuerst den mission-bounded Selbstverbesserungsmodus im bestehenden Stack beweisen
 
 blockers:
   - Der alte reine `assignment-to-run kickoff loss` ist fuer frische ready Packets nicht mehr der erste Blocker
@@ -35,24 +34,31 @@ blockers:
   - Der naechste oekonomische Schmerz ist nicht mehr fehlende Primitive-Ausfuehrung, sondern wiederholte prozedurale Rekonstruktion ueber Chat, Prompt und Shell statt governter durable Capability
 
 strategy_anchor:
+  - `doc/plans/2026-03-27-dgdh-mission-autonomy-doctrine.md`
   - `doc/plans/2026-03-26-dgdh-roadmap-snapshot.md`
   - `doc/plans/2026-03-24-dgdh-first-principles-operating-doctrine.md`
+  - `doc/plans/2026-03-24-dgdh-memory-learning-self-improvement-first-principles.md`
   - `doc/plans/2026-03-21-dgdh-north-star-roadmap.md`
   - `doc/plans/2026-03-23-focus-freeze.md`
 
 notes:
+  - Proof-Reihenfolge ab jetzt explizit: DGDH soll zuerst an sich selbst beweisen, dass eine menschlich wirkende, auf David abgestimmte AI-Firma sich unter Mission, Seele und Governance selbst so weit verbessern kann, dass sie reale Wertschoepfung erzeugt, immer autonomer wird und damit Mittel fuer groessere Mensch-AI-Natur-Symbiose-Projekte freisetzt
+  - Doctrine-Shift 2026-03-27: DGDH soll nicht nur Arbeit delegieren, sondern in governten Missionsraeumen die eigene Faehigkeit steigern; `mission autonomy mode` ist damit neuer Firmenmodus neben `delivery mode`
+  - Die Mission Cell ist die neue operative Grundeinheit fuer Selbstverbesserung: Primaermetrik, Guard-Metriken, Budget, Laufzeit, Blast Radius, erlaubte/verbotene Raeume, Eskalationsgruende und Promotionskriterium
+  - Type-1-/Type-2-Lesart ab jetzt hart anwenden: David und spaeter ein Oberreview-Gate werden nur an echten Einweg-Tueren gebraucht (`main`, Deploy, globale Rechte, Secrets, irreversible Aussenwirkung); reversible Type-2-Verbesserungen sollen die Agenten weitgehend selbst tragen
+  - Die vier Schleifen fuer Mission-Autonomie sind jetzt kanonisch: `research -> change -> eval -> promotion`; ohne diese Trennung wird Selbstverbesserung zu AI-Bewegung statt Firmenlernen
   - Neue Fehlerlesart fuer enge Live-Sprints: Fehler hart trennen in `strategy failure`, `applicability / harness failure`, `environment / interface failure` und `missing capability / guardrail`, statt alles unter mehr Reasoning oder groesseren Scope zu mischen
   - Wenn ein Lauf gegen seine eigene enge Packet-Wahrheit verstoesst - z.B. Child-Creation trotz Direct-Answer-Mission, breite Repo-Reads, falsche Tool-Reihenfolge oder unnoetige Aktionen - das primaer als `applicability / harness` lesen, nicht als Bedarf fuer mehr Prompt-/Reasoning-Masse; ein kleiner direkter Harness-/Guardrail-Fix ist dann erlaubt, aber kein allgemeines Harness-System, keine Plattform und kein Benchmark-/AGI-Abbiegen
   - `ceo-native-issue-handoff-primitives-v1` ist repo-wahr geliefert: `692e198c` stellt den CEO-Standardpfad auf native `paperclipai`-Primitive um, `16ae8da6` fixt den Repo-Root-CLI-Pfad ueber `PAPERCLIP_CLI_CWD`, `e4f849aa` fixt den Ready-Packet-Flash-Lane-Handoff
   - Live-Beweis `DAV-141` / CEO-Run `7b3e0c29-9b34-499b-a793-0d557b2e870f` beweist reviewbar `issue list --parent-id`, `agent list`, `issue create` und `issue assign`; Child `DAV-142` wurde erstellt und dem Worker zugewiesen
   - Das Primitive-Gate fuer `dgdh-skill-contract-and-verify-v1` gilt damit als faktisch erfuellt: der CEO-Standardpfad ist jetzt real billiger/robuster/lesbarer, ohne weitere Shell-/HTTP-Bastelei auf dem Handoff-Kernpfad
-  - North-Star-Entscheidungsregel ab jetzt: Mission / Overarching Goal bleibt stabil; Self-Learning ist Capability-Thesis unterhalb des Company North Star, nicht neuer Produktzweck
+  - North-Star-Entscheidungsregel ab jetzt: Mission / Overarching Goal bleibt stabil; mission-bounded Selbstverbesserung ist jetzt expliziter Firmenmodus, aber weiter streng unter Governance und nicht freie Live-Mutation
   - `68dd18d7` liefert jetzt den ersten echten governed capability container auf `main`: Shared Capability-Type + Validator, CLI `skill contract validate|verify`, Seed `company-hq/capabilities/ceo-native-issue-handoff-primitives.v1.json` und `doc/SKILL-CONTRACTS.md`
   - `fa4a88cb` beweist jetzt reuse auf demselben Skill-Pfad: `paperclipai skill contract verify-all`, gehaertete Evidence ueber `usageJson` + `contextSnapshot` und zweiter Seed `same-session-resume-after-post-tool-capacity.v1.json`
   - `skill-layer-operational-reuse-v1` haengt jetzt den kleinsten operator-facing Bridge-Pfad daran: `paperclipai skill contract list --maturity verified` zeigt vorhandene bewiesene Faehigkeiten und `paperclipai skill contract use <capabilityId>` liefert den kuerzesten Reuse-Brief inklusive Inputs, Guardrails und Verify-Kommando ohne Dateipfad-/Repo-Archaeologie
   - `skill-layer-runtime-bridge-v1` haengt jetzt die erste explizite Skill->Run Bruecke an denselben Layer: `verifiedSkill: <capabilityId>` im Issue-Description-Packet wird in Wakeup-Context und `paperclipTaskPrompt` als kompakter verified skill brief sichtbar, ohne Router-/Retrieval-Magic
   - `verified-skill-live-run-proof-v1` beweist jetzt den opt-in Bridge-Pfad live: Parent `DAV-144` / Run `fa452fcb-7d12-4f76-a545-d5f93d8f6850` trug `verifiedSkill: ceo-native-issue-handoff-primitives`, `requestedCapabilityIds` + `issueCapabilityReferences` waren im Run-Context sichtbar, `paperclipTaskPrompt` enthielt den injected verified skill brief und der CEO nutzte genau den nativen Viererschritt `issue list -> agent list -> issue create -> issue assign`, wodurch Child `DAV-145` dem Worker zugewiesen wurde
-  - Der Skill-Layer bleibt bewusst `v1`: zwei verifizierte Seeds plus `list|use|verify|verify-all` und opt-in `verifiedSkill`-Bridge sind echter Firmenhebel, aber noch keine breite Skill-Plattform und noch kein freies Self-Learning
+  - Der Skill-Layer bleibt bewusst `v1`: zwei verifizierte Seeds plus `list|use|verify|verify-all` und opt-in `verifiedSkill`-Bridge sind echter Firmenhebel, aber noch keine breite Skill-Plattform und noch nicht die eigentliche `mission autonomy lane`
   - Der naechste Core-Test ist deshalb nicht mehr "koennen wir Skill-Reuse beweisen?", sondern "spart dieser kleine governed capability layer auf weiteren echten Firmenlaeufen genug Wiederentdecken, um spaeter weitere Reuse-/Evidence-Schnitte zu rechtfertigen?"
   - OpenAI Codex Plugins sind fuer DGDH als spaetere Codex-Enablement-/Packaging-Schicht interessant: moegliche Buendelung von Codex-Skills, MCP-Config und App-Integrationen fuer schnelleres Codex-Onboarding; sie ersetzen weder `company-hq/capabilities/*` noch den Firmenkern und gehoeren erst spaeter hinter den aktuellen Reuse-/Firmenlauf-Hebel
   - Onyx ist fuer DGDH als spaeteres Knowledge-/Tool-Plane-Signal interessant: weniger als neues Arbeits-Frontend, mehr als moeglicher spaeter shared context/search/action gateway zwischen bestehenden Lanes; die richtige Reaktion bleibt `study the primitive, not adopt the platform`

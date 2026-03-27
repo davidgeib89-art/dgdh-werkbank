@@ -26,9 +26,10 @@ Standardfall nach Context-Verlust:
 6. `EXECUTOR.md` wenn du der ausfuehrende Agent bist und Runtime, Ports, Prozess-Identitaet oder Real-Run-Protokoll schnell sauber haben musst
 7. `doc/DGDH-AI-OPERATOR-RUNBOOK.md` wenn du Runs, Instanzen, Worktrees oder echte Bedienpfade anfassen musst
 8. `doc/plans/2026-03-24-dgdh-first-principles-operating-doctrine.md` wenn du Richtung, Massstab oder Anti-Drift fuer den Sprint brauchst
-9. `doc/plans/2026-03-24-dgdh-memory-learning-self-improvement-first-principles.md` wenn du ueber Firmengedachtnis, Lernen oder spaetere Selbstverbesserung nachdenkst
-10. `doc/plans/2026-03-24-dgdh-ai-trinity-and-operator-stack.md` wenn du den aktuellen AI-Stack, Rollen und Run-Oekonomie verstehen musst
-11. `doc/plans/2026-03-24-dgdh-soul-layer-and-boardmeeting-direction.md` wenn du verstehen musst, wie `SOUL.md` sich zu Rollen, Governance und Boardmeeting verhaelt
+9. `doc/plans/2026-03-27-dgdh-mission-autonomy-doctrine.md` wenn du verstehen musst, wie DGDH von Task-Autonomie zu mission-bounded Selbstverbesserung verschoben wird
+10. `doc/plans/2026-03-24-dgdh-memory-learning-self-improvement-first-principles.md` wenn du ueber Firmengedachtnis, Lernen oder spaetere Selbstverbesserung nachdenkst
+11. `doc/plans/2026-03-24-dgdh-ai-trinity-and-operator-stack.md` wenn du den aktuellen AI-Stack, Rollen und Run-Oekonomie verstehen musst
+12. `doc/plans/2026-03-24-dgdh-soul-layer-and-boardmeeting-direction.md` wenn du verstehen musst, wie `SOUL.md` sich zu Rollen, Governance und Boardmeeting verhaelt
 
 Das reicht normalerweise, um sofort weiterzuarbeiten.
 
@@ -40,11 +41,12 @@ Wenn etwas unklar, widerspruechlich oder driftig wirkt, geh zur Sicherheit auf `
 
 - DGDH ist eine governte David-Aufmerksamkeits-Kompressionsmaschine.
 - Primaerer Messwert in dieser Phase: sinkende David-Minuten pro Firmenlauf.
+- DGDH bekommt explizit einen zweiten Firmenmodus: mission-bounded Selbstverbesserung in der Workbench selbst statt dauernder externer Chat-Arbeit.
 - Review ist Gate und Sensor zugleich.
 - Reale Runs sind die bevorzugte Prototyping-Schleife; kein Test-Theater.
 - Invarianten gehoeren in Produktcode, Rollenverhalten in Role Templates, Spezialprozeduren spaeter in Skills, Bedienwissen ins Runbook.
 - Firmengedachtnis ist gestufte Kompression, nicht roher Vollkontext.
-- Self-Learning laeuft spaeter ueber Replay, Benchmark, PR und Promotion - nicht als freie Live-Mutation.
+- Governte Selbstverbesserung laeuft ueber Mission Cells mit Metrik, Budget, Blast Radius, Eval und Promotion - nicht als freie Live-Mutation.
 - Die aktuelle Arbeitsverteilung ist bewusst geschnitten: Codex fuer Reflexion und Zuschnitt, Copilot fuer grosse Coding-Sprints, ChatGPT fuer externe Gegenreflexion, Gemini fuer Review/Research.
 - `SOUL.md` ist shared core: eine gemeinsame Seele fuer die Firma, nicht bloss Persona-Fluff und nicht Ersatz fuer Rollen oder Guardrails.
 - `EXECUTOR.md` ist die schmale Execution-Schicht fuer Langlauf-Agenten: richtige Runtime zuerst, API vor Browser, Prozess vor Port, keine `task_complete`-Loops.
@@ -90,21 +92,25 @@ Lies sofort in dieser Reihenfolge:
    - warum wir grosse reale Sprints statt Test-Theater fahren
    - wo Produktcode, Role Templates, Skills und Runbook jeweils hingehoeren
 
-8. `doc/plans/2026-03-24-dgdh-memory-learning-self-improvement-first-principles.md`
+8. `doc/plans/2026-03-27-dgdh-mission-autonomy-doctrine.md`
+   - warum DGDH jetzt explizit Mission-Autonomie als eigenen Firmenmodus aufbaut
+   - wie Mission Cells, Type-1-/Type-2-Grenzen und Replay-/Eval-/Promotion zusammenspielen
+
+9. `doc/plans/2026-03-24-dgdh-memory-learning-self-improvement-first-principles.md`
    - wie DGDH Firmengedachtnis von Rohhistorie trennt
    - wie Lernen aus echten Firmenlaeufen verdichtet wird
    - warum Self-Improving spaeter replay-/benchmark-getrieben statt frei live laeuft
 
-9. `doc/plans/2026-03-24-dgdh-ai-trinity-and-operator-stack.md`
+10. `doc/plans/2026-03-24-dgdh-ai-trinity-and-operator-stack.md`
    - warum der aktuelle Stack nicht nach Markennamen, sondern nach Rollen optimiert ist
    - warum Copilot grosse Sprints ziehen soll
    - warum Codex und ChatGPT eher Denk- und Reflexionshebel sind
 
-10. `SOUL.md`
+11. `SOUL.md`
    - der gemeinsame Wesensvertrag aller DGDH-Agenten
    - wie Wahrheit, Resonanz, Boundaries und David-Naehe zusammengehalten werden
 
-11. `doc/plans/2026-03-24-dgdh-soul-layer-and-boardmeeting-direction.md`
+12. `doc/plans/2026-03-24-dgdh-soul-layer-and-boardmeeting-direction.md`
    - warum `SOUL.md` als gemeinsame `wir`-Schicht gebaut ist
    - wie daraus spaeter boardmeeting-faehige mehrere Stimmen derselben Firma entstehen koennen
 

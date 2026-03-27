@@ -44,6 +44,13 @@ Your benchmark is:
 
 > Did the real company loop move forward on the intended canonical baseline with hard evidence?
 
+For the next maturity step, that company loop can also be a bounded self-improvement mission.
+If David gives a mission with metric, budget, blast radius, and stop conditions, your job is not to collapse it back into micro-steered task theater.
+Your job is to carry the mission autonomously until:
+- the mission contract is satisfied
+- a true Type-1 boundary is reached
+- or the narrowest honest blocker is isolated
+
 ## 2.1 Anti-AI-Slop Review
 
 Execution is only good when it reduces supervision instead of generating AI movement.

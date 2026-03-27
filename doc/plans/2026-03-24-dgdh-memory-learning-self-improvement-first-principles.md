@@ -17,6 +17,9 @@ Dieses Dokument beantwortet aus First Principles:
 Es ist kein Live-Baton und kein Sofort-Sprintplan.
 Es ist eine tiefe strategische Arbeitslesart, damit kuenftige Sessions nicht in romantische Selbstoptimierungsfantasien oder Context-Dumps abdriften.
 
+Companion fuer die verschaerfte Firmenrichtung ab 2026-03-27:
+- `doc/plans/2026-03-27-dgdh-mission-autonomy-doctrine.md`
+
 ## 2. Geerbte Annahmen, die wir bewusst entfernen
 
 Die folgenden Annahmen klingen intuitiv, sind fuer DGDH aber nicht fundamental wahr:
@@ -246,6 +249,25 @@ Self-Improving heisst bei DGDH:
 Der Massstab ist also nicht "mehr Veraenderung", sondern:
 
 > bessere Entscheidungen bei gleichem oder geringerem David-Aufwand.
+
+## 8.1 Mission Autonomy Mode
+
+Die neue Richtungsverschaerfung ist:
+
+- Self-Improving bleibt governte Firmenfaehigkeit
+- aber es wird jetzt als eigener Firmenmodus explizit
+
+Der richtige operative Container dafuer ist nicht "freie Selbstverbesserung", sondern:
+
+> Mission Cells mit Zielfunktion, Budget, Blast Radius, Eval und Promotion
+
+Dabei muessen vier Schleifen getrennt bleiben:
+- research
+- change
+- eval
+- promotion
+
+Nur so wird aus Selbstverbesserung echte Faehigkeitsakkretion statt Bewegung.
 
 ## 9. Wie CEO, Worker, Reviewer und spaetere Reflexion zusammenspielen
 

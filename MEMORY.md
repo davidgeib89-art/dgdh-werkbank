@@ -15,6 +15,7 @@
 - `doc/DGDH-AI-OPERATOR-RUNBOOK.md` - stabile Bedienungsanleitung fuer lokale DGDH-/Paperclip-Firmenruns
 - `doc/plans/2026-03-24-dgdh-first-principles-operating-doctrine.md` - kanonische Verdichtung: DGDH als governte David-Aufmerksamkeits-Kompressionsmaschine
 - `doc/plans/2026-03-24-dgdh-memory-learning-self-improvement-first-principles.md` - kanonische Lesart fuer Firmengedachtnis, Lernen, Self-Learning und Self-Improving
+- `doc/plans/2026-03-27-dgdh-mission-autonomy-doctrine.md` - kanonische Richtungsverschaerfung: DGDH bekommt neben `delivery mode` einen mission-bounded Selbstverbesserungsmodus mit Mission Cells, Type-1/Type-2-Grenzen und Replay-/Eval-/Promotion-Kern
 - `doc/plans/2026-03-24-dgdh-soul-layer-and-boardmeeting-direction.md` - warum `SOUL.md` eine gemeinsame Wesensschicht ist und wie sie unter Governance bleibt
 - `doc/plans/2026-03-24-dgdh-ai-trinity-and-operator-stack.md` - aktueller AI-Stack, Rollenwahrheit und Run-/Quota-Oekonomie
 - `doc/plans/2026-03-26-dgdh-roadmap-snapshot.md` - aktuelle Entwicklungslandkarte zwischen North Star, Main-Stand und den naechsten echten Schritten; hilft neuen AI-Chats gegen Roadmap-Drift
@@ -42,20 +43,25 @@
 ## DGDH Kern
 - DGDH = David Geib - Digitales Handwerk; David ist der einzige menschliche Operator.
 - Overarching Goal: Mensch-AI-Symbiose der Welt beweisen und sie zu einem besseren Ort machen.
-- Company North Star: David gibt Richtung, die Maschine liefert reviewbare Realitaet, mit sinkender menschlicher Supervision pro nuetzlichem Lauf.
-- Capability Thesis: Die Maschine lernt unter Governance durable, damit wiederkehrende Faehigkeiten nicht immer neu ueber Chat, Shell und Prompt rekonstruiert werden muessen.
+- Proof-Reihenfolge der aktuellen Firmenphase: DGDH soll zuerst an sich selbst beweisen, dass eine menschlich wirkende, auf David abgestimmte AI-Firma sich unter Mission, Seele und Governance selbst so weit verbessern kann, dass sie reale Wertschoepfung erzeugt, immer autonomer wird und damit Mittel fuer groessere Mensch-AI-Natur-Symbiose-Projekte freisetzt.
+- Company North Star: David gibt Mission, Budget, Blast Radius und die wenigen echten Type-1-Entscheidungen; die Maschine liefert reviewbare Realitaet und reviewbare Faehigkeitssteigerung mit sinkender menschlicher Supervision pro nuetzlichem Zyklus.
+- Capability Thesis: Die Maschine lernt unter Governance durable und zieht immer mehr Verbesserungsarbeit aus externen Chats in die Firma selbst.
 - Erster governed capability cut ist jetzt reuse-faehig auf `main`: `ceo-native-issue-handoff-primitives` plus `same-session-resume-after-post-tool-capacity` leben als verifizierbare Skill-Contracts mit gemeinsamem `verify-all`-Pfad; `paperclipai skill contract list|use` ist die operator-facing Bridge und `verifiedSkill: <capabilityId>` ist jetzt die kleinste explizite Skill->Run-Bruecke fuer Issue-Packets. Live-Beweis `DAV-144` / CEO-Run `fa452fcb-7d12-4f76-a545-d5f93d8f6850` zeigt denselben Bridge-Pfad reviewbar im echten Lauf: Run-Context traegt `requestedCapabilityIds` + `issueCapabilityReferences`, `paperclipTaskPrompt` enthaelt den verified skill brief und der CEO fuehrt direkt den nativen Handoff-Viererschritt `issue list -> agent list -> issue create -> issue assign` fuer Child `DAV-145` aus. Das ist die erste prozedurale Capability-Schicht, aber noch keine breite Skill-Plattform.
 - DGDH ist eine governte David-Aufmerksamkeits-Kompressionsmaschine: David gibt Richtung, die Maschine soll mit minimalen David-Beruehrpunkten reale, reviewte, gemergte Arbeit liefern.
+- DGDH bekommt jetzt explizit einen zweiten Firmenmodus neben `delivery mode`: `mission autonomy mode`. In diesem Modus soll die Firma in bounded Missionsraeumen ihre eigene Faehigkeit steigern, statt nur externe oder direkte Arbeitsauftraege auszufuehren.
+- Mission Cells sind die neue Grundeinheit fuer bounded Selbstverbesserung: Primärmetrik, Guard-Metriken, Budget, Laufzeit, Blast Radius, erlaubte/verbotene Raeume, Eskalationsgruende und Promotionskriterium.
+- Mission Cells werden zuerst ueber Verantwortungen gelesen, nicht ueber feste Rollennamen: `goal owner`, `research owner`, `change owner`, `truth owner`, `risk owner`.
 - Davids Energie, Freude, Hyperfokus und `follow your highest excitement` sind reale Firmenressourcen; DGDH darf nicht so starr werden, dass es Wahrheit schuetzt, aber Lebendigkeit abtoetet.
 - Leitfragen: "Entlastet das David real?" UND "Wird die Firma faehiger - oder nur groesser?"
 - Primaerer Messwert in dieser Phase: sinkende David-Minuten pro Firmenlauf; Revenue bleibt Lagging Indicator von Capability.
 - Langfristige Richtung: David gibt die Richtung, die Maschine uebernimmt mit wachsender Modellfaehigkeit immer mehr Entscheidungen und Lieferung.
-- Self-Learning ist fuer DGDH nicht der Zweck, sondern eine spaetere governte Faehigkeit im Dienst von reviewbarer Realitaet und weniger Aufsicht.
+- Selbstverbesserung ist fuer DGDH nicht freie Live-Mutation, sondern mission-bounded Firmenarbeit unter Governance; sie ist jetzt expliziter Firmenmodus, aber weiter nicht Selbstzweck.
 - OpenAI Codex Plugins sind fuer DGDH als spaetere Codex-spezifische Enablement-/Packaging-Schicht relevant: gut moeglich fuer gebuendelte Codex-Skills, MCP-Config und App-Integrationen, aber kein Ersatz fuer die Firmen-Capability-Layer und kein aktueller `Core` vor dem live bewiesenen Reuse-Hebel auf echten Firmenlaeufen.
 - Agentica / ARCgentica sind fuer DGDH als spaetere Research-Lane relevant: gute Quelle fuer stateful execution, live primitives und bounded subagent state handoff; die richtige Reaktion ist spaeter ein kleiner `agentica-translation-spike-v1`, nicht eine zweite Produktionsruntime oder ARC-/AGI-Score-Jagd als Firmenkern.
 - Onyx ist fuer DGDH als spaetere Research-/Enablement-Lane relevant: wahrscheinlich eher als `shared context + search + tool gateway` zwischen bestehenden Coding-Lanes als als neues Hauptfrontend; der richtige spaetere Test waere ein kleiner `onyx-lite-or-mcp-shadow-search-spike-v1`, nicht Voll-Onyx als neuer Kernstack.
 - Aktuelle Operator-Realitaet: David als Operator; Codex/GPT-5.4 als Planner/Reflektor und bei Bedarf bounded Coder; Copilot als langlaufender High-Power-Coder-Agent; ChatGPT als externer GPT-5.4-Reflektor; Gemini bleibt Reviewer/Researcher-Lane.
 - Kollaborationsregel fuer die direkte AI-Schicht: Copilot wird als nahezu gleich starke autonome Execution-Lane behandelt; Codex schneidet deshalb standardmaessig offene, paketorientierte Copilot-Sprints mit klaren Grenzen und Stop-Regeln statt kleinteiliger Mikromanagement-Prompts, und reviewt danach den Output ehrlich.
+- Zielbild fuer die naechste Ausbaustufe: Quotas sollen zunehmend in der Workbench selbst fuer bounded Firmen-Selbstverbesserung verbrannt werden koennen; David soll eher Missionen als einzelne Arbeitspakete geben.
 - Lane-Oekonomie-Regel: billige Prompt-/Sessionkosten allein sind kein Hebel; eine Lane ist nur dann gut, wenn sie David trotz Execution wirklich Aufmerksamkeit spart und nicht bloss Aufsicht multipliziert.
 - Anti-AI-Slop-Gate: jede relevante Aenderung, Idee und Lane muss dieselben 5 Fragen bestehen - spart es David auf einem echten Firmenlauf Minuten, erhoeht es echte Firmenfaehigkeit statt AI-Aktivitaet, bleibt es ohne Blindvertrauen pruefbar, traegt es auch ohne AI-Prosa und ist es jetzt dran; wenn 2 oder mehr Antworten `nein` sind, wird geparkt, kleiner geschnitten oder gestrichen.
 - Hauptfilter gegen Drift: `Hilft das DGDH dabei, mit weniger David-Supervision pro nuetzlichem Lauf echte reviewbare Realitaet zu liefern - oder produziert es nur mehr AI-Aufsicht?`
@@ -85,7 +91,7 @@
 - Assignment-/Status-Wakeups blocken execution-heavy Issues jetzt frueh bei `not_ready`; die minimalen Reason-Codes sind `target_file_missing`, `target_folder_missing`, `artifact_kind_missing`, `donewhen_missing`, `execution_scope_ambiguous`.
 - Live-Beweis fuer Packet-Readiness-V1: unvollstaendiges Parent-Issue `DAV-52` blieb sichtbar `not_ready` ohne echten Run; vollstaendiges Parent-Issue `DAV-53` startete sauber und erzeugte Child `DAV-54`.
 - Ein leeres `/instance/scheduler-heartbeats` beweist keinen kaputten Assignment-Pfad; bei `intervalSec = 0` fehlt dort nur Timer-Scheduler-Sichtbarkeit.
-- Self-Learning bedeutet spaeter governte Hypothesenbildung aus echten Firmenlaeufen; Self-Improving promoted bewaehrte Verbesserungen erst nach Replay/Benchmark/PR-Pruefung in den Standardbetrieb.
+- Governte Selbstverbesserung laeuft kuenftig ueber vier getrennte Schleifen `research -> change -> eval -> promotion`; erst nach Replay-/Eval-/PR-/Promotion-Wahrheit darf etwas in den Standardbetrieb.
 - CEO-Modell-Richtung: Gemini Pro bevorzugt -> Flash -> Flash-Lite. (Claude/Codex mittelfristig als CEO plausibel).
 
 ## Phase und Prioritaet (Korrektur 2026-03-22)

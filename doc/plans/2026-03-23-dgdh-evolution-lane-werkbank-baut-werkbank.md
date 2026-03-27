@@ -4,6 +4,10 @@ Datum: 2026-03-23
 Status: Kanonische spaetere Richtung, nicht aktueller Hauptsprint
 Zweck: Haelt fest, wie DGDH spaeter kontrollierte Selbstverbesserung baut, ohne jetzt in freie Meta-Architektur oder Live-Selbstoptimierung abzudriften.
 
+Update 2026-03-27:
+- `doc/plans/2026-03-27-dgdh-mission-autonomy-doctrine.md` ist jetzt die kanonische naechste Firmenstufe
+- dieses Dokument bleibt der spaetere, weiter reichende Horizont hinter dieser ersten Mission-Autonomie-Schicht
+
 ## 1. Klares Urteil
 
 DGDH soll spaeter Self-Learning und Self-Emerging bekommen.

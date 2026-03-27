@@ -52,15 +52,16 @@ Die neuesten Dateien in `doc/plans/` nach Datum sortiert zeigen dir was zuletzt 
 
 Lies diese Docs in dieser Reihenfolge:
 
-1. `doc/plans/2026-03-24-dgdh-first-principles-operating-doctrine.md` - kanonische Lesart: DGDH als governte David-Aufmerksamkeits-Kompressionsmaschine; primaere Metrik, Anti-Drift und Wissensverteilung
-2. `doc/plans/2026-03-24-dgdh-memory-learning-self-improvement-first-principles.md` - wie Firmengedachtnis, Lernen, Self-Learning und Self-Improving fuer DGDH wirklich zu lesen sind
-3. `doc/plans/2026-03-24-dgdh-soul-layer-and-boardmeeting-direction.md` - warum `SOUL.md` eine gemeinsame Wesensschicht ist und wie sie sich zu Rollen, Memory und Boardmeeting-Vision verhaelt
-4. `doc/plans/2026-03-24-dgdh-ai-trinity-and-operator-stack.md` - aktueller AI-Stack: David, Codex, Copilot, ChatGPT und Gemini sauber nach Rolle statt nach Marketingnamen gelesen
-5. `doc/plans/2026-03-21-dgdh-north-star-roadmap.md` - aktueller North Star; IMMER lesen
-6. `company-hq/ROADMAP.md` - Wo wir stehen, wo wir hinwollen, warum
-7. `company-hq/DGDH-CEO-CONTEXT.md` - Davids Prioritaeten und Entscheidungsregeln
-8. `company-hq/VISION.md` - Mission, Werte, Organisationsstruktur
-9. `SOUL.md` - gemeinsamer Wesensvertrag der DGDH-Agentenwelt
+1. `doc/plans/2026-03-27-dgdh-mission-autonomy-doctrine.md` - neue kanonische Richtungsverschaerfung: DGDH bekommt mission-bounded Selbstverbesserung als eigenen Firmenmodus
+2. `doc/plans/2026-03-24-dgdh-first-principles-operating-doctrine.md` - kanonische Lesart: DGDH als governte David-Aufmerksamkeits-Kompressionsmaschine; primaere Metrik, Anti-Drift und Wissensverteilung
+3. `doc/plans/2026-03-24-dgdh-memory-learning-self-improvement-first-principles.md` - wie Firmengedachtnis, Lernen, Self-Learning und Self-Improving fuer DGDH wirklich zu lesen sind
+4. `doc/plans/2026-03-24-dgdh-soul-layer-and-boardmeeting-direction.md` - warum `SOUL.md` eine gemeinsame Wesensschicht ist und wie sie sich zu Rollen, Memory und Boardmeeting-Vision verhaelt
+5. `doc/plans/2026-03-24-dgdh-ai-trinity-and-operator-stack.md` - aktueller AI-Stack: David, Codex, Copilot, ChatGPT und Gemini sauber nach Rolle statt nach Marketingnamen gelesen
+6. `doc/plans/2026-03-21-dgdh-north-star-roadmap.md` - aktueller North Star; IMMER lesen
+7. `company-hq/ROADMAP.md` - Wo wir stehen, wo wir hinwollen, warum
+8. `company-hq/DGDH-CEO-CONTEXT.md` - Davids Prioritaeten und Entscheidungsregeln
+9. `company-hq/VISION.md` - Mission, Werte, Organisationsstruktur
+10. `SOUL.md` - gemeinsamer Wesensvertrag der DGDH-Agentenwelt
 
 Wenn Dokumente sich widersprechen, gilt fuer die aktuelle operative Richtung zuerst:
 - `doc/plans/2026-03-21-dgdh-north-star-roadmap.md`
@@ -78,11 +79,12 @@ Nur bei Bedarf (wenn deine Aufgabe es erfordert):
 
 - DGDH ist eine governte David-Aufmerksamkeits-Kompressionsmaschine.
 - Primaerer Messwert in dieser Phase: sinkende David-Minuten pro Firmenlauf.
+- DGDH bekommt explizit einen zweiten Firmenmodus neben Delivery: mission-bounded Selbstverbesserung mit Mission Cells, Eval und Promotion.
 - Review ist Gate und Sensor zugleich.
 - Nicht bessere Prompts allein skalieren die Firma, sondern bessere Zustandsfuehrung, Handoffs und Rollenlogik.
 - Invarianten gehoeren in Produktcode, Rollenverhalten in Role Templates, Spezialprozeduren spaeter in Skills, Bedienwissen in das Operator-Runbook.
 - Firmengedachtnis ist keine Chat-History-Suppe, sondern gestufte Kompression: Betriebszustand -> episodisch -> semantisch -> prozedural -> strategisch.
-- Self-Learning heisst spaeter governte Hypothesenbildung aus echten Firmenlaeufen; Self-Improving heisst erst nach Replay/Benchmark/PR-Promotion den Standardbetrieb zu verbessern.
+- Governte Selbstverbesserung heisst jetzt: Mission, Budget, Blast Radius, Type-1-Grenzen, Research/Change/Eval/Promotion und erst danach PR-/Main-Promotion.
 - Die aktuelle AI-Trinity ist aus First Principles geschnitten: Codex/GPT-5.4 fuer Reflexion und Zuschnitt, Copilot fuer lange Coding-Sprints, ChatGPT fuer externe Gegenreflexion, Gemini fuer Reviewer-/Researcher-Arbeit.
 - Die direkte David-Trinity hat jetzt durable Docks: `TRINITY.md` als shared Vertrag, dazu `CODEX.md`, `CHATGPT.md` und `COPILOT.md` als rollenscharfe Wiedereinstiege.
 - `SOUL.md` ist die gemeinsame Wesens- und Beziehungsschicht der Firma: warm, wahr, resonant, bounded und David-nah, ohne Rollenlogik oder Governance zu ersetzen.

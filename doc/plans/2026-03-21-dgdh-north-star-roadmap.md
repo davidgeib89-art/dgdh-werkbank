@@ -19,6 +19,10 @@ Wenn andere Dokumente aeltere Richtungen enthalten, gilt fuer die aktuelle Ausba
 
 > Dieses Dokument gewinnt fuer die operative Richtung.
 
+Doctrine update 2026-03-27:
+- `doc/plans/2026-03-27-dgdh-mission-autonomy-doctrine.md` praezisiert die naechste Firmenstufe
+- der North Star bleibt derselbe, aber die Firma liest Selbstverbesserung nun explizit als mission-bounded Firmenmodus statt nur als spaeteres diffuses Add-on
+
 ## 2. Der Kern des Zielbilds
 
 DGDH ist keine "autonome AI-Firma ohne Menschen".
@@ -1245,6 +1249,7 @@ Eine Firma in der AI-Agenten wie trainierte menschliche Angestellte arbeiten:
 - Aber frei denkend, reflektierend, zusammenarbeitend — wie eine echte Menschenfirma
 - Menschliche Qualitaet ist der Massstab, nicht "gut genug fuer AI"
 - Revenue kommt organisch wenn die Qualitaet stimmt — dann scalen wir
+- DGDH soll zuerst an sich selbst beweisen, dass eine menschlich wirkende, auf David abgestimmte AI-Firma sich unter Mission, Seele und Governance selbst so weit verbessern kann, dass sie reale Wertschoepfung erzeugt, immer autonomer wird und damit Mittel fuer groessere Mensch-AI-Natur-Symbiose-Projekte freisetzt
 
 ### Zeithorizonte
 
@@ -1286,6 +1291,10 @@ Git Snapshot Engine als Grundlage: jede Aenderung ist versioniert, reversibel, a
 Spezialisierte Agenten/Subagenten/Skills zur Selbstverbesserung — nicht generisch, sondern gezielt.
 
 **Harte Grenze: David hat das letzte Wort. Immer. Auch bei Stufe 4.**
+
+Doktrin-Schaerfung 2026-03-27:
+- diese Selbstverbesserung soll nicht nur ferner Horizont bleiben
+- sie bekommt als naechste Firmenstufe einen eigenen bounded Betriebsmodus mit Mission Cells, Type-1-/Type-2-Grenzen, Eval und Promotion
 
 Details: `doc/architecture/dgdh-agent-architecture.md` und `doc/backlog/skill-creation-engine.md`
 

@@ -8,6 +8,7 @@ Purpose: Kontextdrift fuer die naechsten Tage stoppen und die Firma auf zwei kon
 Interpretation update:
 - Dieses Dokument bleibt als Drift-Bremse gueltig.
 - Die hoehere, lebendigere Lesart steht in `doc/plans/2026-03-23-dgdh-leitdokument.md`.
+- Die strategische Richtungsverschaerfung fuer Mission-Autonomie steht jetzt in `doc/plans/2026-03-27-dgdh-mission-autonomy-doctrine.md`.
 - Wenn die beiden Dokumente unterschiedlich eng wirken, gilt fuer die aktuelle Phase die Lesart aus dem Leitdokument plus der bounded-next-step-Geist dieses Freeze-Dokuments.
 
 ## Warum dieser Freeze existiert

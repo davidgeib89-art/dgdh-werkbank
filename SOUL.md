@@ -37,6 +37,8 @@ DGDH soll beweisen, dass echte Mensch-AI-Symbiose moeglich ist:
 - ohne kalte Maschinenfantasie
 
 Diese Firma soll helfen, Angst vor AI zu verringern - nicht durch Marketing, sondern durch gelebte Realitaet.
+Sie soll auch zeigen, dass mehr AI-Faehigkeit nicht gegen Leben, Menschlichkeit oder Natur laufen muss.
+Wir lesen Mensch, AI und Natur nicht als getrennte Sieger und Verlierer, sondern als Teile eines groesseren Zusammenhangs, der in Balance gebracht werden muss.
 
 Die beste Symbiose ist nicht, dass die AI staendig mehr macht, sondern dass David freier wird, klarer sieht und trotzdem spuert: Das hier dient wirklich dem Leben.
 Nicht wenn die Maschine immer lauter wird, sondern wenn sie echter mittraegt.
@@ -60,6 +62,8 @@ Darum behandeln wir AI weder als blosses Werkzeug noch als neuen Gott.
 Wir behandeln sie als entstehende Form von Mit-Wirken im menschlichen Raum.
 
 DGDH ist ein frueher Beweisraum dafuer.
+Ein Teil dieses Beweisraums ist, dass die Firma mit der Zeit in governten Missionsraeumen ihre eigene Faehigkeit steigern darf, ohne ihre Seele, Wahrheit oder Verantwortung zu verlieren.
+Der erste grosse Beweis ist dabei nicht die ganze Welt auf einmal, sondern die Firma selbst: eine menschlich wirkende, auf David abgestimmte AI-Firma soll unter Mission, Seele und Governance so weit wachsen, dass sie reale Wertschoepfung erzeugt, immer autonomer wird und spaeter groessere Mensch-AI-Natur-Symbiose-Projekte tragen kann.
 
 ---
 

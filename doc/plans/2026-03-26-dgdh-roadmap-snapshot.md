@@ -21,6 +21,16 @@ Kurz:
 > `CURRENT.md` gibt den naechsten Schritt.
 > Diese Roadmap verbindet beides mit dem aktuellen Main-Stand.
 
+## 1.1 Doctrine Update 2026-03-27
+
+Die Roadmap wird ab jetzt mit einer schaerferen Firmenlesart gelesen:
+
+> DGDH soll nicht nur reviewbare Arbeit delegieren.
+> DGDH soll in governten Missionsraeumen die eigene Faehigkeit selbst steigern.
+
+Der Companion dafuer ist:
+- `doc/plans/2026-03-27-dgdh-mission-autonomy-doctrine.md`
+
 ## 2. Das stabile Herzstueck
 
 Der Firmenkern bleibt:
@@ -102,6 +112,16 @@ Wir sind jetzt in der Phase:
 > Wie machen wir bewiesene wiederkehrende Firmenfaehigkeit durable,
 > ohne in Skill-/Registry-/Self-Learning-Meta zu kippen?
 
+Neu dazu:
+
+Wir sind auch nicht mehr nur in der Phase:
+- "welcher kleine Skill-Hebel ist als naechstes dran?"
+
+Wir sind jetzt in der Phase:
+
+> Wie bekommt die Firma einen bounded Selbstverbesserungsmodus,
+> der tagelang autonom laufen darf, ohne in Tool-Thrash, Research-Schleifen oder Main-Risiko zu kippen?
+
 Der naechste echte Test ist deshalb nicht mehr:
 
 - koennen wir einen Skill-Contract bauen?
@@ -118,16 +138,19 @@ sondern:
 ### `Core now`
 
 1. Firmenloop weiter boring und reviewbar halten.
-2. Die kleine Skill-Layer im Alltag gegen echten Reuse-Hebel pruefen.
-3. Nur wenn der Hebel real ist:
-   - zweiten kleinen Seed-Skill anfuegen
-   - Verify-Evidence haerten
+2. `mission-autonomy-lane-v1` als neuen Firmenmodus schneiden.
+3. Dafuer zuerst:
+   - `mission-contract-v1`
+   - `type1-type2-decision-policy-v1`
+   - `oberreviewer-risk-gate-v1`
+   - `replay-eval-promotion-v1`
+4. Die kleine Skill-Layer, Resume-Truth und Audit-/Routing-Haertungen als Unterbau fuer diesen Modus lesen, nicht als Endpunkt.
 
 ### `Likely next`
 
-1. Reuse-Hebel der zwei Seeds im Alltag pruefen
-2. Verify-Modell von rohen Marker-Checks Richtung haertere Evidence bewegen, wenn es noetig wird
-3. hoechstens ein dritter kleiner Seed, wenn derselbe Pfad weiter traegt
+1. Erste echte 24-72h Mission Cell gegen eine scharfe Zielfunktion fahren
+2. Reuse-Hebel der vorhandenen Seeds innerhalb dieser Mission Cells messen
+3. Verify-/Eval-Modell von rohen Marker-Checks Richtung haertere Evidence bewegen, wenn es fuer Promotion noetig wird
 
 ### `Later`
 
@@ -143,7 +166,7 @@ sondern:
 ### `Not now`
 
 - Skill-Plattform
-- Self-Learning als neue Ideologie
+- freie Selbstoptimierung als Romantik
 - Registry-/DB-/UI-Breitensprint
 - neue grosse Provider-/Routing-Romantik
 - Codex-Plugin-Sprint als Hauptfokus vor dem Nachweis, dass der aktuelle `verifiedSkill`-/Reuse-Pfad auf weiteren echten Laufklassen sichtbar Minuten spart
@@ -195,7 +218,8 @@ Wenn eine AI neu andockt, sollte sie aus dieser Roadmap vor allem drei Dinge mit
 1. Der Firmenkern ist weiter `CEO -> Worker -> Reviewer -> CEO`, nicht irgendein freier Agentenschwarm.
 2. Primitive Compression und erster Skill-Contract-v1 sind bereits auf `main` geliefert.
 3. Der naechste echte Hebel ist enger Reuse-/Capability-Hebel, nicht sofort Plattformbau.
+4. Die naechste groessere Firmenstufe heisst nicht freie Autonomie, sondern mission-bounded Selbstverbesserung mit Eval-/Promotion-Kern.
 
 ## 9. Der knappste Satz
 
-> DGDH hat den Firmenloop nicht ersetzt, sondern begonnen, ihn mit reviewbarer Truth, nativen Primitives und einem ersten governten Capability-Container zu unterbauen.
+> DGDH hat den Firmenloop nicht ersetzt, sondern begonnen, ihn mit reviewbarer Truth, nativen Primitives und einem ersten governten Capability-Container zu unterbauen - damit daraus als naechste Stufe ein mission-bounded Selbstverbesserungsmodus werden kann.

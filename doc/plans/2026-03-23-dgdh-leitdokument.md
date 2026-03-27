@@ -32,6 +32,9 @@ DGDH will langfristig:
 - David mehr Freiheit, Wirksamkeit und Spaeter-Perspektive ermoeglichen
 - irgendwann reale Zusammenarbeit zwischen David und mehreren vertrauenswuerdigen AI-Rollen ermoeglichen
 
+Die neue klare Proof-Reihenfolge dafuer ist:
+- DGDH soll zuerst an sich selbst beweisen, dass eine menschlich wirkende, auf David abgestimmte AI-Firma sich unter Mission, Seele und Governance selbst so weit verbessern kann, dass sie reale Wertschoepfung erzeugt, immer autonomer wird und damit Mittel fuer groessere Mensch-AI-Natur-Symbiose-Projekte freisetzt
+
 Geld ist dabei Mittel, nicht Gott.
 Revenue ist wichtig, aber nicht die eigentliche Vision.
 Die Firma muss spaeter Geld verdienen koennen, damit die groessere Mission tragfaehig wird.

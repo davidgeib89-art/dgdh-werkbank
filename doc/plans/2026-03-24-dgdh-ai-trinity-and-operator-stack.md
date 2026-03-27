@@ -25,6 +25,11 @@ DGDH arbeitet aktuell am besten als:
 
 Gemini bleibt die Reviewer-/Researcher-Lane innerhalb der Firma, nicht das Zentrum der Operator-Steuerung.
 
+Die naechste strategische Richtung dazu ist:
+
+> Diese externe Trinity soll nicht dauerhaft die eigentliche Selbstverbesserung ausserhalb der Firma tragen.
+> Sie soll helfen, Mission-Autonomie in die Workbench selbst hineinzuziehen.
+
 ## 3. Die Besetzung
 
 ### 3.1 David
@@ -153,6 +158,7 @@ Darum gilt:
 - lange, zusammenhaengende Copilot-Runs sind besonders wertvoll
 - knapper budgetierte direkte Codex-Interaktionen werden fuer Reflexion, Zuschnitt und gezielte Eingriffe genutzt
 - grosszuegige GPT-5.4-Chat-Lanes werden fuer Strategie und Verdichtung genutzt
+- langfristig soll der eigentliche Faehigkeitszuwachs zunehmend in der Paperclip-/Workbench-Firma selbst passieren, nicht in dauernder externer Chat-Koordination
 
 ### 5.4a Durable Identity Docks
 
