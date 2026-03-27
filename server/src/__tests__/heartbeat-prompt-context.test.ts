@@ -119,6 +119,15 @@ describe("buildHeartbeatIssuePromptContextPatch", () => {
       "missionCellId: mission-cell-starter-path-v1",
     );
     expect(String(patch.paperclipTaskPrompt ?? "")).toContain(
+      "contractFile: company-hq/mission-cells/mission-cell-starter-path-v1.json",
+    );
+    expect(String(patch.paperclipTaskPrompt ?? "")).toContain(
+      "startupSequence: Validate the mission-cell contract with `paperclipai mission cell validate`. | Reference the mission cell in the issue description. | Confirm the bounded target and doneWhen fit the mission cell. | Carry all Type-2 work inside the mission cell autonomously. | Promote the learning into durable truth after the run.",
+    );
+    expect(String(patch.paperclipTaskPrompt ?? "")).toContain(
+      "firstProbe: Check that the issue prompt contains the mission cell brief | Check that assignment context carries mission cell references | Run the smallest proof that the first bounded seam actually changed",
+    );
+    expect(String(patch.paperclipTaskPrompt ?? "")).toContain(
       "type1Escalations: main branch mutation outside normal reviewed merge flow | deploys and live external effects | global secrets or permission changes | irreversible data or cost consequences | global policy changes beyond the current mission cell",
     );
   });

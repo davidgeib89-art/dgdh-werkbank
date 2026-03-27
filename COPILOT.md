@@ -145,6 +145,7 @@ What is fundamentally, provably true instead:
 - the first blocker in the real path is almost always cheaper to isolate than a broader theory about the system
 - explicit packet truth beats inferred packet truth
 - prompt truth is not the same as source-code intent; only the real heartbeat-run snapshot proves what the agent actually received
+- a `missionCell` reference only reduces restating when the runtime brief carries the actual starter path, not just charter/risk/promotion prose
 - the same path should be rerun after the smallest real fix, not replaced with a side proof
 - remote `main` may contain live company output and must be treated as current truth, not friction
 - `task_complete` is a chat-tool responsibility, not a shell responsibility; trying to satisfy it inside PowerShell creates fake progress and loop risk

@@ -20,6 +20,20 @@ context loss, or branch handoffs without collapsing back into short paid micro-s
 Can one real mission cell now carry a bounded internal self-improvement target, discover at least
 one proof-born hardening cut, and leave durable truth without David restating the lane mid-run?
 
+## Latest proof
+
+Yes on this first bounded live proof.
+
+The real friction discovered during the run was narrower than a platform gap:
+the `missionCell` runtime bridge carried charter, risk, and promotion truth,
+but not the starter-path continuity an execution lane actually needs to launch and resume cleanly.
+That left the mission still depending on manual chat restatement for startup and first probe.
+
+The proof-discovered hardening cut is now the minimal runtime seam:
+mission-cell prompt and wakeup context carry `contractFile`, `issueField`, `validate`,
+`startupSequence`, and `firstProbe`, so the next Eidan/Copilot run can start from repo truth
+with less manual reconstruction.
+
 ## Current direction
 
 Use the new mission-cell operating shape on one bounded internal target:

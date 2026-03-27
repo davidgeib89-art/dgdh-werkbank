@@ -213,6 +213,12 @@ describe("issue assignment wakeup context", () => {
             expect.objectContaining({
               missionCellId: "mission-cell-starter-path-v1",
               status: "active",
+              startupSequence: expect.arrayContaining([
+                expect.stringContaining("Validate the mission-cell contract"),
+              ]),
+              firstProbe: expect.arrayContaining([
+                expect.stringContaining("Check that the issue prompt contains the mission cell brief"),
+              ]),
             }),
           ],
         }),

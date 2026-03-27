@@ -1,6 +1,9 @@
 import fs from "node:fs";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { resolveMissionCellRuntimeBridge } from "../services/mission-cell-contracts.js";
+import {
+  buildMissionCellPromptBlock,
+  resolveMissionCellRuntimeBridge,
+} from "../services/mission-cell-contracts.js";
 
 describe("resolveMissionCellRuntimeBridge", () => {
   afterEach(() => {
@@ -32,5 +35,33 @@ describe("resolveMissionCellRuntimeBridge", () => {
         expect.stringContaining("no active valid contract file was found"),
       ]),
     );
+  });
+
+  it("includes startup continuity details in the mission cell prompt block", () => {
+    const bridge = resolveMissionCellRuntimeBridge(
+      "missionCell: first-live-mission-cell-proof-v1",
+    );
+
+    expect(bridge.briefs).toEqual([
+      expect.objectContaining({
+        missionCellId: "first-live-mission-cell-proof-v1",
+        startupSequence: expect.arrayContaining([
+          expect.stringContaining("Validate the mission cell contract"),
+        ]),
+        firstProbe: expect.arrayContaining([
+          expect.stringContaining("Read prompt or wakeup context"),
+        ]),
+      }),
+    ]);
+
+    const promptBlock = buildMissionCellPromptBlock(bridge);
+    expect(promptBlock).toContain(
+      "contractFile: company-hq/mission-cells/first-live-mission-cell-proof-v1.json",
+    );
+    expect(promptBlock).toContain(
+      "validate: pnpm paperclipai mission cell validate company-hq/mission-cells/first-live-mission-cell-proof-v1.json --json",
+    );
+    expect(promptBlock).toContain("startupSequence:");
+    expect(promptBlock).toContain("firstProbe:");
   });
 });

@@ -14,6 +14,8 @@ export interface MissionCellRuntimeBrief {
   objective: string;
   primaryMetric: string;
   trigger: string;
+  startupSequence: string[];
+  firstProbe: string[];
   type2Autonomy: string[];
   type1Escalations: string[];
   oberreviewerTriggers: string[];
@@ -138,6 +140,9 @@ function buildRuntimeBrief(
   contract: MissionCellContractInput,
   sourcePath: string,
 ): MissionCellRuntimeBrief {
+  const normalizedSourcePath = path
+    .relative(process.cwd(), sourcePath)
+    .replace(/\\/g, "/");
   return {
     missionCellId: contract.missionCellId,
     title: contract.title,
@@ -146,6 +151,8 @@ function buildRuntimeBrief(
     objective: contract.charter.objective,
     primaryMetric: contract.charter.primaryMetric,
     trigger: contract.starterPath.trigger,
+    startupSequence: contract.starterPath.startupSequence,
+    firstProbe: contract.starterPath.firstProbe,
     type2Autonomy: contract.decisionPolicy.type2Autonomy,
     type1Escalations: contract.decisionPolicy.type1Escalations,
     oberreviewerTriggers: contract.riskGate.oberreviewerTriggers,
@@ -153,7 +160,7 @@ function buildRuntimeBrief(
     promoteWhen: contract.promotion.promoteWhen,
     firmBound: contract.boundaries.firmBound,
     carrierBound: contract.boundaries.carrierBound,
-    filePath: sourcePath,
+    filePath: normalizedSourcePath,
   };
 }
 
@@ -213,7 +220,12 @@ export function buildMissionCellPromptBlock(
       `  summary: ${brief.summary}`,
       `  objective: ${brief.objective}`,
       `  primaryMetric: ${brief.primaryMetric}`,
+      `  contractFile: ${brief.filePath}`,
+      `  issueField: missionCell: ${brief.missionCellId}`,
+      `  validate: pnpm paperclipai mission cell validate ${brief.filePath} --json`,
       `  startTrigger: ${brief.trigger}`,
+      `  startupSequence: ${brief.startupSequence.join(" | ")}`,
+      `  firstProbe: ${brief.firstProbe.join(" | ")}`,
       `  type2Autonomy: ${brief.type2Autonomy.join(" | ")}`,
       `  type1Escalations: ${brief.type1Escalations.join(" | ")}`,
       `  oberreviewerTriggers: ${brief.oberreviewerTriggers.join(" | ")}`,

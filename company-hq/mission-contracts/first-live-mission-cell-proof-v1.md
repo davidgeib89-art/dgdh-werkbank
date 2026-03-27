@@ -125,6 +125,27 @@ When the mission teaches something real, promote it into the smallest truthful p
 - `EXECUTOR.md`
 - the minimal runtime seam that now carries the truth durably
 
+## First live proof result
+
+This phase has now been used once for real on the bounded target
+`improve Eidan/Copilot long-autonomy continuity`.
+
+Observed live friction:
+
+- a `missionCell` reference in the runtime prompt was not yet enough to replace manual restating
+- the bridge carried charter/risk/promotion truth, but not the concrete starter path an execution lane needs under compact pressure
+
+Proof-discovered hardening that landed:
+
+- the runtime mission-cell brief now carries `contractFile`, `issueField`, `validate`, `startupSequence`, and `firstProbe`
+- wakeup context now carries the same starter-path continuity data for the issue
+- targeted tests cover the prompt block and issue assignment context for this continuity path
+
+Promotion result:
+
+- `company-hq/ACTIVE-MISSION.md`, `CURRENT.md`, `MEMORY.md`, and `COPILOT.md` now record this proof and its durable lesson
+- the next Eidan/Copilot mission needs less David restating because the starter path now rides inside the same explicit `missionCell` bridge
+
 ## One sentence
 
 Do not just prove that the mission-cell body exists; prove that it can live, learn, harden, and remember.
