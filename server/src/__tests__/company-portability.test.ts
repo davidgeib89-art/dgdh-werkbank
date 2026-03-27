@@ -92,7 +92,7 @@ describe("company portability firm identity export", () => {
       "company-hq/mission-cells/mission-cell-starter-path-v1.json",
     );
     expect(result.files["FIRM-IDENTITY.md"]).toContain("Paperclip is the current carrier");
-    expect(result.files["CURRENT.md"]).toContain("mission-autonomy-lane-v1");
+    expect(result.files["CURRENT.md"]).toContain("triad-mission-loop-v1");
     expect(result.files["company-hq/ACTIVE-MISSION.md"]).toContain(
       "first-live-mission-cell-proof-v1",
     );
