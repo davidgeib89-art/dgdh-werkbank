@@ -114,6 +114,11 @@ The operator runbook wins for:
 - exact Paperclip company-run handling patterns
 - git and shell discipline that already paid off in real runs
 
+Long-autonomy mission template:
+- `company-hq/mission-contracts/long-autonomy-mission-template.md`
+
+Use that template when David wants a 1-3h+ Eidan/Copilot run with compact-safe continuity, midpoint commits, and a real terminal mission state instead of the first tidy package.
+
 --- 
 
 ## 5. First-Principles Learnings From Recent Runs

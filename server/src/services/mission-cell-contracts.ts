@@ -51,6 +51,17 @@ function normalizeMissionCellList(values: string[]): string[] {
   return ordered;
 }
 
+function isPlainRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function describeMissionCellLoadError(err: unknown): string {
+  if (err instanceof Error && err.message.trim().length > 0) {
+    return err.message.trim();
+  }
+  return String(err);
+}
+
 export function extractRequestedMissionCellIds(
   description: string | null | undefined,
 ): string[] {
@@ -74,30 +85,53 @@ export function extractRequestedMissionCellIds(
   return normalizeMissionCellList(requested);
 }
 
-function loadMissionCellContracts(): Map<
-  string,
-  { contract: MissionCellContractInput; sourcePath: string }
-> {
+function loadMissionCellContracts(): {
+  contracts: Map<string, { contract: MissionCellContractInput; sourcePath: string }>;
+  errors: string[];
+} {
   const dir = missionCellsDir();
-  if (!fs.existsSync(dir)) return new Map();
+  if (!fs.existsSync(dir)) {
+    return {
+      contracts: new Map(),
+      errors: [],
+    };
+  }
 
   const contracts = new Map<
     string,
     { contract: MissionCellContractInput; sourcePath: string }
   >();
+  const errors: string[] = [];
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     if (!entry.isFile() || !entry.name.endsWith(".json")) continue;
     const sourcePath = path.join(dir, entry.name);
     try {
-      const raw = JSON.parse(fs.readFileSync(sourcePath, "utf8")) as unknown;
+      const rawText = fs.readFileSync(sourcePath, "utf8");
+      const raw = JSON.parse(rawText) as unknown;
       const contract = missionCellContractSchema.parse(raw);
       contracts.set(contract.missionCellId, { contract, sourcePath });
-    } catch {
-      continue;
+    } catch (err) {
+      const hintedId = (() => {
+        try {
+          const raw = JSON.parse(fs.readFileSync(sourcePath, "utf8")) as unknown;
+          if (isPlainRecord(raw) && typeof raw.missionCellId === "string") {
+            return raw.missionCellId.trim();
+          }
+          return entry.name;
+        } catch {
+          return entry.name;
+        }
+      })();
+      errors.push(
+        `Mission cell contract '${hintedId}' at '${sourcePath}' is invalid: ${describeMissionCellLoadError(err)}`,
+      );
     }
   }
 
-  return contracts;
+  return {
+    contracts,
+    errors,
+  };
 }
 
 function buildRuntimeBrief(
@@ -135,15 +169,15 @@ export function resolveMissionCellRuntimeBridge(
     };
   }
 
-  const contracts = loadMissionCellContracts();
+  const loadedContracts = loadMissionCellContracts();
   const briefs: MissionCellRuntimeBrief[] = [];
-  const errors: string[] = [];
+  const errors = [...loadedContracts.errors];
 
   for (const missionCellId of requestedMissionCellIds) {
-    const loaded = contracts.get(missionCellId);
+    const loaded = loadedContracts.contracts.get(missionCellId);
     if (!loaded) {
       errors.push(
-        `Mission cell '${missionCellId}' was requested but no contract file was found in company-hq/mission-cells.`,
+        `Mission cell '${missionCellId}' was requested but no active valid contract file was found in company-hq/mission-cells.`,
       );
       continue;
     }

@@ -65,7 +65,14 @@ describe("company portability firm identity export", () => {
       }),
     );
     expect(result.manifest.firmIdentity?.files).toContain("CURRENT.md");
+    expect(result.manifest.firmIdentity?.files).toContain("company-hq/ACTIVE-MISSION.md");
     expect(result.manifest.firmIdentity?.files).toContain("company-hq/CORE.md");
+    expect(result.manifest.firmIdentity?.files).toContain(
+      "company-hq/mission-contracts/mission-autonomy-lane-v1.md",
+    );
+    expect(result.manifest.firmIdentity?.files).toContain(
+      "company-hq/mission-contracts/long-autonomy-mission-template.md",
+    );
     expect(result.manifest.firmIdentity?.files).toContain(
       "company-hq/mission-contracts/mission-cell-starter-path-v1.md",
     );
@@ -74,6 +81,12 @@ describe("company portability firm identity export", () => {
     );
     expect(result.files["FIRM-IDENTITY.md"]).toContain("Paperclip is the current carrier");
     expect(result.files["CURRENT.md"]).toContain("mission-autonomy-lane-v1");
+    expect(result.files["company-hq/ACTIVE-MISSION.md"]).toContain(
+      "mission-autonomy-lane-v1",
+    );
+    expect(result.files["company-hq/mission-contracts/mission-autonomy-lane-v1.md"]).toContain(
+      "mission-cell-starter-path-v1",
+    );
     expect(result.files["company-hq/mission-cells/mission-cell-starter-path-v1.json"]).toContain(
       '"missionCellId": "mission-cell-starter-path-v1"',
     );
