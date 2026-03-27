@@ -39,6 +39,7 @@ Das aktuelle Beispiel dafuer ist:
 - `company-hq/research/2026-03-24-cloudflare-code-mode-dgdh-transfer-matrix.md`
 - `company-hq/research/2026-03-24-error-monitoring-agent-dgdh-transfer-matrix.md`
 - `company-hq/research/2026-03-27-agentica-arcgentica-dgdh-transfer-matrix.md`
+- `company-hq/research/2026-03-27-onyx-dgdh-transfer-matrix.md`
 
 Die dortige Verdichtung bestaetigt vor allem:
 
@@ -54,6 +55,7 @@ Die dortige Verdichtung bestaetigt vor allem:
 - Beobachtungslast ist ein eigener Designhebel: wenn zu viele Tokens in Shell-/API-/Git-Rekonstruktion gehen, fehlt oft keine Promptkunst, sondern eine bessere, verdichtete Capability- und Run-Wahrheitsschicht
 - Rohe technische Signale muessen spaeter nicht nur sichtbar, sondern semantisch verdichtet, geclustert, klassifiziert und bei Bedarf suppressed werden; sonst denkt die Firma denselben Schmerz immer wieder neu
 - Stateful, code-first Agentensysteme wie Agentica / ARCgentica sind fuer DGDH als spaetere Uebersetzungsquelle relevant: wahrscheinlich stark fuer stateful execution, direkte Primitive und bounded state handoffs, aber nicht als neuer Core-Stack und nicht als Benchmark-/AGI-Leitmythos
+- Onyx ist fuer DGDH als spaeteres Knowledge-/Tool-Plane-Signal relevant: shared search, Actions/MCP/API und Multi-Client-Zugaenge sind starke Prinzipien, aber nur als spaetere, kleine Knowledge-Lane und nicht als zweite schwere AI-Plattform oder neues Arbeitszentrum
 
 Und gleichzeitig:
 

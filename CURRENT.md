@@ -20,7 +20,8 @@ next:
   2) nur wenn derselbe enge Hebel weiter traegt: hoechstens an einen weiteren bewiesenen Pfad wie Same-Session-Resume haengen oder Verify-Evidence leicht haerten; keine implizite Skill-Magic bauen
   3) erst danach wieder urteilen, ob lokale Skill-Registry, Replay-backed Promotion, skill-aware Runtime-Nutzung fuer mehr als opt-in hints oder `child-created`-Resume-Edge-Cases wirklich `Core` statt `Later` sind
   4) OpenAI Codex Plugins als spaetere Codex-Enablement-Schicht im Blick behalten: nuetzlich fuer gebuendelte Codex-Skills, MCP-/App-Integrationen und schnelleres Codex-Docking, aber kein Ersatz fuer DGDH-Skill-Contracts, keine neue Produktform und nicht vor dem aktuellen Reuse-/Firmenlauf-Hebel
-  5) Agentica / ARCgentica als spaetere Research-Lane im Blick behalten: potenziell stark fuer stateful execution, direkte Primitive und bounded subagent state handoffs, aber erst als kleiner `agentica-translation-spike-v1`, wenn der aktuelle verified-skill-/Firmenlauf-Hebel sauber genug traegt
+  5) Onyx als spaeteres Knowledge-/Tool-Plane-Signal im Blick behalten: shared search, Actions/MCP/API und Multi-Client-Zugaenge koennen spaeter Rekonstruktion senken, aber nur als kleiner `onyx-lite-or-mcp-shadow-search-spike-v1`, nicht als neue schwere Hauptoberflaeche vor dem aktuellen verified-skill-/Firmenlauf-Hebel
+  6) Agentica / ARCgentica als spaetere Research-Lane im Blick behalten: potenziell stark fuer stateful execution, direkte Primitive und bounded subagent state handoffs, aber erst als kleiner `agentica-translation-spike-v1`, wenn der aktuelle verified-skill-/Firmenlauf-Hebel sauber genug traegt
 
 blockers:
   - Der alte reine `assignment-to-run kickoff loss` ist fuer frische ready Packets nicht mehr der erste Blocker
@@ -54,6 +55,7 @@ notes:
   - Der Skill-Layer bleibt bewusst `v1`: zwei verifizierte Seeds plus `list|use|verify|verify-all` und opt-in `verifiedSkill`-Bridge sind echter Firmenhebel, aber noch keine breite Skill-Plattform und noch kein freies Self-Learning
   - Der naechste Core-Test ist deshalb nicht mehr "koennen wir Skill-Reuse beweisen?", sondern "spart dieser kleine governed capability layer auf weiteren echten Firmenlaeufen genug Wiederentdecken, um spaeter weitere Reuse-/Evidence-Schnitte zu rechtfertigen?"
   - OpenAI Codex Plugins sind fuer DGDH als spaetere Codex-Enablement-/Packaging-Schicht interessant: moegliche Buendelung von Codex-Skills, MCP-Config und App-Integrationen fuer schnelleres Codex-Onboarding; sie ersetzen weder `company-hq/capabilities/*` noch den Firmenkern und gehoeren erst spaeter hinter den aktuellen Reuse-/Firmenlauf-Hebel
+  - Onyx ist fuer DGDH als spaeteres Knowledge-/Tool-Plane-Signal interessant: weniger als neues Arbeits-Frontend, mehr als moeglicher spaeter shared context/search/action gateway zwischen bestehenden Lanes; die richtige Reaktion bleibt `study the primitive, not adopt the platform`
   - `bedb36de` haertet jetzt CEO-Auto-Model-Research-Runs gegen den `adapter.invoke`-Stall hinter `DAV-155`/`DAV-156`: wenn der `flash_lite_call` bereits einen expliziten Flash-/Flash-Lite-Lane vorgeschlagen hat, pinnt `heartbeat-gemini-routing.ts` diese Lane auch fuer `model = auto`, statt den Lauf still wieder auf den teureren CEO-Premium-Hint zurueckkippen zu lassen
   - Agentica / ARCgentica sind fuer DGDH als spaetere Uebersetzungsquelle interessant, weil sie stateful execution, direkte Primitive und code-first Agentik staerken; die aktuelle Lesart ist aber ausdruecklich `Study-this-carefully, not build-this-now`: spaeter kleiner Translation-Spike statt neuer Kernstack, ARC-Score-Jagd oder AGI-Produktmythos
   - Salvage-Worktree/Branch fuer diesen Truth Cut: `C:\Users\holyd\DGDH\worktrees\dgdh-werkbank-salvage`, `copilot/resume-proof-budget-gate-salvage-v1`; Basis war sauberes `origin/main`, nicht der alte schmutzige Branch
@@ -78,5 +80,5 @@ notes:
   - Live-Beweis `DAV-97` auf frischer `3111`-Runtime zeigt den neuen Produktcut end-to-end: der CEO laeuft weiterhin im korrekten `ready_packet_truth`-/Flash-Pfad, scheitert bei Modellkapazitaet nicht mehr als generischer Fail/Budget-Schattenfehler, sondern finalisiert als `post_tool_capacity_exhausted` mit `cooldown_pending` und explizitem Resume-Punkt
   - Konsequenz fuer den North-Star-Pfad: der verbleibende Schmerz ist nicht mehr "was ist passiert?", sondern nur noch "wann/wie resume ich denselben Sessionpfad weiter?"; genau das sollte der naechste kleine Truth-Cut operationalisieren
 
-last_updated_by: OpenCode
-updated_at: 2026-03-26
+last_updated_by: Codex
+updated_at: 2026-03-27
