@@ -495,14 +495,7 @@ export function resolveHeartbeatModelOverride(input: {
   const configuredModel = input.configuredModel?.trim() || null;
   const effectiveModelLane = input.effectiveModelLane?.trim() || null;
   if (!input.applyModelLane || !effectiveModelLane) return configuredModel;
-  if (input.adapterType !== "gemini_local") return effectiveModelLane;
-  if (configuredModel && configuredModel !== "auto") return effectiveModelLane;
-
-  const normalizedLane = effectiveModelLane.toLowerCase();
-  // Live probes showed `auto` stalling on `auto-gemini-3` while explicit flash
-  // lanes recover and reach the first tool call. Keep only pro-style lanes on auto.
-  if (normalizedLane.includes("flash")) return effectiveModelLane;
-  return configuredModel;
+  return effectiveModelLane;
 }
 
 export function isPhaseBExecution(context: Record<string, unknown>) {

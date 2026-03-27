@@ -14,14 +14,17 @@ vi.mock("@paperclipai/adapter-utils/server-utils", async () => {
   };
 });
 
-import { produceFlashLiteRoutingProposal } from "../services/gemini-flash-lite-router.ts";
+import {
+  produceFlashLiteRoutingProposal,
+  type GeminiFlashLiteRouterInput,
+} from "../services/gemini-flash-lite-router.ts";
 
 describe("produceFlashLiteRoutingProposal", () => {
   beforeEach(() => {
     hoisted.runChildProcessMock.mockReset();
   });
 
-  const baseInput = {
+  const baseInput: GeminiFlashLiteRouterInput = {
     adapterType: "gemini_local",
     adapterConfig: {
       command: "node",
@@ -30,11 +33,14 @@ describe("produceFlashLiteRoutingProposal", () => {
     },
     context: {
       paperclipTaskPrompt: "Implement endpoint",
+      role: "worker",
+      packetType: "free_api",
     },
     quotaSnapshot: {
       snapshotAt: "2026-03-19T19:30:00.000Z",
     },
-    allowedBuckets: ["flash", "pro", "flash-lite"] as const,
+    runtimeConfig: {},
+    allowedBuckets: ["flash", "pro", "flash-lite"] as GeminiFlashLiteRouterInput["allowedBuckets"],
     allowedModelLanes: [
       "gemini-3-flash-preview",
       "gemini-3.1-pro-preview",
@@ -177,6 +183,8 @@ describe("produceFlashLiteRoutingProposal", () => {
       },
       context: {
         paperclipTaskPrompt: "Investigate issue",
+        role: "worker",
+        packetType: "free_api",
       },
       allowedModelLanes: ["gemini-3-flash-preview", "gemini-3.1-pro-preview"],
     });
@@ -200,6 +208,7 @@ describe("produceFlashLiteRoutingProposal", () => {
       },
       context: {
         paperclipTaskPrompt: "Run deterministic image packet",
+        role: "worker",
         packetType: "deterministic_tool",
       },
     });
@@ -211,23 +220,49 @@ describe("produceFlashLiteRoutingProposal", () => {
     expect(hoisted.runChildProcessMock).not.toHaveBeenCalled();
   });
 
-  it("supports kill-switch fallback_only mode", async () => {
+  it("skips CEO routing by default because the pre-router is worker-scoped", async () => {
     const result = await produceFlashLiteRoutingProposal({
       ...baseInput,
       runtimeConfig: {
         routingPolicy: {
           llmRouter: {
             enabled: true,
-            fallback_only: true,
           },
         },
+      },
+      context: {
+        ...baseInput.context,
+        role: "ceo",
       },
     });
 
     expect(result.attempted).toBe(false);
     expect(result.source).toBe("heuristic_policy");
     expect(result.parseStatus).toBe("not_attempted");
-    expect(result.fallbackReason).toBe("router_fallback_only");
+    expect(result.fallbackReason).toBe("role_scope_excluded");
+    expect(hoisted.runChildProcessMock).not.toHaveBeenCalled();
+  });
+
+  it("skips non-free_api packets by default because the pre-router is cheap-lane scoped", async () => {
+    const result = await produceFlashLiteRoutingProposal({
+      ...baseInput,
+      runtimeConfig: {
+        routingPolicy: {
+          llmRouter: {
+            enabled: true,
+          },
+        },
+      },
+      context: {
+        ...baseInput.context,
+        packetType: "premium_model",
+      },
+    });
+
+    expect(result.attempted).toBe(false);
+    expect(result.source).toBe("heuristic_policy");
+    expect(result.parseStatus).toBe("not_attempted");
+    expect(result.fallbackReason).toBe("packet_scope_excluded");
     expect(hoisted.runChildProcessMock).not.toHaveBeenCalled();
   });
 
@@ -243,6 +278,8 @@ describe("produceFlashLiteRoutingProposal", () => {
       },
       context: {
         paperclipTaskPrompt: "Implement endpoint",
+        role: "worker",
+        packetType: "free_api",
         paperclipIssueExecutionPacketTruth: {
           ready: true,
           status: "ready",
@@ -560,6 +597,8 @@ describe("produceFlashLiteRoutingProposal", () => {
           "Execution workspace:",
           "Branch rule: reuse PAPERCLIP_WORKSPACE_BRANCH.",
         ].join("\n"),
+        role: "worker",
+        packetType: "free_api",
         paperclipIssue: {
           title: "Add kickoff-probe note to Runbook",
           description: [

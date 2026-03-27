@@ -51,10 +51,6 @@
     "effectiveModelLane": "gemini-3-flash-preview",
     "parseStatus": "not_attempted",
     "fallbackReason": "ready_packet_truth",
-    "readyPacketSkip": true,
-    "allowedSkills": [
-      "repo-read",
-      "repo-write"
-    ]
+    "readyPacketSkip": true
   }
 }

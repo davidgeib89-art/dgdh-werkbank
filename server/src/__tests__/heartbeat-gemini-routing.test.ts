@@ -120,15 +120,9 @@ describe("prepareHeartbeatGeminiRouting", () => {
     expect(plan.contextPatch.paperclipFixedModelLane).toBe(
       "gemini-3-flash-preview",
     );
-    expect(plan.resolvedConfigPatch.includeSkills).toEqual([
-      "repo-read",
-      "repo-write",
-    ]);
+    expect(plan.resolvedConfigPatch.includeSkills).toBeUndefined();
     expect(plan.resolvedConfigPatch.model).toBe("gemini-3-flash-preview");
-    expect(plan.contextPatch.paperclipSkillSelection).toEqual({
-      allowedSkills: ["repo-read", "repo-write"],
-      source: "ready_packet_truth",
-    });
+    expect(plan.contextPatch.paperclipSkillSelection).toBeNull();
   });
 
   it("keeps worker ready packets on the worker flash-lite lane", async () => {
@@ -193,7 +187,7 @@ describe("prepareHeartbeatGeminiRouting", () => {
     );
   });
 
-  it("pins router-proposed flash-lite lanes onto CEO auto-model research runs", async () => {
+  it("keeps explicit router-selected flash-class research lanes for CEO runs", async () => {
     const plan = await prepareHeartbeatGeminiRouting({
       agent: { adapterType: "gemini_local" },
       resolvedConfig: {
@@ -231,12 +225,12 @@ describe("prepareHeartbeatGeminiRouting", () => {
           riskLevel: "low",
           missingInputs: [],
           needsApproval: false,
-          chosenBucket: "flash-lite",
-          chosenModelLane: "gemini-2.5-flash-lite",
-          fallbackBucket: "flash",
-          allowedSkills: ["repo-read"],
-          rationale:
-            "research-light task, small budget, uses flash-lite bucket, requires repo-read skill to inspect DAV-131 and heartbeat runs.",
+            chosenBucket: "flash",
+            chosenModelLane: "gemini-3-flash-preview",
+            fallbackBucket: "pro",
+            allowedSkills: ["repo-read"],
+            rationale:
+              "research-light task, small budget, uses flash bucket, requires repo-read skill to inspect DAV-131 and heartbeat runs.",
         },
         parseStatus: "ok",
         latencyMs: 25,
@@ -262,13 +256,69 @@ describe("prepareHeartbeatGeminiRouting", () => {
 
     expect(plan.routingProposalMeta?.source).toBe("flash_lite_call");
     expect(plan.routingPreflight).not.toBeNull();
-    expect(plan.routingPreflight?.selected.selectedBucket).toBe("flash-lite");
+    expect(plan.routingPreflight?.selected.selectedBucket).toBe("flash");
     expect(plan.routingPreflight?.selected.effectiveModelLane).toBe(
-      "gemini-2.5-flash-lite",
+      "gemini-3-flash-preview",
     );
     expect(plan.routingPreflight?.applyModelLane).toBe(true);
-    expect(plan.resolvedConfigPatch.model).toBe("gemini-2.5-flash-lite");
-    expect(plan.contextPatch.bucket).toBe("flash-lite");
+    expect(plan.resolvedConfigPatch.model).toBe("gemini-3-flash-preview");
+    expect(plan.contextPatch.bucket).toBe("flash");
+    expect(plan.resolvedConfigPatch.includeSkills).toEqual(["repo-read"]);
+  });
+
+  it("downgrades invalid router parse noise into recoverable advisory metadata", async () => {
+    const plan = await prepareHeartbeatGeminiRouting({
+      agent: { adapterType: "gemini_local" },
+      resolvedConfig: {
+        model: "auto",
+        roleTemplateId: "worker",
+      },
+      runtimeConfig: buildRuntimeConfig(),
+      runtimeState: {},
+      issueRef: {
+        id: "issue-worker-parse-noise",
+        identifier: "DAV-157",
+        title: "Worker parse-noise path",
+        description:
+          "packetType: free_api\nZiel: small worker task\nScope: update one file\ndoneWhen: one tiny change", 
+      },
+      context: {},
+    }, {
+      produceRoutingProposal: async () => ({
+        attempted: true,
+        source: "heuristic_policy",
+        proposal: null,
+        parseStatus: "invalid_json",
+        latencyMs: 15,
+        warning: "flash_lite_router_invalid_json",
+        fallbackReason: "invalid_json",
+        cacheHit: false,
+        runtimeStatePatch: {},
+        routerHealth: {
+          successCount: 0,
+          fallbackCount: 1,
+          timeoutCount: 0,
+          parseFailCount: 1,
+          commandErrorCount: 0,
+          cacheHitCount: 0,
+          circuitOpenCount: 0,
+          consecutiveFailures: 1,
+          breakerOpenUntil: null,
+          lastLatencyMs: 15,
+          lastErrorReason: "flash_lite_router_invalid_json",
+        },
+      }),
+    });
+
+    expect(plan.routingProposalMeta).toEqual(
+      expect.objectContaining({
+        parseStatus: "invalid_json",
+        fallbackReason: "invalid_json",
+        warning: "flash_lite_router_invalid_json",
+        warningClass: "recoverable_advisory",
+      }),
+    );
+    expect(plan.warnings).not.toContain("flash_lite_router_invalid_json");
   });
 
   it("forces bounded audit runs onto repo-read only skills", async () => {

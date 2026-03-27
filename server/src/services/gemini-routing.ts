@@ -196,6 +196,7 @@ export interface GeminiRoutingLaneDecision {
   source: LaneDecisionSource;
   packetType: PacketType | null;
   roleHint: RoleHint | null;
+  taskType: TaskType;
   reason: string;
   hardBlockLlm: boolean;
 }
@@ -371,6 +372,7 @@ function resolveLaneDecision(input: {
   policy: GeminiRoutingPolicy;
   packetType: PacketType | null;
   roleHint: RoleHint | null;
+  taskType: TaskType;
 }): GeminiRoutingLaneDecision {
   if (input.packetType) {
     const route =
@@ -381,12 +383,18 @@ function resolveLaneDecision(input: {
       source: "packet_type",
       packetType: input.packetType,
       roleHint: input.roleHint,
+      taskType: input.taskType,
       reason: route.reason,
       hardBlockLlm: route.hardBlockLlm,
     };
   }
 
-  if (input.roleHint) {
+  const shouldUseRoleHint =
+    input.roleHint === "worker" ||
+    input.roleHint === "reviewer" ||
+    (input.roleHint === "ceo" && input.taskType === "heavy-architecture");
+
+  if (input.roleHint && shouldUseRoleHint) {
     const roleRoute =
       input.policy.roleHints[input.roleHint] ?? DEFAULT_POLICY.roleHints[input.roleHint];
     return {
@@ -394,6 +402,7 @@ function resolveLaneDecision(input: {
       source: "role_hint",
       packetType: null,
       roleHint: input.roleHint,
+      taskType: input.taskType,
       reason: roleRoute.reason,
       hardBlockLlm: roleRoute.preferredLane === "deterministic_tool",
     };
@@ -403,8 +412,12 @@ function resolveLaneDecision(input: {
     lane: "free_api",
     source: "control_plane_default",
     packetType: null,
-    roleHint: null,
-    reason: "no packetType/role hint; keep control-plane default bucket routing",
+    roleHint: input.roleHint,
+    taskType: input.taskType,
+    reason:
+      input.roleHint === "ceo"
+        ? "ceo follows task-route default unless the packet or task explicitly pins a stronger lane"
+        : "no packetType/role hint override; keep control-plane default bucket routing",
     hardBlockLlm: false,
   };
 }
@@ -459,6 +472,7 @@ export function resolveGeminiRoutingPreflight(
     policy,
     packetType,
     roleHint,
+    taskType: resolver.selected.taskType,
   });
   const shouldApplyLaneOverride = laneDecision.source !== "control_plane_default";
 
@@ -580,7 +594,7 @@ export function resolveGeminiRoutingPreflight(
 
   const configuredModel = asString(input.adapterConfig.model);
   const shouldMutateAdapterModel =
-    result.applyModelLane && configuredModel !== null && configuredModel !== "auto";
+    result.applyModelLane && configuredModel !== null;
 
   if (shouldMutateAdapterModel) {
     input.adapterConfig.model = result.selected.effectiveModelLane;

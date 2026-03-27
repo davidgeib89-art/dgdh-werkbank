@@ -290,6 +290,50 @@ describe("resolveGeminiControlPlane", () => {
     );
   });
 
+  it("captures recoverable router warnings in control-plane state without treating them as proposal failures", () => {
+    const result = resolveGeminiControlPlane({
+      policy,
+      policySource: "test-policy",
+      defaultMode: "advisory",
+      defaultAccountLabel: "account-1",
+      context: {
+        paperclipRoutingProposalMeta: {
+          source: "heuristic_policy",
+          parseStatus: "invalid_json",
+          warning: "flash_lite_router_invalid_json",
+          warningClass: "recoverable_advisory",
+          routerHealth: {
+            parseFailCount: 1,
+            fallbackCount: 1,
+            lastErrorReason: "flash_lite_router_invalid_json",
+          },
+        },
+      },
+      runtimeConfig: {
+        routingPolicy: {
+          llmRouter: {
+            enabled: true,
+          },
+          bucketState: {
+            flash: "ok",
+            pro: "ok",
+            "flash-lite": "ok",
+          },
+        },
+      },
+      configuredModel: "gemini-configured",
+      snapshotAt: "2026-03-19T20:10:00.000Z",
+    });
+
+    expect(result.controlPlane.router.parseStatus).toBe("invalid_json");
+    expect(result.controlPlane.router.source).toBe("heuristic_policy");
+    expect(result.controlPlane.router.health.parseFailCount).toBe(1);
+    expect(result.controlPlane.router.health.lastErrorReason).toBe(
+      "flash_lite_router_invalid_json",
+    );
+    expect(result.selected.selectedBucket).toBe("flash");
+  });
+
   it("accepts valid work-packet proposal and keeps it enforced", () => {
     const result = resolveGeminiControlPlane({
       policy,

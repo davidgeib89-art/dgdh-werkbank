@@ -335,7 +335,7 @@ describe("resolveGeminiRoutingPreflight extended fields", () => {
     expect(result!.routingReason).toContain("lane=premium_model");
   });
 
-  it("role hint ceo prefers premium lane when packetType is absent", () => {
+  it("ceo without explicit packet pin follows the task-route default lane", () => {
     const result = resolveGeminiRoutingPreflight({
       adapterType: "gemini_local",
       adapterConfig: { model: "gemini-3-flash-preview" },
@@ -355,17 +355,18 @@ describe("resolveGeminiRoutingPreflight extended fields", () => {
     });
 
     expect(result).not.toBeNull();
-    expect(result!.laneDecision.source).toBe("role_hint");
-    expect(result!.laneDecision.lane).toBe("premium_model");
-    expect(result!.selected.selectedBucket).toBe("pro");
-    expect(result!.selected.effectiveModelLane).toBe("gemini-3.1-pro-preview");
+    expect(result!.laneDecision.source).toBe("control_plane_default");
+    expect(result!.laneDecision.lane).toBe("free_api");
+    expect(result!.selected.selectedBucket).toBe("flash");
+    expect(result!.selected.effectiveModelLane).toBe("gemini-3-flash-preview");
     expect(result!.routingReason).toContain("role=ceo");
   });
 
-  it("raw preflight still prefers CEO premium role hint before heartbeat pins explicit flash lane", () => {
+  it("raw preflight now keeps the cheaper ceo bucket truth without re-escalating to premium", () => {
+    const adapterConfig = { model: "auto" };
     const result = resolveGeminiRoutingPreflight({
       adapterType: "gemini_local",
-      adapterConfig: { model: "auto" },
+      adapterConfig,
       runtimeConfig: {
         routingPolicy: {
           mode: "soft_enforced",
@@ -400,11 +401,11 @@ describe("resolveGeminiRoutingPreflight extended fields", () => {
           riskLevel: "low",
           missingInputs: [],
           needsApproval: false,
-          chosenBucket: "flash-lite",
-          chosenModelLane: "gemini-2.5-flash-lite",
-          fallbackBucket: "flash",
+          chosenBucket: "flash",
+          chosenModelLane: "gemini-3-flash-preview",
+          fallbackBucket: "pro",
           rationale:
-            "research-light task, small budget, uses flash-lite bucket, requires repo-read skill to inspect DAV-131 and heartbeat runs.",
+            "research-light task, small budget, uses flash bucket, requires repo-read skill to inspect DAV-131 and heartbeat runs.",
         },
         paperclipRoutingProposalMeta: {
           source: "flash_lite_call",
@@ -416,13 +417,14 @@ describe("resolveGeminiRoutingPreflight extended fields", () => {
 
     expect(result).not.toBeNull();
     expect(result!.advisoryOnly).toBe(true);
-    expect(result!.laneDecision.source).toBe("role_hint");
-    expect(result!.laneDecision.lane).toBe("premium_model");
-    expect(result!.selected.selectedBucket).toBe("pro");
-    expect(result!.selected.effectiveModelLane).toBe("gemini-3.1-pro-preview");
+    expect(result!.laneDecision.source).toBe("control_plane_default");
+    expect(result!.laneDecision.lane).toBe("free_api");
+    expect(result!.selected.selectedBucket).toBe("flash");
+    expect(result!.selected.effectiveModelLane).toBe("auto");
+    expect(adapterConfig.model).toBe("auto");
   });
 
-  it("keeps adapterConfig.model on auto even when applyModelLane is true", () => {
+  it("mutates adapterConfig.model even when configuredModel was auto", () => {
     const adapterConfig = { model: "auto" };
 
     const result = resolveGeminiRoutingPreflight({
@@ -445,8 +447,8 @@ describe("resolveGeminiRoutingPreflight extended fields", () => {
 
     expect(result).not.toBeNull();
     expect(result!.applyModelLane).toBe(true);
-    expect(result!.selected.effectiveModelLane).toBe("gemini-3.1-pro-preview");
-    expect(adapterConfig.model).toBe("auto");
+    expect(result!.selected.effectiveModelLane).toBe("gemini-3-flash-preview");
+    expect(adapterConfig.model).toBe("gemini-3-flash-preview");
   });
 
   it("still mutates explicit adapterConfig.model when applyModelLane is true", () => {
@@ -467,6 +469,7 @@ describe("resolveGeminiRoutingPreflight extended fields", () => {
       },
       context: {
         role: "ceo",
+        taskType: "heavy-architecture",
       },
     });
 
@@ -475,7 +478,7 @@ describe("resolveGeminiRoutingPreflight extended fields", () => {
     expect(adapterConfig.model).toBe("gemini-3.1-pro-preview");
   });
 
-  it("packetType free_api keeps model: auto", () => {
+  it("packetType free_api mutates model: auto to the selected lane", () => {
     const adapterConfig = { model: "auto" };
     const result = resolveGeminiRoutingPreflight({
       adapterType: "gemini_local",
@@ -496,6 +499,6 @@ describe("resolveGeminiRoutingPreflight extended fields", () => {
     expect(result!.laneDecision.lane).toBe("free_api");
     expect(result!.applyModelLane).toBe(true);
     expect(result!.selected.effectiveModelLane).toBe("gemini-2.5-flash-lite");
-    expect(adapterConfig.model).toBe("auto");
+    expect(adapterConfig.model).toBe("gemini-2.5-flash-lite");
   });
 });

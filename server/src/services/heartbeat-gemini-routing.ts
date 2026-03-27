@@ -399,12 +399,7 @@ function resolveModelOverride(input: {
   const configuredModel = input.configuredModel?.trim() || null;
   const effectiveModelLane = input.effectiveModelLane?.trim() || null;
   if (!input.applyModelLane || !effectiveModelLane) return configuredModel;
-  if (input.adapterType !== "gemini_local") return effectiveModelLane;
-  if (configuredModel && configuredModel !== "auto") return effectiveModelLane;
-
-  const normalizedLane = effectiveModelLane.toLowerCase();
-  if (normalizedLane.includes("flash")) return effectiveModelLane;
-  return configuredModel;
+  return effectiveModelLane;
 }
 
 function shouldPinRouterFlashLane(input: {
@@ -419,6 +414,37 @@ function shouldPinRouterFlashLane(input: {
   const proposalSource = asString(input.routingProposalMeta?.source);
   if (proposalSource !== "flash_lite_call") return false;
   return input.routingProposal.chosenModelLane.toLowerCase().includes("flash");
+}
+
+function isRecoverableRouterWarning(warning: string | null): boolean {
+  return (
+    warning === "flash_lite_router_invalid_json" ||
+    warning === "flash_lite_router_schema_invalid" ||
+    warning === "flash_lite_router_non_zero_exit" ||
+    warning === "flash_lite_router_timeout" ||
+    warning === "flash_lite_router_command_error"
+  );
+}
+
+function isSilentRouterWarning(warning: string | null): boolean {
+  return (
+    warning === "flash_lite_router_skipped_ready_packet_truth" ||
+    warning === "flash_lite_router_skipped_role_scope" ||
+    warning === "flash_lite_router_skipped_packet_scope" ||
+    warning === "flash_lite_router_skipped_deterministic_tool" ||
+    warning === "flash_lite_router_disabled" ||
+    warning === "flash_lite_router_circuit_open"
+  );
+}
+
+function shouldAllowRouterSkills(input: {
+  roleHint: RoleHint | null;
+  proposal: GeminiFlashLiteProposal;
+}): boolean {
+  if (input.roleHint === "ceo") {
+    return input.proposal.taskClass === "research-light";
+  }
+  return true;
 }
 
 function readDirectAnswerAuditTruth(
@@ -607,9 +633,10 @@ export async function prepareHeartbeatGeminiRouting(
       attempted: false,
       cacheHit: false,
       fallbackReason: "ready_packet_truth",
+      warning: "flash_lite_router_skipped_ready_packet_truth",
+      warningClass: "informational_skip",
       routerHealth: buildRouterHealthFromRuntimeState(runtimeStateForRouting),
     };
-    warnings.push("flash_lite_router_skipped_ready_packet_truth");
   } else {
     const routerResult = await runRouter({
       adapterType: input.agent.adapterType,
@@ -655,9 +682,19 @@ export async function prepareHeartbeatGeminiRouting(
       attempted: routerResult.attempted,
       cacheHit: routerResult.cacheHit,
       fallbackReason: routerResult.fallbackReason,
+      warning: routerResult.warning,
+      warningClass: isRecoverableRouterWarning(routerResult.warning)
+        ? "recoverable_advisory"
+        : isSilentRouterWarning(routerResult.warning)
+          ? "informational_skip"
+          : null,
       routerHealth: routerResult.routerHealth,
     };
-    if (routerResult.warning) {
+    if (
+      routerResult.warning &&
+      !isRecoverableRouterWarning(routerResult.warning) &&
+      !isSilentRouterWarning(routerResult.warning)
+    ) {
       warnings.push(routerResult.warning);
     }
   }
@@ -680,7 +717,8 @@ export async function prepareHeartbeatGeminiRouting(
   if (
     directAnswerAuditTruth?.bounded !== true &&
     routingProposal?.allowedSkills &&
-    routingProposal.allowedSkills.length > 0
+    routingProposal.allowedSkills.length > 0 &&
+    shouldAllowRouterSkills({ roleHint, proposal: routingProposal })
   ) {
     resolvedConfigPatch.includeSkills = routingProposal.allowedSkills;
     contextPatch.paperclipSkillSelection = {

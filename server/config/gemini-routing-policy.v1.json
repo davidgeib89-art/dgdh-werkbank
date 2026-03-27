@@ -46,7 +46,7 @@
   "roleHints": {
     "ceo": {
       "preferredLane": "premium_model",
-      "reason": "ceo planning and aggregation favors stronger premium reasoning"
+      "reason": "ceo only hard-pins premium reasoning on heavy architecture paths; other ceo work follows explicit packet truth or task routes"
     },
     "worker": {
       "preferredLane": "free_api",

@@ -127,7 +127,8 @@ type RouterRuntimeState = {
 
 type RouterRuntimePolicy = {
   enabled: boolean;
-  fallbackOnly: boolean;
+  allowedRoleHints: string[];
+  allowedPacketTypes: PacketType[];
   model: string;
   timeoutSec: number;
   breakerThreshold: number;
@@ -180,6 +181,14 @@ function isPacketType(value: string | null): value is PacketType {
   );
 }
 
+function normalizeStringArray(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .filter((entry): entry is string => typeof entry === "string")
+    .map((entry) => entry.trim())
+    .filter((entry) => entry.length > 0);
+}
+
 function readPacketType(context: Record<string, unknown>): PacketType | null {
   const direct = asString(context.packetType) ?? asString(context.packet_type);
   if (isPacketType(direct)) return direct;
@@ -187,6 +196,16 @@ function readPacketType(context: Record<string, unknown>): PacketType | null {
   const fromBudget =
     asString(budget.packetType) ?? asString(budget.packet_type);
   return isPacketType(fromBudget) ? fromBudget : null;
+}
+
+function readRoleHint(context: Record<string, unknown>): string | null {
+  const roleValue =
+    asString(context.role) ??
+    asString(context.roleName) ??
+    asString(context.agentRole) ??
+    asString(context.issueRole);
+  const normalized = roleValue?.toLowerCase() ?? null;
+  return normalized && normalized.length > 0 ? normalized : null;
 }
 
 function isTaskClass(value: string | null): value is TaskClass {
@@ -430,13 +449,18 @@ function readRouterPolicy(
   const breakerConfig = asObject(routerConfig.circuitBreaker);
   const cacheConfig = asObject(routerConfig.cache);
   const enabled = asBoolean(routerConfig.enabled) ?? true;
-  const fallbackOnly =
-    asBoolean(routerConfig.fallbackOnly) ??
-    asBoolean(routerConfig.fallback_only) ??
-    false;
+  const allowedRoleHints =
+    normalizeStringArray(routerConfig.allowedRoleHints).length > 0
+      ? normalizeStringArray(routerConfig.allowedRoleHints)
+      : ["worker", "reviewer"];
+  const allowedPacketTypes = normalizeStringArray(
+    routerConfig.allowedPacketTypes,
+  ).filter((value): value is PacketType => isPacketType(value));
   return {
     enabled,
-    fallbackOnly,
+    allowedRoleHints,
+    allowedPacketTypes:
+      allowedPacketTypes.length > 0 ? allowedPacketTypes : ["free_api"],
     model: asString(routerConfig.model) ?? "gemini-2.5-flash-lite",
     timeoutSec: clampInt(routerConfig.timeoutSec, 30, 2, 90),
     breakerThreshold: clampInt(breakerConfig.threshold, 3, 1, 10),
@@ -843,6 +867,7 @@ export async function produceFlashLiteRoutingProposal(
   }
 
   const packetType = readPacketType(input.context);
+  const roleHint = readRoleHint(input.context);
   if (packetType === "deterministic_tool") {
     return finalize({
       attempted: false,
@@ -871,15 +896,35 @@ export async function produceFlashLiteRoutingProposal(
     });
   }
 
-  if (policy.fallbackOnly) {
+  if (
+    policy.allowedRoleHints.length > 0 &&
+    (!roleHint || !policy.allowedRoleHints.includes(roleHint))
+  ) {
     return finalize({
       attempted: false,
       source: "heuristic_policy",
       proposal: null,
       parseStatus: "not_attempted",
       latencyMs: null,
-      warning: "flash_lite_router_fallback_only",
-      fallbackReason: "router_fallback_only",
+      warning: "flash_lite_router_skipped_role_scope",
+      fallbackReason: "role_scope_excluded",
+      cacheHit: false,
+      cacheKey: null,
+    });
+  }
+
+  if (
+    policy.allowedPacketTypes.length > 0 &&
+    (!packetType || !policy.allowedPacketTypes.includes(packetType))
+  ) {
+    return finalize({
+      attempted: false,
+      source: "heuristic_policy",
+      proposal: null,
+      parseStatus: "not_attempted",
+      latencyMs: null,
+      warning: "flash_lite_router_skipped_packet_scope",
+      fallbackReason: "packet_scope_excluded",
       cacheHit: false,
       cacheKey: null,
     });

@@ -217,7 +217,7 @@ describe("resolveHeartbeatModelOverride", () => {
     ).toBe("gemini-2.5-flash-lite");
   });
 
-  it("keeps gemini auto-model runs on auto for pro lanes", () => {
+  it("also pins gemini auto-model runs to explicit pro lanes", () => {
     expect(
       resolveHeartbeatModelOverride({
         adapterType: "gemini_local",
@@ -225,7 +225,7 @@ describe("resolveHeartbeatModelOverride", () => {
         applyModelLane: true,
         effectiveModelLane: "gemini-3.1-pro-preview",
       }),
-    ).toBe("auto");
+    ).toBe("gemini-3.1-pro-preview");
   });
 
   it("still applies routed lanes when the adapter already carries an explicit model", () => {
