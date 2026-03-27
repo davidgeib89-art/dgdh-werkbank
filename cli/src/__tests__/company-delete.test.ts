@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import type { Company } from "@paperclipai/shared";
-import { assertDeleteConfirmation, resolveCompanyForDeletion } from "../commands/client/company.js";
+import {
+  assertDeleteConfirmation,
+  resolveCompanyForDeletion,
+} from "../commands/client/company.js";
 
 function makeCompany(overrides: Partial<Company>): Company {
   return {
@@ -83,5 +86,25 @@ describe("assertDeleteConfirmation", () => {
   it("rejects mismatched confirmation", () => {
     expect(() => assertDeleteConfirmation(company, { yes: true, confirm: "nope" }))
       .toThrow(/does not match target company/);
+  });
+});
+
+describe("company export include parsing", async () => {
+  const { parseInclude } = await import("../commands/client/company.js");
+
+  it("defaults firm identity to false for legacy export calls", () => {
+    expect(parseInclude(undefined)).toEqual({
+      company: true,
+      agents: true,
+      firmIdentity: false,
+    });
+  });
+
+  it("accepts firm-identity as an explicit include target", () => {
+    expect(parseInclude("company,firm-identity")).toEqual({
+      company: true,
+      agents: false,
+      firmIdentity: true,
+    });
   });
 });

@@ -57,6 +57,8 @@
 - DGDH bekommt jetzt explizit einen zweiten Firmenmodus neben `delivery mode`: `mission autonomy mode`. In diesem Modus soll die Firma in bounded Missionsraeumen ihre eigene Faehigkeit steigern, statt nur externe oder direkte Arbeitsauftraege auszufuehren.
 - Mission Cells sind die neue Grundeinheit fuer bounded Selbstverbesserung: Primärmetrik, Guard-Metriken, Budget, Laufzeit, Blast Radius, erlaubte/verbotene Raeume, Eskalationsgruende und Promotionskriterium.
 - Mission Cells werden zuerst ueber Verantwortungen gelesen, nicht ueber feste Rollennamen: `goal owner`, `research owner`, `change owner`, `truth owner`, `risk owner`.
+- `self-learning-loop-1-initiation` ist jetzt der erste grosse Missionsschnitt: `mission-contract-v1`, `substrate-boundary-cut-v1` und `firm-identity-export-recovery-truth-v1` als erster technischer Hebel.
+- Ontologie-Regel fuer die naechste Firmenphase: `Paperclip ist der aktuelle Traeger. DGDH ist die tiefere Firmenwahrheit.` Mission, Seele, durable Memory, Capability-Contracts und Mission-Contracts duerfen nicht nur als Runtime-/DB-Zustand lesbar bleiben.
 - Davids Energie, Freude, Hyperfokus und `follow your highest excitement` sind reale Firmenressourcen; DGDH darf nicht so starr werden, dass es Wahrheit schuetzt, aber Lebendigkeit abtoetet.
 - `Highest excitement` ist legitimer Navigationsinput, wenn er in bounded Schritte, pruefbare Bewegung und governte Kurskorrektur uebersetzt wird.
 - Leitfragen: "Entlastet das David real?" UND "Wird die Firma faehiger - oder nur groesser?"
@@ -87,6 +89,7 @@
 - Unterhalb von `SOUL.md` lebt jetzt auch ein expliziter Founder-Seed: Davids persoenliche Symbolik, Resonanz und Seelenrichtung duerfen als Firmen-Samen anerkannt und spaeter bounded vererbt werden, aber nie Wahrheit, Review oder Governance ueberschreiben.
 - `TRINITY.md` plus `CODEX.md` / `CHATGPT.md` / `COPILOT.md` sind die durable Identity-Docks der direkten David-Assistenten; wenn einer driftet, soll David ihn ueber genau diese Datei wieder einklinken koennen.
 - `EXECUTOR.md` ist die kompakte Execution-Schicht fuer Langlauf-Agenten: richtige Runtime-Identitaet vor API-Vertrauen, API vor Browser, Prozess vor Port und kein Completion-Loop-Theater.
+- Die bestehende Company-Portability-Seam traegt jetzt den ersten Firm-Substrate-Cut mit: `company export --include firm-identity` exportiert neben Company-/Agent-Carrier auch `FIRM-IDENTITY.md` plus zentrale durable Firmenanker (`CURRENT.md`, `MEMORY.md`, `SOUL.md`, `TRINITY.md`, `company-hq/CORE.md`, Stimmen- und Missionsdateien) als Recovery-/Rebuild-Wahrheit.
 - OSS-Research wird fuer DGDH per Primitive-Filter gelesen: uebernehmen wollen wir Muster wie file-layered identity, visible primitives und spaetere firm-memory/diagnostics; nicht ganze assistant-first oder self-evolving Produktidentitaeten.
 - Retrieval ist fuer DGDH spaeter eine eigene Capability-Schicht, aber nicht die aktuelle Produktform: shared context/retrieval ja, Retrieval-Plattform- oder Integrationsbreiten-Sprint nein.
 - Airweave lehrt zusaetzlich: Retrieval ist ein echtes Problem, wird aber extrem schnell selbst zum Produkt; deshalb muessen infra-lastige Faehigkeiten frueh domain-first, adapter-separiert, fakebar und auf wenige echte Firmenhebel geschnitten werden.

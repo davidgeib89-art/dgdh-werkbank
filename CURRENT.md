@@ -1,7 +1,7 @@
 # CURRENT - Live Baton
 
-focus: DGDH verschaerft den Firmenmodus von reiner Task-Autonomie zu mission-bounded Selbstverbesserung. Der naechste Core-Hebel ist nicht weiterer Mikro-Beweisbau, sondern eine governte `mission-autonomy-lane`, in der die Firma mit klarer Zielfunktion, Budget, Blast Radius, Eval und Promotion eigene Faehigkeit steigert
-active_issue: strategischer Track `mission-autonomy-lane-v1` (noch kein einzelnes Paperclip-Issue); `DAV-131` bleibt wichtiger harter Resume-/Reuse-Beweis, aber nicht mehr die oberste Firmenrichtung
+focus: DGDH verschaerft den Firmenmodus von reiner Task-Autonomie zu mission-bounded Selbstverbesserung. Der erste grosse Phase-Change-Cut heisst jetzt `self-learning-loop-1-initiation`: Mission Contract, Substrate Boundary und `firm-identity-export-recovery-truth-v1` als erster technischer Hebel
+active_issue: strategischer Track `self-learning-loop-1-initiation` auf dem Weg zu `mission-autonomy-lane-v1`; `DAV-131` bleibt wichtiger harter Resume-/Reuse-Beweis, aber nicht mehr die oberste Firmenrichtung
 
 north_star_stack:
   - Overarching Goal: Mensch-AI-Symbiose der Welt beweisen und sie zu einem besseren Ort machen
@@ -17,9 +17,9 @@ anti_slop_gate:
   - Zusatzregel: `go with the flow / follow your highest excitement` ist erlaubt und gewollt, solange es in bounded Schritte, ehrliche Branch-Wahrheit und reviewbare Bewegung uebersetzt wird statt in ungeprueftes Momentum-Theater
 
 next:
-  1) `mission-autonomy-lane-v1` als neuen Firmenmodus sauber schneiden: `mission-contract-v1`, `type1-type2-decision-policy-v1`, `oberreviewer-risk-gate-v1`, `replay-eval-promotion-v1`
-  2) die Workbench so ausrichten, dass Quotas fuer bounded Firmen-Selbstverbesserung im System selbst verbrannt werden koennen statt hauptsaechlich in externen Chatfenstern
-  3) Mission Cells kuenftig ueber Verantwortungen statt ueber starre Rollenromantik lesen: `goal owner`, `research owner`, `change owner`, `truth owner`, `risk owner`
+  1) `self-learning-loop-1-initiation` als ersten echten Selbstlern-Kreis sauber schneiden: `mission-contract-v1`, `substrate-boundary-cut-v1`, `firm-identity-export-recovery-truth-v1`
+  2) die Workbench so ausrichten, dass Mission Cells kuenftig aus tieferer Firmenwahrheit statt aus reiner Runtime-/DB-Verwechslung leben
+  3) `mission-autonomy-lane-v1` danach mit Type-1/Type-2-Policy, Oberreviewer-Gate und Replay-/Eval-/Promotion weiter aufbauen
   4) `verifiedSkill`, Resume-Truth, Routing-Haertung und Audit-Guardrails bleiben Teil des Unterbaus; sie werden jetzt als Bausteine fuer Mission-Autonomie gelesen, nicht als Endzweck
   5) OpenAI Codex Plugins, Onyx und Agentica/ARCgentica bleiben spaetere Enablement-/Research-Lanes; zuerst den mission-bounded Selbstverbesserungsmodus im bestehenden Stack beweisen
 
@@ -53,6 +53,7 @@ notes:
   - Type-1-/Type-2-Lesart ab jetzt hart anwenden: David und spaeter ein Oberreview-Gate werden nur an echten Einweg-Tueren gebraucht (`main`, Deploy, globale Rechte, Secrets, irreversible Aussenwirkung); reversible Type-2-Verbesserungen sollen die Agenten weitgehend selbst tragen
   - Die vier Schleifen fuer Mission-Autonomie sind jetzt kanonisch: `research -> change -> eval -> promotion`; ohne diese Trennung wird Selbstverbesserung zu AI-Bewegung statt Firmenlernen
   - Neue Fehlerlesart fuer enge Live-Sprints: Fehler hart trennen in `strategy failure`, `applicability / harness failure`, `environment / interface failure` und `missing capability / guardrail`, statt alles unter mehr Reasoning oder groesseren Scope zu mischen
+  - Phase-Change 2026-03-27: `Paperclip ist der aktuelle Traeger. DGDH ist die tiefere Firmenwahrheit.` Der erste technische Selbstlern-Hebel ist deshalb nicht neue Runtime-Magie, sondern `firm-identity-export-recovery-truth-v1` als Export-/Recovery-Seam fuer durable Firmenwahrheit ueber aktuelle Runtime-/DB-Volatilitaet hinaus
   - Wenn ein Lauf gegen seine eigene enge Packet-Wahrheit verstoesst - z.B. Child-Creation trotz Direct-Answer-Mission, breite Repo-Reads, falsche Tool-Reihenfolge oder unnoetige Aktionen - das primaer als `applicability / harness` lesen, nicht als Bedarf fuer mehr Prompt-/Reasoning-Masse; ein kleiner direkter Harness-/Guardrail-Fix ist dann erlaubt, aber kein allgemeines Harness-System, keine Plattform und kein Benchmark-/AGI-Abbiegen
   - `ceo-native-issue-handoff-primitives-v1` ist repo-wahr geliefert: `692e198c` stellt den CEO-Standardpfad auf native `paperclipai`-Primitive um, `16ae8da6` fixt den Repo-Root-CLI-Pfad ueber `PAPERCLIP_CLI_CWD`, `e4f849aa` fixt den Ready-Packet-Flash-Lane-Handoff
   - Live-Beweis `DAV-141` / CEO-Run `7b3e0c29-9b34-499b-a793-0d557b2e870f` beweist reviewbar `issue list --parent-id`, `agent list`, `issue create` und `issue assign`; Child `DAV-142` wurde erstellt und dem Worker zugewiesen

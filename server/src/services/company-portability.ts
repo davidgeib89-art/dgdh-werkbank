@@ -1,5 +1,6 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import type { Db } from "@paperclipai/db";
 import type {
   CompanyPortabilityAgentManifestEntry,
@@ -23,6 +24,7 @@ import { companyService } from "./companies.js";
 const DEFAULT_INCLUDE: CompanyPortabilityInclude = {
   company: true,
   agents: true,
+  firmIdentity: false,
 };
 
 const DEFAULT_COLLISION_STRATEGY: CompanyPortabilityCollisionStrategy = "rename";
@@ -54,6 +56,34 @@ type AgentLike = {
   name: string;
   adapterConfig: Record<string, unknown>;
 };
+
+const FIRM_IDENTITY_EXPORT_FILES = [
+  "CURRENT.md",
+  "MEMORY.md",
+  "SOUL.md",
+  "TRINITY.md",
+  "company-hq/CORE.md",
+  "company-hq/souls/README.md",
+  "company-hq/souls/david-seed.md",
+  "company-hq/souls/nerah.md",
+  "company-hq/souls/taren.md",
+  "company-hq/souls/eidan.md",
+  "company-hq/mission-contracts/self-learning-loop-1-initiation.md",
+  "doc/plans/2026-03-27-dgdh-mission-autonomy-doctrine.md",
+  "doc/plans/2026-03-27-dgdh-substrate-boundary-cut-v1.md",
+] as const;
+
+const FIRM_IDENTITY_RECOVERY_PRINCIPLES = [
+  "Firm mission, soul, memory, and governance must live in durable repo truth before they live only in runtime state.",
+  "Portable company exports are carrier portability, not the full firm identity; both are needed.",
+  "Recovery should preserve who the firm is, what it stands for, and which capabilities/contracts are already durable.",
+] as const;
+
+const FIRM_IDENTITY_RUNTIME_BOUNDARIES = [
+  "Live DB/runtime state is useful carrier state, but not the deepest firm truth.",
+  "In-flight runs, queues, sessions, and transient scheduler state may need reconstruction after loss.",
+  "Mission contracts, soul files, memory, and capability contracts should remain rebuild anchors outside the current carrier.",
+] as const;
 
 const RUNTIME_DEFAULT_RULES: Array<{ path: string[]; value: unknown }> = [
   { path: ["heartbeat", "cooldownSec"], value: 10 },
@@ -143,6 +173,75 @@ function normalizeInclude(input?: Partial<CompanyPortabilityInclude>): CompanyPo
   return {
     company: input?.company ?? DEFAULT_INCLUDE.company,
     agents: input?.agents ?? DEFAULT_INCLUDE.agents,
+    firmIdentity: input?.firmIdentity ?? DEFAULT_INCLUDE.firmIdentity,
+  };
+}
+
+async function readOptionalTextFile(filePath: string): Promise<string | null> {
+  try {
+    const stat = await fs.stat(filePath);
+    if (!stat.isFile() || stat.size > 1024 * 1024) return null;
+    return await fs.readFile(filePath, "utf8");
+  } catch {
+    return null;
+  }
+}
+
+function resolveRepoRootFromService(): string {
+  return path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../../");
+}
+
+async function buildFirmIdentityExport(): Promise<{
+  manifestEntry: NonNullable<CompanyPortabilityManifest["firmIdentity"]>;
+  files: Record<string, string>;
+  warnings: string[];
+}> {
+  const repoRoot = resolveRepoRootFromService();
+  const files: Record<string, string> = {};
+  const warnings: string[] = [];
+  const includedPaths: string[] = [];
+
+  for (const relativePath of FIRM_IDENTITY_EXPORT_FILES) {
+    const absolutePath = path.resolve(repoRoot, relativePath);
+    const content = await readOptionalTextFile(absolutePath);
+    if (content === null) {
+      warnings.push(`Firm identity export skipped unreadable file: ${relativePath}`);
+      continue;
+    }
+    files[relativePath] = content;
+    includedPaths.push(relativePath);
+  }
+
+  files["FIRM-IDENTITY.md"] = [
+    "# Firm Identity Export",
+    "",
+    "Current carrier: Paperclip runtime + portability surfaces",
+    "",
+    "## Durable recovery principles",
+    ...FIRM_IDENTITY_RECOVERY_PRINCIPLES.map((line) => `- ${line}`),
+    "",
+    "## Runtime boundaries",
+    ...FIRM_IDENTITY_RUNTIME_BOUNDARIES.map((line) => `- ${line}`),
+    "",
+    "## Included durable files",
+    ...includedPaths.map((line) => `- ${line}`),
+    "",
+    "## Reading sentence",
+    "",
+    "> Paperclip is the current carrier. DGDH is the deeper firm truth.",
+    "",
+  ].join("\n");
+
+  return {
+    manifestEntry: {
+      path: "FIRM-IDENTITY.md",
+      files: includedPaths,
+      currentCarrier: "Paperclip runtime + portability carrier",
+      recoveryPrinciples: [...FIRM_IDENTITY_RECOVERY_PRINCIPLES],
+      runtimeBoundaries: [...FIRM_IDENTITY_RUNTIME_BOUNDARIES],
+    },
+    files,
+    warnings,
   };
 }
 
@@ -569,6 +668,7 @@ export function companyPortabilityService(db: Db) {
       includes: include,
       company: null,
       agents: [],
+      firmIdentity: null,
       requiredSecrets: [],
     };
 
@@ -680,6 +780,13 @@ export function companyPortabilityService(db: Db) {
           metadata: (agent.metadata as Record<string, unknown> | null) ?? null,
         });
       }
+    }
+
+    if (include.firmIdentity) {
+      const firmIdentityExport = await buildFirmIdentityExport();
+      Object.assign(files, firmIdentityExport.files);
+      warnings.push(...firmIdentityExport.warnings);
+      manifest.firmIdentity = firmIdentityExport.manifestEntry;
     }
 
     manifest.requiredSecrets = dedupeRequiredSecrets(requiredSecrets);

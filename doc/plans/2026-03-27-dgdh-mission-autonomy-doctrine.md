@@ -252,6 +252,13 @@ Der naechste Core-Schritt ist:
 4. `replay-eval-promotion-v1`
 5. `mission-autonomy-lane-v1`
 
+Der erste konkrete Initialschnitt davor ist jetzt:
+
+- `self-learning-loop-1-initiation`
+- mit `mission-contract-v1`
+- `substrate-boundary-cut-v1`
+- und `firm-identity-export-recovery-truth-v1` als erstem technischen Hebel
+
 Danach:
 - erster echter 24-72h Missionslauf
 

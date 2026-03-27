@@ -38,6 +38,8 @@ pnpm paperclipai company get <company-id>
 
 # Export to portable folder package (writes manifest + markdown files)
 pnpm paperclipai company export <company-id> --out ./exports/acme --include company,agents
+# Export the deeper firm recovery layer alongside the carrier package
+pnpm paperclipai company export <company-id> --out ./exports/dgdh-firm --include company,agents,firm-identity
 
 # Preview import (no writes)
 pnpm paperclipai company import \

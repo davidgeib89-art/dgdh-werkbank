@@ -54,15 +54,16 @@ function normalizeSelector(input: string): string {
   return input.trim();
 }
 
-function parseInclude(input: string | undefined): CompanyPortabilityInclude {
-  if (!input || !input.trim()) return { company: true, agents: true };
+export function parseInclude(input: string | undefined): CompanyPortabilityInclude {
+  if (!input || !input.trim()) return { company: true, agents: true, firmIdentity: false };
   const values = input.split(",").map((part) => part.trim().toLowerCase()).filter(Boolean);
   const include = {
     company: values.includes("company"),
     agents: values.includes("agents"),
+    firmIdentity: values.includes("firm-identity") || values.includes("firmidentity"),
   };
-  if (!include.company && !include.agents) {
-    throw new Error("Invalid --include value. Use one or both of: company,agents");
+  if (!include.company && !include.agents && !include.firmIdentity) {
+    throw new Error("Invalid --include value. Use one or more of: company,agents,firm-identity");
   }
   return include;
 }
@@ -105,6 +106,14 @@ async function resolveInlineSourceFromPath(inputPath: string): Promise<{
   for (const agent of manifest.agents ?? []) {
     const agentPath = agent.path.replace(/\\/g, "/");
     files[agentPath] = await readFile(path.join(manifestBaseDir, agentPath), "utf8");
+  }
+  if (manifest.firmIdentity?.path) {
+    const firmIdentityPath = manifest.firmIdentity.path.replace(/\\/g, "/");
+    files[firmIdentityPath] = await readFile(path.join(manifestBaseDir, firmIdentityPath), "utf8");
+    for (const relativePath of manifest.firmIdentity.files ?? []) {
+      const normalizedPath = relativePath.replace(/\\/g, "/");
+      files[normalizedPath] = await readFile(path.join(manifestBaseDir, normalizedPath), "utf8");
+    }
   }
 
   return { manifest, files };
@@ -260,7 +269,7 @@ export function registerCompanyCommands(program: Command): void {
       .description("Export a company into portable manifest + markdown files")
       .argument("<companyId>", "Company ID")
       .requiredOption("--out <path>", "Output directory")
-      .option("--include <values>", "Comma-separated include set: company,agents", "company,agents")
+      .option("--include <values>", "Comma-separated include set: company,agents,firm-identity", "company,agents")
       .action(async (companyId: string, opts: CompanyExportOptions) => {
         try {
           const ctx = resolveCommandContext(opts);

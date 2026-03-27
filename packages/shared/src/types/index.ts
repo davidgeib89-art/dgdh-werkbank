@@ -128,6 +128,7 @@ export type {
   CompanyPortabilityInclude,
   CompanyPortabilitySecretRequirement,
   CompanyPortabilityCompanyManifestEntry,
+  CompanyPortabilityFirmIdentityManifestEntry,
   CompanyPortabilityAgentManifestEntry,
   CompanyPortabilityManifest,
   CompanyPortabilityExportResult,

@@ -1,6 +1,7 @@
 export interface CompanyPortabilityInclude {
   company: boolean;
   agents: boolean;
+  firmIdentity: boolean;
 }
 
 export interface CompanyPortabilitySecretRequirement {
@@ -45,7 +46,16 @@ export interface CompanyPortabilityManifest {
   includes: CompanyPortabilityInclude;
   company: CompanyPortabilityCompanyManifestEntry | null;
   agents: CompanyPortabilityAgentManifestEntry[];
+  firmIdentity: CompanyPortabilityFirmIdentityManifestEntry | null;
   requiredSecrets: CompanyPortabilitySecretRequirement[];
+}
+
+export interface CompanyPortabilityFirmIdentityManifestEntry {
+  path: string;
+  files: string[];
+  currentCarrier: string;
+  recoveryPrinciples: string[];
+  runtimeBoundaries: string[];
 }
 
 export interface CompanyPortabilityExportResult {

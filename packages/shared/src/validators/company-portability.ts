@@ -4,6 +4,7 @@ export const portabilityIncludeSchema = z
   .object({
     company: z.boolean().optional(),
     agents: z.boolean().optional(),
+    firmIdentity: z.boolean().optional(),
   })
   .partial();
 
@@ -20,6 +21,14 @@ export const portabilityCompanyManifestEntrySchema = z.object({
   description: z.string().nullable(),
   brandColor: z.string().nullable(),
   requireBoardApprovalForNewAgents: z.boolean(),
+});
+
+export const portabilityFirmIdentityManifestEntrySchema = z.object({
+  path: z.string().min(1),
+  files: z.array(z.string().min(1)).min(1),
+  currentCarrier: z.string().min(1),
+  recoveryPrinciples: z.array(z.string().min(1)).min(1),
+  runtimeBoundaries: z.array(z.string().min(1)).min(1),
 });
 
 export const portabilityAgentManifestEntrySchema = z.object({
@@ -51,9 +60,11 @@ export const portabilityManifestSchema = z.object({
   includes: z.object({
     company: z.boolean(),
     agents: z.boolean(),
+    firmIdentity: z.boolean().default(false),
   }),
   company: portabilityCompanyManifestEntrySchema.nullable(),
   agents: z.array(portabilityAgentManifestEntrySchema),
+  firmIdentity: portabilityFirmIdentityManifestEntrySchema.nullable().default(null),
   requiredSecrets: z.array(portabilitySecretRequirementSchema).default([]),
 });
 
