@@ -29,7 +29,26 @@ so that the second run proves the first hardening really carried?
 
 ## Latest proof
 
-Yes on the first bounded live proof.
+Yes on the repeatable bounded live proof.
+
+Live run A on `DAV-160` / heartbeat run `d012d8ba-a327-4cd1-b73d-b9306a09a754`
+showed the next real continuity friction after the first hardening cut:
+the mission-cell starter-path brief was present in the real run,
+but `contractFile` drifted with the server carrier to
+`../company-hq/mission-cells/repeatable-live-mission-cell-proof-v1.json`
+instead of staying repo-stable for the execution lane.
+
+The proof-born hardening cut is now landed on `main` in commit `3b9b473e`:
+`server/src/services/mission-cell-contracts.ts` derives mission-cell contract paths from repo root
+instead of `process.cwd()`, and targeted tests lock the same replay seam.
+
+Live run B on `DAV-163` / heartbeat run `fce157ad-8fab-4a86-bb1e-1cc38c9abb36`
+replayed the same mission-cell path on the fresh runtime and proved the original friction was reduced:
+the live `contextSnapshot.paperclipMissionCellReferences[0].filePath` now carries
+`company-hq/mission-cells/repeatable-live-mission-cell-proof-v1.json`
+instead of the old `../company-hq/...` drift.
+
+That is the repeatability proof this phase needed.
 
 The real friction discovered during the run was narrower than a platform gap:
 the `missionCell` runtime bridge carried charter, risk, and promotion truth,
@@ -41,8 +60,7 @@ mission-cell prompt and wakeup context carry `contractFile`, `issueField`, `vali
 `startupSequence`, and `firstProbe`, so the next Eidan/Copilot run can start from repo truth
 with less manual reconstruction.
 
-That is no longer enough for `strong success`.
-The next proving container must rerun the hardened path and show that the improvement survives the second live pass.
+That rerun has now happened and the improvement survived the second live pass.
 
 ## Current direction
 

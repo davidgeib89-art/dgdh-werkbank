@@ -147,6 +147,7 @@ What is fundamentally, provably true instead:
 - explicit packet truth beats inferred packet truth
 - prompt truth is not the same as source-code intent; only the real heartbeat-run snapshot proves what the agent actually received
 - a `missionCell` reference only reduces restating when the runtime brief carries the actual starter path, not just charter/risk/promotion prose
+- mission-cell `contractFile` / `validate` paths are part of that starter path and must be repo-root stable; deriving them from `process.cwd()` leaks carrier drift back into the live run
 - the same path should be rerun after the smallest real fix, not replaced with a side proof
 - remote `main` may contain live company output and must be treated as current truth, not friction
 - `task_complete` is a chat-tool responsibility, not a shell responsibility; trying to satisfy it inside PowerShell creates fake progress and loop risk
