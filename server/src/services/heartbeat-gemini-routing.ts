@@ -406,6 +406,20 @@ function resolveModelOverride(input: {
   return configuredModel;
 }
 
+function shouldPinRouterFlashLane(input: {
+  thinDefaultExecution: boolean;
+  routingProposal: GeminiFlashLiteProposal | null;
+  routingProposalMeta: Record<string, unknown> | null;
+  configuredModel: unknown;
+}) {
+  if (input.thinDefaultExecution || !input.routingProposal) return false;
+  const configuredModel = asString(input.configuredModel)?.toLowerCase() ?? null;
+  if (configuredModel !== "auto") return false;
+  const proposalSource = asString(input.routingProposalMeta?.source);
+  if (proposalSource !== "flash_lite_call") return false;
+  return input.routingProposal.chosenModelLane.toLowerCase().includes("flash");
+}
+
 export interface HeartbeatGeminiRoutingIssueRef {
   id?: string | null;
   companyId?: string | null;
@@ -661,6 +675,12 @@ export async function prepareHeartbeatGeminiRouting(
 
   let finalRoutingPreflight = routingPreflight;
   if (routingPreflight) {
+    const pinRouterFlashLane = shouldPinRouterFlashLane({
+      thinDefaultExecution,
+      routingProposal,
+      routingProposalMeta,
+      configuredModel: input.resolvedConfig.model,
+    });
     finalRoutingPreflight =
       thinDefaultExecution && routingProposal
         ? {
@@ -690,6 +710,35 @@ export async function prepareHeartbeatGeminiRouting(
               "ready_small_default_path pinned fixed model and skipped smart-path escalation",
             applyModelLane: false,
           }
+        : pinRouterFlashLane && routingProposal
+          ? {
+              ...routingPreflight,
+              selected: {
+                ...routingPreflight.selected,
+                configuredBucket: routingProposal.chosenBucket,
+                selectedBucket: routingProposal.chosenBucket,
+                effectiveBucket: routingProposal.chosenBucket,
+                configuredModelLane: routingProposal.chosenModelLane,
+                recommendedModelLane: routingProposal.chosenModelLane,
+                effectiveModelLane: routingProposal.chosenModelLane,
+                modelLaneReason:
+                  "flash_lite_router_proposal pinned an explicit flash lane for an auto-model run",
+                laneStrategy: "soft_enforced_use_recommended",
+                budgetClass: routingProposal.budgetClass,
+                taskType: routingProposal.taskClass,
+                executionIntent: routingProposal.executionIntent,
+                targetFolder: routingProposal.targetFolder,
+                doneWhen: routingProposal.doneWhen,
+                riskLevel: routingProposal.riskLevel,
+                missingInputs: [],
+                needsApproval: false,
+                blocked: false,
+                blockReason: null,
+              },
+              routingReason:
+                "flash_lite_router_path pinned explicit flash lane from router proposal",
+              applyModelLane: true,
+            }
         : routingPreflight;
 
     contextPatch.paperclipRoutingPreflight = finalRoutingPreflight;
@@ -698,7 +747,7 @@ export async function prepareHeartbeatGeminiRouting(
     }
     if (workingContext.bucket !== undefined) {
       contextPatch.bucket =
-        thinDefaultExecution && routingProposal
+        (thinDefaultExecution || pinRouterFlashLane) && routingProposal
           ? routingProposal.chosenBucket
           : workingContext.bucket;
     }
@@ -707,7 +756,7 @@ export async function prepareHeartbeatGeminiRouting(
     }
 
     const routedModelOverride =
-      thinDefaultExecution && routingProposal
+      (thinDefaultExecution || pinRouterFlashLane) && routingProposal
         ? routingProposal.chosenModelLane
         : resolveModelOverride({
             adapterType: input.agent.adapterType,

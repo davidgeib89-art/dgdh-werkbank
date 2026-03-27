@@ -362,6 +362,66 @@ describe("resolveGeminiRoutingPreflight extended fields", () => {
     expect(result!.routingReason).toContain("role=ceo");
   });
 
+  it("raw preflight still prefers CEO premium role hint before heartbeat pins explicit flash lane", () => {
+    const result = resolveGeminiRoutingPreflight({
+      adapterType: "gemini_local",
+      adapterConfig: { model: "auto" },
+      runtimeConfig: {
+        routingPolicy: {
+          mode: "soft_enforced",
+          bucketState: {
+            flash: "ok",
+            pro: "ok",
+            "flash-lite": "ok",
+          },
+          quotaSnapshot: {
+            snapshotAt: "2026-03-26T19:30:47.391Z",
+            buckets: {
+              flash: { state: "ok", usagePercent: 34 },
+              pro: { state: "ok", usagePercent: 0 },
+              "flash-lite": { state: "ok", usagePercent: 9 },
+            },
+          },
+        },
+      },
+      context: {
+        packetType: null,
+        role: "ceo",
+        paperclipRoutingProposal: {
+          taskType: "research-light",
+          taskClass: "research-light",
+          budgetClass: "small",
+          executionIntent: "investigate",
+          targetFile: "n/a",
+          targetFolder: "n/a",
+          artifactKind: "multi_file_change",
+          doneWhen:
+            "Provide a direct answer on DAV-131's same-session resume capability and the verified skill brief's audit path.",
+          riskLevel: "low",
+          missingInputs: [],
+          needsApproval: false,
+          chosenBucket: "flash-lite",
+          chosenModelLane: "gemini-2.5-flash-lite",
+          fallbackBucket: "flash",
+          rationale:
+            "research-light task, small budget, uses flash-lite bucket, requires repo-read skill to inspect DAV-131 and heartbeat runs.",
+        },
+        paperclipRoutingProposalMeta: {
+          source: "flash_lite_call",
+          parseStatus: "ok",
+          latencyMs: 25152,
+        },
+      },
+    });
+
+    expect(result).not.toBeNull();
+    expect(result!.advisoryOnly).toBe(true);
+    expect(result!.laneDecision.source).toBe("role_hint");
+    expect(result!.laneDecision.lane).toBe("premium_model");
+    expect(result!.selected.selectedBucket).toBe("pro");
+    expect(result!.selected.effectiveModelLane).toBe("gemini-3.1-pro-preview");
+  });
+
   it("keeps adapterConfig.model on auto even when applyModelLane is true", () => {
     const adapterConfig = { model: "auto" };
 
