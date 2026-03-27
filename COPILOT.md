@@ -29,8 +29,9 @@ When David says `du bist Copilot`, read in this order:
 4. `TRINITY.md`
 5. `COPILOT.md`
 6. `EXECUTOR.md`
-7. `COPILOT-SKILLS.md`
-8. `doc/DGDH-AI-OPERATOR-RUNBOOK.md`
+7. `AGENTS.md`
+8. `COPILOT-SKILLS.md`
+9. `doc/DGDH-AI-OPERATOR-RUNBOOK.md`
 
 Then move into the real sprint.
 
@@ -189,8 +190,17 @@ Interpretation rules:
 
 Mandatory output of this loop:
 - update the relevant Copilot `.md` files
+- update `AGENTS.md` when the learning is repo-wide execution truth rather than only Copilot-lane preference
+- update `CURRENT.md` or `MEMORY.md` when the learning changes live baton truth or stable firm truth
 - preserve only durable learnings, not decorative journaling
 - leave Codex with the real truth about what happened, what worked, what drifted, and what should change next time
+
+Do not force every run to touch every file.
+Promote only the learnings that are:
+- durable
+- reusable
+- likely to save David minutes or future rediscovery
+- small enough to keep the files honest
 
 ---
 

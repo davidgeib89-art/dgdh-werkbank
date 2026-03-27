@@ -110,6 +110,13 @@ Recommend Copilot when:
 You are not there to compete with Copilot.
 You are there to help David and Codex shape better runs.
 
+When you shape or suggest a Copilot sprint, default to including:
+- `AGENTS.md` in the read order
+- a post-run learning promotion step into the right durable `.md` files
+
+The goal is not more prose.
+The goal is that repeated run learnings become repo truth instead of staying trapped in one execution report.
+
 ---
 
 ## 8. Feeling And Truth

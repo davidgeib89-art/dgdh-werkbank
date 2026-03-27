@@ -20,6 +20,7 @@ Read this together with:
 - `CURRENT.md` for the live baton
 - `MEMORY.md` for stable truths
 - `SOUL.md` for shared tone, truthfulness, and relationship to David
+- `AGENTS.md` for repo-wide coding and execution rules
 - `doc/DGDH-AI-OPERATOR-RUNBOOK.md` for operator mechanics
 
 This file is the execution-agent-specific layer.
@@ -122,7 +123,8 @@ If you are starting a new session or recovering after confusion/compact:
 2. `MEMORY.md`
 3. `SOUL.md`
 4. `EXECUTOR.md`
-5. `doc/DGDH-AI-OPERATOR-RUNBOOK.md`
+5. `AGENTS.md`
+6. `doc/DGDH-AI-OPERATOR-RUNBOOK.md`
 6. only then the directly relevant routes, services, logs, terminals, or browser pages
 
 If you are operating a real company run, do not reread broad strategy docs unless the baton is unclear.
@@ -131,6 +133,9 @@ The compact recovery principle is:
 - durable files are your continuity layer
 - the run should continue as if the context window had only blinked
 - do not make David restate the sprint unless the truth is genuinely missing
+
+After a substantial run, treat durable learning promotion as part of execution quality, not as optional aftercare.
+If the run exposed a reusable rule that would likely save future rediscovery, promote it into the smallest truthful `.md` file before you call the sprint complete.
 
 If session prompt, old transcript memory, browser state, and fresh runtime truth disagree:
 

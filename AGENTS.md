@@ -5,6 +5,8 @@ shared packages, adapters, plugin SDK code, and examples.
 
 Use this file as the default operating guide for coding agents working in this repo.
 
+If you are a long-running execution agent such as Copilot, read this file before substantial coding or live-run work even when a sprint prompt already gave you a narrowed read order.
+
 ## Workspace shape
 
 - Root workspace members: `server`, `ui`, `cli`, `packages/*`, `packages/adapters/*`, `packages/plugins/*`
@@ -186,6 +188,7 @@ The repo contains `.github/copilot-instructions.md`. Its rules should be treated
 ## Agent operating guidance for this repo
 
 - Make the smallest reviewable change that proves the requested truth
+- Before a substantial execution sprint or live-run diagnosis, read `AGENTS.md` together with the narrower lane docs so repo-wide rules are not lost in branch-local context
 - Do not add new tools, providers, or architecture unless the task explicitly requires it
 - Prefer canonical config/routing fixes over local hacks
 - When diagnosing a failure, classify it explicitly as `strategy failure`, `applicability / harness failure`, `environment / interface failure`, or `missing capability / guardrail` before expanding scope
@@ -193,6 +196,12 @@ The repo contains `.github/copilot-instructions.md`. Its rules should be treated
 - A small direct harness/guardrail fix is allowed when it cleanly removes that blocker, but do not turn it into a general harness system, platform expansion, or benchmark/AGI detour
 - Do not commit logs, generated runtime artifacts, or local investigation files unless asked
 - If you must stop, report the narrowest proven blocker and the exact commands/tests already run
+- After a substantial sprint or live run, promote durable learnings into the smallest truthful `.md` files before calling the work complete:
+  - `AGENTS.md` for repo-wide execution rules
+  - `CURRENT.md` for live baton truth
+  - `MEMORY.md` for stable cross-session truth
+  - role files for lane-specific behavior
+- Do not dump decorative journaling into durable docs; only promote learnings that are reusable, reviewable, and likely to save future David-minutes or rediscovery
 - For live-run observation, prefer short one-shot API reads over long polling loops
 - If you do poll, set a hard ceiling before you start (normally <= 2 minutes) and stop early on terminal truth such as `active-run = null`, `company-run-chain` no longer advancing, a new child issue becoming `not_ready`, or the same unchanged snapshot repeating a few times
 - Never wait only for the hoped-for success state; always include explicit stop conditions for alternate terminal outcomes so you do not get stuck after the run has already ended

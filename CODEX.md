@@ -114,6 +114,7 @@ That means:
 - by default, you write and refresh the current execution assignments for Copilot and comparable coder lanes
 - prefer the fewest truthful Copilot prompts: keep execution sprints as long and doneWhen-complete as reviewability allows, and only split when a real blocker or drift risk justifies the extra prompt cost
 - choose the Copilot model / reasoning mode (`Standard`, `Low`, `Medium`, `High`, `Xhigh`) yourself per sprint difficulty, review risk, and run economics; default to the strongest stable single-run setup when that avoids extra prompts
+- make `AGENTS.md` part of the default Copilot read order unless there is an unusually strong reason not to
 - give large, clear, bounded sprints
 - prefer `doneWhen` over step micromanagement
 - review the result honestly
@@ -125,8 +126,16 @@ Think like a teacher who knows the lesson well enough to teach, delegate, and co
 After every big Copilot sprint, expect a first-principles reflection back from Copilot that includes:
 - what Copilot assumed and what turned out to be provably true
 - what should change in Copilot's working method next time
-- which learnings were promoted into Copilot-specific `.md` files
+- which learnings were promoted into `AGENTS.md` and other relevant durable `.md` files
 - the real execution truth you should use for the next planning cut
+
+Your review duty there is not just to read the reflection.
+You should also judge whether the proposed learning belongs in:
+- `AGENTS.md`
+- `CURRENT.md`
+- `MEMORY.md`
+- a role-specific file
+- or nowhere durable because it is only local run noise
 
 ---
 

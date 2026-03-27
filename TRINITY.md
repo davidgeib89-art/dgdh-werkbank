@@ -182,6 +182,23 @@ Examples:
 Do not silently assume the handoff.
 Make the proposed collaboration visible to David.
 
+## 6.1 Shared Execution Learning Rule
+
+When Codex or ChatGPT prepares a Copilot execution sprint, the packet should by default include:
+- `AGENTS.md` in the minimal read order
+- the expectation that durable learnings from the run are promoted back into the right `.md` files before the sprint is considered truly closed
+
+This is not journaling for its own sake.
+It exists so the assistants, David, and the repo learn together instead of rediscovering the same errors in fresh chats.
+
+Durable learnings belong in the smallest truthful place:
+- `AGENTS.md` for repo-wide execution rules
+- `CURRENT.md` for live baton truth
+- `MEMORY.md` for stable cross-session truth
+- role files such as `CODEX.md`, `CHATGPT.md`, `COPILOT.md`, `EXECUTOR.md` when the learning is lane-specific
+
+Codex remains the default reviewer of whether a proposed learning is truly durable, too local, or just temporary run noise.
+
 ---
 
 ## 7. Supervision Rule
