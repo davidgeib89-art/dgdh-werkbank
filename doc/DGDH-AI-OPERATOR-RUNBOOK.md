@@ -350,6 +350,9 @@ Tooling corollary:
 
 Only widen the search when the direct probe failed or contradicted another stronger truth source.
 
+
+> **Triad Live-Loop Launch Note:** Before launching a bounded triad mission, prove the canonical runtime with `GET /api/health` and `GET /api/companies`, then read the active company agents so the CEO lane is not silently already occupied. Treat `GET /api/issues/{id}/active-run` and `GET /api/issues/{id}/company-run-chain` as the real launch proof after assignment, not the issue creation alone.
+
 If a CEO/worker run is `running` but produces no child issues, no comments, and no status movement, use the heartbeat-run read surfaces before reopening code:
 - `GET /api/heartbeat-runs/{runId}`
 - `GET /api/heartbeat-runs/{runId}/events`
@@ -556,6 +559,12 @@ Use that prompt after a real agent run when the goal is:
 - truthful handoff back to Codex
 - bounded creative next-step intuition under `SOUL.md`
 
+### 14.2 Triad Live-Loop Launch Note
+
+Use one fresh parent issue with `missionCell: triad-mission-loop-v1` and explicit worker/reviewer packet truth: `targetFile` or `targetFolder`, `artifactKind`, `doneWhen`, `reviewerFocus`, `reviewerAcceptWhen`, and `reviewerChangeWhen`.
+
+If the parent or child falls into `post_tool_capacity_exhausted`, prefer the existing same-session resume path over creating a parallel packet. The honest next proof is the resumed run, reviewer handoff, and reviewer verdict, not a duplicate kickoff.
+
 ---
 
 ## 15. Post-Handoff Loss Classes
@@ -573,7 +582,7 @@ If a loss class is identified, promote the missing constraint into the **Executi
 
 ---
 
-## 16. Keep This Document Stable
+## 14.4. Keep This Document Stable
 
 This runbook should only contain repeatable operating truth.
 
