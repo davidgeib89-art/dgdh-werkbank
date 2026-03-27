@@ -136,6 +136,7 @@ sondern:
 - Replay-backed Skill Promotion
 - governed evolution lane
 - breitere operator-facing Run-Wahrheit
+- OpenAI Codex Plugins als spaetere Codex-Enablement-Schicht: DGDH-Kontext, Skills, MCP-/App-Integrationen fuer Codex sauber buendeln, aber ausdruecklich nicht als Ersatz fuer `company-hq/capabilities/*` oder als neuer Firmenkern
 
 ### `Not now`
 
@@ -143,6 +144,7 @@ sondern:
 - Self-Learning als neue Ideologie
 - Registry-/DB-/UI-Breitensprint
 - neue grosse Provider-/Routing-Romantik
+- Codex-Plugin-Sprint als Hauptfokus vor dem Nachweis, dass der aktuelle `verifiedSkill`-/Reuse-Pfad auf weiteren echten Laufklassen sichtbar Minuten spart
 
 ## 6. Wie Skills richtig zu lesen sind
 

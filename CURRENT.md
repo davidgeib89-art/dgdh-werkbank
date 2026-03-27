@@ -19,6 +19,7 @@ next:
   1) die Baton-Wahrheit auf der neuen Lage halten: `verifiedSkill:` ist jetzt live auf dem CEO-Handoff-Pfad bewiesen; jetzt nicht in Plattformbau kippen, sondern messen, ob dieselbe opt-in Bridge auf 1-2 weiteren echten Laufklassen genauso sichtbar Broad-Read-/Prompt-Rekonstruktion spart
   2) nur wenn derselbe enge Hebel weiter traegt: hoechstens an einen weiteren bewiesenen Pfad wie Same-Session-Resume haengen oder Verify-Evidence leicht haerten; keine implizite Skill-Magic bauen
   3) erst danach wieder urteilen, ob lokale Skill-Registry, Replay-backed Promotion, skill-aware Runtime-Nutzung fuer mehr als opt-in hints oder `child-created`-Resume-Edge-Cases wirklich `Core` statt `Later` sind
+  4) OpenAI Codex Plugins als spaetere Codex-Enablement-Schicht im Blick behalten: nuetzlich fuer gebuendelte Codex-Skills, MCP-/App-Integrationen und schnelleres Codex-Docking, aber kein Ersatz fuer DGDH-Skill-Contracts, keine neue Produktform und nicht vor dem aktuellen Reuse-/Firmenlauf-Hebel
 
 blockers:
   - Der alte reine `assignment-to-run kickoff loss` ist fuer frische ready Packets nicht mehr der erste Blocker
@@ -49,6 +50,7 @@ notes:
   - `verified-skill-live-run-proof-v1` beweist jetzt den opt-in Bridge-Pfad live: Parent `DAV-144` / Run `fa452fcb-7d12-4f76-a545-d5f93d8f6850` trug `verifiedSkill: ceo-native-issue-handoff-primitives`, `requestedCapabilityIds` + `issueCapabilityReferences` waren im Run-Context sichtbar, `paperclipTaskPrompt` enthielt den injected verified skill brief und der CEO nutzte genau den nativen Viererschritt `issue list -> agent list -> issue create -> issue assign`, wodurch Child `DAV-145` dem Worker zugewiesen wurde
   - Der Skill-Layer bleibt bewusst `v1`: zwei verifizierte Seeds plus `list|use|verify|verify-all` und opt-in `verifiedSkill`-Bridge sind echter Firmenhebel, aber noch keine breite Skill-Plattform und noch kein freies Self-Learning
   - Der naechste Core-Test ist deshalb nicht mehr "koennen wir Skill-Reuse beweisen?", sondern "spart dieser kleine governed capability layer auf weiteren echten Firmenlaeufen genug Wiederentdecken, um spaeter weitere Reuse-/Evidence-Schnitte zu rechtfertigen?"
+  - OpenAI Codex Plugins sind fuer DGDH als spaetere Codex-Enablement-/Packaging-Schicht interessant: moegliche Buendelung von Codex-Skills, MCP-Config und App-Integrationen fuer schnelleres Codex-Onboarding; sie ersetzen weder `company-hq/capabilities/*` noch den Firmenkern und gehoeren erst spaeter hinter den aktuellen Reuse-/Firmenlauf-Hebel
   - Salvage-Worktree/Branch fuer diesen Truth Cut: `C:\Users\holyd\DGDH\worktrees\dgdh-werkbank-salvage`, `copilot/resume-proof-budget-gate-salvage-v1`; Basis war sauberes `origin/main`, nicht der alte schmutzige Branch
   - Nur die nuetzlichen Resume-/Operator-Truth-Aenderungen wurden portiert; alte Artefakte `doc/archive/chat.json`, `server-3112.out.log`, `server-3112.err.log` blieben bewusst draussen
   - `DAV-131` beweist jetzt reviewbar die Zielkette: blocked Run `011bbf57-c596-4008-8d2c-5d2b003d7d0f` -> scheduler Resume `fd981453-1b54-44da-8d7a-8f3fe4a396c1`; `sessionIdAfter(blocked)` entspricht `sessionIdBefore(resume)` exakt
