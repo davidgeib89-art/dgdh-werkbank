@@ -31,11 +31,19 @@ Phase 2 is now the main proving container:
 That phase exists to use a real mission cell on one bounded internal self-improvement target,
 discover at least one proof-born hardening cut, and promote the result into durable firm truth.
 
+Phase 3 is now the next proving container:
+
+- `repeatable-live-mission-cell-proof-v1`
+
+That phase exists to rerun the hardened path on the same bounded target and prove that the first
+hardening actually reduced the original friction instead of only describing it better.
+
 ## Primary Metric
 
 - DGDH gains the first reviewable, reusable mission-autonomy operating lane with a real mission charter,
   explicit decision boundaries, risk/eval/promotion logic, and at least one starter path a future mission cell can actually use.
 - the lane is then used once for real on a bounded internal target, not only prepared as doctrine and scaffolding
+- the hardened path is then run again so the firm proves repeatability, not just first-use luck
 
 ## Guard Metrics
 
@@ -95,6 +103,9 @@ This mission should push as far as reviewably possible toward these durable outc
 8. one real mission-cell run that carries a bounded internal self-improvement target
 9. one proof-discovered hardening cut that lands because of the live run, not before it
 10. promotion truth that makes the next mission easier to carry with less David restatement
+11. `repeatable-live-mission-cell-proof-v1` as the next proving container
+12. one second live mission-cell run on the hardened path
+13. proof that the second pass reduced the same friction the first pass exposed
 
 Not every sub-cut must be perfect, but the lane should clearly become more real than doctrine alone.
 

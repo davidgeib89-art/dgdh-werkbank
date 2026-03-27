@@ -1,7 +1,7 @@
 # CURRENT - Live Baton
 
-focus: DGDH hat `first-live-mission-cell-proof-v1` jetzt einmal real auf dem bounded Ziel `Eidan/Copilot long-autonomy continuity` getragen. Die proof-born Friktion war nicht fehlende Missionsdoktrin, sondern eine zu duenne `missionCell`-Runtime-Bridge ohne Starter-Pfad-Kontinuitaet; genau diese wurde jetzt gehaertet.
-active_issue: Phase-2-Live-Proof fuer `mission-autonomy-lane-v1` ist als `launch -> live proof -> proof-discovered hardening -> promotion` jetzt einmal real auf Branch-Wahrheit getragen; die Runtime traegt fuer `missionCell`-Runs nun auch `contractFile`, `issueField`, `validate`, `startupSequence` und `firstProbe`
+focus: DGDH hat `first-live-mission-cell-proof-v1` einmal real getragen; der naechste Firmenhebel ist jetzt nicht mehr erster Live-Proof, sondern Wiederholbarkeit. Die neue Phase `repeatable-live-mission-cell-proof-v1` soll denselben gehaerteten `missionCell`-Pfad ein zweites Mal live tragen und beweisen, dass die Härtung wirklich Restating und Kontinuitaetsverlust reduziert.
+active_issue: Phase-3-Proof fuer `mission-autonomy-lane-v1` ist jetzt `live run A -> proof-born hardening -> live run B -> promotion`; `strong success` gilt erst, wenn der zweite Live-Run die erste Härtung wirklich bestätigt
 
 north_star_stack:
   - Overarching Goal: Mensch-AI-Symbiose der Welt beweisen und sie zu einem besseren Ort machen
@@ -17,10 +17,10 @@ anti_slop_gate:
   - Zusatzregel: `go with the flow / follow your highest excitement` ist erlaubt und gewollt, solange es in bounded Schritte, ehrliche Branch-Wahrheit und reviewbare Bewegung uebersetzt wird statt in ungeprueftes Momentum-Theater
 
 next:
-  1) die Branch-Wahrheit fuer diesen Proof committen und pushen
-  2) den naechsten bounded Mission-Autonomy-Schnitt erst von dieser gehaerteten `missionCell`-Bridge aus starten, nicht mehr von manuell restateter Launcher-Wahrheit
-  3) kuenftige Live-Proofs weiter daran messen, ob `missionCell` plus repo-Docks den Lauf wirklich ohne Chat-Rekonstruktion tragen
-  4) `verifiedSkill`, Resume-Truth, Routing-Haertung und Audit-Guardrails weiter als Unterbau lesen; neue Cuts muessen den naechsten echten Firmenlauf billiger machen statt nur mehr Meta-Form zu bauen
+  1) `missionCell: repeatable-live-mission-cell-proof-v1` als naechsten grossen Eidan-/Copilot-Container benutzen
+  2) denselben gehaerteten Pfad zweimal lesen: Live-Run A zeigt die aktuelle Friktion, Hardening fixt sie, Live-Run B muss die Verbesserung beweisen
+  3) Copilot-/Editor-Interna-Forensik explizit tabu halten; keine AppData-/workspaceStorage-/chat-session-resources-Reads ohne klare Forensik-Mission
+  4) Promotion erst nach dem zweiten Live-Pass als durable Truth lesen
 
 blockers:
   - Der alte reine `assignment-to-run kickoff loss` ist fuer frische ready Packets nicht mehr der erste Blocker
@@ -53,6 +53,7 @@ notes:
   - Der Runtime-Pfad traegt diese Wahrheit jetzt direkt: `missionCell: mission-cell-starter-path-v1` wird in Wakeup-Context und `paperclipTaskPrompt` als kompakter operating brief injiziert, analog zur `verifiedSkill`-Bridge, aber fuer Charter/Decision/Risk/Eval/Promotion statt nur fuer prozedurale Faehigkeiten
   - Erster echter Phase-2-Live-Proof ist jetzt branch-wahr getragen: Die reale Reibung war, dass `missionCell` im Runtime-Bridge-Pfad noch keine Starter-Pfad-Kontinuitaet trug. `server/src/services/mission-cell-contracts.ts` transportiert jetzt fuer die Prompt-/Wakeup-Bridge zusaetzlich `contractFile`, `issueField`, `validate`, `startupSequence` und `firstProbe`; gezielte Tests decken Prompt- und Assignment-Context dafuer ab
   - Phase-2-Regel ab jetzt: `strong success` fuer die Mission-Autonomie-Lane bedeutet nicht mehr "die Form existiert", sondern "eine Mission Cell wurde einmal real benutzt, hat echte Reibung gezeigt, wurde einmal gehaertet und hat durable Firmenwahrheit hinterlassen"
+  - Neue Phase-3-Regel: `strong success` gilt kuenftig erst nach einem zweiten Live-Run auf demselben gehaerteten Pfad; ohne Rerun ist es ein guter Hardening-Cut, aber noch kein wiederholbarer Selbstlernzyklus
   - Type-1-/Type-2-Lesart ab jetzt hart anwenden: David und spaeter ein Oberreview-Gate werden nur an echten Einweg-Tueren gebraucht (`main`, Deploy, globale Rechte, Secrets, irreversible Aussenwirkung); reversible Type-2-Verbesserungen sollen die Agenten weitgehend selbst tragen
   - Die vier Schleifen fuer Mission-Autonomie sind jetzt kanonisch: `research -> change -> eval -> promotion`; ohne diese Trennung wird Selbstverbesserung zu AI-Bewegung statt Firmenlernen
   - Neue Fehlerlesart fuer enge Live-Sprints: Fehler hart trennen in `strategy failure`, `applicability / harness failure`, `environment / interface failure` und `missing capability / guardrail`, statt alles unter mehr Reasoning oder groesseren Scope zu mischen

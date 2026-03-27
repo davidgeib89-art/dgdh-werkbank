@@ -22,12 +22,14 @@ Operating stance:
 - after compacts or context loss, reread `company-hq/ACTIVE-MISSION.md` and continue
 - do not stop at the first green test slice when the root mission clearly continues
 - commit and push durable reviewable value when the mission still needs more sister cuts
+- do not read AppData, workspaceStorage, chat-session-resources, or other Copilot/editor internals unless David explicitly asks for forensics
 - stop only at `strong success`, `truthful partial`, or `hard stop`
 
 Mission test:
 
 - if the branch is green but the mission gravity is still obvious, keep carrying
 - if the next cut is still in the same root theme and saves future David-minutes, build it now
+- if the active mission says a rerun is required, do not call the work `strong success` before the rerun has happened
 - if the next cut would open a new platform/program, stop and report honestly
 
 One sentence:

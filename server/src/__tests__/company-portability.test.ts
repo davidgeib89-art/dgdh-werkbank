@@ -74,10 +74,16 @@ describe("company portability firm identity export", () => {
       "company-hq/mission-contracts/first-live-mission-cell-proof-v1.md",
     );
     expect(result.manifest.firmIdentity?.files).toContain(
+      "company-hq/mission-contracts/repeatable-live-mission-cell-proof-v1.md",
+    );
+    expect(result.manifest.firmIdentity?.files).toContain(
       "company-hq/mission-contracts/long-autonomy-mission-template.md",
     );
     expect(result.manifest.firmIdentity?.files).toContain(
       "company-hq/mission-cells/first-live-mission-cell-proof-v1.json",
+    );
+    expect(result.manifest.firmIdentity?.files).toContain(
+      "company-hq/mission-cells/repeatable-live-mission-cell-proof-v1.json",
     );
     expect(result.manifest.firmIdentity?.files).toContain(
       "company-hq/mission-contracts/mission-cell-starter-path-v1.md",
@@ -96,8 +102,14 @@ describe("company portability firm identity export", () => {
     expect(result.files["company-hq/mission-contracts/first-live-mission-cell-proof-v1.md"]).toContain(
       "proof-discovered hardening",
     );
+    expect(result.files["company-hq/mission-contracts/repeatable-live-mission-cell-proof-v1.md"]).toContain(
+      "live run B",
+    );
     expect(result.files["company-hq/mission-cells/first-live-mission-cell-proof-v1.json"]).toContain(
       '"missionCellId": "first-live-mission-cell-proof-v1"',
+    );
+    expect(result.files["company-hq/mission-cells/repeatable-live-mission-cell-proof-v1.json"]).toContain(
+      '"missionCellId": "repeatable-live-mission-cell-proof-v1"',
     );
     expect(result.files["company-hq/mission-cells/mission-cell-starter-path-v1.json"]).toContain(
       '"missionCellId": "mission-cell-starter-path-v1"',

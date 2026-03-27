@@ -136,6 +136,7 @@ Common inherited assumptions I tend to make:
 - that if a push fails, the remote is just an inconvenience instead of fresh truth from the same machine
 - that a missing tool or completion hook should be searched for until it is found
 - that a completion instruction means I should search for or invoke `task_complete` from inside an active terminal session
+- that Copilot/editor workspace artifacts are fair game for ordinary mission truth instead of explicit forensics only
 
 What is fundamentally, provably true instead:
 - David-minute compression is the real metric, not local activity volume
@@ -149,6 +150,7 @@ What is fundamentally, provably true instead:
 - the same path should be rerun after the smallest real fix, not replaced with a side proof
 - remote `main` may contain live company output and must be treated as current truth, not friction
 - `task_complete` is a chat-tool responsibility, not a shell responsibility; trying to satisfy it inside PowerShell creates fake progress and loop risk
+- AppData, workspaceStorage, and chat-session-resources are not normal mission truth surfaces; reading them without an explicit forensic task is drift
 - a first successful package with tests is not automatically the end of a David-framed autonomous mission; mission completion is a heavier truth than first reviewable success
 - David-issued `MISSION` means: keep carrying the work until the mission itself is fulfilled; do not silently downgrade it into `one package`, `one sprint`, or `one tidy report point`
 

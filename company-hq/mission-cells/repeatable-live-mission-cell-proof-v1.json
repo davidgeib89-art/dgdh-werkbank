@@ -1,0 +1,161 @@
+{
+  "schemaVersion": "v1",
+  "missionCellId": "repeatable-live-mission-cell-proof-v1",
+  "title": "Repeatable Live Mission Cell Proof V1",
+  "summary": "Rerun the hardened mission-cell path on the same bounded target so DGDH proves repeatability instead of stopping at one good hardening cut.",
+  "owners": [
+    "david",
+    "copilot"
+  ],
+  "status": "active",
+  "updatedAt": "2026-03-27T23:55:00.000Z",
+  "charter": {
+    "objective": "Run the same long-autonomy continuity path twice with one hardening cut in between, then prove on the second pass that the original friction was actually reduced.",
+    "primaryMetric": "A mission launched from `missionCell: repeatable-live-mission-cell-proof-v1` completes live run A, hardening, live run B, and promotion without needing the same level of manual mission restating on the second pass.",
+    "guardMetrics": [
+      "No first-green closure is mistaken for mission completion.",
+      "No Copilot/editor internal artifact reads happen unless the task is explicit forensics.",
+      "No unrelated platform or provider expansion is opened."
+    ],
+    "budget": "One long autonomous branch-sized mission where midpoint commits are allowed but strong success requires a rerun.",
+    "runtime": "A single proving container that must include a second live pass before promotion completes.",
+    "blastRadius": [
+      "company-hq/**",
+      "CURRENT.md",
+      "MEMORY.md",
+      "COPILOT.md",
+      ".github/**",
+      "cli/**",
+      "packages/shared/**",
+      "server/**"
+    ],
+    "allowedZones": [
+      "mission contracts",
+      "mission-cell contracts",
+      "compact-safe continuity seams",
+      "targeted tests and bounded live proof",
+      "durable mission promotion"
+    ],
+    "forbiddenZones": [
+      "provider migration",
+      "broad UI redesign",
+      "destructive DB resets",
+      "deploys or live external effects",
+      "editor or Copilot internals forensics without explicit permission"
+    ]
+  },
+  "decisionPolicy": {
+    "type2Autonomy": [
+      "bounded continuity and mission-state truth improvements",
+      "targeted runtime, CLI, shared, or server cuts that stay reversible",
+      "repeatable rerun proof on the same path"
+    ],
+    "type1Escalations": [
+      "main branch mutation outside reviewed merge flow",
+      "deploys and live external effects",
+      "global secrets or permission changes",
+      "irreversible data or cost consequences",
+      "global policy changes beyond this mission cell"
+    ],
+    "escalationPath": [
+      "stop at the boundary instead of guessing",
+      "state the exact action and why it is Type-1",
+      "escalate to David or the Oberreviewer gate with concrete evidence"
+    ]
+  },
+  "riskGate": {
+    "oberreviewerTriggers": [
+      "the rerun would widen into a new platform or new mission",
+      "promotion is being claimed without live run B",
+      "the same friction repeats and suggests the current mission cell still hides too much runtime truth"
+    ],
+    "requiredEvidence": [
+      "exact git truth",
+      "targeted tests, replay truth, or runtime proof",
+      "the smallest truthful statement of what changed between live run A and live run B"
+    ],
+    "stopReasons": [
+      "true Type-1 point",
+      "external hard blocker",
+      "remaining work has widened into a new program"
+    ]
+  },
+  "eval": {
+    "replayChecks": [
+      "live run B follows the same root path as live run A",
+      "the hardened continuity seam appears in prompt or wakeup truth without manual restating",
+      "the original friction is reduced on the second pass"
+    ],
+    "guardChecks": [
+      "promotion does not happen before live run B",
+      "Copilot/editor internals are not used as ordinary truth surfaces",
+      "the mission remains inside the same bounded target"
+    ],
+    "successSignals": [
+      "live run B needs less mission restating than live run A",
+      "the second pass confirms the hardening really helped",
+      "the next mission can reuse the same path more cleanly"
+    ]
+  },
+  "promotion": {
+    "defaultTargets": [
+      "company-hq/ACTIVE-MISSION.md",
+      "company-hq/mission-contracts/repeatable-live-mission-cell-proof-v1.md",
+      "company-hq/mission-cells/repeatable-live-mission-cell-proof-v1.json",
+      "CURRENT.md",
+      "MEMORY.md",
+      "the minimal runtime seam that now carries the rerun truth durably"
+    ],
+    "promoteWhen": [
+      "live run B shows the original friction is smaller",
+      "the same path is easier to carry from repo truth on the second pass",
+      "the proof is reviewable without editor-internal archaeology"
+    ],
+    "stayExperimentalWhen": [
+      "live run B did not happen",
+      "the result still depends on manual retelling",
+      "the proof depends on forbidden side surfaces instead of normal runtime truth"
+    ],
+    "demoteWhen": [
+      "the same friction still appears unchanged on the second pass",
+      "the mission needs the same restating despite the hardening",
+      "promotion would hide that rerun truth is still missing"
+    ]
+  },
+  "boundaries": {
+    "firmBound": [
+      "the requirement for live run B",
+      "the repeatability definition of strong success",
+      "the ban on non-forensic editor-artifact reads",
+      "the continuity and promotion truth that survives the second pass"
+    ],
+    "carrierBound": [
+      "current Paperclip issue transport",
+      "prompt and wakeup context injection",
+      "current CLI and portability loading path",
+      "the present runtime-specific proof surfaces"
+    ]
+  },
+  "starterPath": {
+    "trigger": "Create or update a bounded self-improvement issue with `missionCell: repeatable-live-mission-cell-proof-v1` and a clear rerun condition in `doneWhen`.",
+    "issueTemplate": [
+      "missionCell: repeatable-live-mission-cell-proof-v1",
+      "Objective: <same bounded target as live run A>",
+      "Scope: <explicit in/out>",
+      "doneWhen: <live run A + hardening + live run B + promotion condition>",
+      "artifactKind: <code_patch | doc_update | multi_file_change>"
+    ],
+    "startupSequence": [
+      "Validate the mission cell contract with `paperclipai mission cell validate`.",
+      "Reference the mission cell directly in the issue packet.",
+      "State the same bounded target and the exact rerun proof expected after hardening.",
+      "Carry live run A, then hardening, then live run B on the same path.",
+      "Promote only after the second pass proves the improvement."
+    ],
+    "firstProbe": [
+      "Confirm the mission packet explicitly requires a second live pass.",
+      "Confirm the same root path is being used rather than a new easier side path.",
+      "Use normal runtime truth surfaces, not editor-internal artifacts."
+    ]
+  }
+}
