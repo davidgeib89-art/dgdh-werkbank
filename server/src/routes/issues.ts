@@ -284,6 +284,7 @@ export function issueRoutes(db: Db, storage: StorageService) {
       status?: string | null;
       payload?: unknown;
     } | null;
+    closeoutBlocker: ReturnType<typeof buildCompanyRunChainBlocker>;
   }) {
     const packetTruth = resolveIssueExecutionPacketTruth({
       title: input.child.title,
@@ -341,10 +342,11 @@ export function issueRoutes(db: Db, storage: StorageService) {
         next: readNonEmptyString(reviewerPayload?.next) ?? null,
         at: input.reviewerVerdictAt,
       },
+      closeoutBlocker: input.closeoutBlocker,
     };
   }
 
-  function buildCompanyRunChainParentBlocker(
+  function buildCompanyRunChainBlocker(
     runs: Awaited<ReturnType<typeof activitySvc.runsForIssue>>,
   ) {
     const orderedRuns = [...runs].sort(
@@ -1025,7 +1027,7 @@ export function issueRoutes(db: Db, storage: StorageService) {
     const companyAgents = await agentsSvc.list(rootIssue.companyId);
     const agentById = new Map(companyAgents.map((agent) => [agent.id, agent]));
     const parentDoneAt = issueCompletedAt(rootIssue);
-    const parentBlocker = buildCompanyRunChainParentBlocker(parentRuns);
+    const parentBlocker = buildCompanyRunChainBlocker(parentRuns);
 
     const children = await Promise.all(
       childIssues.map(async (child) => {
@@ -1040,6 +1042,7 @@ export function issueRoutes(db: Db, storage: StorageService) {
         const runsAsc = [...runs].sort(
           (left, right) => new Date(left.createdAt).getTime() - new Date(right.createdAt).getTime(),
         );
+        const closeoutBlocker = buildCompanyRunChainBlocker(runs);
 
         const latestWorkerDone = [...activityAsc]
           .reverse()
@@ -1119,6 +1122,7 @@ export function issueRoutes(db: Db, storage: StorageService) {
             workerDoneDetails,
             workerPrDetails,
             reviewerApproval,
+            closeoutBlocker,
           }),
           stages: [
             stageShape({

@@ -108,6 +108,13 @@ describe("post-tool capacity helpers", () => {
         source: "automation",
         triggerDetail: "system",
         cooldownUntil: "2026-03-25T10:05:00.000Z",
+        closeout: {
+          roleTemplateId: "worker",
+          childIssueCreated: true,
+          parentDelegationPath: "closeout",
+          nextResumePoint: "resume_existing_session_worker_closeout",
+          guidance: "Finish canonical worker closeout first.",
+        },
       }),
     ).toEqual({
       wakeReason: "post_tool_capacity_resume",
@@ -115,6 +122,13 @@ describe("post-tool capacity helpers", () => {
       wakeTriggerDetail: "system",
       postToolCapacityResume: true,
       postToolCapacityCooldownUntil: "2026-03-25T10:05:00.000Z",
+      paperclipPostToolCapacityCloseout: {
+        roleTemplateId: "worker",
+        childIssueCreated: true,
+        parentDelegationPath: "closeout",
+        nextResumePoint: "resume_existing_session_worker_closeout",
+        guidance: "Finish canonical worker closeout first.",
+      },
       untouched: "keep-me",
     });
   });

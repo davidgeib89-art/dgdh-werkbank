@@ -78,6 +78,43 @@ describe("applyIssuePromptContext", () => {
     ]);
   });
 
+  it("injects explicit closeout truth for post-tool capacity resume runs", () => {
+    const context = applyIssuePromptContext(
+      {
+        postToolCapacityResume: true,
+        paperclipPostToolCapacityCloseout: {
+          roleTemplateId: "worker",
+          childIssueCreated: true,
+          parentDelegationPath: "closeout",
+          nextResumePoint: "resume_existing_session_worker_closeout",
+          guidance:
+            "Inspect worker-pr and worker-done first, then finish the canonical handoff.",
+        },
+      },
+      {
+        id: "issue-1",
+        companyId: "company-1",
+        projectId: "project-1",
+        goalId: null,
+        parentId: "parent-1",
+        identifier: "DAV-166",
+        title: "Resume worker closeout",
+        description: "Finish the worker closeout after post-tool capacity.",
+      },
+    ) as Record<string, unknown>;
+
+    const prompt = String(context.paperclipTaskPrompt ?? "");
+
+    expect(prompt).toContain("Post-tool capacity resume truth:");
+    expect(prompt).toContain("roleTemplateId: worker");
+    expect(prompt).toContain(
+      "nextResumePoint: resume_existing_session_worker_closeout",
+    );
+    expect(prompt).toContain(
+      "Rule: finish the explicit closeout step first before widening the run again.",
+    );
+  });
+
   it("keeps company and project ids in the wakeup issue-context select", () => {
     const heartbeatSource = readFileSync(
       path.resolve(__dirname, "../../..", "server/src/services/heartbeat.ts"),

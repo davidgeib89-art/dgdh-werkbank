@@ -212,6 +212,7 @@ describe("issue company run chain route", () => {
     expect(res.body.children[0].triad.ceoCut.ceoCutStatus).toBe("ready");
     expect(res.body.children[0].triad.workerExecution.status).toBe("completed");
     expect(res.body.children[0].triad.reviewerVerdict.verdict).toBe("accepted");
+    expect(res.body.children[0].triad.closeoutBlocker).toBeNull();
     expect(res.body.children[0].stages.map((stage: { key: string; completed: boolean }) => [stage.key, stage.completed])).toEqual([
       ["assigned", true],
       ["run_started", true],
@@ -307,6 +308,119 @@ describe("issue company run chain route", () => {
       resumeRunId: "run-resume-1",
       resumeRunStatus: "queued",
       resumeAt: "2026-03-25T10:05:01.000Z",
+      sameSessionPath: true,
+    });
+  });
+
+  it("returns child closeout blocker truth when worker closeout is paused by post-tool capacity", async () => {
+    mockIssueService.getById.mockImplementation(async (id: string) => {
+      if (id === "parent-1") {
+        return {
+          id: "parent-1",
+          companyId: "company-1",
+          identifier: "DAV-165",
+          title: "Triad closeout mission",
+          status: "in_progress",
+          completedAt: null,
+          parentId: null,
+          assigneeAgentId: "agent-ceo-1",
+        };
+      }
+      if (id === "child-1") {
+        return {
+          id: "child-1",
+          companyId: "company-1",
+          identifier: "DAV-166",
+          title: "Worker closeout hardening",
+          description: [
+            "packetType: free_api",
+            "executionIntent: implement",
+            "reviewPolicy: required",
+            "needsReview: true",
+            "doneWhen: Finish worker closeout and reviewer verdict after post-tool capacity.",
+          ].join("\n"),
+          status: "in_progress",
+          completedAt: null,
+          createdAt: new Date("2026-03-27T10:00:00.000Z"),
+          updatedAt: new Date("2026-03-27T10:10:00.000Z"),
+          parentId: "parent-1",
+          assigneeAgentId: "agent-worker-1",
+        };
+      }
+      return null;
+    });
+
+    mockActivityService.forIssue.mockImplementation(async (issueId: string) => {
+      if (issueId !== "child-1") return [];
+      return [];
+    });
+
+    mockActivityService.runsForIssue.mockImplementation(async (_companyId: string, issueId: string) => {
+      if (issueId === "parent-1") return [];
+      if (issueId !== "child-1") return [];
+      return [
+        {
+          runId: "run-resume-worker-1",
+          status: "queued",
+          agentId: "agent-worker-1",
+          startedAt: null,
+          finishedAt: null,
+          createdAt: new Date("2026-03-27T10:15:01.000Z"),
+          invocationSource: "automation",
+          sessionIdBefore: "session-worker-1",
+          sessionIdAfter: null,
+          errorCode: null,
+          usageJson: null,
+          resultJson: null,
+        },
+        {
+          runId: "run-worker-blocked-1",
+          status: "blocked",
+          agentId: "agent-worker-1",
+          startedAt: new Date("2026-03-27T10:10:00.000Z"),
+          finishedAt: new Date("2026-03-27T10:10:10.000Z"),
+          createdAt: new Date("2026-03-27T10:10:00.000Z"),
+          invocationSource: "assignment",
+          sessionIdBefore: "session-worker-1",
+          sessionIdAfter: "session-worker-1",
+          errorCode: "post_tool_capacity_exhausted",
+          usageJson: null,
+          resultJson: {
+            type: "post_tool_capacity_exhausted",
+            status: "cooldown_pending",
+            deferredState: {
+              state: "cooldown_pending",
+              nextResumePoint: "resume_existing_session_worker_closeout",
+              cooldownUntil: "2026-03-27T10:15:00.000Z",
+            },
+            resume: {
+              strategy: "reuse_session",
+              sessionId: "session-worker-1",
+              nextWakeStatus: "deferred_capacity_cooldown",
+              nextWakeNotBefore: "2026-03-27T10:15:00.000Z",
+            },
+          },
+        },
+      ];
+    });
+
+    const res = await request(createApp()).get("/api/issues/parent-1/company-run-chain");
+
+    expect(res.status).toBe(200);
+    expect(res.body.parentBlocker).toBeNull();
+    expect(res.body.children[0].triad.closeoutBlocker).toEqual({
+      blockerClass: "post_tool_capacity_exhausted",
+      blockerState: "cooldown_pending",
+      summary: "Post-tool capacity cooldown",
+      knownBlocker: true,
+      nextResumePoint: "resume_existing_session_worker_closeout",
+      nextWakeStatus: "deferred_capacity_cooldown",
+      nextWakeNotBefore: "2026-03-27T10:15:00.000Z",
+      resumeStrategy: "reuse_session",
+      resumeSource: "scheduler",
+      resumeRunId: "run-resume-worker-1",
+      resumeRunStatus: "queued",
+      resumeAt: "2026-03-27T10:15:01.000Z",
       sameSessionPath: true,
     });
   });

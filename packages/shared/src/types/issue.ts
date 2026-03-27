@@ -289,6 +289,7 @@ export interface CompanyRunChainTriadTruth {
   ceoCut: IssueTriadPacketTruth;
   workerExecution: CompanyRunChainWorkerExecutionTruth;
   reviewerVerdict: CompanyRunChainReviewerVerdictTruth;
+  closeoutBlocker: CompanyRunChainParentBlocker | null;
 }
 
 export interface CompanyRunChainParentBlocker {

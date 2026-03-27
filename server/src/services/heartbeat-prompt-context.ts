@@ -280,7 +280,11 @@ export function normalizeReviewTargetWorkerHandoff(input: {
 
 function buildIssueTaskPrompt(
   issue: IssuePromptContext,
-  input?: { skillPromptBlock?: string | null; missionCellPromptBlock?: string | null },
+  input?: {
+    skillPromptBlock?: string | null;
+    missionCellPromptBlock?: string | null;
+    contextSnapshot?: Record<string, unknown> | null;
+  },
 ) {
   const ref = issue.identifier ?? issue.id;
   const title = trimIssueText(issue.title);
@@ -332,9 +336,26 @@ function buildIssueTaskPrompt(
         : "none"
     }`,
   ];
+  const postToolCapacityCloseout = parseObject(
+    input?.contextSnapshot?.paperclipPostToolCapacityCloseout,
+  );
   const operatingBlocks = [missionCellPromptBlock, skillPromptBlock].filter(
     (value): value is string => Boolean(value),
   );
+  const postToolCapacityLines =
+    input?.contextSnapshot?.postToolCapacityResume === true &&
+    Object.keys(postToolCapacityCloseout).length > 0
+      ? [
+          "",
+          "Post-tool capacity resume truth:",
+          `- roleTemplateId: ${readNonEmptyString(postToolCapacityCloseout.roleTemplateId) ?? "none"}`,
+          `- nextResumePoint: ${readNonEmptyString(postToolCapacityCloseout.nextResumePoint) ?? "none"}`,
+          `- parentDelegationPath: ${readNonEmptyString(postToolCapacityCloseout.parentDelegationPath) ?? "none"}`,
+          `- childIssueCreated: ${postToolCapacityCloseout.childIssueCreated === true ? "yes" : "no"}`,
+          `- guidance: ${readNonEmptyString(postToolCapacityCloseout.guidance) ?? "none"}`,
+          "- Rule: finish the explicit closeout step first before widening the run again.",
+        ]
+      : [];
   const directAnswerAuditLines =
     directAnswerAuditTruth?.bounded === true
       ? [
@@ -404,6 +425,7 @@ function buildIssueTaskPrompt(
     "",
     "Execution packet truth:",
     ...packetLines,
+    ...postToolCapacityLines,
     ...directAnswerAuditLines,
     ...operatingBlocks.flatMap((block) => ["", block]),
     ...(description ? ["", description] : []),
@@ -672,6 +694,7 @@ export function buildHeartbeatIssuePromptContextPatch(input: {
     buildIssueTaskPrompt(normalizedIssue, {
       skillPromptBlock,
       missionCellPromptBlock,
+      contextSnapshot: input.contextSnapshot,
     }),
     workspacePrompt,
   ]

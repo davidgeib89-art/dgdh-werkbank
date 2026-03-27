@@ -238,6 +238,14 @@ export type PostToolCapacityState = {
   message: string | null;
 };
 
+type PostToolCapacityCloseoutTruth = {
+  roleTemplateId: string | null;
+  childIssueCreated: boolean;
+  parentDelegationPath: "active" | "closeout";
+  nextResumePoint: string;
+  guidance: string;
+};
+
 interface ParsedIssueAssigneeAdapterOverrides {
   adapterConfig: Record<string, unknown> | null;
   useProjectWorkspace: boolean | null;
@@ -985,6 +993,7 @@ export function buildPostToolCapacityDeferredContextSnapshot(input: {
   source?: WakeupSource;
   triggerDetail?: WakeupOptions["triggerDetail"] | null;
   cooldownUntil?: string | null;
+  closeout?: PostToolCapacityCloseoutTruth | null;
 }) {
   const next = { ...input.contextSnapshot };
   delete next.forceFreshSession;
@@ -998,6 +1007,15 @@ export function buildPostToolCapacityDeferredContextSnapshot(input: {
   }
   if (input.cooldownUntil) {
     next.postToolCapacityCooldownUntil = input.cooldownUntil;
+  }
+  if (input.closeout) {
+    next.paperclipPostToolCapacityCloseout = {
+      roleTemplateId: input.closeout.roleTemplateId,
+      childIssueCreated: input.closeout.childIssueCreated,
+      parentDelegationPath: input.closeout.parentDelegationPath,
+      nextResumePoint: input.closeout.nextResumePoint,
+      guidance: input.closeout.guidance,
+    };
   }
   return next;
 }
@@ -1060,6 +1078,7 @@ function buildPostToolCapacityResultJson(input: {
   state: PostToolCapacityState;
   cooldownSec: number;
   cooldownUntil: string;
+  closeout: PostToolCapacityCloseoutTruth;
 }) {
   const base = parseObject(input.baseResultJson);
   const resume = parseObject(base.resume);
@@ -1075,9 +1094,11 @@ function buildPostToolCapacityResultJson(input: {
       kind: "post_tool_capacity_cooldown",
       state: "cooldown_pending",
       issueId: input.state.issueId,
-      childIssueCreated: false,
-      parentDelegationPath: "active",
-      nextResumePoint: "resume_existing_session_before_child_create",
+      childIssueCreated: input.closeout.childIssueCreated,
+      parentDelegationPath: input.closeout.parentDelegationPath,
+      nextResumePoint: input.closeout.nextResumePoint,
+      roleTemplateId: input.closeout.roleTemplateId,
+      guidance: input.closeout.guidance,
       cooldownSec: input.cooldownSec,
       cooldownUntil: input.cooldownUntil,
       taskKey: input.state.taskKey,
@@ -1089,9 +1110,47 @@ function buildPostToolCapacityResultJson(input: {
       sessionId: input.state.sessionId,
       issueId: input.state.issueId,
       taskKey: input.state.taskKey,
+      nextResumePoint: input.closeout.nextResumePoint,
       nextWakeStatus: POST_TOOL_CAPACITY_DEFERRED_WAKE_STATUS,
       nextWakeNotBefore: input.cooldownUntil,
     },
+  };
+}
+
+function resolvePostToolCapacityCloseoutTruth(input: {
+  contextSnapshot: Record<string, unknown> | null | undefined;
+}): PostToolCapacityCloseoutTruth {
+  const roleTemplateId = readAssignedRoleTemplateId(input.contextSnapshot);
+
+  if (roleTemplateId === "worker") {
+    return {
+      roleTemplateId,
+      childIssueCreated: true,
+      parentDelegationPath: "closeout",
+      nextResumePoint: "resume_existing_session_worker_closeout",
+      guidance:
+        "Resume on the canonical worker closeout seam. Inspect whether worker-pr and worker-done are still missing, then finish that handoff before reopening broad implementation.",
+    };
+  }
+
+  if (roleTemplateId === "reviewer") {
+    return {
+      roleTemplateId,
+      childIssueCreated: true,
+      parentDelegationPath: "closeout",
+      nextResumePoint: "resume_existing_session_reviewer_verdict",
+      guidance:
+        "Resume on the reviewer closeout seam. Re-check the worker handoff, then persist reviewer-verdict explicitly so the verdict remains path-changing.",
+    };
+  }
+
+  return {
+    roleTemplateId,
+    childIssueCreated: false,
+    parentDelegationPath: "active",
+    nextResumePoint: "resume_existing_session_before_child_create",
+    guidance:
+      "Resume the existing session before creating a child issue or widening the delegation path.",
   };
 }
 
@@ -2440,6 +2499,7 @@ export function heartbeatService(db: Db) {
     cooldownUntil: string;
     cooldownSec: number;
     state: PostToolCapacityState;
+    closeout: PostToolCapacityCloseoutTruth;
   }) {
     const resumeWake = buildPostToolCapacityResumeWakeMetadata({
       source: input.source,
@@ -2451,6 +2511,7 @@ export function heartbeatService(db: Db) {
         source: resumeWake.source,
         triggerDetail: resumeWake.triggerDetail,
         cooldownUntil: input.cooldownUntil,
+        closeout: input.closeout,
       },
     );
     const deferredPayload = {
@@ -2465,6 +2526,9 @@ export function heartbeatService(db: Db) {
       failedToolResultCount: input.state.failedToolResultCount,
       firstSuccessfulToolName: input.state.firstSuccessfulToolName,
       lastSuccessfulToolName: input.state.lastSuccessfulToolName,
+      nextResumePoint: input.closeout.nextResumePoint,
+      roleTemplateId: input.closeout.roleTemplateId,
+      guidance: input.closeout.guidance,
       originalWakeSource: resumeWake.originalSource,
       originalWakeTriggerDetail: resumeWake.originalTriggerDetail,
       [DEFERRED_WAKE_CONTEXT_KEY]: deferredContextSnapshot,
@@ -3772,12 +3836,16 @@ export function heartbeatService(db: Db) {
               Date.now() + postToolCapacityCooldownSec! * 1000,
             ).toISOString()
           : null;
+        const postToolCapacityCloseout = postToolCapacityState
+          ? resolvePostToolCapacityCloseoutTruth({ contextSnapshot: context })
+          : null;
         const finalResultJson = postToolCapacityState
           ? buildPostToolCapacityResultJson({
               baseResultJson: adapterResult.resultJson,
               state: postToolCapacityState,
               cooldownSec: postToolCapacityCooldownSec!,
               cooldownUntil: postToolCapacityCooldownUntil!,
+              closeout: postToolCapacityCloseout!,
             })
           : adapterResult.resultJson ?? null;
 
@@ -3968,7 +4036,8 @@ export function heartbeatService(db: Db) {
             postToolCapacityState &&
             issueId &&
             postToolCapacityCooldownUntil &&
-            postToolCapacityCooldownSec
+            postToolCapacityCooldownSec &&
+            postToolCapacityCloseout
           ) {
             const deferredWakeId = await schedulePostToolCapacityResume({
               run: finalizedRun,
@@ -3980,6 +4049,7 @@ export function heartbeatService(db: Db) {
               cooldownUntil: postToolCapacityCooldownUntil,
               cooldownSec: postToolCapacityCooldownSec,
               state: postToolCapacityState,
+              closeout: postToolCapacityCloseout,
             });
             await appendRunEvent(finalizedRun, seq++, {
               eventType: "lifecycle",
