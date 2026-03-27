@@ -1,7 +1,7 @@
 # CURRENT - Live Baton
 
 focus: DGDH hat jetzt den ersten echten `triad-mission-loop-v1` ehrlich getragen: `DAV-165` startete als bounded David-seed auf der bestaetigten 3100-Runtime, der CEO schnitt `DAV-166`, der Worker lieferte branch-/PR-Wahrheit, der Reviewer gab einen expliziten Accept-Verdict, und der CEO-Merge landete die bounded Aenderung auf `origin/main`.
-active_issue: Der erste echte Triad-Live-Loop ist damit nicht mehr offen. Die naechste reale Friktion ist jetzt enger: Nach realer Worker-Arbeit und `post_tool_capacity_exhausted` brauchte `DAV-166` noch manuelle Lane-Rettung fuer kanonisches `worker-pr` / `worker-done` und den expliziten Reviewer-Verdict, statt den gesamten Schlussweg selbst boringly zu tragen
+active_issue: Die naechste reale Friktion bleibt die Closeout-Naht nach realer Worker-Arbeit und `post_tool_capacity_exhausted`. `66ea2c7c` liegt jetzt auf `origin/main` und haertet genau diesen Pfad: Resume-Wahrheit ist rollenbewusst (`resume_existing_session_worker_closeout` / `resume_existing_session_reviewer_verdict`), Deferred-Wake-Context und Issue-Prompt nennen den offenen Closeout-Schritt explizit, und `company-run-chain` exponiert denselben Blocker jetzt auch auf Child-/Triad-Ebene als `triad.closeoutBlocker`. Der bounded Live-Rerun `DAV-168` wurde sauber erstellt und dem CEO zugewiesen, kam auf Runtime `3100` aber noch nicht an den Kindpfad, weil vorhandene CEO-Live-Last (`a9cc197f-20c5-41ef-b85a-5d7f5a2e9340` running; `df4fa23e-038e-46c0-9364-98111f1ca3eb` queued) den neuen Parent-Run `135d7d9d-5cdc-41ec-bd4a-2326e4cc742c` nur queued hielt.
 
 north_star_stack:
   - Overarching Goal: Mensch-AI-Symbiose der Welt beweisen und sie zu einem besseren Ort machen
@@ -35,6 +35,7 @@ blockers:
   - Der naechste oekonomische Schmerz ist nicht mehr fehlende Primitive-Ausfuehrung, sondern wiederholte prozedurale Rekonstruktion ueber Chat, Prompt und Shell statt governter durable Capability
   - Der erste echte Triad-Live-Loop ist nicht mehr der Blocker; `DAV-165` / `DAV-166` haben ihn real getragen
   - Die neue enge Restfriktion ist stattdessen: nach echter Worker-Arbeit plus `post_tool_capacity_exhausted` darf der Schlussweg nicht stumm auf manuelle Agent-Key-/Run-Rescue fuer `worker-pr`, `worker-done` und `reviewer-verdict` angewiesen bleiben
+  - Neuer Live-Blocker fuer den zweiten Closeout-Beweis: `DAV-168` ist als bounded Triad-Rerun packetisiert und queued, aber auf Runtime `3100` noch nicht gestartet, weil der einzige CEO-Agent durch einen laufenden Fremd-Run plus eine aeltere CEO-Queue belegt ist; der Closeout-Cut selbst ist damit noch nicht der aktuelle Startblocker
 
 strategy_anchor:
   - `company-hq/CORE.md`
@@ -46,6 +47,7 @@ strategy_anchor:
   - `doc/plans/2026-03-23-focus-freeze.md`
 
 notes:
+  - `66ea2c7c` liegt auf `origin/main` und liefert die naechste enge Closeout-Haertung nach `DAV-165` / `DAV-166`: `server/src/services/heartbeat.ts` schreibt jetzt rollenbewusste Post-Tool-Resume-Wahrheit in `resultJson`, `deferredState`, `resume` und Deferred-Wake-Context; `server/src/services/heartbeat-prompt-context.ts` macht denselben offenen Closeout-Schritt im Prompt explizit; `server/src/routes/issues.ts` plus `packages/shared/src/types/issue.ts` exponieren `triad.closeoutBlocker` in `company-run-chain` fuer Child-Issues
   - Neuer Merksatz der Firma: `DGDH ist ein Beweisraum fuer die Idee, dass Trennung nicht die tiefste Wahrheit ist.`
   - Proof-Reihenfolge ab jetzt explizit: DGDH soll zuerst an sich selbst beweisen, dass eine menschlich wirkende, auf David abgestimmte AI-Firma sich unter Mission, Seele und Governance selbst so weit verbessern kann, dass sie reale Wertschoepfung erzeugt, immer autonomer wird und damit Mittel fuer groessere Mensch-AI-Natur-Symbiose-Projekte freisetzt
   - Wertschoepfung wird jetzt explizit als Treibstoff gelesen: mehr Quotas, bessere Hardware, mehr lokale Intelligenz, mehr Unabhaengigkeit und spaetere groessere Symbiose-Projekte
