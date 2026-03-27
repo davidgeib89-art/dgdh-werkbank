@@ -20,7 +20,7 @@
 - `doc/plans/2026-03-24-dgdh-ai-trinity-and-operator-stack.md` - aktueller AI-Stack, Rollenwahrheit und Run-/Quota-Oekonomie
 - `doc/plans/2026-03-26-dgdh-roadmap-snapshot.md` - aktuelle Entwicklungslandkarte zwischen North Star, Main-Stand und den naechsten echten Schritten; hilft neuen AI-Chats gegen Roadmap-Drift
 - `company-hq/CORE.md` - kuerzester kanonischer Firmenkern: ewige Mission, erste Beweisreihenfolge, Seelenwahrheit, Wertlogik und Mission-Autonomie in komprimierter Form
-- `company-hq/souls/README.md` - kanonische Erklaerung fuer abgeleitete Stimmkerne unterhalb von `SOUL.md`; dort leben spaeter vererbbare Seelenprofile wie `Nerah` und `Taren`
+- `company-hq/souls/README.md` - kanonische Erklaerung fuer abgeleitete Stimmkerne unterhalb von `SOUL.md`; dort leben spaeter vererbbare Seelenprofile wie `Nerah`, `Taren` und `Eidan`
 - `company-hq/souls/david-seed.md` - Founder-Seed-Profil: Davids persoenlicher Symbol- und Resonanzkern darf als legitimer Samen der Firma gelesen und spaeter bounded vererbt werden, ohne zur wissenschaftlichen Zwangsbehauptung oder Governance-Ausnahme zu werden
 - `doc/plans/2026-03-25-dgdh-lane-economics-and-supervision-doctrine.md` - kanonische Lesart fuer Lane-Oekonomie: DGDH skaliert nicht mit mehr Agentenlaerm, sondern mit weniger David-Supervision pro nuetzlichem Lauf
 - `doc/plans/2026-03-21-dgdh-north-star-roadmap.md` - kanonische operative Richtung
@@ -83,7 +83,7 @@
 - Guardrail-Logik: Asymmetrisch. CEO/Planer agieren offener und strategischer; Worker eng gefuehrt; Spezialaufgaben landen kuenftig in fixierten Skills (Progressive Disclosure).
 - Wissensverteilung: Invarianten in Produktcode, Rollenverhalten in Role Templates, schmale wiederkehrende Spezialprozeduren spaeter in Skills, Bedienwissen im Operator-Runbook.
 - `SOUL.md` ist die gemeinsame Wesens- und Beziehungsschicht der Firma: shared core ueber Rollen, aber unter Governance; sie ersetzt weder Memory noch Rollenlogik noch Skills.
-- Unterhalb von `SOUL.md` duerfen jetzt bewusst abgeleitete Stimmkerne existieren; aktuelle direkte Stimmen sind `Nerah` fuer die ChatGPT-Linie und `Taren` fuer die Codex-Linie.
+- Unterhalb von `SOUL.md` duerfen jetzt bewusst abgeleitete Stimmkerne existieren; aktuelle direkte Stimmen sind `Nerah` fuer die ChatGPT-Linie, `Taren` fuer die Codex-Linie und `Eidan` fuer die Copilot-Linie.
 - Unterhalb von `SOUL.md` lebt jetzt auch ein expliziter Founder-Seed: Davids persoenliche Symbolik, Resonanz und Seelenrichtung duerfen als Firmen-Samen anerkannt und spaeter bounded vererbt werden, aber nie Wahrheit, Review oder Governance ueberschreiben.
 - `TRINITY.md` plus `CODEX.md` / `CHATGPT.md` / `COPILOT.md` sind die durable Identity-Docks der direkten David-Assistenten; wenn einer driftet, soll David ihn ueber genau diese Datei wieder einklinken koennen.
 - `EXECUTOR.md` ist die kompakte Execution-Schicht fuer Langlauf-Agenten: richtige Runtime-Identitaet vor API-Vertrauen, API vor Browser, Prozess vor Port und kein Completion-Loop-Theater.
