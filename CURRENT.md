@@ -40,6 +40,8 @@ strategy_anchor:
   - `doc/plans/2026-03-23-focus-freeze.md`
 
 notes:
+  - Neue Fehlerlesart fuer enge Live-Sprints: Fehler hart trennen in `strategy failure`, `applicability / harness failure`, `environment / interface failure` und `missing capability / guardrail`, statt alles unter mehr Reasoning oder groesseren Scope zu mischen
+  - Wenn ein Lauf gegen seine eigene enge Packet-Wahrheit verstoesst - z.B. Child-Creation trotz Direct-Answer-Mission, breite Repo-Reads, falsche Tool-Reihenfolge oder unnoetige Aktionen - das primaer als `applicability / harness` lesen, nicht als Bedarf fuer mehr Prompt-/Reasoning-Masse; ein kleiner direkter Harness-/Guardrail-Fix ist dann erlaubt, aber kein allgemeines Harness-System, keine Plattform und kein Benchmark-/AGI-Abbiegen
   - `ceo-native-issue-handoff-primitives-v1` ist repo-wahr geliefert: `692e198c` stellt den CEO-Standardpfad auf native `paperclipai`-Primitive um, `16ae8da6` fixt den Repo-Root-CLI-Pfad ueber `PAPERCLIP_CLI_CWD`, `e4f849aa` fixt den Ready-Packet-Flash-Lane-Handoff
   - Live-Beweis `DAV-141` / CEO-Run `7b3e0c29-9b34-499b-a793-0d557b2e870f` beweist reviewbar `issue list --parent-id`, `agent list`, `issue create` und `issue assign`; Child `DAV-142` wurde erstellt und dem Worker zugewiesen
   - Das Primitive-Gate fuer `dgdh-skill-contract-and-verify-v1` gilt damit als faktisch erfuellt: der CEO-Standardpfad ist jetzt real billiger/robuster/lesbarer, ohne weitere Shell-/HTTP-Bastelei auf dem Handoff-Kernpfad

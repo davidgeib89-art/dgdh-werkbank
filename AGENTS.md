@@ -188,6 +188,9 @@ The repo contains `.github/copilot-instructions.md`. Its rules should be treated
 - Make the smallest reviewable change that proves the requested truth
 - Do not add new tools, providers, or architecture unless the task explicitly requires it
 - Prefer canonical config/routing fixes over local hacks
+- When diagnosing a failure, classify it explicitly as `strategy failure`, `applicability / harness failure`, `environment / interface failure`, or `missing capability / guardrail` before expanding scope
+- If a run violates its own narrow packet truth (for example wrong tool order, unnecessary child creation, broad repo reads, or other avoidable actions), treat that first as an applicability/harness problem, not as a prompt/reasoning deficit
+- A small direct harness/guardrail fix is allowed when it cleanly removes that blocker, but do not turn it into a general harness system, platform expansion, or benchmark/AGI detour
 - Do not commit logs, generated runtime artifacts, or local investigation files unless asked
 - If you must stop, report the narrowest proven blocker and the exact commands/tests already run
 - For live-run observation, prefer short one-shot API reads over long polling loops
