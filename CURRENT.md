@@ -19,8 +19,9 @@ anti_slop_gate:
 next:
   1) den abgeschlossenen Repeatability-Proof als firmenwahren Missionsschritt lesen, nicht nur als guten Einzel-Fix
   2) die naechste bounded Mission erst dort oeffnen, wo nach der wiederholbaren mission-cell continuity wirklich neue Firmenfriktion beginnt
-  3) Copilot-/Editor-Interna-Forensik weiter explizit tabu halten; keine AppData-/workspaceStorage-/chat-session-resources-Reads ohne klare Forensik-Mission
-  4) bei kuenftigen mission-cell runtime briefs repo-root-stabile Datei- und Validate-Pfade als Invariante halten
+  3) den ersten echten Triad-Live-Loop erst auf einer Runtime mit freiem CEO-Lane und sauber lesbarer Projektoberflaeche starten; `db007ea1` hat dafuer jetzt die fehlende CEO-cut/worker/reviewer Sichtbarkeit geliefert
+  4) Copilot-/Editor-Interna-Forensik weiter explizit tabu halten; keine AppData-/workspaceStorage-/chat-session-resources-Reads ohne klare Forensik-Mission
+  5) bei kuenftigen mission-cell runtime briefs repo-root-stabile Datei- und Validate-Pfade als Invariante halten
 
 blockers:
   - Der alte reine `assignment-to-run kickoff loss` ist fuer frische ready Packets nicht mehr der erste Blocker
@@ -32,6 +33,7 @@ blockers:
   - Der rohe Blocker `capacity exhausted after real tool calls` ist nicht mehr bloss Retry-Schleife; die Resume-/Session-Wahrheit ist jetzt live bis in die operator-facing Surface bewiesen
   - Der alte Standardpfad-Schmerz `CEO nutzt fuer einfache App-Arbeit generische Shell-/curl.exe-Logik` ist nicht mehr der erste Blocker; `DAV-141` beweist jetzt den nativen `paperclipai`-Handoff-Pfad im echten CEO-Run
   - Der naechste oekonomische Schmerz ist nicht mehr fehlende Primitive-Ausfuehrung, sondern wiederholte prozedurale Rekonstruktion ueber Chat, Prompt und Shell statt governter durable Capability
+  - Der erste echte Triad-Live-Loop ist noch nicht ehrlich durchgetragen: auf der frischen lokalen 3100-Runtime war der CEO-Lane bereits in einem laufenden Automation-Run (`4f2da0e6-8a35-48ac-b453-8bdf59687eb3`) gebunden, und der kompakte Projekt-Read fuer sofortigen bounded Kickoff blieb in diesem Turn nicht sauber genug, um ohne neue Operationsarbeit zu starten
 
 strategy_anchor:
   - `company-hq/CORE.md`
@@ -74,6 +76,7 @@ notes:
   - OpenAI Codex Plugins sind fuer DGDH als spaetere Codex-Enablement-/Packaging-Schicht interessant: moegliche Buendelung von Codex-Skills, MCP-Config und App-Integrationen fuer schnelleres Codex-Onboarding; sie ersetzen weder `company-hq/capabilities/*` noch den Firmenkern und gehoeren erst spaeter hinter den aktuellen Reuse-/Firmenlauf-Hebel
   - Onyx ist fuer DGDH als spaeteres Knowledge-/Tool-Plane-Signal interessant: weniger als neues Arbeits-Frontend, mehr als moeglicher spaeter shared context/search/action gateway zwischen bestehenden Lanes; die richtige Reaktion bleibt `study the primitive, not adopt the platform`
   - `2d882ce3` schneidet den bekannten Audit-Drift als zusammenhaengenden Guardrail-/Harness-Cut: bounded direct-answer-audit truth seam, schmalerer CEO-Guardrail fuer named truth surfaces, Prompt-Sichtbarkeit des Audit-Budgets und Routing-Haertung auf `repo-read` only fuer diese Run-Klasse; der naechste ehrliche Schritt ist jetzt genau ein runtime-attached Live-Rerun statt weiterer Theorie- oder Harness-Breite
+  - `db007ea1` liegt jetzt auf `origin/main` und schneidet die erste explizite Triad-Sichtbarkeit fuer bounded Internal Missions: `resolveIssueExecutionPacketTruth` traegt jetzt `triad.ceoCutStatus` plus getrennte `workerPacket`-/`reviewerPacket`-Wahrheit, `GET /api/issues/:id/company-run-chain` liefert zusaetzlich `triad.state`, separaten Worker-Ausfuehrungsstand und separaten Reviewer-Verdict-Stand, der CEO-Packetvertrag fordert `reviewerFocus` / `reviewerAcceptWhen` / `reviewerChangeWhen`, und die Issue-Detail-UI zeigt diese Triad-Wahrheit direkt an
   - `662b9cd3` und `8cd23b0d` haerten denselben Audit-Pfad weiter fuer die echte Runtime: direkte Audit-Pakete tragen jetzt Issue-Identifier und Heartbeat-Run-IDs explizit, der Prompt nennt die richtige Surface `/api/heartbeat-runs/{runId}`, die richtige Bearer-Auth und den company-scoped Issue-Lookup; lokaler Runtime-Attach ueber die Default-Instance auf `http://127.0.0.1:3100` ist damit als realer Pfad bestaetigt, aber der finale bounded Direct-Answer-Live-Beweis steht noch aus
   - `bedb36de` haertet jetzt CEO-Auto-Model-Research-Runs gegen den `adapter.invoke`-Stall hinter `DAV-155`/`DAV-156`: wenn der `flash_lite_call` bereits einen expliziten Flash-/Flash-Lite-Lane vorgeschlagen hat, pinnt `heartbeat-gemini-routing.ts` diese Lane auch fuer `model = auto`, statt den Lauf still wieder auf den teureren CEO-Premium-Hint zurueckkippen zu lassen
   - Agentica / ARCgentica sind fuer DGDH als spaetere Uebersetzungsquelle interessant, weil sie stateful execution, direkte Primitive und code-first Agentik staerken; die aktuelle Lesart ist aber ausdruecklich `Study-this-carefully, not build-this-now`: spaeter kleiner Translation-Spike statt neuer Kernstack, ARC-Score-Jagd oder AGI-Produktmythos
