@@ -1,0 +1,163 @@
+{
+  "schemaVersion": "v1",
+  "missionCellId": "triad-closeout-boring-after-post-tool-capacity-v1",
+  "title": "Triad Closeout Boring After Post Tool Capacity V1",
+  "summary": "Harden the worker-to-reviewer-to-promotion closeout seam after post_tool_capacity so the next triad mission needs less manual rescue.",
+  "owners": [
+    "david",
+    "copilot",
+    "codex",
+    "gpt"
+  ],
+  "status": "draft",
+  "updatedAt": "2026-03-27T23:59:30.000Z",
+  "charter": {
+    "objective": "Reduce the manual execution-lane rescue still needed after real worker progress and post_tool_capacity_exhausted so the triad closeout path becomes more boring, explicit, and reviewer-gated.",
+    "primaryMetric": "A bounded mission launched from `missionCell: triad-closeout-boring-after-post-tool-capacity-v1` carries further through worker closeout, reviewer verdict, and promotion than DAV-166 did without equivalent manual lane rescue.",
+    "guardMetrics": [
+      "No editor-internal forensics or AppData/workspaceStorage/chat-session-resources reads.",
+      "No provider or orchestration platform expansion.",
+      "No bypass of explicit reviewer truth."
+    ],
+    "budget": "One bounded branch-sized hardening mission with midpoint commits allowed and one honest rerun if the seam changes materially.",
+    "runtime": "A single closeout hardening container focused on the path after worker progress and post_tool_capacity_exhausted.",
+    "blastRadius": [
+      "company-hq/**",
+      "CURRENT.md",
+      "MEMORY.md",
+      "COPILOT.md",
+      "EXECUTOR.md",
+      ".github/**",
+      "cli/**",
+      "packages/shared/**",
+      "server/**",
+      "ui/**",
+      "doc/**"
+    ],
+    "allowedZones": [
+      "triad closeout runtime seams",
+      "worker-pr / worker-done / reviewer-verdict truth surfaces",
+      "targeted tests and bounded live proof",
+      "minimal operator/runbook truth if the closeout path actually changes"
+    ],
+    "forbiddenZones": [
+      "provider migration",
+      "broad UI redesign",
+      "destructive DB resets",
+      "deploys or live external effects",
+      "general autonomy platform work beyond the closeout seam"
+    ]
+  },
+  "decisionPolicy": {
+    "type2Autonomy": [
+      "bounded closeout-seam edits inside the stated blast radius",
+      "targeted worker/reviewer/promotion hardening that stays reversible",
+      "one narrow rerun to prove the closeout seam improved"
+    ],
+    "type1Escalations": [
+      "main branch mutation outside reviewed merge flow",
+      "deploys and live external effects",
+      "global secrets or permission changes",
+      "irreversible data or cost consequences",
+      "strategy changes that turn the mission into a new platform program"
+    ],
+    "escalationPath": [
+      "stop at the boundary instead of guessing",
+      "state the exact action and why it is Type-1",
+      "escalate to David with the narrowest truthful packet"
+    ]
+  },
+  "riskGate": {
+    "oberreviewerTriggers": [
+      "the mission starts solving generic autonomy instead of the closeout seam",
+      "reviewer truth is being skipped because the worker branch already exists",
+      "promotion is claimed without a materially less manual closeout path"
+    ],
+    "requiredEvidence": [
+      "exact git truth",
+      "targeted runtime or test proof on the closeout path",
+      "the smallest truthful before/after statement about manual rescue reduction"
+    ],
+    "stopReasons": [
+      "true Type-1 point",
+      "external hard blocker",
+      "remaining work has widened into a new program"
+    ]
+  },
+  "eval": {
+    "replayChecks": [
+      "the worker closeout path after post_tool_capacity is more explicit than before",
+      "the reviewer verdict still remains explicit and path-changing",
+      "the next bounded triad mission would require less manual agent-key/run rescue"
+    ],
+    "guardChecks": [
+      "the mission stays on the closeout seam",
+      "reviewer truth is not bypassed",
+      "no forbidden editor-internal truth surfaces are used"
+    ],
+    "successSignals": [
+      "one bounded rerun closes out with less manual intervention than DAV-166",
+      "reviewer verdict remains first-class runtime truth",
+      "promotion depends less on execution-lane rescue than before"
+    ]
+  },
+  "promotion": {
+    "defaultTargets": [
+      "company-hq/ACTIVE-MISSION.md",
+      "company-hq/mission-contracts/triad-closeout-boring-after-post-tool-capacity-v1.md",
+      "company-hq/mission-cells/triad-closeout-boring-after-post-tool-capacity-v1.json",
+      "CURRENT.md",
+      "MEMORY.md",
+      "the minimal runtime seam that now carries the closeout truth durably"
+    ],
+    "promoteWhen": [
+      "the next closeout path needs materially less manual rescue",
+      "the reviewer verdict remains explicit and reviewable",
+      "the proof is readable from runtime truth and repo truth without hidden archaeology"
+    ],
+    "stayExperimentalWhen": [
+      "the gain only worked because of one-off manual rescue",
+      "the result still depends on forbidden side surfaces",
+      "the same closeout seam remains equally manual"
+    ],
+    "demoteWhen": [
+      "the mission hides continued manual rescue behind nicer wording",
+      "the reviewer lane becomes more decorative than operative",
+      "promotion would imply boring autonomy before it exists"
+    ]
+  },
+  "boundaries": {
+    "firmBound": [
+      "explicit reviewer-gated closeout after worker progress",
+      "manual rescue reduction as the core success truth",
+      "the rule that triad closeout must become more boring over time"
+    ],
+    "carrierBound": [
+      "current Paperclip runtime and quota behavior",
+      "current worker-pr / worker-done / reviewer-verdict API surfaces",
+      "current issue and run transport"
+    ]
+  },
+  "starterPath": {
+    "trigger": "Start a second bounded triad mission after DAV-165/DAV-166 and focus explicitly on the closeout seam after worker progress and post_tool_capacity_exhausted.",
+    "issueTemplate": [
+      "missionCell: triad-closeout-boring-after-post-tool-capacity-v1",
+      "Objective: <bounded closeout-path hardening target>",
+      "Scope: <explicit in/out>",
+      "doneWhen: <worker closeout + reviewer verdict + promotion with less manual rescue than DAV-166>",
+      "artifactKind: <code_patch | doc_update | multi_file_change>"
+    ],
+    "startupSequence": [
+      "Validate the mission cell contract with `paperclipai mission cell validate`.",
+      "Confirm the mission is about the closeout seam, not generic autonomy.",
+      "Carry one bounded mission through the same triad shape.",
+      "Harden the narrowest closeout friction revealed after worker progress.",
+      "Promote only if the next closeout path is materially less manual than before."
+    ],
+    "firstProbe": [
+      "Confirm the closeout seam after post_tool_capacity is explicitly named in the packet.",
+      "Confirm reviewer truth is still first-class and path-changing.",
+      "Use normal runtime truth surfaces only, not editor internals."
+    ]
+  }
+}

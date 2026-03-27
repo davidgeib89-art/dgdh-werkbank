@@ -46,6 +46,14 @@ That phase exists to prove that one bounded mission can move through CEO cut, wo
 reviewer verdict, and only true Type-1 escalation, so the firm starts behaving like a small company
 instead of one execution lane plus repeated David steering.
 
+Phase 5 is now the next closeout-hardening container after the first live triad proof:
+
+- `triad-closeout-boring-after-post-tool-capacity-v1`
+
+That phase exists to reduce the manual execution-lane rescue still needed after real worker progress
+and `post_tool_capacity_exhausted`, so the worker->reviewer->promotion seam becomes more boring
+and less dependent on manual stitching.
+
 ## Primary Metric
 
 - DGDH gains the first reviewable, reusable mission-autonomy operating lane with a real mission charter,
@@ -54,6 +62,8 @@ instead of one execution lane plus repeated David steering.
 - the hardened path is then run again so the firm proves repeatability, not just first-use luck
 - the next missing truth after repeatability is then carried through the first real triad loop,
   so direction, work, and judgment become separate but connected operating functions
+- the next missing truth after the first triad proof is then carried through the closeout seam,
+  so the path after worker progress needs less manual rescue and remains reviewer-gated
 
 ## Guard Metrics
 
@@ -119,6 +129,9 @@ This mission should push as far as reviewably possible toward these durable outc
 14. `triad-mission-loop-v1` as the first small-firm proving container
 15. one real mission that travels through CEO packet, worker packet, and reviewer verdict
 16. proof that David is only needed for true Type-1 boundaries, not for ongoing mission spine
+17. `triad-closeout-boring-after-post-tool-capacity-v1` as the next narrow closeout-hardening container
+18. one second bounded triad mission that carries the closeout seam with less manual lane rescue than DAV-166 needed
+19. proof that worker->reviewer->promotion becomes more boring without losing explicit reviewer truth
 
 Not every sub-cut must be perfect, but the lane should clearly become more real than doctrine alone.
 
