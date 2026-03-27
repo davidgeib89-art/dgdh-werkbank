@@ -28,6 +28,10 @@ interface VisibleIssueIdentity {
   title: string;
 }
 
+function humanizeTriadValue(value: string) {
+  return value.replace(/_/g, " ");
+}
+
 function shortId(value: string | null | undefined): string {
   if (!value) return "unknown";
   return value.slice(0, 8);
@@ -252,7 +256,12 @@ export function CompanyRunChainCard({
                     {child.assigneeAgentName ? `Current assignee: ${child.assigneeAgentName}` : "No assignee"}
                   </p>
                 </div>
-                <StatusBadge status={child.status} />
+                <div className="flex items-center gap-2">
+                  <span className="rounded-full border border-sky-500/25 bg-sky-500/10 px-2.5 py-1 text-[11px] font-medium capitalize text-sky-700 dark:text-sky-300">
+                    {humanizeTriadValue(child.triad.state)}
+                  </span>
+                  <StatusBadge status={child.status} />
+                </div>
               </div>
 
               <div className="flex flex-wrap gap-2">
@@ -272,6 +281,25 @@ export function CompanyRunChainCard({
                     {!stage.at && <span className="ml-1 text-[10px] opacity-70">pending</span>}
                   </div>
                 ))}
+              </div>
+
+              <div className="grid gap-2 md:grid-cols-3">
+                <TruthCell
+                  label="CEO cut"
+                  value={humanizeTriadValue(child.triad.ceoCut.ceoCutStatus)}
+                  note={`worker ${child.triad.ceoCut.workerPacket.source} · reviewer ${child.triad.ceoCut.reviewerPacket.source}`}
+                />
+                <TruthCell
+                  label="Worker"
+                  value={humanizeTriadValue(child.triad.workerExecution.status)}
+                  note={child.triad.workerExecution.branch ?? child.triad.workerExecution.prUrl ?? "No worker handoff yet."}
+                  mono={Boolean(child.triad.workerExecution.branch || child.triad.workerExecution.prUrl)}
+                />
+                <TruthCell
+                  label="Reviewer"
+                  value={child.triad.reviewerVerdict.verdict ?? "pending"}
+                  note={child.triad.reviewerVerdict.next ?? child.triad.reviewerVerdict.doneWhenCheck ?? "No reviewer verdict recorded yet."}
+                />
               </div>
             </div>
           ))}

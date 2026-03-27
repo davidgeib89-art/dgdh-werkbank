@@ -91,6 +91,18 @@ export function ExecutionPacketReadinessCard({
         <FieldRow label="scope mode" value={truth.scopeMode} />
       </div>
 
+      <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
+        <FieldRow label="CEO cut" value={truth.triad.ceoCutStatus} />
+        <FieldRow
+          label="worker packet"
+          value={truth.triad.workerPacket.goal ?? truth.triad.workerPacket.doneWhen ?? "none"}
+        />
+        <FieldRow
+          label="reviewer packet"
+          value={truth.triad.reviewerPacket.focus ?? truth.triad.reviewerPacket.acceptWhen ?? "none"}
+        />
+      </div>
+
       {!isReady && truth.reasonCodes.length > 0 ? (
         <div className="space-y-2">
           <p className="text-xs font-medium uppercase tracking-[0.16em] text-amber-900/70 dark:text-amber-200/70">

@@ -25,6 +25,10 @@ const mockCeoService = vi.hoisted(() => ({
   maybeRunMergeOrchestratorAfterReviewerVerdict: vi.fn(),
 }));
 
+const mockIssueApprovalService = vi.hoisted(() => ({
+  listApprovalsForIssue: vi.fn(),
+}));
+
 vi.mock("../services/index.js", () => ({
   accessService: () => ({}),
   activityService: () => mockActivityService,
@@ -33,7 +37,7 @@ vi.mock("../services/index.js", () => ({
   goalService: () => ({}),
   heartbeatService: () => ({ getRun: vi.fn(), wakeup: vi.fn() }),
   githubPrService: () => ({ createGitHubPR: vi.fn() }),
-  issueApprovalService: () => ({}),
+  issueApprovalService: () => mockIssueApprovalService,
   issueService: () => mockIssueService,
   documentService: () => ({}),
   logActivity: vi.fn(),
@@ -80,6 +84,21 @@ describe("issue company run chain route", () => {
           companyId: "company-1",
           identifier: "DAV-41",
           title: "Implement bootstrap defaults",
+          description: [
+            "packetType: free_api",
+            "executionIntent: implement",
+            "reviewPolicy: required",
+            "needsReview: true",
+            "Ziel: Implement the bootstrap defaults route cleanly.",
+            "Scope: Only touch the bounded bootstrap defaults path.",
+            "targetFolder: server/src/routes",
+            "targetFile: server/src/routes/issues.ts",
+            "artifactKind: code_patch",
+            "doneWhen: The bootstrap defaults route is implemented with bounded tests.",
+            "reviewerFocus: Verify Ziel, Scope, doneWhen, and file scope.",
+            "reviewerAcceptWhen: Accept only when the route and tests fully satisfy the packet.",
+            "reviewerChangeWhen: Request changes on any scope drift or missing test proof.",
+          ].join("\n"),
           status: "merged",
           completedAt: null,
           createdAt: new Date("2026-03-24T14:00:00.000Z"),
@@ -97,6 +116,7 @@ describe("issue company run chain route", () => {
         companyId: "company-1",
         identifier: "DAV-41",
         title: "Implement bootstrap defaults",
+        description: "executionIntent: implement\nreviewPolicy: required\nneedsReview: true\ndoneWhen: The bootstrap defaults route is implemented with bounded tests.",
         status: "merged",
         createdAt: new Date("2026-03-24T14:00:00.000Z"),
         parentId: "parent-1",
@@ -160,6 +180,24 @@ describe("issue company run chain route", () => {
         createdAt: new Date("2026-03-24T14:05:00.000Z"),
       },
     ]);
+
+    mockIssueApprovalService.listApprovalsForIssue.mockResolvedValue([
+      {
+        id: "approval-1",
+        type: "reviewer_packet_verdict",
+        status: "approved",
+        payload: {
+          verdict: "accepted",
+          packet: "Bootstrap defaults worker packet",
+          doneWhenCheck: "Route behavior and bounded tests both satisfy the packet.",
+          evidence: "Reviewed worker handoff, PR metadata, and test proof.",
+          requiredFixes: [],
+          next: "Promote via CEO merge.",
+        },
+        decidedAt: new Date("2026-03-24T14:40:00.000Z"),
+        updatedAt: new Date("2026-03-24T14:40:00.000Z"),
+      },
+    ]);
   });
 
   it("returns the readable company run chain for a parent issue", async () => {
@@ -170,6 +208,10 @@ describe("issue company run chain route", () => {
     expect(res.body.parentBlocker).toBeNull();
     expect(res.body.children).toHaveLength(1);
     expect(res.body.children[0].identifier).toBe("DAV-41");
+    expect(res.body.children[0].triad.state).toBe("ready_to_promote");
+    expect(res.body.children[0].triad.ceoCut.ceoCutStatus).toBe("ready");
+    expect(res.body.children[0].triad.workerExecution.status).toBe("completed");
+    expect(res.body.children[0].triad.reviewerVerdict.verdict).toBe("accepted");
     expect(res.body.children[0].stages.map((stage: { key: string; completed: boolean }) => [stage.key, stage.completed])).toEqual([
       ["assigned", true],
       ["run_started", true],

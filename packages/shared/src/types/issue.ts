@@ -127,6 +127,31 @@ export interface IssueExecutionPacketTruth {
   ready: boolean;
   status: IssueExecutionPacketReadinessStatus;
   reasonCodes: IssueExecutionPacketReasonCode[];
+  triad: IssueTriadPacketTruth;
+}
+
+export type IssueTriadPacketSource = "missing" | "derived" | "explicit";
+
+export type IssueTriadCeoCutStatus = "missing" | "partial" | "ready";
+
+export interface IssueTriadWorkerPacketTruth {
+  source: IssueTriadPacketSource;
+  goal: string | null;
+  scope: string | null;
+  doneWhen: string | null;
+}
+
+export interface IssueTriadReviewerPacketTruth {
+  source: IssueTriadPacketSource;
+  focus: string | null;
+  acceptWhen: string | null;
+  changeWhen: string | null;
+}
+
+export interface IssueTriadPacketTruth {
+  ceoCutStatus: IssueTriadCeoCutStatus;
+  workerPacket: IssueTriadWorkerPacketTruth;
+  reviewerPacket: IssueTriadReviewerPacketTruth;
 }
 
 export interface Issue {
@@ -228,6 +253,42 @@ export interface CompanyRunChainChild {
   assigneeAgentId: string | null;
   assigneeAgentName: string | null;
   stages: CompanyRunChainStage[];
+  triad: CompanyRunChainTriadTruth;
+}
+
+export type CompanyRunChainTriadState =
+  | "ready_to_build"
+  | "in_execution"
+  | "ready_for_review"
+  | "changes_requested"
+  | "ready_to_promote"
+  | "type1_escalation";
+
+export interface CompanyRunChainWorkerExecutionTruth {
+  status: "not_started" | "in_execution" | "ready_for_review" | "completed";
+  runId: string | null;
+  branch: string | null;
+  commitHash: string | null;
+  prUrl: string | null;
+  at: Date | null;
+}
+
+export interface CompanyRunChainReviewerVerdictTruth {
+  verdict: "accepted" | "changes_requested" | null;
+  approvalStatus: string | null;
+  packet: string | null;
+  doneWhenCheck: string | null;
+  evidence: string | null;
+  requiredFixes: string[];
+  next: string | null;
+  at: Date | null;
+}
+
+export interface CompanyRunChainTriadTruth {
+  state: CompanyRunChainTriadState;
+  ceoCut: IssueTriadPacketTruth;
+  workerExecution: CompanyRunChainWorkerExecutionTruth;
+  reviewerVerdict: CompanyRunChainReviewerVerdictTruth;
 }
 
 export interface CompanyRunChainParentBlocker {

@@ -3,6 +3,7 @@ import type {
   IssueExecutionPacketArtifactKind,
   IssueExecutionPacketReasonCode,
   IssueExecutionPacketTruth,
+  IssueTriadPacketSource,
 } from "@paperclipai/shared";
 
 const BLANKISH_VALUES = new Set([
@@ -259,6 +260,96 @@ function hasExecutionCue(text: string) {
     && /\b(file|folder|directory|endpoint|route|component|test|doc|document|readme|config|schema|migration|runbook)\b/i.test(text);
 }
 
+function buildTriadWorkerPacket(input: {
+  title: string;
+  description: string | null;
+  doneWhen: string | null;
+}) {
+  const explicitGoal = readMetadataField(input.description, [
+    "workerGoal",
+    "worker goal",
+    "worker_goal",
+    "Ziel",
+    "Goal",
+  ]);
+  const explicitScope = readMetadataField(input.description, [
+    "workerScope",
+    "worker scope",
+    "worker_scope",
+    "Scope",
+  ]);
+
+  const goal = explicitGoal ?? normalizeLineValue(input.title);
+  const scope = explicitScope;
+  const hasExplicitFields = Boolean(explicitGoal || explicitScope || input.doneWhen);
+  const source: IssueTriadPacketSource = hasExplicitFields
+    ? "explicit"
+    : goal || scope
+      ? "derived"
+      : "missing";
+
+  return {
+    source,
+    goal,
+    scope,
+    doneWhen: input.doneWhen,
+  };
+}
+
+function buildTriadReviewerPacket(input: {
+  description: string | null;
+  reviewPolicy: string | null;
+  needsReview: boolean | null;
+  doneWhen: string | null;
+  targetFolder: string | null;
+}) {
+  const explicitFocus = readMetadataField(input.description, [
+    "reviewerFocus",
+    "reviewer focus",
+    "reviewer_focus",
+  ]);
+  const explicitAcceptWhen = readMetadataField(input.description, [
+    "reviewerAcceptWhen",
+    "reviewer accept when",
+    "reviewer_accept_when",
+  ]);
+  const explicitChangeWhen = readMetadataField(input.description, [
+    "reviewerChangeWhen",
+    "reviewer change when",
+    "reviewer_change_when",
+  ]);
+  const hasExplicitFields = Boolean(explicitFocus || explicitAcceptWhen || explicitChangeWhen);
+  if (hasExplicitFields) {
+    return {
+      source: "explicit" as const,
+      focus: explicitFocus,
+      acceptWhen: explicitAcceptWhen,
+      changeWhen: explicitChangeWhen,
+    };
+  }
+
+  const reviewRequired = input.reviewPolicy === "required" || input.needsReview === true;
+  if (!reviewRequired) {
+    return {
+      source: "missing" as const,
+      focus: null,
+      acceptWhen: null,
+      changeWhen: null,
+    };
+  }
+
+  const scopeLabel = input.targetFolder ?? "the bounded packet scope";
+  return {
+    source: "derived" as const,
+    focus: "Review the worker result against Ziel, Scope, doneWhen, evidence, and file-scope hygiene.",
+    acceptWhen: input.doneWhen
+      ? `Accept only if ${input.doneWhen} is substantively satisfied and all changed files stay inside ${scopeLabel}.`
+      : `Accept only if the worker result is substantively correct and all changed files stay inside ${scopeLabel}.`,
+    changeWhen:
+      "Return changes_requested on any doneWhen gap, scope drift, unsupported claim, or file-scope mismatch.",
+  };
+}
+
 function isBroadTargetFolder(targetFolder: string | null) {
   if (!targetFolder) return true;
   const normalized = targetFolder.trim().toLowerCase();
@@ -343,6 +434,25 @@ export function resolveIssueExecutionPacketTruth(input: {
     }
   }
 
+  const workerPacket = buildTriadWorkerPacket({
+    title,
+    description,
+    doneWhen,
+  });
+  const reviewerPacket = buildTriadReviewerPacket({
+    description,
+    reviewPolicy,
+    needsReview,
+    doneWhen,
+    targetFolder,
+  });
+
+  const ceoCutStatus = workerPacket.source === "missing" && reviewerPacket.source === "missing"
+    ? "missing"
+    : workerPacket.source !== "missing" && reviewerPacket.source !== "missing"
+      ? "ready"
+      : "partial";
+
   return {
     packetType,
     executionIntent,
@@ -361,5 +471,10 @@ export function resolveIssueExecutionPacketTruth(input: {
         : "not_ready"
       : "not_applicable",
     reasonCodes,
+    triad: {
+      ceoCutStatus,
+      workerPacket,
+      reviewerPacket,
+    },
   };
 }

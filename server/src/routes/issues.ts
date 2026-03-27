@@ -266,6 +266,84 @@ export function issueRoutes(db: Db, storage: StorageService) {
     };
   }
 
+  function readStringArray(value: unknown): string[] {
+    if (!Array.isArray(value)) return [];
+    return value
+      .map((entry) => (typeof entry === "string" ? entry.trim() : ""))
+      .filter((entry) => entry.length > 0);
+  }
+
+  function buildCompanyRunChainTriadTruth(input: {
+    child: { status: string; title: string; description?: string | null };
+    workerRunAt: Date | null;
+    workerDoneAt: Date | null;
+    reviewerVerdictAt: Date | null;
+    workerDoneDetails: Record<string, unknown> | null;
+    workerPrDetails: Record<string, unknown> | null;
+    reviewerApproval: {
+      status?: string | null;
+      payload?: unknown;
+    } | null;
+  }) {
+    const packetTruth = resolveIssueExecutionPacketTruth({
+      title: input.child.title,
+      description: input.child.description ?? null,
+    });
+    const reviewerPayload = asDetailsRecord(input.reviewerApproval?.payload);
+    const reviewerVerdict =
+      readNonEmptyString(reviewerPayload?.verdict) === "accepted" ||
+      readNonEmptyString(reviewerPayload?.verdict) === "changes_requested"
+        ? (readNonEmptyString(reviewerPayload?.verdict) as "accepted" | "changes_requested")
+        : null;
+    const reviewerVerdictAfterWorker = Boolean(
+      reviewerVerdict &&
+        input.reviewerVerdictAt &&
+        (!input.workerDoneAt || input.reviewerVerdictAt.getTime() >= input.workerDoneAt.getTime()),
+    );
+
+    let state: "ready_to_build" | "in_execution" | "ready_for_review" | "changes_requested" | "ready_to_promote" | "type1_escalation" = "ready_to_build";
+    if (input.child.status === "blocked") {
+      state = "type1_escalation";
+    } else if (reviewerVerdict === "accepted" && reviewerVerdictAfterWorker) {
+      state = "ready_to_promote";
+    } else if (reviewerVerdict === "changes_requested" && reviewerVerdictAfterWorker) {
+      state = "changes_requested";
+    } else if (input.workerDoneAt) {
+      state = "ready_for_review";
+    } else if (input.workerRunAt) {
+      state = "in_execution";
+    }
+
+    return {
+      state,
+      ceoCut: packetTruth.triad,
+      workerExecution: {
+        status: input.child.status === "merged" || state === "ready_to_promote"
+          ? "completed"
+          : input.workerDoneAt
+            ? "ready_for_review"
+            : input.workerRunAt
+              ? "in_execution"
+              : "not_started",
+        runId: readNonEmptyString(input.workerDoneDetails?.workerRunId) ?? null,
+        branch: readNonEmptyString(input.workerDoneDetails?.branch) ?? null,
+        commitHash: readNonEmptyString(input.workerDoneDetails?.commitHash) ?? null,
+        prUrl: readNonEmptyString(input.workerDoneDetails?.prUrl) ?? readNonEmptyString(input.workerPrDetails?.prUrl) ?? null,
+        at: input.workerDoneAt ?? input.workerRunAt,
+      },
+      reviewerVerdict: {
+        verdict: reviewerVerdict,
+        approvalStatus: readNonEmptyString(input.reviewerApproval?.status) ?? null,
+        packet: readNonEmptyString(reviewerPayload?.packet) ?? null,
+        doneWhenCheck: readNonEmptyString(reviewerPayload?.doneWhenCheck) ?? null,
+        evidence: readNonEmptyString(reviewerPayload?.evidence) ?? null,
+        requiredFixes: readStringArray(reviewerPayload?.requiredFixes),
+        next: readNonEmptyString(reviewerPayload?.next) ?? null,
+        at: input.reviewerVerdictAt,
+      },
+    };
+  }
+
   function buildCompanyRunChainParentBlocker(
     runs: Awaited<ReturnType<typeof activitySvc.runsForIssue>>,
   ) {
@@ -951,9 +1029,10 @@ export function issueRoutes(db: Db, storage: StorageService) {
 
     const children = await Promise.all(
       childIssues.map(async (child) => {
-        const [activity, runs] = await Promise.all([
+        const [activity, runs, approvals] = await Promise.all([
           activitySvc.forIssue(child.id),
           activitySvc.runsForIssue(rootIssue.companyId, child.id),
+          issueApprovalsSvc.listApprovalsForIssue(child.id),
         ]);
         const activityAsc = [...activity].sort(
           (left, right) => new Date(left.createdAt).getTime() - new Date(right.createdAt).getTime(),
@@ -975,6 +1054,9 @@ export function issueRoutes(db: Db, storage: StorageService) {
         const workerDoneDetails = asDetailsRecord(latestWorkerDone?.details);
         const reviewerVerdictDetails = asDetailsRecord(latestReviewerVerdict?.details);
         const workerPrDetails = asDetailsRecord(latestWorkerPr?.details);
+        const reviewerApproval = approvals.find(
+          (approval) => approval.type === "reviewer_packet_verdict",
+        ) ?? null;
 
         const workerAgentId =
           latestWorkerDone?.agentId ??
@@ -1001,6 +1083,9 @@ export function issueRoutes(db: Db, storage: StorageService) {
         const workerDoneAt = readStageDate(latestWorkerDone?.createdAt ?? null);
         const reviewerAssignedAt = reviewerAgentId ? workerDoneAt : null;
         const reviewerRunAt = readStageDate(reviewerRun?.startedAt ?? reviewerRun?.createdAt ?? null);
+        const reviewerVerdictAt = readStageDate(
+          latestReviewerVerdict?.createdAt ?? reviewerApproval?.updatedAt ?? reviewerApproval?.decidedAt ?? null,
+        );
         const mergedIssueTimestamps = child as {
           completedAt?: Date | string | null;
           updatedAt?: Date | string | null;
@@ -1026,6 +1111,15 @@ export function issueRoutes(db: Db, storage: StorageService) {
           assigneeAgentName: child.assigneeAgentId
             ? (agentById.get(child.assigneeAgentId)?.name ?? null)
             : null,
+          triad: buildCompanyRunChainTriadTruth({
+            child,
+            workerRunAt,
+            workerDoneAt,
+            reviewerVerdictAt,
+            workerDoneDetails,
+            workerPrDetails,
+            reviewerApproval,
+          }),
           stages: [
             stageShape({
               key: "assigned",

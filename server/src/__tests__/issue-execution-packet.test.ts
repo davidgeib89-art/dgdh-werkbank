@@ -28,6 +28,8 @@ describe("resolveIssueExecutionPacketTruth", () => {
       title: "Runbook note update",
       description: [
         "executionIntent: implement",
+        "reviewPolicy: required",
+        "needsReview: true",
         "targetFile: doc/DGDH-AI-OPERATOR-RUNBOOK.md",
         "doneWhen: The runbook note reflects the readiness rule and is validated in a bounded run.",
       ].join("\n"),
@@ -38,6 +40,9 @@ describe("resolveIssueExecutionPacketTruth", () => {
     expect(truth.targetFolder).toBe("doc");
     expect(truth.artifactKind).toBe("doc_update");
     expect(truth.reasonCodes).toEqual([]);
+    expect(truth.triad.ceoCutStatus).toBe("ready");
+    expect(truth.triad.workerPacket.source).toBe("explicit");
+    expect(truth.triad.reviewerPacket.source).toBe("derived");
   });
 
   it("allows explicit folder-only packets when artifact kind makes the scope clear", () => {
@@ -82,7 +87,7 @@ describe("resolveIssueExecutionPacketTruth", () => {
     const truth = resolveIssueExecutionPacketTruth({
       title: "Runbook note update",
       description:
-        "packetType: free_api\\nexecutionIntent: implement\\nreviewPolicy: required\\nneedsReview: true\\ntargetFile: doc/DGDH-AI-OPERATOR-RUNBOOK.md\\ntargetFolder: doc\\nartifactKind: doc_update\\ndoneWhen: The runbook note reflects the readiness rule and is validated in a bounded run.\\n[NEEDS INPUT]: none",
+        "packetType: free_api\\nexecutionIntent: implement\\nreviewPolicy: required\\nneedsReview: true\\ntargetFile: doc/DGDH-AI-OPERATOR-RUNBOOK.md\\ntargetFolder: doc\\nartifactKind: doc_update\\ndoneWhen: The runbook note reflects the readiness rule and is validated in a bounded run.\\nreviewerFocus: Verify the exact runbook note and keep scope inside doc/.\\nreviewerAcceptWhen: Accept only when the runbook note matches the new readiness rule.\\nreviewerChangeWhen: Request changes on any drift or missing validation note.\\n[NEEDS INPUT]: none",
     });
 
     expect(truth.packetType).toBe("free_api");
@@ -97,5 +102,10 @@ describe("resolveIssueExecutionPacketTruth", () => {
     );
     expect(truth.status).toBe("ready");
     expect(truth.reasonCodes).toEqual([]);
+    expect(truth.triad.ceoCutStatus).toBe("ready");
+    expect(truth.triad.reviewerPacket.source).toBe("explicit");
+    expect(truth.triad.reviewerPacket.focus).toBe(
+      "Verify the exact runbook note and keep scope inside doc/.",
+    );
   });
 });
