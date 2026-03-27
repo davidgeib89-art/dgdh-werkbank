@@ -37,6 +37,7 @@ import { assertCompanyAccess, getActorInfo } from "./authz.js";
 import { shouldWakeAssigneeOnCheckout } from "./issues-checkout-wakeup.js";
 import { isAllowedContentType, MAX_ATTACHMENT_BYTES } from "../attachment-types.js";
 import { resolveVerifiedCapabilityRuntimeBridge } from "../services/capability-contracts.js";
+import { resolveMissionCellRuntimeBridge } from "../services/mission-cell-contracts.js";
 import { resolveIssueExecutionPacketTruth } from "../services/issue-execution-packet.js";
 import { summarizeHeartbeatRunResultJson } from "../services/heartbeat-run-summary.js";
 
@@ -362,6 +363,9 @@ export function issueRoutes(db: Db, storage: StorageService) {
       title: issue.title ?? null,
       description: issue.description ?? null,
     });
+    const missionCellBridge = resolveMissionCellRuntimeBridge(
+      issue.description ?? null,
+    );
     const capabilityBridge = resolveVerifiedCapabilityRuntimeBridge(
       issue.description ?? null,
     );
@@ -387,6 +391,9 @@ export function issueRoutes(db: Db, storage: StorageService) {
       packetReadinessStatus: executionPacketTruth.status,
       packetReadinessReasonCodes: executionPacketTruth.reasonCodes,
       issueExecutionPacketTruth: executionPacketTruth,
+      requestedMissionCellIds: missionCellBridge.requestedMissionCellIds,
+      issueMissionCellReferences: missionCellBridge.briefs,
+      issueMissionCellReferenceErrors: missionCellBridge.errors,
       requestedCapabilityIds: capabilityBridge.requestedCapabilityIds,
       issueCapabilityReferences: capabilityBridge.briefs,
       issueCapabilityReferenceErrors: capabilityBridge.errors,

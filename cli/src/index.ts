@@ -19,6 +19,7 @@ import { applyDataDirOverride, type DataDirOptionLike } from "./config/data-dir.
 import { loadPaperclipEnvFile } from "./config/env.js";
 import { registerWorktreeCommands } from "./commands/worktree.js";
 import { registerPluginCommands } from "./commands/client/plugin.js";
+import { registerMissionCellCommands } from "./commands/mission-cell.js";
 import { registerSkillContractCommands } from "./commands/skill-contract.js";
 
 const program = new Command();
@@ -139,6 +140,7 @@ registerActivityCommands(program);
 registerDashboardCommands(program);
 registerWorktreeCommands(program);
 registerPluginCommands(program);
+registerMissionCellCommands(program);
 registerSkillContractCommands(program);
 
 const auth = program.command("auth").description("Authentication and bootstrap utilities");

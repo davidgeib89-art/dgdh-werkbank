@@ -85,6 +85,68 @@ describe("buildHeartbeatIssuePromptContextPatch", () => {
     );
   });
 
+  it("injects mission cell references into the issue prompt context when explicitly requested", () => {
+    const patch = buildHeartbeatIssuePromptContextPatch({
+      contextSnapshot: {},
+      issue: {
+        id: "issue-cell-1",
+        companyId: "company-1",
+        projectId: "project-1",
+        goalId: null,
+        parentId: null,
+        identifier: "DAV-301",
+        title: "Start the mission cell",
+        description: [
+          "missionCell: mission-cell-starter-path-v1",
+          "Ziel: Start the first real mission cell on a bounded path.",
+        ].join("\n"),
+      },
+    });
+
+    expect(patch.paperclipMissionCellRequestedIds).toEqual([
+      "mission-cell-starter-path-v1",
+    ]);
+    expect(patch.paperclipMissionCellReferences).toEqual([
+      expect.objectContaining({
+        missionCellId: "mission-cell-starter-path-v1",
+        status: "active",
+      }),
+    ]);
+    expect(String(patch.paperclipTaskPrompt ?? "")).toContain(
+      "Mission cell references (explicit operating lane):",
+    );
+    expect(String(patch.paperclipTaskPrompt ?? "")).toContain(
+      "missionCellId: mission-cell-starter-path-v1",
+    );
+    expect(String(patch.paperclipTaskPrompt ?? "")).toContain(
+      "type1Escalations: main branch mutation outside normal reviewed merge flow | deploys and live external effects | global secrets or permission changes | irreversible data or cost consequences | global policy changes beyond the current mission cell",
+    );
+  });
+
+  it("surfaces invalid mission cell references as prompt warnings", () => {
+    const patch = buildHeartbeatIssuePromptContextPatch({
+      contextSnapshot: {},
+      issue: {
+        id: "issue-cell-2",
+        companyId: "company-1",
+        projectId: "project-1",
+        goalId: null,
+        parentId: null,
+        identifier: "DAV-302",
+        title: "Bad mission cell ref",
+        description: "missionCell: does-not-exist",
+      },
+    });
+
+    expect(patch.paperclipMissionCellReferences).toBeNull();
+    expect(patch.paperclipMissionCellReferenceErrors).toEqual([
+      expect.stringContaining("does-not-exist"),
+    ]);
+    expect(String(patch.paperclipTaskPrompt ?? "")).toContain(
+      "Mission cell reference warnings:",
+    );
+  });
+
   it("surfaces invalid verified skill references as prompt warnings", () => {
     const patch = buildHeartbeatIssuePromptContextPatch({
       contextSnapshot: {},

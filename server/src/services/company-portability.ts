@@ -63,6 +63,11 @@ const FIRM_IDENTITY_EXPORT_FILES = [
   "SOUL.md",
   "TRINITY.md",
   "company-hq/CORE.md",
+  "company-hq/mission-contracts/type1-type2-decision-policy-v1.md",
+  "company-hq/mission-contracts/oberreviewer-risk-gate-v1.md",
+  "company-hq/mission-contracts/replay-eval-promotion-v1.md",
+  "company-hq/mission-contracts/mission-cell-starter-path-v1.md",
+  "company-hq/mission-cells/mission-cell-starter-path-v1.json",
   "company-hq/souls/README.md",
   "company-hq/souls/david-seed.md",
   "company-hq/souls/nerah.md",
@@ -82,7 +87,7 @@ const FIRM_IDENTITY_RECOVERY_PRINCIPLES = [
 const FIRM_IDENTITY_RUNTIME_BOUNDARIES = [
   "Live DB/runtime state is useful carrier state, but not the deepest firm truth.",
   "In-flight runs, queues, sessions, and transient scheduler state may need reconstruction after loss.",
-  "Mission contracts, soul files, memory, and capability contracts should remain rebuild anchors outside the current carrier.",
+  "Mission contracts, mission-cell contracts, soul files, memory, and capability contracts should remain rebuild anchors outside the current carrier.",
 ] as const;
 
 const RUNTIME_DEFAULT_RULES: Array<{ path: string[]; value: unknown }> = [

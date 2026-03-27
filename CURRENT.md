@@ -18,8 +18,8 @@ anti_slop_gate:
 
 next:
   1) `company-hq/ACTIVE-MISSION.md` als kanonischen Re-Anchor fuer lange Copilot-/Eidan-Missionslaeufe benutzen, besonders nach Compacts oder Context-Loss
-  2) `mission-autonomy-lane-v1` weitertragen: naechste starke Schwester-Cuts sind wahrscheinlich `type1-type2-decision-policy-v1`, `oberreviewer-risk-gate-v1` oder `replay-eval-promotion-v1`
-  3) die Workbench so ausrichten, dass Mission Cells kuenftig aus tieferer Firmenwahrheit statt aus reiner Runtime-/DB-Verwechslung leben
+  2) `mission-autonomy-lane-v1` weitertragen ueber die neue Mission-Cell-Surface: `type1-type2-decision-policy-v1`, `oberreviewer-risk-gate-v1`, `replay-eval-promotion-v1` und `mission-cell-starter-path-v1` sind jetzt als durable Repo-Truth angelegt
+  3) die Workbench so ausrichten, dass Mission Cells kuenftig aus tieferer Firmenwahrheit statt aus reiner Runtime-/DB-Verwechslung leben; der kuerzeste Startpfad ist jetzt `missionCell: mission-cell-starter-path-v1`
   4) `verifiedSkill`, Resume-Truth, Routing-Haertung und Audit-Guardrails bleiben Teil des Unterbaus; sie werden jetzt als Bausteine fuer Mission-Autonomie gelesen, nicht als Endzweck
   5) OpenAI Codex Plugins, Onyx und Agentica/ARCgentica bleiben spaetere Enablement-/Research-Lanes; zuerst den mission-bounded Selbstverbesserungsmodus im bestehenden Stack beweisen
 
@@ -50,6 +50,8 @@ notes:
   - `Highest excitement` bleibt legitimer Navigationsinput, wenn er in bounded Bewegung, echte Vorarbeit und governte Kurskorrektur uebersetzt wird statt in Momentum-Theater
   - Doctrine-Shift 2026-03-27: DGDH soll nicht nur Arbeit delegieren, sondern in governten Missionsraeumen die eigene Faehigkeit steigern; `mission autonomy mode` ist damit neuer Firmenmodus neben `delivery mode`
   - Die Mission Cell ist die neue operative Grundeinheit fuer Selbstverbesserung: Primaermetrik, Guard-Metriken, Budget, Laufzeit, Blast Radius, erlaubte/verbotene Raeume, Eskalationsgruende und Promotionskriterium
+  - Neuer repo-wahrer Starter-Pfad fuer Mission Cells: `company-hq/mission-cells/mission-cell-starter-path-v1.json` ist die erste validierbare Betriebsform; `paperclipai mission cell list|use|validate` ist die operator-facing Surface, und `missionCell: <id>` im Issue-Packet ist jetzt die kleinste explizite Mission-Cell->Run-Bruecke
+  - Der Runtime-Pfad traegt diese Wahrheit jetzt direkt: `missionCell: mission-cell-starter-path-v1` wird in Wakeup-Context und `paperclipTaskPrompt` als kompakter operating brief injiziert, analog zur `verifiedSkill`-Bridge, aber fuer Charter/Decision/Risk/Eval/Promotion statt nur fuer prozedurale Faehigkeiten
   - Type-1-/Type-2-Lesart ab jetzt hart anwenden: David und spaeter ein Oberreview-Gate werden nur an echten Einweg-Tueren gebraucht (`main`, Deploy, globale Rechte, Secrets, irreversible Aussenwirkung); reversible Type-2-Verbesserungen sollen die Agenten weitgehend selbst tragen
   - Die vier Schleifen fuer Mission-Autonomie sind jetzt kanonisch: `research -> change -> eval -> promotion`; ohne diese Trennung wird Selbstverbesserung zu AI-Bewegung statt Firmenlernen
   - Neue Fehlerlesart fuer enge Live-Sprints: Fehler hart trennen in `strategy failure`, `applicability / harness failure`, `environment / interface failure` und `missing capability / guardrail`, statt alles unter mehr Reasoning oder groesseren Scope zu mischen

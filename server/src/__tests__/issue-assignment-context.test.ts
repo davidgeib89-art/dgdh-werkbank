@@ -108,6 +108,7 @@ describe("issue assignment wakeup context", () => {
           companyId,
           projectId: projectId1,
           issueIdentifier: "DAV-100",
+          requestedMissionCellIds: [],
           requestedCapabilityIds: ["ceo-native-issue-handoff-primitives"],
           issueCapabilityReferences: [
             expect.objectContaining({
@@ -163,6 +164,7 @@ describe("issue assignment wakeup context", () => {
           companyId,
           projectId: projectId2,
           issueIdentifier: "DAV-101",
+          requestedMissionCellIds: [],
           requestedCapabilityIds: ["ceo-native-issue-handoff-primitives"],
           issueCapabilityReferences: [
             expect.objectContaining({
@@ -171,6 +173,48 @@ describe("issue assignment wakeup context", () => {
             }),
           ],
           source: "issue.update",
+        }),
+      }),
+    );
+  });
+
+  it("includes mission cell references on issue create wakeups", async () => {
+    mockIssueService.create.mockResolvedValue({
+      id: issueId1,
+      companyId,
+      projectId: projectId1,
+      goalId: null,
+      parentId: null,
+      identifier: "DAV-102",
+      title: "Start mission cell",
+      description: "missionCell: mission-cell-starter-path-v1",
+      status: "todo",
+      assigneeAgentId: agentId1,
+    });
+
+    const res = await request(createApp())
+      .post(`/api/companies/${companyId}/issues`)
+      .send({
+        title: "Start mission cell",
+        description: "missionCell: mission-cell-starter-path-v1",
+        projectId: projectId1,
+        status: "todo",
+        assigneeAgentId: agentId1,
+      });
+
+    expect(res.status).toBe(201);
+    expect(mockHeartbeatService.wakeup).toHaveBeenCalledWith(
+      agentId1,
+      expect.objectContaining({
+        contextSnapshot: expect.objectContaining({
+          issueIdentifier: "DAV-102",
+          requestedMissionCellIds: ["mission-cell-starter-path-v1"],
+          issueMissionCellReferences: [
+            expect.objectContaining({
+              missionCellId: "mission-cell-starter-path-v1",
+              status: "active",
+            }),
+          ],
         }),
       }),
     );

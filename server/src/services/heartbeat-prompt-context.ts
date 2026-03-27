@@ -3,6 +3,10 @@ import {
   buildVerifiedCapabilityPromptBlock,
   resolveVerifiedCapabilityRuntimeBridge,
 } from "./capability-contracts.js";
+import {
+  buildMissionCellPromptBlock,
+  resolveMissionCellRuntimeBridge,
+} from "./mission-cell-contracts.js";
 import { resolveDirectAnswerAuditTruth } from "./direct-answer-audit.js";
 import { resolveIssueExecutionPacketTruth } from "./issue-execution-packet.js";
 import { runPromptResolverPreflight } from "./prompt-resolver-preflight.js";
@@ -276,11 +280,15 @@ export function normalizeReviewTargetWorkerHandoff(input: {
 
 function buildIssueTaskPrompt(
   issue: IssuePromptContext,
-  input?: { skillPromptBlock?: string | null },
+  input?: { skillPromptBlock?: string | null; missionCellPromptBlock?: string | null },
 ) {
   const ref = issue.identifier ?? issue.id;
   const title = trimIssueText(issue.title);
   const description = trimIssueText(issue.description);
+    const missionCellBridge = resolveMissionCellRuntimeBridge(
+      issue.description ?? null,
+    );
+    const missionCellPromptBlock = buildMissionCellPromptBlock(missionCellBridge);
   const skillPromptBlock =
     input?.skillPromptBlock ??
     buildVerifiedCapabilityPromptBlock(
@@ -324,6 +332,9 @@ function buildIssueTaskPrompt(
         : "none"
     }`,
   ];
+  const operatingBlocks = [missionCellPromptBlock, skillPromptBlock].filter(
+    (value): value is string => Boolean(value),
+  );
   const directAnswerAuditLines =
     directAnswerAuditTruth?.bounded === true
       ? [
@@ -394,7 +405,7 @@ function buildIssueTaskPrompt(
     "Execution packet truth:",
     ...packetLines,
     ...directAnswerAuditLines,
-    ...(skillPromptBlock ? ["", skillPromptBlock] : []),
+    ...operatingBlocks.flatMap((block) => ["", block]),
     ...(description ? ["", description] : []),
   ].join("\n");
 }
@@ -644,6 +655,9 @@ export function buildHeartbeatIssuePromptContextPatch(input: {
     title: normalizedIssue.title,
     description: normalizedIssue.description,
   });
+  const missionCellBridge = resolveMissionCellRuntimeBridge(
+    normalizedIssue.description,
+  );
   const skillBridge = resolveVerifiedCapabilityRuntimeBridge(
     normalizedIssue.description,
   );
@@ -651,10 +665,14 @@ export function buildHeartbeatIssuePromptContextPatch(input: {
     title: normalizedIssue.title,
     description: normalizedIssue.description,
   });
+  const missionCellPromptBlock = buildMissionCellPromptBlock(missionCellBridge);
   const skillPromptBlock = buildVerifiedCapabilityPromptBlock(skillBridge);
   const workspacePrompt = buildIssueWorkspacePrompt(input.contextSnapshot);
   const issueTaskPrompt = [
-    buildIssueTaskPrompt(normalizedIssue, { skillPromptBlock }),
+    buildIssueTaskPrompt(normalizedIssue, {
+      skillPromptBlock,
+      missionCellPromptBlock,
+    }),
     workspacePrompt,
   ]
     .filter((value): value is string => Boolean(value))
@@ -671,6 +689,14 @@ export function buildHeartbeatIssuePromptContextPatch(input: {
     paperclipExecutionPacketDoneWhen: packetTruth.doneWhen,
     paperclipWorkspacePrompt: workspacePrompt,
     paperclipTaskPrompt: issueTaskPrompt,
+    paperclipMissionCellRequestedIds:
+      missionCellBridge.requestedMissionCellIds.length > 0
+        ? missionCellBridge.requestedMissionCellIds
+        : null,
+    paperclipMissionCellReferences:
+      missionCellBridge.briefs.length > 0 ? missionCellBridge.briefs : null,
+    paperclipMissionCellReferenceErrors:
+      missionCellBridge.errors.length > 0 ? missionCellBridge.errors : null,
     paperclipVerifiedSkillRequestedIds:
       skillBridge.requestedCapabilityIds.length > 0
         ? skillBridge.requestedCapabilityIds

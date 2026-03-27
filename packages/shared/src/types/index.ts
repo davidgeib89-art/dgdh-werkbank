@@ -6,6 +6,17 @@ export type {
   CapabilitySkillContract,
 } from "./capability.js";
 export type {
+  MissionCellStatus,
+  MissionCellCharter,
+  MissionCellDecisionPolicy,
+  MissionCellRiskGate,
+  MissionCellEvalSpec,
+  MissionCellPromotionSpec,
+  MissionCellBoundarySpec,
+  MissionCellStarterPath,
+  MissionCellContract,
+} from "./mission-cell.js";
+export type {
   Agent,
   AgentPermissions,
   AgentKeyCreated,

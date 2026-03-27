@@ -57,6 +57,7 @@
 - DGDH ist eine governte David-Aufmerksamkeits-Kompressionsmaschine: David gibt Richtung, die Maschine soll mit minimalen David-Beruehrpunkten reale, reviewte, gemergte Arbeit liefern.
 - DGDH bekommt jetzt explizit einen zweiten Firmenmodus neben `delivery mode`: `mission autonomy mode`. In diesem Modus soll die Firma in bounded Missionsraeumen ihre eigene Faehigkeit steigern, statt nur externe oder direkte Arbeitsauftraege auszufuehren.
 - Mission Cells sind die neue Grundeinheit fuer bounded Selbstverbesserung: Primärmetrik, Guard-Metriken, Budget, Laufzeit, Blast Radius, erlaubte/verbotene Raeume, Eskalationsgruende und Promotionskriterium.
+- Der erste startbare Mission-Cell-Path ist jetzt repo-wahr: `company-hq/mission-cells/mission-cell-starter-path-v1.json` plus `paperclipai mission cell list|use|validate`; `missionCell: <id>` injiziert dieselbe Betriebsform in Wakeup-Context und `paperclipTaskPrompt`.
 - Mission Cells werden zuerst ueber Verantwortungen gelesen, nicht ueber feste Rollennamen: `goal owner`, `research owner`, `change owner`, `truth owner`, `risk owner`.
 - `self-learning-loop-1-initiation` ist jetzt der erste grosse Missionsschnitt: `mission-contract-v1`, `substrate-boundary-cut-v1` und `firm-identity-export-recovery-truth-v1` als erster technischer Hebel.
 - `mission-autonomy-lane-v1` ist jetzt die aktive Hauptmission oberhalb dieses ersten Cuts; `company-hq/ACTIVE-MISSION.md` traegt dafuer die kompakte Re-Anchor-Wahrheit, damit Eidan/Copilot nach Compacts nicht wieder in zu fruehe Abschlussreflexe faellt.

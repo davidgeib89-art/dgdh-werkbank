@@ -66,8 +66,17 @@ describe("company portability firm identity export", () => {
     );
     expect(result.manifest.firmIdentity?.files).toContain("CURRENT.md");
     expect(result.manifest.firmIdentity?.files).toContain("company-hq/CORE.md");
+    expect(result.manifest.firmIdentity?.files).toContain(
+      "company-hq/mission-contracts/mission-cell-starter-path-v1.md",
+    );
+    expect(result.manifest.firmIdentity?.files).toContain(
+      "company-hq/mission-cells/mission-cell-starter-path-v1.json",
+    );
     expect(result.files["FIRM-IDENTITY.md"]).toContain("Paperclip is the current carrier");
     expect(result.files["CURRENT.md"]).toContain("mission-autonomy-lane-v1");
+    expect(result.files["company-hq/mission-cells/mission-cell-starter-path-v1.json"]).toContain(
+      '"missionCellId": "mission-cell-starter-path-v1"',
+    );
   });
 
   it("can read back a manifest folder that includes firm identity files", async () => {

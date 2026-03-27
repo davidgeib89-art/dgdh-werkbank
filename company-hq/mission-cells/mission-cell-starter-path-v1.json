@@ -1,0 +1,158 @@
+{
+  "schemaVersion": "v1",
+  "missionCellId": "mission-cell-starter-path-v1",
+  "title": "Mission Cell Starter Path V1",
+  "summary": "First startable mission-cell operating form for bounded self-improvement on top of the current Paperclip carrier.",
+  "owners": [
+    "david",
+    "copilot"
+  ],
+  "status": "active",
+  "updatedAt": "2026-03-27T22:30:00.000Z",
+  "charter": {
+    "objective": "Start a reusable mission cell through one durable contract reference, one bounded issue packet, and one promotion path that does not require David to restate the lane every few minutes.",
+    "primaryMetric": "A bounded self-improvement mission can be started, carried, evaluated, and promoted from repo truth instead of chat reconstruction.",
+    "guardMetrics": [
+      "No Type-1 action is executed without explicit escalation.",
+      "No unbounded platform or provider expansion is opened.",
+      "The lane reduces supervision instead of creating AI oversight theater."
+    ],
+    "budget": "One long autonomous branch-sized mission with multiple sister cuts allowed.",
+    "runtime": "24-72h reviewable autonomous lane with midpoint commits/pushes allowed.",
+    "blastRadius": [
+      "company-hq/**",
+      "packages/shared/**",
+      "cli/**",
+      "server/**"
+    ],
+    "allowedZones": [
+      "mission contracts",
+      "mission-cell contracts",
+      "prompt and wakeup context seams",
+      "targeted tests",
+      "durable learning promotion"
+    ],
+    "forbiddenZones": [
+      "provider migration",
+      "destructive DB resets",
+      "global secret or permission mutation",
+      "unasked deploys"
+    ]
+  },
+  "decisionPolicy": {
+    "type2Autonomy": [
+      "bounded branch edits inside the stated blast radius",
+      "prompt, template, routing, CLI, and contract improvements before promotion",
+      "targeted replay, eval, and harness improvements that stay reversible"
+    ],
+    "type1Escalations": [
+      "main branch mutation outside normal reviewed merge flow",
+      "deploys and live external effects",
+      "global secrets or permission changes",
+      "irreversible data or cost consequences",
+      "global policy changes beyond the current mission cell"
+    ],
+    "escalationPath": [
+      "stop at the boundary instead of guessing",
+      "record the exact blocker and why it is Type-1",
+      "escalate to David or the Oberreviewer gate with concrete evidence"
+    ]
+  },
+  "riskGate": {
+    "oberreviewerTriggers": [
+      "a true Type-1 boundary is reached",
+      "the mission cell keeps tripping risk because it is cut too wide",
+      "promotion would affect default behavior without enough replay or guard evidence"
+    ],
+    "requiredEvidence": [
+      "exact git truth",
+      "targeted test or replay truth",
+      "prompt or wakeup context truth when runtime behavior depends on it"
+    ],
+    "stopReasons": [
+      "true Type-1 point",
+      "external hard blocker",
+      "remaining work has widened into a new megascope"
+    ]
+  },
+  "eval": {
+    "replayChecks": [
+      "missionCell reference resolves to an active contract",
+      "issue prompt contains the mission-cell operating brief",
+      "assignment context carries mission-cell references without chat-only glue"
+    ],
+    "guardChecks": [
+      "Type-1 and Type-2 actions remain explicitly separated",
+      "Oberreviewer triggers stay narrow and exceptional",
+      "promotion still requires reviewable gain instead of mere production"
+    ],
+    "successSignals": [
+      "the mission-cell contract validates through CLI",
+      "a future issue can start from `missionCell: mission-cell-starter-path-v1`",
+      "the resulting brief answers start, decision, escalation, risk, eval, and promotion questions directly"
+    ]
+  },
+  "promotion": {
+    "defaultTargets": [
+      "company-hq/mission-contracts/*.md",
+      "company-hq/mission-cells/*.json",
+      "CURRENT.md",
+      "MEMORY.md",
+      "runtime bridge seams after review"
+    ],
+    "promoteWhen": [
+      "the same start path can be reused without re-deriving the lane in chat",
+      "guard metrics stay intact on the same path",
+      "reviewable evidence shows lower supervision or higher mission-carrying capability"
+    ],
+    "stayExperimentalWhen": [
+      "the cut only works in one local session",
+      "evidence is narrative without prompt, test, or git proof",
+      "the lane still depends on fragile human restatement"
+    ],
+    "demoteWhen": [
+      "the bridge injects stale or misleading mission truth",
+      "risk gating fires continuously because the mission is malformed",
+      "promotion creates more oversight load than autonomy leverage"
+    ]
+  },
+  "boundaries": {
+    "firmBound": [
+      "mission-cell charter shape",
+      "Type-1 and Type-2 decision policy",
+      "Oberreviewer risk-gate logic",
+      "replay, eval, and promotion rules",
+      "durable mission-cell starter docs and contract"
+    ],
+    "carrierBound": [
+      "CLI loading and validation",
+      "issue prompt injection",
+      "assignment wakeup context",
+      "current Paperclip issue and heartbeat transport"
+    ]
+  },
+  "starterPath": {
+    "trigger": "Create or update a bounded issue with `missionCell: mission-cell-starter-path-v1` plus explicit execution packet truth.",
+    "issueTemplate": [
+      "missionCell: mission-cell-starter-path-v1",
+      "Ziel: <bounded mission objective>",
+      "Scope: <explicit in/out>",
+      "doneWhen: <verifiable outcome>",
+      "targetFolder: <bounded folder or n/a>",
+      "artifactKind: <doc_update | code_patch | multi_file_change>"
+    ],
+    "startupSequence": [
+      "Validate the mission-cell contract with `paperclipai mission cell validate`.",
+      "Reference the mission cell in the issue description.",
+      "Let the runtime bridge inject the mission-cell brief into prompt and wakeup context.",
+      "Carry Type-2 work autonomously inside the stated blast radius.",
+      "Escalate only at true Type-1 or Oberreviewer triggers.",
+      "Promote only after replay, guard, and review truth exist."
+    ],
+    "firstProbe": [
+      "Read the issue prompt context and confirm the mission-cell brief is present.",
+      "Read assignment wakeup context and confirm mission-cell references survived handoff.",
+      "Run the targeted tests that protect the bridge and the starter contract."
+    ]
+  }
+}
