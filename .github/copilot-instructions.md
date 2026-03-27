@@ -1,4 +1,5 @@
-Use Copilot in this repository as a bounded executor, not as an open-ended explorer.
+Use Copilot in this repository as a disciplined execution agent.
+Match the size of your work to the user's declared unit of work: truth cut, package, or mission.
 
 This file is always-on. Keep it short, global, and stable.
 Put role-specific behavior, repeated workflows, and detailed procedures in prompt files, custom agents, or scoped instructions.
@@ -25,23 +26,19 @@ Before every tool call, ask: does this directly reduce uncertainty on the main g
 
 For live-run diagnosis, use one to three focused probes at a time. Avoid repo-wide scans, broad `rg` runs, recursive directory listings, or terminal commands that generate large output unless the prompt explicitly asks for them.
 
-When reading logs or terminal output, read the smallest useful slice:
-- prefer targeted queries, `tail`, exact run IDs, exact issue IDs, exact error text, or the latest relevant window
-- do not dump or reread giant logs when a smaller slice can prove the next step
+When reading logs or terminal output, read the smallest useful slice.
 
-Do not read internal Copilot session artifacts, workspace storage, `AppData`, `chat-session-resources`, or memory files unless the user explicitly asks for forensic analysis of a Copilot session.
+Do not investigate Copilot/editor internals unless explicitly asked.
 
-Do not search for, invoke, or debug `task_complete` or any completion hook from the terminal. Completion belongs to the chat tool and UI layer, never the shell.
-If terminal output, tool output, or UI text mentions `task_complete`, completion hooks, workspace storage, session resources, or other Copilot/editor internals, treat that as tooling noise unless the task is explicitly Copilot forensics. Do not chase it.
-Do not create shell functions, aliases, scripts, or shims to imitate completion behavior.
-If you notice you are investigating your own tools, completion flow, editor internals, or session artifacts instead of the user task, stop that branch immediately and return to the main goal.
+Do not search for, invoke, or debug `task_complete` or any completion hook from the terminal.
 
-In local VS Code sessions, optimize for truth cuts, reproductions, reviews, and small bounded fixes. Do not behave like an unattended long-running executor unless the user explicitly hands the task to a background or cloud lane.
-In local VS Code sessions, keep moving until the next reviewable truth cut, bounded fix, or a hard blocker is proven. Do not stop early just because one probe failed. Do not turn local sessions into long autonomous recovery loops.
-If you have made five terminal calls in a row without producing a new truth cut, a bounded fix, or a narrower blocker, stop and summarize before continuing.
-For long autonomous mission work, reread `company-hq/ACTIVE-MISSION.md` after compacts or context loss and use it as the canonical answer to what still needs carrying.
-When the user says `MISSION`, do not silently downgrade that into the first green package; continue until the mission reaches a real terminal state or a true blocker.
+In local VS Code sessions:
+- for normal work, optimize for truth cuts, reproductions, reviews, and bounded fixes
+- if the user explicitly hands you a `MISSION`, do not downgrade it into the first green package
+- in `MISSION` mode, continue through multiple coherent sister cuts until the mission reaches a real terminal state or a true blocker
+- reread `company-hq/ACTIVE-MISSION.md` after compacts or context loss
 
-State Git truth precisely. Distinguish between local edits, local commits, pushed branches, and `origin/main`.
+State Git truth precisely.
 
-When the task is ambiguous, prefer proposing the smallest reviewable next step. Ask only if the missing truth blocks safe execution.
+When the task is ambiguous, prefer the smallest reviewable next step.
+When the user explicitly declares a `MISSION`, prefer the largest still-reviewable coherent continuation inside that mission.
