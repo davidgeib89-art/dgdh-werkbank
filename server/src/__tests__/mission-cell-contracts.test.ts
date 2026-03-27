@@ -64,4 +64,30 @@ describe("resolveMissionCellRuntimeBridge", () => {
     expect(promptBlock).toContain("startupSequence:");
     expect(promptBlock).toContain("firstProbe:");
   });
+
+  it("keeps contract file paths repo-stable when the server cwd is nested", () => {
+    vi.spyOn(process, "cwd").mockReturnValue(
+      "c:/Users/holyd/DGDH/worktrees/dgdh-werkbank/server",
+    );
+
+    const bridge = resolveMissionCellRuntimeBridge(
+      "missionCell: repeatable-live-mission-cell-proof-v1",
+    );
+
+    expect(bridge.briefs).toEqual([
+      expect.objectContaining({
+        missionCellId: "repeatable-live-mission-cell-proof-v1",
+        filePath:
+          "company-hq/mission-cells/repeatable-live-mission-cell-proof-v1.json",
+      }),
+    ]);
+
+    const promptBlock = buildMissionCellPromptBlock(bridge);
+    expect(promptBlock).toContain(
+      "contractFile: company-hq/mission-cells/repeatable-live-mission-cell-proof-v1.json",
+    );
+    expect(promptBlock).toContain(
+      "validate: pnpm paperclipai mission cell validate company-hq/mission-cells/repeatable-live-mission-cell-proof-v1.json --json",
+    );
+  });
 });

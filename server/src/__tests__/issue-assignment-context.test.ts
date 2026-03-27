@@ -217,7 +217,7 @@ describe("issue assignment wakeup context", () => {
                 expect.stringContaining("Validate the mission-cell contract"),
               ]),
               firstProbe: expect.arrayContaining([
-                expect.stringContaining("Check that the issue prompt contains the mission cell brief"),
+                expect.stringContaining("Read the issue prompt context and confirm the mission-cell brief is present."),
               ]),
             }),
           ],

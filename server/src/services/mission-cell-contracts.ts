@@ -37,6 +37,10 @@ function missionCellsDir(): string {
   return path.resolve(serviceDir, "../../../company-hq/mission-cells");
 }
 
+function repoRootDir(): string {
+  return path.resolve(missionCellsDir(), "../..");
+}
+
 function normalizeMissionCellId(value: string): string {
   return value.trim().toLowerCase();
 }
@@ -141,7 +145,7 @@ function buildRuntimeBrief(
   sourcePath: string,
 ): MissionCellRuntimeBrief {
   const normalizedSourcePath = path
-    .relative(process.cwd(), sourcePath)
+    .relative(repoRootDir(), sourcePath)
     .replace(/\\/g, "/");
   return {
     missionCellId: contract.missionCellId,
