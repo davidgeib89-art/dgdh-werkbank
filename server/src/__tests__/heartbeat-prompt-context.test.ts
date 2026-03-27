@@ -138,6 +138,63 @@ describe("buildHeartbeatIssuePromptContextPatch", () => {
       hardCapTokens: 500000,
     });
   });
+
+  it("keeps narrow direct-answer audit instructions visible in the task prompt", () => {
+    const patch = buildHeartbeatIssuePromptContextPatch({
+      contextSnapshot: {},
+      issue: {
+        id: "issue-audit-1",
+        companyId: "company-1",
+        projectId: "project-1",
+        goalId: null,
+        parentId: null,
+        identifier: "DAV-156",
+        title: "Resume proof audit via verified skill bridge",
+        description: [
+          "verifiedSkill: same-session-resume-after-post-tool-capacity",
+          "Ziel: Give a direct answer on whether DAV-131 still proves same-session resume and whether the verified skill brief keeps the audit path narrow.",
+          "Scope: Direct answer only. Read child issue status first, then inspect only DAV-131 company-run-chain and the two referenced heartbeat runs. No child creation. No code. No file edits. No git. No repo reads. No resume-trigger chase.",
+          "doneWhen: Answer directly from the named audit surfaces without archaeology.",
+        ].join("\n"),
+      },
+    });
+
+    const prompt = String(patch.paperclipTaskPrompt ?? "");
+    expect(prompt).toContain(
+      "Scope: Direct answer only. Read child issue status first, then inspect only DAV-131 company-run-chain and the two referenced heartbeat runs. No child creation. No code. No file edits. No git. No repo reads. No resume-trigger chase.",
+    );
+    expect(prompt).toContain("No resume-trigger chase.");
+    expect(prompt).toContain(
+      "doneWhen: Answer directly from the named audit surfaces without archaeology.",
+    );
+    expect(prompt).toContain(
+      "capabilityId: same-session-resume-after-post-tool-capacity",
+    );
+    expect(prompt).toContain("Direct-answer audit guardrail:");
+    expect(prompt).toContain(
+      "namedTruthSurfaces: DAV-131 company-run-chain, the two referenced heartbeat runs",
+    );
+    expect(prompt).toContain(
+      "Rule: After the required child-status read, stay on the named truth surfaces only and answer directly.",
+    );
+    expect(patch.paperclipAllowedTools).toEqual(["read_file"]);
+    expect(patch.paperclipBlockedTools).toEqual([
+      "run_shell_command",
+      "list_directory",
+      "glob_search",
+      "grep_search",
+      "activate_skill",
+    ]);
+    expect(patch.paperclipDirectAnswerAuditTruth).toEqual(
+      expect.objectContaining({
+        bounded: true,
+        requiresChildStatusRead: true,
+        forbidRepoReads: true,
+        forbidChildCreation: true,
+        forbidResumeTriggerChase: true,
+      }),
+    );
+  });
 });
 
 describe("buildHeartbeatReviewerPromptContextPatch", () => {

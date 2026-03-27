@@ -3,6 +3,7 @@ import {
   buildVerifiedCapabilityPromptBlock,
   resolveVerifiedCapabilityRuntimeBridge,
 } from "./capability-contracts.js";
+import { resolveDirectAnswerAuditTruth } from "./direct-answer-audit.js";
 import { resolveIssueExecutionPacketTruth } from "./issue-execution-packet.js";
 import { runPromptResolverPreflight } from "./prompt-resolver-preflight.js";
 import type { PromptResolverInput } from "./prompt-resolver-schema.js";
@@ -295,6 +296,10 @@ function buildIssueTaskPrompt(
     title: issue.title,
     description: issue.description,
   });
+  const directAnswerAuditTruth = resolveDirectAnswerAuditTruth({
+    title: issue.title,
+    description: issue.description,
+  });
   const packetLines = [
     `- status: ${packetTruth.status}`,
     `- executionHeavy: ${packetTruth.executionHeavy ? "yes" : "no"}`,
@@ -319,6 +324,34 @@ function buildIssueTaskPrompt(
         : "none"
     }`,
   ];
+  const directAnswerAuditLines =
+    directAnswerAuditTruth?.bounded === true
+      ? [
+          "",
+          "Direct-answer audit guardrail:",
+          `- requiresChildStatusRead: ${
+            directAnswerAuditTruth.requiresChildStatusRead ? "yes" : "no"
+          }`,
+          `- namedTruthSurfaces: ${directAnswerAuditTruth.namedTruthSurfaces.join(
+            ", ",
+          )}`,
+          `- archaeologyForbidden: ${
+            directAnswerAuditTruth.forbidArchaeology ? "yes" : "no"
+          }`,
+          `- repoReadsForbidden: ${
+            directAnswerAuditTruth.forbidRepoReads ? "yes" : "no"
+          }`,
+          `- childCreationForbidden: ${
+            directAnswerAuditTruth.forbidChildCreation ? "yes" : "no"
+          }`,
+          `- gitForbidden: ${directAnswerAuditTruth.forbidGit ? "yes" : "no"}`,
+          `- resumeTriggerChaseForbidden: ${
+            directAnswerAuditTruth.forbidResumeTriggerChase ? "yes" : "no"
+          }`,
+          "- Rule: After the required child-status read, stay on the named truth surfaces only and answer directly.",
+          "- Rule: Do not open project lists, activity feeds, dashboards, repo files, or other archaeology unless a named surface fails or stronger truth contradicts it.",
+        ]
+      : [];
 
   return [
     "Paperclip issue assignment:",
@@ -334,6 +367,7 @@ function buildIssueTaskPrompt(
     "",
     "Execution packet truth:",
     ...packetLines,
+    ...directAnswerAuditLines,
     ...(skillPromptBlock ? ["", skillPromptBlock] : []),
     ...(description ? ["", description] : []),
   ].join("\n");
@@ -587,6 +621,10 @@ export function buildHeartbeatIssuePromptContextPatch(input: {
   const skillBridge = resolveVerifiedCapabilityRuntimeBridge(
     normalizedIssue.description,
   );
+  const directAnswerAuditTruth = resolveDirectAnswerAuditTruth({
+    title: normalizedIssue.title,
+    description: normalizedIssue.description,
+  });
   const skillPromptBlock = buildVerifiedCapabilityPromptBlock(skillBridge);
   const workspacePrompt = buildIssueWorkspacePrompt(input.contextSnapshot);
   const issueTaskPrompt = [
@@ -615,6 +653,8 @@ export function buildHeartbeatIssuePromptContextPatch(input: {
       skillBridge.briefs.length > 0 ? skillBridge.briefs : null,
     paperclipVerifiedSkillReferenceErrors:
       skillBridge.errors.length > 0 ? skillBridge.errors : null,
+    paperclipDirectAnswerAuditTruth:
+      directAnswerAuditTruth?.bounded === true ? directAnswerAuditTruth : null,
     paperclipPromptResolverPreflight: null,
     paperclipSingleFileTargetPath: null,
     paperclipAbortOnMissingFile: null,
@@ -664,6 +704,17 @@ export function buildHeartbeatIssuePromptContextPatch(input: {
       benchmarkFamily.trim().toLowerCase().startsWith("t1-floor-normalized-v"));
   if (strictFloorMode) {
     patch.paperclipStrictFloorMode = true;
+    patch.paperclipAllowedTools = ["read_file"];
+    patch.paperclipBlockedTools = [
+      "run_shell_command",
+      "list_directory",
+      "glob_search",
+      "grep_search",
+      "activate_skill",
+    ];
+  }
+
+  if (directAnswerAuditTruth?.bounded === true) {
     patch.paperclipAllowedTools = ["read_file"];
     patch.paperclipBlockedTools = [
       "run_shell_command",

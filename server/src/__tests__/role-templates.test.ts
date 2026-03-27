@@ -174,6 +174,12 @@ describe("resolveAssignedRoleTemplate", () => {
     expect(result.assigned?.prompt).toContain(
       "If the mission stays inside thinking, deciding, delegating, or aggregating",
     );
+    expect(result.assigned?.prompt).toContain(
+      "If a direct-answer issue names exact truth surfaces or exact IDs to inspect",
+    );
+    expect(result.assigned?.prompt).toContain(
+      "do not inspect project lists, activity feeds, dashboards, repo files, broad docs, or other archaeology",
+    );
     expect(result.assigned?.prompt).toContain("executionIntent: implement");
     expect(result.assigned?.prompt).toContain("reviewPolicy: required");
     expect(result.assigned?.prompt).toContain("targetFile:");
@@ -220,6 +226,12 @@ describe("resolveAssignedRoleTemplate", () => {
     );
     expect(result.assigned?.template.constraints).toContain(
       "Direct Answer Mode is allowed only for thinking, deciding, prioritizing, packetizing, or aggregating work with no code, file, git, PR, merge, or implementation artifact.",
+    );
+    expect(result.assigned?.template.constraints).toContain(
+      "If a direct-answer issue names exact truth surfaces or exact IDs to inspect, treat only those named surfaces as in-bounds after the mandatory child-status read.",
+    );
+    expect(result.assigned?.template.constraints).toContain(
+      "If a direct-answer issue says no repo reads or no archaeology, do not inspect project lists, activity feeds, dashboards, repo files, or broad docs unless the named source fails or stronger truth contradicts it.",
     );
     expect(result.assigned?.template.constraints).toContain(
       "Implementation, file-change, code, git, PR, merge, or concrete artifact work must be delegated and stays review-required by default.",
