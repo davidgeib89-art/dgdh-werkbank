@@ -31,6 +31,7 @@ Standardfall nach Context-Verlust:
 11. `doc/plans/2026-03-24-dgdh-memory-learning-self-improvement-first-principles.md` wenn du ueber Firmengedachtnis, Lernen oder spaetere Selbstverbesserung nachdenkst
 12. `doc/plans/2026-03-24-dgdh-ai-trinity-and-operator-stack.md` wenn du den aktuellen AI-Stack, Rollen und Run-Oekonomie verstehen musst
 13. `doc/plans/2026-03-24-dgdh-soul-layer-and-boardmeeting-direction.md` wenn du verstehen musst, wie `SOUL.md` sich zu Rollen, Governance und Boardmeeting verhaelt
+14. `company-hq/souls/README.md` wenn der Sprint Identitaet, Stimme oder vererbbare Seelenprofile beruehrt
 
 Das reicht normalerweise, um sofort weiterzuarbeiten.
 

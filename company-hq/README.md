@@ -17,6 +17,7 @@ Shortest truthful heart of the firm:
 These are the current high-value docs and should be preferred over older material:
 
 - `CORE.md`
+- `souls/README.md`
 - `VISION.md`
 - `ROADMAP.md`
 - `DGDH-CEO-CONTEXT.md`

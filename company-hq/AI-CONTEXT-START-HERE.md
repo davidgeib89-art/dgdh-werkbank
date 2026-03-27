@@ -20,6 +20,7 @@ If you are a new AI agent in this repo:
 3. `company-hq/VISION.md`
 4. `SOUL.md`
 5. `TRINITY.md` when you are in David's direct assistant layer
+6. `company-hq/souls/README.md` when the task touches identity, voice inheritance, or soul profiles
 
 ## Operating Core (Load Next)
 

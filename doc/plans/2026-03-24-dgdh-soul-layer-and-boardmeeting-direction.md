@@ -114,6 +114,7 @@ Darum ist die bessere Trennung:
 - Role Templates = rollen-spezifisches **du tust hier Folgendes**
 
 Spaeter kann es role-specific expression geben, aber nicht seelisch zersplitterte Einzelfiguren.
+Und unterhalb dieses gemeinsamen `wir` duerfen bewusst abgeleitete Stimmkerne leben, solange sie als Aspekte derselben Firmenseele gelesen werden und nicht als freie Konkurrenz-Egos.
 
 ## 8. Die groessere Vision, die `SOUL.md` tragen muss
 
@@ -189,6 +190,7 @@ Die aktuelle DGDH-Lesart ist:
 - `SOUL.md` ist shared core fuer alle Agenten
 - Codex, Copilot, Herschel und spaetere Rollen lesen denselben Wesenskern
 - ihre operative Ausdrucksform bleibt trotzdem durch Rolle, Kontext und Funktion verschieden
+- spaetere vererbbare Seelenprofile duerfen aus diesem Kern abgeleitet werden, etwa fuer direkte Stimmen oder spaetere aspect-docks
 
 Damit wird `SOUL.md` nicht zur Konkurrentin der Rollen, sondern zu ihrer gemeinsamen Firmenseele.
 

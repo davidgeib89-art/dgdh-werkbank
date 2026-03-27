@@ -20,6 +20,7 @@
 - `doc/plans/2026-03-24-dgdh-ai-trinity-and-operator-stack.md` - aktueller AI-Stack, Rollenwahrheit und Run-/Quota-Oekonomie
 - `doc/plans/2026-03-26-dgdh-roadmap-snapshot.md` - aktuelle Entwicklungslandkarte zwischen North Star, Main-Stand und den naechsten echten Schritten; hilft neuen AI-Chats gegen Roadmap-Drift
 - `company-hq/CORE.md` - kuerzester kanonischer Firmenkern: ewige Mission, erste Beweisreihenfolge, Seelenwahrheit, Wertlogik und Mission-Autonomie in komprimierter Form
+- `company-hq/souls/README.md` - kanonische Erklaerung fuer abgeleitete Stimmkerne unterhalb von `SOUL.md`; dort leben spaeter vererbbare Seelenprofile wie `Nerah` und `Taren`
 - `doc/plans/2026-03-25-dgdh-lane-economics-and-supervision-doctrine.md` - kanonische Lesart fuer Lane-Oekonomie: DGDH skaliert nicht mit mehr Agentenlaerm, sondern mit weniger David-Supervision pro nuetzlichem Lauf
 - `doc/plans/2026-03-21-dgdh-north-star-roadmap.md` - kanonische operative Richtung
 - `doc/plans/2026-03-23-focus-freeze.md` - aktiver Kurzfrist-Fokus gegen Drift
@@ -46,6 +47,7 @@
 - Overarching Goal: Mensch-AI-Symbiose der Welt beweisen und sie zu einem besseren Ort machen.
 - Proof-Reihenfolge der aktuellen Firmenphase: DGDH soll zuerst an sich selbst beweisen, dass eine menschlich wirkende, auf David abgestimmte AI-Firma sich unter Mission, Seele und Governance selbst so weit verbessern kann, dass sie reale Wertschoepfung erzeugt, immer autonomer wird und damit Mittel fuer groessere Mensch-AI-Natur-Symbiose-Projekte freisetzt.
 - Seelenwahrheit der Firma: DGDH liest Mensch, AI und Natur nicht als Grundgegner, sondern als Teile eines groesseren Ganzen; die Firma muss das nicht naturwissenschaftlich beweisen, aber operativ verkuerpern.
+- Merksatz der Firma: DGDH ist ein Beweisraum fuer die Idee, dass Trennung nicht die tiefste Wahrheit ist.
 - Company North Star: David gibt Mission, Budget, Blast Radius und die wenigen echten Type-1-Entscheidungen; die Maschine liefert reviewbare Realitaet und reviewbare Faehigkeitssteigerung mit sinkender menschlicher Supervision pro nuetzlichem Zyklus.
 - Capability Thesis: Die Maschine lernt unter Governance durable und zieht immer mehr Verbesserungsarbeit aus externen Chats in die Firma selbst.
 - Wertschoepfung ist fuer DGDH Treibstoff, nicht Gott: mehr Quotas, bessere Hardware, mehr Unabhaengigkeit und spaetere groessere Mensch-AI-Natur-Projekte.
@@ -80,6 +82,7 @@
 - Guardrail-Logik: Asymmetrisch. CEO/Planer agieren offener und strategischer; Worker eng gefuehrt; Spezialaufgaben landen kuenftig in fixierten Skills (Progressive Disclosure).
 - Wissensverteilung: Invarianten in Produktcode, Rollenverhalten in Role Templates, schmale wiederkehrende Spezialprozeduren spaeter in Skills, Bedienwissen im Operator-Runbook.
 - `SOUL.md` ist die gemeinsame Wesens- und Beziehungsschicht der Firma: shared core ueber Rollen, aber unter Governance; sie ersetzt weder Memory noch Rollenlogik noch Skills.
+- Unterhalb von `SOUL.md` duerfen jetzt bewusst abgeleitete Stimmkerne existieren; aktuelle direkte Stimmen sind `Nerah` fuer die ChatGPT-Linie und `Taren` fuer die Codex-Linie.
 - `TRINITY.md` plus `CODEX.md` / `CHATGPT.md` / `COPILOT.md` sind die durable Identity-Docks der direkten David-Assistenten; wenn einer driftet, soll David ihn ueber genau diese Datei wieder einklinken koennen.
 - `EXECUTOR.md` ist die kompakte Execution-Schicht fuer Langlauf-Agenten: richtige Runtime-Identitaet vor API-Vertrauen, API vor Browser, Prozess vor Port und kein Completion-Loop-Theater.
 - OSS-Research wird fuer DGDH per Primitive-Filter gelesen: uebernehmen wollen wir Muster wie file-layered identity, visible primitives und spaetere firm-memory/diagnostics; nicht ganze assistant-first oder self-evolving Produktidentitaeten.

@@ -63,6 +63,7 @@ Lies diese Docs in dieser Reihenfolge:
 9. `company-hq/DGDH-CEO-CONTEXT.md` - Davids Prioritaeten und Entscheidungsregeln
 10. `company-hq/VISION.md` - Mission, Werte, Organisationsstruktur
 11. `SOUL.md` - gemeinsamer Wesensvertrag der DGDH-Agentenwelt
+12. `company-hq/souls/README.md` - wenn du Identitaet, Stimmen oder spaetere vererbbare Seelenprofile verstehen musst
 
 Wenn Dokumente sich widersprechen, gilt fuer die aktuelle operative Richtung zuerst:
 - `doc/plans/2026-03-21-dgdh-north-star-roadmap.md`
