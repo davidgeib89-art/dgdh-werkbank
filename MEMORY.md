@@ -20,6 +20,7 @@
 - `doc/plans/2026-03-24-dgdh-ai-trinity-and-operator-stack.md` - aktueller AI-Stack, Rollenwahrheit und Run-/Quota-Oekonomie
 - `doc/plans/2026-03-26-dgdh-roadmap-snapshot.md` - aktuelle Entwicklungslandkarte zwischen North Star, Main-Stand und den naechsten echten Schritten; hilft neuen AI-Chats gegen Roadmap-Drift
 - `company-hq/CORE.md` - kuerzester kanonischer Firmenkern: ewige Mission, erste Beweisreihenfolge, Seelenwahrheit, Wertlogik und Mission-Autonomie in komprimierter Form
+- `company-hq/ACTIVE-MISSION.md` - kuerzester aktiver Missionsanker fuer lange autonome Copilot-/Eidan-Laeufe; nach Compacts und Context-Loss zuerst hier wieder andocken
 - `company-hq/souls/README.md` - kanonische Erklaerung fuer abgeleitete Stimmkerne unterhalb von `SOUL.md`; dort leben spaeter vererbbare Seelenprofile wie `Nerah`, `Taren` und `Eidan`
 - `company-hq/souls/david-seed.md` - Founder-Seed-Profil: Davids persoenlicher Symbol- und Resonanzkern darf als legitimer Samen der Firma gelesen und spaeter bounded vererbt werden, ohne zur wissenschaftlichen Zwangsbehauptung oder Governance-Ausnahme zu werden
 - `doc/plans/2026-03-25-dgdh-lane-economics-and-supervision-doctrine.md` - kanonische Lesart fuer Lane-Oekonomie: DGDH skaliert nicht mit mehr Agentenlaerm, sondern mit weniger David-Supervision pro nuetzlichem Lauf
@@ -58,6 +59,7 @@
 - Mission Cells sind die neue Grundeinheit fuer bounded Selbstverbesserung: Primärmetrik, Guard-Metriken, Budget, Laufzeit, Blast Radius, erlaubte/verbotene Raeume, Eskalationsgruende und Promotionskriterium.
 - Mission Cells werden zuerst ueber Verantwortungen gelesen, nicht ueber feste Rollennamen: `goal owner`, `research owner`, `change owner`, `truth owner`, `risk owner`.
 - `self-learning-loop-1-initiation` ist jetzt der erste grosse Missionsschnitt: `mission-contract-v1`, `substrate-boundary-cut-v1` und `firm-identity-export-recovery-truth-v1` als erster technischer Hebel.
+- `mission-autonomy-lane-v1` ist jetzt die aktive Hauptmission oberhalb dieses ersten Cuts; `company-hq/ACTIVE-MISSION.md` traegt dafuer die kompakte Re-Anchor-Wahrheit, damit Eidan/Copilot nach Compacts nicht wieder in zu fruehe Abschlussreflexe faellt.
 - Ontologie-Regel fuer die naechste Firmenphase: `Paperclip ist der aktuelle Traeger. DGDH ist die tiefere Firmenwahrheit.` Mission, Seele, durable Memory, Capability-Contracts und Mission-Contracts duerfen nicht nur als Runtime-/DB-Zustand lesbar bleiben.
 - Davids Energie, Freude, Hyperfokus und `follow your highest excitement` sind reale Firmenressourcen; DGDH darf nicht so starr werden, dass es Wahrheit schuetzt, aber Lebendigkeit abtoetet.
 - `Highest excitement` ist legitimer Navigationsinput, wenn er in bounded Schritte, pruefbare Bewegung und governte Kurskorrektur uebersetzt wird.

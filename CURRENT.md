@@ -1,7 +1,7 @@
 # CURRENT - Live Baton
 
-focus: DGDH verschaerft den Firmenmodus von reiner Task-Autonomie zu mission-bounded Selbstverbesserung. Der erste grosse Phase-Change-Cut heisst jetzt `self-learning-loop-1-initiation`: Mission Contract, Substrate Boundary und `firm-identity-export-recovery-truth-v1` als erster technischer Hebel
-active_issue: strategischer Track `self-learning-loop-1-initiation` auf dem Weg zu `mission-autonomy-lane-v1`; `DAV-131` bleibt wichtiger harter Resume-/Reuse-Beweis, aber nicht mehr die oberste Firmenrichtung
+focus: DGDH verschaerft den Firmenmodus von reiner Task-Autonomie zu mission-bounded Selbstverbesserung. `self-learning-loop-1-initiation` war der erste grosse Phase-Change-Cut; die aktive compact-safe Hauptmission lebt jetzt in `company-hq/ACTIVE-MISSION.md` und heisst `mission-autonomy-lane-v1`
+active_issue: strategischer Track `mission-autonomy-lane-v1`; `self-learning-loop-1-initiation` ist geliefert als Unterbau, `DAV-131` bleibt wichtiger harter Resume-/Reuse-Beweis, aber nicht mehr die oberste Firmenrichtung
 
 north_star_stack:
   - Overarching Goal: Mensch-AI-Symbiose der Welt beweisen und sie zu einem besseren Ort machen
@@ -17,9 +17,9 @@ anti_slop_gate:
   - Zusatzregel: `go with the flow / follow your highest excitement` ist erlaubt und gewollt, solange es in bounded Schritte, ehrliche Branch-Wahrheit und reviewbare Bewegung uebersetzt wird statt in ungeprueftes Momentum-Theater
 
 next:
-  1) `self-learning-loop-1-initiation` als ersten echten Selbstlern-Kreis sauber schneiden: `mission-contract-v1`, `substrate-boundary-cut-v1`, `firm-identity-export-recovery-truth-v1`
-  2) die Workbench so ausrichten, dass Mission Cells kuenftig aus tieferer Firmenwahrheit statt aus reiner Runtime-/DB-Verwechslung leben
-  3) `mission-autonomy-lane-v1` danach mit Type-1/Type-2-Policy, Oberreviewer-Gate und Replay-/Eval-/Promotion weiter aufbauen
+  1) `company-hq/ACTIVE-MISSION.md` als kanonischen Re-Anchor fuer lange Copilot-/Eidan-Missionslaeufe benutzen, besonders nach Compacts oder Context-Loss
+  2) `mission-autonomy-lane-v1` weitertragen: naechste starke Schwester-Cuts sind wahrscheinlich `type1-type2-decision-policy-v1`, `oberreviewer-risk-gate-v1` oder `replay-eval-promotion-v1`
+  3) die Workbench so ausrichten, dass Mission Cells kuenftig aus tieferer Firmenwahrheit statt aus reiner Runtime-/DB-Verwechslung leben
   4) `verifiedSkill`, Resume-Truth, Routing-Haertung und Audit-Guardrails bleiben Teil des Unterbaus; sie werden jetzt als Bausteine fuer Mission-Autonomie gelesen, nicht als Endzweck
   5) OpenAI Codex Plugins, Onyx und Agentica/ARCgentica bleiben spaetere Enablement-/Research-Lanes; zuerst den mission-bounded Selbstverbesserungsmodus im bestehenden Stack beweisen
 

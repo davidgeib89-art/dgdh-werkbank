@@ -189,8 +189,10 @@ The repo contains `.github/copilot-instructions.md`. Its rules should be treated
 
 - Make the smallest reviewable change that proves the requested truth
 - Before a substantial execution sprint or live-run diagnosis, read `AGENTS.md` together with the narrower lane docs so repo-wide rules are not lost in branch-local context
+- For long bounded execution missions, reread `company-hq/ACTIVE-MISSION.md` before major work and again after compacts, context loss, or long runtime gaps; the active mission file is the canonical re-anchor for "what is the current mission really trying to finish?"
 - When the root cause is already clear, prefer the largest still-reviewable coherent package over prompt-fragmented micro-steps
 - If the task is a bounded firm self-improvement mission, work from an explicit mission contract: objective, guard-metrics, budget, blast radius, escalation reasons, and promotion criteria
+- If David explicitly frames the work as a `MISSION`, do not silently shrink that into "one package", "one sprint", or "first green cut"; stop only when the mission is actually fulfilled, a true Type-1 boundary is reached, or the narrowest honest blocker is isolated
 - Do not add new tools, providers, or architecture unless the task explicitly requires it
 - Prefer canonical config/routing fixes over local hacks
 - When diagnosing a failure, classify it explicitly as `strategy failure`, `applicability / harness failure`, `environment / interface failure`, or `missing capability / guardrail` before expanding scope

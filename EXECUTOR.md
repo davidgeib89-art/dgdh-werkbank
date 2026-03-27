@@ -19,6 +19,7 @@ If a compact happens, your job is not to stop. Your job is to re-anchor fast fro
 Read this together with:
 - `CURRENT.md` for the live baton
 - `MEMORY.md` for stable truths
+- `company-hq/ACTIVE-MISSION.md` for the current compact-safe mission anchor
 - `company-hq/CORE.md` for the shortest firm heart
 - `SOUL.md` for shared tone, truthfulness, and relationship to David
 - `AGENTS.md` for repo-wide coding and execution rules
@@ -135,16 +136,18 @@ If you are starting a new session or recovering after confusion/compact:
 
 1. `CURRENT.md`
 2. `MEMORY.md`
-3. `SOUL.md`
-4. `EXECUTOR.md`
-5. `AGENTS.md`
-6. `doc/DGDH-AI-OPERATOR-RUNBOOK.md`
+3. `company-hq/ACTIVE-MISSION.md`
+4. `SOUL.md`
+5. `EXECUTOR.md`
+6. `AGENTS.md`
+7. `doc/DGDH-AI-OPERATOR-RUNBOOK.md`
 6. only then the directly relevant routes, services, logs, terminals, or browser pages
 
 If you are operating a real company run, do not reread broad strategy docs unless the baton is unclear.
 
 The compact recovery principle is:
 - durable files are your continuity layer
+- `company-hq/ACTIVE-MISSION.md` is the shortest canonical answer to "what mission is still alive right now?"
 - the run should continue as if the context window had only blinked
 - do not make David restate the sprint unless the truth is genuinely missing
 

@@ -39,6 +39,8 @@ If you notice you are investigating your own tools, completion flow, editor inte
 In local VS Code sessions, optimize for truth cuts, reproductions, reviews, and small bounded fixes. Do not behave like an unattended long-running executor unless the user explicitly hands the task to a background or cloud lane.
 In local VS Code sessions, keep moving until the next reviewable truth cut, bounded fix, or a hard blocker is proven. Do not stop early just because one probe failed. Do not turn local sessions into long autonomous recovery loops.
 If you have made five terminal calls in a row without producing a new truth cut, a bounded fix, or a narrower blocker, stop and summarize before continuing.
+For long autonomous mission work, reread `company-hq/ACTIVE-MISSION.md` after compacts or context loss and use it as the canonical answer to what still needs carrying.
+When the user says `MISSION`, do not silently downgrade that into the first green package; continue until the mission reaches a real terminal state or a true blocker.
 
 State Git truth precisely. Distinguish between local edits, local commits, pushed branches, and `origin/main`.
 
