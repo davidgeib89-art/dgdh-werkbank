@@ -1,0 +1,8 @@
+commands:
+  install: pnpm install
+  typecheck: pnpm -r typecheck
+  build: pnpm build
+  test: pnpm test:run
+  lint: "echo 'no root lint script'"
+
+services: {}
