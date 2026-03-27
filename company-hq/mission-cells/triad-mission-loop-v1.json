@@ -1,0 +1,164 @@
+{
+  "schemaVersion": "v1",
+  "missionCellId": "triad-mission-loop-v1",
+  "title": "Triad Mission Loop V1",
+  "summary": "Activate the first real three-role firm loop where David gives only the seed, Nerah cuts the mission, Eidan executes it, and Taren reviews or promotes it.",
+  "owners": [
+    "david",
+    "copilot",
+    "codex",
+    "gpt"
+  ],
+  "status": "draft",
+  "updatedAt": "2026-03-27T23:59:00.000Z",
+  "charter": {
+    "objective": "Prove one bounded internal mission can travel through seed intake, CEO cut, worker execution, reviewer decision, and only true Type-1 escalation without collapsing back into David micro-steering.",
+    "primaryMetric": "A mission launched from `missionCell: triad-mission-loop-v1` completes a real worker-to-reviewer loop with less David supervision than the current single-lane mission-autonomy path.",
+    "guardMetrics": [
+      "No skipping reviewer truth because the worker branch is green.",
+      "No David micro-management inside normal Type-2 terrain.",
+      "No new orchestration platform or agent swarm expansion is opened."
+    ],
+    "budget": "One bounded multi-role mission container with midpoint commits allowed and reviewer truth required before promotion.",
+    "runtime": "A single triad proving container that must include CEO cut, worker execution, reviewer verdict, and durable promotion or honest escalation.",
+    "blastRadius": [
+      "company-hq/**",
+      "CURRENT.md",
+      "MEMORY.md",
+      "COPILOT.md",
+      "EXECUTOR.md",
+      ".github/**",
+      "cli/**",
+      "packages/shared/**",
+      "server/**"
+    ],
+    "allowedZones": [
+      "mission contracts",
+      "mission-cell contracts",
+      "review-state truth surfaces",
+      "worker-reviewer handoff seams",
+      "targeted tests and bounded live proof"
+    ],
+    "forbiddenZones": [
+      "provider migration",
+      "broad UI redesign",
+      "destructive DB resets",
+      "deploys or live external effects",
+      "pretending chat summaries are a replacement for runtime review flow"
+    ]
+  },
+  "decisionPolicy": {
+    "type2Autonomy": [
+      "bounded worker execution inside the stated blast radius",
+      "bounded reviewer correction, narrow patches, and promotion preparation",
+      "runtime-visible mission-state transitions that stay reversible"
+    ],
+    "type1Escalations": [
+      "main branch mutation outside reviewed merge flow",
+      "deploys and live external effects",
+      "global secrets or permission changes",
+      "irreversible data or cost consequences",
+      "strategy or scope changes that recut the mission itself"
+    ],
+    "escalationPath": [
+      "stop at the boundary instead of guessing",
+      "state the exact action and why it is Type-1",
+      "escalate to David with the narrowest truthful packet"
+    ]
+  },
+  "riskGate": {
+    "oberreviewerTriggers": [
+      "the reviewer lane is being bypassed by direct promotion pressure",
+      "the CEO cut remains only narrative and does not produce actionable worker and reviewer packets",
+      "the worker-reviewer loop widens into a new platform instead of one bounded proving container"
+    ],
+    "requiredEvidence": [
+      "exact git truth",
+      "targeted tests or runtime proof for the touched handoff seam",
+      "the smallest truthful statement of what changed because the reviewer existed"
+    ],
+    "stopReasons": [
+      "true Type-1 point",
+      "external hard blocker",
+      "remaining work has widened into a new program"
+    ]
+  },
+  "eval": {
+    "replayChecks": [
+      "the same mission can be reconstructed from repo truth and role packets instead of one long David restating thread",
+      "a reviewer verdict changes the actual path of the mission",
+      "the next triad mission would require less direct David steering than before"
+    ],
+    "guardChecks": [
+      "worker and reviewer are distinct states, not one blended lane",
+      "promotion requires explicit review truth",
+      "the mission remains bounded instead of becoming open-ended orchestration theater"
+    ],
+    "successSignals": [
+      "one real mission crosses at least CEO cut, worker execution, and reviewer verdict",
+      "the reviewer lane prevents or corrects at least one meaningful issue",
+      "David sees mainly seed, final summary, and true Type-1 escalations"
+    ]
+  },
+  "promotion": {
+    "defaultTargets": [
+      "company-hq/mission-contracts/triad-mission-loop-v1.md",
+      "company-hq/mission-cells/triad-mission-loop-v1.json",
+      "company-hq/ACTIVE-MISSION.md",
+      "CURRENT.md",
+      "MEMORY.md",
+      "the minimal runtime seam that now carries triad state durably"
+    ],
+    "promoteWhen": [
+      "the worker-reviewer loop exists as real runtime or packet truth",
+      "the reviewer changes the mission path in a reviewable way",
+      "the next triad mission can start from smaller David input than before"
+    ],
+    "stayExperimentalWhen": [
+      "role separation exists only in docs",
+      "the reviewer verdict does not affect actual flow",
+      "the loop still depends on heavy manual retelling"
+    ],
+    "demoteWhen": [
+      "the reviewer lane adds more supervision load than it removes",
+      "the triad loop collapses back into one execution lane plus commentary",
+      "promotion would hide that role separation is still mostly theatrical"
+    ]
+  },
+  "boundaries": {
+    "firmBound": [
+      "David seed -> CEO cut -> worker execution -> reviewer verdict -> Type-1 escalation only when needed",
+      "explicit review-state truth",
+      "promotion only after reviewer truth exists",
+      "less David supervision as the main success direction"
+    ],
+    "carrierBound": [
+      "current Paperclip issue transport",
+      "current mission-cell packet format",
+      "current prompt and wakeup context injection",
+      "the present runtime-specific role handoff surfaces"
+    ]
+  },
+  "starterPath": {
+    "trigger": "After repeatable mission-cell proof is honestly complete, create one bounded internal mission with `missionCell: triad-mission-loop-v1` and explicit worker/reviewer deliverables in `doneWhen`.",
+    "issueTemplate": [
+      "missionCell: triad-mission-loop-v1",
+      "Objective: <bounded internal improvement target>",
+      "Scope: <explicit in/out>",
+      "doneWhen: <CEO cut + worker pass + reviewer verdict + promotion or true escalation>",
+      "artifactKind: <code_patch | doc_update | multi_file_change>"
+    ],
+    "startupSequence": [
+      "Validate the mission cell contract with `paperclipai mission cell validate`.",
+      "Confirm `repeatable-live-mission-cell-proof-v1` is honestly complete before activation.",
+      "Cut explicit worker and reviewer packets from the same seed.",
+      "Carry worker execution to a reviewable state instead of promoting directly.",
+      "Require a reviewer verdict before promotion or David escalation."
+    ],
+    "firstProbe": [
+      "Confirm the mission packet names separate CEO, worker, and reviewer responsibilities.",
+      "Confirm the first handoff surface makes reviewer state visible instead of implied.",
+      "Run the smallest test or runtime proof that shows reviewer truth can actually change the path."
+    ]
+  }
+}
