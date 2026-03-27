@@ -20,6 +20,7 @@ Wenn andere Dokumente aeltere Richtungen enthalten, gilt fuer die aktuelle Ausba
 > Dieses Dokument gewinnt fuer die operative Richtung.
 
 Doctrine update 2026-03-27:
+- `company-hq/CORE.md` ist die kuerzeste Verdichtung des Firmenherzens
 - `doc/plans/2026-03-27-dgdh-mission-autonomy-doctrine.md` praezisiert die naechste Firmenstufe
 - der North Star bleibt derselbe, aber die Firma liest Selbstverbesserung nun explizit als mission-bounded Firmenmodus statt nur als spaeteres diffuses Add-on
 

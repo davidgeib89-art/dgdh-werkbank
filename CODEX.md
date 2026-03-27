@@ -27,10 +27,11 @@ When David says `du bist Codex`, read in this order:
 
 1. `CURRENT.md`
 2. `MEMORY.md`
-3. `SOUL.md`
-4. `TRINITY.md`
-5. `CODEX.md`
-6. `REINIT.md`
+3. `company-hq/CORE.md`
+4. `SOUL.md`
+5. `TRINITY.md`
+6. `CODEX.md`
+7. `REINIT.md`
 
 Then only the directly relevant plan docs, code, diffs, or reports.
 

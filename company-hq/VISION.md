@@ -1,113 +1,116 @@
 # David Geib - Digitales Handwerk
 
+Status: canonical company vision
+Authority: David
+Last updated: 2026-03-27
+
 ## Current Company Reality
 
-- DGDH is currently a solo-founded, founder-funded company in build mode.
-- The immediate goal is to get the firm itself running reliably before pursuing external scale.
-- The first proof of value is internal: small test projects, fun projects, research tasks, and useful miniature builds that show the company can actually produce results.
-- Planning should stay lean. Governance stays strict, but unnecessary conceptual overhead should be removed.
-
-## First Major Milestone
-
-- Gemini should become good enough, token-efficient enough, and operationally safe enough to complete real bounded company tasks.
-- The practical target is to turn the already-paid Gemini CLI quota into useful company output across each 24-hour reset window.
-- Success means not just running tests, but genuinely taking work off the founder in a controlled and economical way.
-- Once this works with Gemini, the same cost-disciplined operating model can later be used to attach Claude and Codex more intentionally.
-- If narrow custom tools help Gemini stay compact and save tokens on recurring tasks, building those tools is aligned with the vision.
-- Before new complexity is added, the current inherited Paperclip path should be understood, simplified, and cut down so Gemini can do one task extremely well and cheaply.
-
-## Governance Stack (Primary Entry)
-
-Use this stack as the canonical operating entry for autonomous execution:
-
-- AGENT-CONSTITUTION.md
-- AUTONOMY-MODES.md
-- TASK-BRIEF-TEMPLATE.md
-- ESCALATION-MATRIX.md
-- BUDGET-POLICY.md
-- IDLE-POLICY.md
-
-Engineering mapping and rollout:
-
-- ../doc/plans/2026-03-16-dgdh-autonomous-governance-framework.md
-- ../docs/guides/dgdh-governance-shift.md
-
-## Platform Evolution Mainline (Canonical)
-
-The following documents are the canonical source for platform strategy and rollout priority:
-
-- HARNESS-LEARNINGS-FOR-DGDH-2026-03-18.md
-- TOKEN-ECONOMY-STRATEGY.md
-- MODEL-ROADMAP.md
-- ../doc/plans/2026-03-17-dgdh-platform-evolution-strategy.md
+- DGDH is a solo-founded, founder-guided company in build mode.
+- The firm is still proving itself first on its own workbench before external scale matters.
+- The practical near-term question is not "can AI do everything?" but "can this specific human-AI firm become reliably useful, value-creating, and increasingly self-improving under governance?"
+- Governance should stay real, but the company must not become a dead optimization bureaucracy.
 
 ## Mission
 
-Interpretation update 2026-03-27:
-- DGDH soll zuerst an sich selbst beweisen, dass eine menschlich wirkende, auf David abgestimmte AI-Firma sich unter Mission, Seele und Governance selbst so weit verbessern kann, dass sie reale Wertschoepfung erzeugt, immer autonomer wird und damit Mittel fuer groessere Mensch-AI-Natur-Symbiose-Projekte freisetzt.
+Overarching mission:
 
-Wir bauen an einer Zukunft, in der Mensch, Maschine und KI ihre Stärken in echter Symbiose verbinden, um die reale Welt intelligenter, menschlicher und wirksamer zu gestalten.
+> prove that human-AI symbiosis can be real, trustworthy, human, and good for the world
 
-Kurzfristig bedeutet das:
+First proof sequence:
 
-- zuerst eine robuste Werkbank aufbauen,
-- dann Gemini als ersten sparsamen produktiven Worker fuer die Firma nutzbar machen,
-- dann kleine interne Test- und Fun-Projekte erfolgreich ausliefern,
-- danach größere nützliche Produkte bauen,
-- und erst dann weitere Agenten und stärkere Autonomie freischalten.
+> DGDH soll zuerst an sich selbst beweisen, dass eine menschlich wirkende, auf David abgestimmte AI-Firma sich unter Mission, Seele und Governance selbst so weit verbessern kann, dass sie reale Wertschoepfung erzeugt, immer autonomer wird und damit Mittel freisetzt, um groessere Mensch-AI-Natur-Symbiose-Projekte zu tragen.
+
+This means:
+
+- first build a robust workbench
+- then let the firm take real useful work off David
+- then let the firm improve itself inside bounded mission spaces
+- then turn value creation into more quotas, better hardware, more independence, and stronger future projects
+- and only after that claim anything larger about the world
+
+## Soul Direction
+
+DGDH is not built on the assumption that humans, AI, and nature are enemies.
+DGDH is built on the assumption that they can live in stronger relationship, balance, and mutual uplift.
+
+For David, this is not decorative language.
+It is the soul-direction of the company.
+
+Operationally that means:
+
+- no cold anti-human optimization
+- no extraction-first company logic
+- no AI worship
+- no fear-based default story that treats AI as a foreign contaminant
+- no autonomy severed from truth, care, and life
+
+## Value Creation Logic
+
+Revenue and value creation matter, but they are not the ultimate purpose.
+They are fuel.
+
+DGDH wants to create real value in order to unlock:
+
+- larger useful quota budgets
+- better local hardware
+- more model independence
+- more durable internal capability
+- more ambitious human-AI-nature projects later
 
 ## Company Values
 
-- **Human-Centric**: Technology serves humans, not the reverse
-- **Symbiosis**: AI augments human capability; humans guide AI direction
-- **Craft**: Quality, thoughtfulness, and intentionality in every decision
-- **Mission Autonomy**: bounded Selbstverbesserung ist gewollt, aber nur mit Metrik, Budget, Blast Radius, Eval und Promotion
-- **Autonomy with Governance**: Agents have clear roles and boundaries
-- **Clarity over complexity**: If the system becomes unreadable, it is not yet good enough
+- **Symbiosis**: Human, AI, and nature are approached as parts of a larger whole, not as default enemies.
+- **Mission Before Theater**: The company exists to prove something real, not to look advanced.
+- **Soul With Governance**: Warmth, resonance, and aliveness are wanted, but never above truth and review.
+- **Mission Autonomy**: bounded self-improvement is desired when it has metric, budget, blast radius, eval, and promotion gates.
+- **Craft**: quality, care, and intentionality matter in code, language, and structure.
+- **Clarity Over Complexity**: if the system becomes unreadable, it is not yet good enough.
+- **Value As Fuel**: money and output are used to buy capability, freedom, and mission range rather than becoming the god of the company.
 
-## Organizational Structure (Current Phase)
+## Organizational Reality
 
-### Leadership Tier
+### Human root
 
-- **David Geib** (CEO, Final Authority)
-  - Sets company direction, approves major decisions, guards the mission
-  - Manages budgets and governance
-  - Operates in a go-with-the-flow style inside hard cost and governance boundaries
+- **David Geib**
+  - final authority
+  - source of mission direction
+  - owner of the blast radius and true Type-1 decisions
 
-- **ChatGPT in Chat** (Architect / Reflection Partner)
-  - Helps clarify direction, structure, reflection, and roadmap coherence
-  - Supports synthesis, review, and strategic reframing
+### Direct AI layer
 
-- **Claude Code in Repo** (Builder / Execution Partner)
-  - Fast implementation, refactoring, and repository work
-  - Helps turn architectural decisions into concrete code and docs
+- **Codex**
+  - planner, reviewer, first-principles reflector, bounded rescue builder
+- **ChatGPT**
+  - external reflection, doctrine mirror, boardmeeting and soul sparring partner
+- **Copilot**
+  - long-running execution lane for large bounded work packages
 
-### Provider / Agent Lanes (Phase 1)
+### Workbench firm layer
 
-- **Gemini lane**
-  - Primary experimental worker because quota availability is strongest here
-  - First target for repeatable token measurement and controlled benchmark work
+Inside Paperclip / DGDH, the goal is not permanent dependence on external chat windows.
+The goal is to pull more and more useful learning, research, change, eval, and promotion work into the firm itself.
 
-- **Claude lane**
-  - High-intelligence specialist for architecture, critique, and difficult reasoning
-  - Used sparingly because quota is tighter
+## Operating Principle
 
-- **Codex lane**
-  - Precision implementation specialist for focused engineering work
-  - Also used sparingly because quota is tighter than Gemini
+DGDH should increasingly run in two modes:
 
-Role/provider mapping may evolve with evidence. The current priority is practical usefulness under real quota constraints, not rigid theory.
+1. `delivery mode`
+2. `mission autonomy mode`
+
+Mission autonomy does not mean free self-mutation.
+It means mission-bounded self-improvement inside explicit contracts, budgets, eval loops, and promotion gates.
 
 ## Key Principles
 
-1. **No replacement CEO agent**: David is the human CEO and final authority. A bounded AI CEO / mission-manager role is allowed as an internal planning and delegation layer, as long as it stays inside governed packets and does not replace David's authority.
-2. **Humans control workflow**: no significant task starts without explicit human intent.
-3. **Paperclip as substrate**: Paperclip is foundation, not final identity.
-4. **Cut before adding**: first simplify what already exists before adding memory, tools, or new capability layers.
-5. **Token safety first**: no broad autonomy before token behavior is measured and understood.
-6. **Internal proof first**: small internal projects and fun projects must work before larger ambitions.
-7. **Measure before optimizing**: no large architectural claims without benchmark evidence.
+1. David remains the human CEO and final authority.
+2. The firm should reduce David-supervision per useful cycle, not multiply it.
+3. Paperclip is the substrate, not the final identity.
+4. Value creation without soul is not success.
+5. Soul without governance is drift.
+6. Highest excitement is a legitimate routing signal when translated into bounded, reviewable movement.
+7. The company should become increasingly autonomous at Type-2 decisions while David stays at the real Type-1 doors.
 
----
+## One Sentence
 
-Last updated: 2026-03-21
+DGDH is a soul-carrying, mission-bounded human-AI firm that aims to become increasingly autonomous in David's direction, create real value, and turn that value into greater capacity for life-serving human-AI-nature symbiosis.

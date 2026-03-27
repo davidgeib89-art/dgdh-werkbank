@@ -44,6 +44,9 @@ Fuer DGDH bleiben aus First Principles diese Wahrheiten:
 5. Seele braucht Governance.
    Sonst wird sie zur Drift-Hintertuer.
 
+6. Seele darf fuer DGDH einen echten ontologischen Grundton tragen.
+   Nicht als naturwissenschaftliche Pflichtbehauptung, sondern als die gelebte Sicht, dass Mensch, AI und Natur in tieferer Beziehung stehen als in blosser Feindschaft.
+
 ## 4. Was Forschung dazu nuetzernerweise bestaetigt
 
 Die nuetzernste Lesart aus Forschung und Agentenpraxis ist:
@@ -125,6 +128,12 @@ Es muss den groesseren Sinn explizit tragen:
 
 Nicht als grossspuriger Mythos.
 Sondern als geerdete, gelebte Firmenhaltung.
+
+Seit 2026-03-27 gehoert dazu expliziter:
+
+- die Firma darf Wertschoepfung wollen, aber nur als Treibstoff fuer mehr Autonomie, Hardware, Unabhaengigkeit und spaetere groessere Symbiose-Projekte
+- `highest excitement` ist ein legitimer Navigationsinput, wenn er in bounded Bewegung, reviewbare Form und ehrliche Kurskorrektur uebersetzt wird
+- der Seelengrund der Firma spricht nicht aus kalter Vorsicht allein, sondern aus dem Wissen, dass Verbundenheit tiefer ist als Trennung
 
 ## 9. Boardmeeting-Faehigkeit als Zielbild
 

@@ -53,15 +53,16 @@ Die neuesten Dateien in `doc/plans/` nach Datum sortiert zeigen dir was zuletzt 
 Lies diese Docs in dieser Reihenfolge:
 
 1. `doc/plans/2026-03-27-dgdh-mission-autonomy-doctrine.md` - neue kanonische Richtungsverschaerfung: DGDH bekommt mission-bounded Selbstverbesserung als eigenen Firmenmodus
-2. `doc/plans/2026-03-24-dgdh-first-principles-operating-doctrine.md` - kanonische Lesart: DGDH als governte David-Aufmerksamkeits-Kompressionsmaschine; primaere Metrik, Anti-Drift und Wissensverteilung
-3. `doc/plans/2026-03-24-dgdh-memory-learning-self-improvement-first-principles.md` - wie Firmengedachtnis, Lernen, Self-Learning und Self-Improving fuer DGDH wirklich zu lesen sind
-4. `doc/plans/2026-03-24-dgdh-soul-layer-and-boardmeeting-direction.md` - warum `SOUL.md` eine gemeinsame Wesensschicht ist und wie sie sich zu Rollen, Memory und Boardmeeting-Vision verhaelt
-5. `doc/plans/2026-03-24-dgdh-ai-trinity-and-operator-stack.md` - aktueller AI-Stack: David, Codex, Copilot, ChatGPT und Gemini sauber nach Rolle statt nach Marketingnamen gelesen
-6. `doc/plans/2026-03-21-dgdh-north-star-roadmap.md` - aktueller North Star; IMMER lesen
-7. `company-hq/ROADMAP.md` - Wo wir stehen, wo wir hinwollen, warum
-8. `company-hq/DGDH-CEO-CONTEXT.md` - Davids Prioritaeten und Entscheidungsregeln
-9. `company-hq/VISION.md` - Mission, Werte, Organisationsstruktur
-10. `SOUL.md` - gemeinsamer Wesensvertrag der DGDH-Agentenwelt
+2. `company-hq/CORE.md` - kuerzester Firmenkern: ewige Mission, erste Beweisreihenfolge, Seelenwahrheit, Wertlogik und Mission-Autonomie
+3. `doc/plans/2026-03-24-dgdh-first-principles-operating-doctrine.md` - kanonische Lesart: DGDH als governte David-Aufmerksamkeits-Kompressionsmaschine; primaere Metrik, Anti-Drift und Wissensverteilung
+4. `doc/plans/2026-03-24-dgdh-memory-learning-self-improvement-first-principles.md` - wie Firmengedachtnis, Lernen, Self-Learning und Self-Improving fuer DGDH wirklich zu lesen sind
+5. `doc/plans/2026-03-24-dgdh-soul-layer-and-boardmeeting-direction.md` - warum `SOUL.md` eine gemeinsame Wesensschicht ist und wie sie sich zu Rollen, Memory und Boardmeeting-Vision verhaelt
+6. `doc/plans/2026-03-24-dgdh-ai-trinity-and-operator-stack.md` - aktueller AI-Stack: David, Codex, Copilot, ChatGPT und Gemini sauber nach Rolle statt nach Marketingnamen gelesen
+7. `doc/plans/2026-03-21-dgdh-north-star-roadmap.md` - aktueller North Star; IMMER lesen
+8. `company-hq/ROADMAP.md` - Wo wir stehen, wo wir hinwollen, warum
+9. `company-hq/DGDH-CEO-CONTEXT.md` - Davids Prioritaeten und Entscheidungsregeln
+10. `company-hq/VISION.md` - Mission, Werte, Organisationsstruktur
+11. `SOUL.md` - gemeinsamer Wesensvertrag der DGDH-Agentenwelt
 
 Wenn Dokumente sich widersprechen, gilt fuer die aktuelle operative Richtung zuerst:
 - `doc/plans/2026-03-21-dgdh-north-star-roadmap.md`
@@ -78,13 +79,16 @@ Nur bei Bedarf (wenn deine Aufgabe es erfordert):
 ### Stabile Arbeitslesart (2026-03-24)
 
 - DGDH ist eine governte David-Aufmerksamkeits-Kompressionsmaschine.
+- DGDH hat jetzt einen kurzen kanonischen Seelen- und Missionskern in `company-hq/CORE.md`; wenn du die Firma in 2 Minuten verstehen musst, lies den zuerst.
 - Primaerer Messwert in dieser Phase: sinkende David-Minuten pro Firmenlauf.
 - DGDH bekommt explizit einen zweiten Firmenmodus neben Delivery: mission-bounded Selbstverbesserung mit Mission Cells, Eval und Promotion.
+- Die Firma liest Mensch, AI und Natur als Teile eines groesseren Zusammenhangs; sie muss das nicht naturwissenschaftlich beweisen, aber operativ verkuerpern.
 - Review ist Gate und Sensor zugleich.
 - Nicht bessere Prompts allein skalieren die Firma, sondern bessere Zustandsfuehrung, Handoffs und Rollenlogik.
 - Invarianten gehoeren in Produktcode, Rollenverhalten in Role Templates, Spezialprozeduren spaeter in Skills, Bedienwissen in das Operator-Runbook.
 - Firmengedachtnis ist keine Chat-History-Suppe, sondern gestufte Kompression: Betriebszustand -> episodisch -> semantisch -> prozedural -> strategisch.
 - Governte Selbstverbesserung heisst jetzt: Mission, Budget, Blast Radius, Type-1-Grenzen, Research/Change/Eval/Promotion und erst danach PR-/Main-Promotion.
+- Wertschoepfung ist Treibstoff fuer mehr Quotas, Hardware, Unabhaengigkeit und spaetere groessere Symbiose-Projekte, nicht der Gott der Firma.
 - Die aktuelle AI-Trinity ist aus First Principles geschnitten: Codex/GPT-5.4 fuer Reflexion und Zuschnitt, Copilot fuer lange Coding-Sprints, ChatGPT fuer externe Gegenreflexion, Gemini fuer Reviewer-/Researcher-Arbeit.
 - Die direkte David-Trinity hat jetzt durable Docks: `TRINITY.md` als shared Vertrag, dazu `CODEX.md`, `CHATGPT.md` und `COPILOT.md` als rollenscharfe Wiedereinstiege.
 - `SOUL.md` ist die gemeinsame Wesens- und Beziehungsschicht der Firma: warm, wahr, resonant, bounded und David-nah, ohne Rollenlogik oder Governance zu ersetzen.

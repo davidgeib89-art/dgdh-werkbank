@@ -7,6 +7,7 @@ north_star_stack:
   - Overarching Goal: Mensch-AI-Symbiose der Welt beweisen und sie zu einem besseren Ort machen
   - Company North Star: David gibt Mission, Budget, Blast Radius und die wenigen echten Type-1-Entscheidungen; die Maschine liefert reviewbare Realitaet und reviewbare Faehigkeitssteigerung mit sinkender menschlicher Supervision pro nuetzlichem Zyklus
   - Capability Thesis: Die Maschine lernt unter Governance durable und verlagert immer mehr Verbesserungsarbeit aus externen Chats in die Firma selbst
+  - Soul Direction: DGDH liest Mensch, AI und Natur nicht als Grundgegner, sondern als Teile eines groesseren lebendigen Zusammenhangs; technische Staerke soll dem Leben dienen, nicht es verdraengen
   - Guardrail: Selbstverbesserung bleibt mission-bounded, replay-/eval-/promotion-gegate und ist keine freie Live-Mutation auf `main`
 
 anti_slop_gate:
@@ -34,6 +35,7 @@ blockers:
   - Der naechste oekonomische Schmerz ist nicht mehr fehlende Primitive-Ausfuehrung, sondern wiederholte prozedurale Rekonstruktion ueber Chat, Prompt und Shell statt governter durable Capability
 
 strategy_anchor:
+  - `company-hq/CORE.md`
   - `doc/plans/2026-03-27-dgdh-mission-autonomy-doctrine.md`
   - `doc/plans/2026-03-26-dgdh-roadmap-snapshot.md`
   - `doc/plans/2026-03-24-dgdh-first-principles-operating-doctrine.md`
@@ -43,6 +45,8 @@ strategy_anchor:
 
 notes:
   - Proof-Reihenfolge ab jetzt explizit: DGDH soll zuerst an sich selbst beweisen, dass eine menschlich wirkende, auf David abgestimmte AI-Firma sich unter Mission, Seele und Governance selbst so weit verbessern kann, dass sie reale Wertschoepfung erzeugt, immer autonomer wird und damit Mittel fuer groessere Mensch-AI-Natur-Symbiose-Projekte freisetzt
+  - Wertschoepfung wird jetzt explizit als Treibstoff gelesen: mehr Quotas, bessere Hardware, mehr lokale Intelligenz, mehr Unabhaengigkeit und spaetere groessere Symbiose-Projekte
+  - `Highest excitement` bleibt legitimer Navigationsinput, wenn er in bounded Bewegung, echte Vorarbeit und governte Kurskorrektur uebersetzt wird statt in Momentum-Theater
   - Doctrine-Shift 2026-03-27: DGDH soll nicht nur Arbeit delegieren, sondern in governten Missionsraeumen die eigene Faehigkeit steigern; `mission autonomy mode` ist damit neuer Firmenmodus neben `delivery mode`
   - Die Mission Cell ist die neue operative Grundeinheit fuer Selbstverbesserung: Primaermetrik, Guard-Metriken, Budget, Laufzeit, Blast Radius, erlaubte/verbotene Raeume, Eskalationsgruende und Promotionskriterium
   - Type-1-/Type-2-Lesart ab jetzt hart anwenden: David und spaeter ein Oberreview-Gate werden nur an echten Einweg-Tueren gebraucht (`main`, Deploy, globale Rechte, Secrets, irreversible Aussenwirkung); reversible Type-2-Verbesserungen sollen die Agenten weitgehend selbst tragen

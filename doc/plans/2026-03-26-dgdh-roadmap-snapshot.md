@@ -29,6 +29,7 @@ Die Roadmap wird ab jetzt mit einer schaerferen Firmenlesart gelesen:
 > DGDH soll in governten Missionsraeumen die eigene Faehigkeit selbst steigern.
 
 Der Companion dafuer ist:
+- `company-hq/CORE.md`
 - `doc/plans/2026-03-27-dgdh-mission-autonomy-doctrine.md`
 
 ## 2. Das stabile Herzstueck

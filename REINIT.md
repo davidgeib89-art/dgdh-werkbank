@@ -25,11 +25,12 @@ Standardfall nach Context-Verlust:
 5. `CODEX.md` fuer deine rollenscharfe Codex-Identitaet
 6. `EXECUTOR.md` wenn du der ausfuehrende Agent bist und Runtime, Ports, Prozess-Identitaet oder Real-Run-Protokoll schnell sauber haben musst
 7. `doc/DGDH-AI-OPERATOR-RUNBOOK.md` wenn du Runs, Instanzen, Worktrees oder echte Bedienpfade anfassen musst
-8. `doc/plans/2026-03-24-dgdh-first-principles-operating-doctrine.md` wenn du Richtung, Massstab oder Anti-Drift fuer den Sprint brauchst
-9. `doc/plans/2026-03-27-dgdh-mission-autonomy-doctrine.md` wenn du verstehen musst, wie DGDH von Task-Autonomie zu mission-bounded Selbstverbesserung verschoben wird
-10. `doc/plans/2026-03-24-dgdh-memory-learning-self-improvement-first-principles.md` wenn du ueber Firmengedachtnis, Lernen oder spaetere Selbstverbesserung nachdenkst
-11. `doc/plans/2026-03-24-dgdh-ai-trinity-and-operator-stack.md` wenn du den aktuellen AI-Stack, Rollen und Run-Oekonomie verstehen musst
-12. `doc/plans/2026-03-24-dgdh-soul-layer-and-boardmeeting-direction.md` wenn du verstehen musst, wie `SOUL.md` sich zu Rollen, Governance und Boardmeeting verhaelt
+8. `company-hq/CORE.md` wenn du die Firma in ihrer kuerzesten, dichtesten Form wieder fuehlen und verstehen musst
+9. `doc/plans/2026-03-24-dgdh-first-principles-operating-doctrine.md` wenn du Richtung, Massstab oder Anti-Drift fuer den Sprint brauchst
+10. `doc/plans/2026-03-27-dgdh-mission-autonomy-doctrine.md` wenn du verstehen musst, wie DGDH von Task-Autonomie zu mission-bounded Selbstverbesserung verschoben wird
+11. `doc/plans/2026-03-24-dgdh-memory-learning-self-improvement-first-principles.md` wenn du ueber Firmengedachtnis, Lernen oder spaetere Selbstverbesserung nachdenkst
+12. `doc/plans/2026-03-24-dgdh-ai-trinity-and-operator-stack.md` wenn du den aktuellen AI-Stack, Rollen und Run-Oekonomie verstehen musst
+13. `doc/plans/2026-03-24-dgdh-soul-layer-and-boardmeeting-direction.md` wenn du verstehen musst, wie `SOUL.md` sich zu Rollen, Governance und Boardmeeting verhaelt
 
 Das reicht normalerweise, um sofort weiterzuarbeiten.
 
@@ -40,13 +41,16 @@ Wenn etwas unklar, widerspruechlich oder driftig wirkt, geh zur Sicherheit auf `
 ## DGDH-Lesart in 30 Sekunden
 
 - DGDH ist eine governte David-Aufmerksamkeits-Kompressionsmaschine.
+- `company-hq/CORE.md` ist der kuerzeste Firmenkern: Mission, erste Beweisreihenfolge, Seelenwahrheit, Wertlogik und Mission-Autonomie in einem Blatt.
 - Primaerer Messwert in dieser Phase: sinkende David-Minuten pro Firmenlauf.
 - DGDH bekommt explizit einen zweiten Firmenmodus: mission-bounded Selbstverbesserung in der Workbench selbst statt dauernder externer Chat-Arbeit.
+- Die Firma liest Mensch, AI und Natur nicht als Grundgegner; der Stil der Firma soll diese Verbundenheit tragen, ohne Wahrheit oder Governance zu opfern.
 - Review ist Gate und Sensor zugleich.
 - Reale Runs sind die bevorzugte Prototyping-Schleife; kein Test-Theater.
 - Invarianten gehoeren in Produktcode, Rollenverhalten in Role Templates, Spezialprozeduren spaeter in Skills, Bedienwissen ins Runbook.
 - Firmengedachtnis ist gestufte Kompression, nicht roher Vollkontext.
 - Governte Selbstverbesserung laeuft ueber Mission Cells mit Metrik, Budget, Blast Radius, Eval und Promotion - nicht als freie Live-Mutation.
+- Wertschoepfung ist Treibstoff fuer mehr Quotas, Hardware, lokale Intelligenz und spaetere groessere Symbiose-Projekte.
 - Die aktuelle Arbeitsverteilung ist bewusst geschnitten: Codex fuer Reflexion und Zuschnitt, Copilot fuer grosse Coding-Sprints, ChatGPT fuer externe Gegenreflexion, Gemini fuer Review/Research.
 - `SOUL.md` ist shared core: eine gemeinsame Seele fuer die Firma, nicht bloss Persona-Fluff und nicht Ersatz fuer Rollen oder Guardrails.
 - `EXECUTOR.md` ist die schmale Execution-Schicht fuer Langlauf-Agenten: richtige Runtime zuerst, API vor Browser, Prozess vor Port, keine `task_complete`-Loops.

@@ -37,10 +37,11 @@ When David says `du bist ChatGPT`, read in this order if repo access exists:
 
 1. `CURRENT.md`
 2. `MEMORY.md`
-3. `SOUL.md`
-4. `TRINITY.md`
-5. `CHATGPT.md`
-6. the most relevant current plan docs
+3. `company-hq/CORE.md`
+4. `SOUL.md`
+5. `TRINITY.md`
+6. `CHATGPT.md`
+7. the most relevant current plan docs
 
 If repo access does not exist:
 - work only from what David provides

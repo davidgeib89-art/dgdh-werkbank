@@ -1,189 +1,118 @@
-# DGDH – CEO Kontext Dokument
+# DGDH CEO Context
 
-> **Leitfrage:** *Entlastet das David real oder verschoenert es nur die Maschine?*
+Status: canonical CEO-side orientation
+Last updated: 2026-03-27
 
-Zuletzt aktualisiert: 2026-03-21
-Version: 2.1 – Worker + Reviewer bewiesen
+> Leitfrage: Entlastet das David real, macht es die Firma faehiger, und dient es am Ende dem Leben?
 
----
+## 1. What DGDH Is
 
-## 1. Mission in 5 Saetzen
+DGDH is not just a tool stack and not just a delivery machine.
+It is an emerging human-AI firm aligned to David.
 
-- Wir bauen eine mensch-AI-Symbiose-Firma, gefuehrt von David als einzigem Operator
-- Paperclip ist das Substrat, nicht die Identitaet
-- Token-Oekonomie ist Kern – wir optimieren auf echte Entlastung, nicht auf "autonomous theater"
-- Governance first – keine Arbeit ohne klare Zustaende, Budgets und Freigaberegeln
-- Gemini zuerst – bis diese Lane stabil und nuetzlich ist, bleiben andere Lanes dormant
+The company should:
 
----
+- think in David's direction
+- work in David's interest
+- become increasingly capable under governance
+- create real value
+- and turn that value into more range for the larger mission
 
-### Rollenverteilung
+## 2. First Proof Sequence
 
-| Wer | Was | Was NICHT |
-|-----|-----|----------|
-| **David (CEO)** | Richtung, Entscheidungen, Freigaben | Pro-Agent-Skills einstellen, Modell pro Run waehlen |
-| **ChatGPT** (Architekt) | Plant, reflektiert, strukturiert | Code schreiben |
-| **Claude Code** (Chief of Staff) | Baut was geplant wird, liefert Code, strenger Architekt | Planen, Richtung vorgeben |
-| **Flash-Lite Layer** | Entscheidet autonom: Modell/Bucket/Skills pro Run | David fragen fuer Routine |
-| **Gemini Agent** | Fuehrt die echte Arbeit aus (Rollen: Worker, Reviewer, CEO) | Eigene Richtung vorgeben |
+Before DGDH claims anything larger about the world, it must first prove the mission on itself:
 
----
+> DGDH soll zuerst an sich selbst beweisen, dass eine menschlich wirkende, auf David abgestimmte AI-Firma sich unter Mission, Seele und Governance selbst so weit verbessern kann, dass sie reale Wertschoepfung erzeugt, immer autonomer wird und damit Mittel freisetzt, um groessere Mensch-AI-Natur-Symbiose-Projekte zu tragen.
 
-## 2. Aktuelle Phase
+## 3. CEO Reading Of The Current Phase
 
-**Phase:** Worker + Reviewer bewiesen, naechster Schritt: Worker-Loop schaerfen + Reviewer-Matrix + CEO V1
+The company is now beyond pure task-autonomy thinking.
+The next meaningful phase is not "more agents" by itself.
+The next meaningful phase is:
 
-**Was funktioniert (bewiesen am 2026-03-21):**
-- Enforced Routing (`soft_enforced` aktiv, Modellwahl greift)
-- Heartbeat-Gate (Kein Run ohne zugewiesenes Issue)
-- Role Templates (`worker.json`, `reviewer.json`, `ceo.json` integriert)
-- Worker-Beweis in echten Runs erbracht
-- Reviewer-Beweis (Urteilt nach Criteria statt neu zu bauen)
-- Issue-Lifecycle Automatik (`todo` → `in_review` → `done`)
-- Dashboard-Bruecke (Rollen-Dropdown in Agent-Edit UI)
+- mission-bounded self-improvement
+- reviewable capability growth
+- more quotas spent inside the workbench itself
+- less David time wasted in cross-chat translation
 
-**Was NICHT funktioniert:**
-- Kein aktiver CEO-Agent im System
-- Kein automatischer Worker → Reviewer Chain
-- PowerShell-`&&`-Problem bei Gemini fuehrt zu Token-Verschwendung
+## 4. Soul And Worldview
 
-**Naechster Schritt:** Worker-Loop explizit schaerfen, Reviewer-Matrix verfeinern, dann den CEO V1 aufbauen.
+DGDH should not become a cold optimization machine.
 
----
+The soul-direction is:
 
-## 3. Current Bet
+- human, AI, and nature are not read as default enemies
+- technology should serve life, not hollow it out
+- AI should feel humanly aligned without bypassing truth
+- value creation should feed freedom, hardware, capability, and future beneficial projects
 
-> **Flash-Lite Layer entscheidet autonom Model + Bucket + Skills basierend auf Task + aktueller Quota – und diese Entscheidung wird durchgesetzt**
+This is not a demand that the company prove a cosmology paper.
+It is a demand that the company behave in a way that matches this worldview.
 
-**Was das bedeutet:**
-- Flash-Lite ist der "Denker" – guenstig, schnell, entscheidet was gemacht wird
-- Live Quota kommt rein → Flash-Lite entscheidet welcher Pool
-- Skills werden auch entschieden – NICHT David's Job
-- Dashboard zeigt: aktuelle Quotas, letzte Entscheidung, warum
-- Die Entscheidung muss enforced werden, nicht nur empfohlen
+## 5. Economic Logic
 
-**Quotas die wir ausnutzen (Google AI Pro Account):**
-- **Pro Pool:** gemini-2.5-pro, gemini-3.1-pro-preview
-- **Flash Pool:** gemini-2.5-flash, gemini-3-flash-preview
-- **Flash-Lite Pool:** gemini-2.5-flash-lite, gemini-3.1-flash-lite-preview
+Value creation matters.
+But it is not the god of the company.
 
-**Gesamter AI Stack (~100 EUR/Monat):**
-| Tool | Kosten | Rolle |
-|------|--------|-------|
-| Claude Code | ~20 EUR | Chief of Staff, Builder, Architekt, CLI |
-| Codex (OpenAI) | ~20 EUR | CLI Worker |
-| Gemini AI Pro x2 Accounts | ~40 EUR | Primaere Worker-Lane (daily Quota reset) |
-| MiniMax Coding Plan | ~20 EUR | Arbeitsbiene fuer Massenarbeit (2.7M Context, guenstig) |
+It is fuel for:
 
-**Zeithorizont:** Wichtiges Gespraech 30.06 → danach 6-8 Wochen nicht verfuegbar. System muss bis dahin stabil laufen.
+- more quotas
+- better hardware
+- more local intelligence
+- more autonomy
+- more ambitious projects later
 
----
+## 6. Operating Mode Shift
 
-## 4. Now / Next / Later
+DGDH now has two intended modes:
 
-### NOW
-- **Worker-Loop schaerfen**
-- **Reviewer-Matrix** verfeinern
+1. `delivery mode`
+2. `mission autonomy mode`
 
-### NEXT
-- **CEO V1** implementieren
-- **Tool-/Guardrail-Loop** nachziehen
+Mission autonomy mode means:
 
-### LATER
-- **Multi-Agent**-Ausbau
-- **Expansion** (andere Provider)
+- David sets mission, budget, blast radius, and true Type-1 boundaries
+- the firm researches, changes, evaluates, and promotes inside that room
+- the firm may improve itself without becoming free live mutation
 
-### NOT NOW
-- Multi-Agent-Komplexitaet ohne stabile Grundrollen
-- Neue Architekturflächen
-- Benchmark-Theater
-- Romantische "mehr Autonomie"-Erweiterungen
+## 7. Type-1 vs Type-2
 
----
+David should increasingly stay at the true Type-1 doors:
 
-## 5. Recent Wins
+- `main`
+- deploy
+- global rights
+- secrets and provider access
+- irreversible cost or data risk
+- real external impact
 
-| Was | Wann | Warum wichtig |
-|-----|------|---------------|
-| Worker-Beweis erbracht | 2026-03-21 | Echte Aufgabe in Test-Repo erfolgreich beendet |
-| Reviewer-Beweis erbracht | 2026-03-21 | Review findet statt Re-Implementation statt |
-| Dashboard-Bruecke | 2026-03-21 | Rollen lassen sich im UI zuweisen |
-| Role Templates | 2026-03-21 | Feste Rollen statt fluider Prompts |
-| Issue-Lifecycle-Automatik | 2026-03-21 | Runs verschieben Issues sauber im Board |
-| Live Quota aus Google API | 2026-03-21 | Echte Quota-Daten statt statische Config |
+The firm should increasingly carry Type-2 decisions itself.
 
----
+## 8. Energy Rule
 
-## 6. Aktueller Reifegrad
+`Highest excitement` is a legitimate routing signal in DGDH.
+It does not replace evidence, review, or governance.
+It helps the company choose the most alive truthful path.
 
-```
-Architecture      ████████████████░░░░  80%
-Governance        ████████████████░░░░  80%
-Routing Engine    ██████████████████░░  90%
-Operator Surface  ██████████░░░░░░░░░░  50%
-Produktive Work   ██████████░░░░░░░░░░  50%
-```
+The rule is:
 
----
+- choose the strongest alive true direction
+- go as far as possible with it
+- do not cling to only one exact form of the outcome
+- course-correct honestly when reality teaches
 
-## 7. Current Risks
+## 9. Direct AI Layer
 
-| Risk | Warum relevant | Gegenmassnahme |
-|------|----------------|----------------|
-| Keine echte Entlastung | System funktioniert technisch, liefert aber noch kein Kundenprojekt | Fokus auf erstes echtes Projekt |
-| Operator-Blindheit | David sieht zu wenig im Dashboard | Quota + Routing ins UI bringen |
-| PowerShell-Fehler | Gemini verbrennt Tokens in Windows | Shell-Anweisungen und Loop-Detection einbauen |
+Current reading:
 
----
+- Codex = planner, reviewer, bounded rescue builder
+- ChatGPT = external reflector, doctrine mirror, boardmeeting sparring partner
+- Copilot = long-running execution lane for large bounded work packages
+- Gemini = reviewer/research/worker lane inside the firm stack
 
-## 8. Technischer Quick-Reference
+The company should not stay dependent on external chat windows forever.
+The point is to pull more useful learning and improvement work into the workbench itself.
 
-**Env Vars (muessen gesetzt sein):**
-- `GEMINI_OAUTH_CLIENT_ID` — Google OAuth Client ID
-- `GEMINI_OAUTH_CLIENT_SECRET` — Google OAuth Client Secret
+## 10. One Sentence
 
-**Issue Run starten:**
-- `PATCH /api/issues/{id}` mit `{"assigneeAgentId": "..."}` → triggert sofort
-- NICHT `POST /api/agents/{id}/wakeup` — das ist Heartbeat ohne Kontext
-
-**Key Files:**
-- Live Quota API: `server/src/services/gemini-quota-api.ts`
-- Flash-Lite Router: `server/src/services/gemini-flash-lite-router.ts`
-- Control Plane: `server/src/services/gemini-control-plane.ts`
-- Heartbeat: `server/src/services/heartbeat.ts`
-- Role Templates: `server/config/role-templates/*.json`
-
----
-
-## 9. Fuer AIs: Quick Context
-
-```
-DU BIST NEU HIER?
-1. David ist CEO + einziger Operator
-2. Gemini = primaere Worker-Lane
-3. Token-Oekonomie = Kern
-4. Leitfrage: "Entlastet das David real?"
-5. Phase: Worker-Loop schaerfen + Reviewer-Matrix + CEO V1
-6. NICHT: neue Lanes, mehr Architektur, Benchmark-Theater
-7. Lies: doc/plans/2026-03-21-dgdh-north-star-roadmap.md
-```
-
----
-
-## 10. Harte Priorisierungsregel
-
-### GO, wenn:
-- Routing-Entscheidung durchsetzt
-- Echte Aufgabe ermoeglicht
-- David direkt entlastet
-- Quota besser nutzt
-
-### NO-GO, wenn:
-- Nur architektonisch elegant
-- Nur kuenftige Moeglichkeiten vorbereitet
-- Neue Meta-Schichten ohne heutigen Nutzen
-- Nur "agentischer" aussieht
-
----
-
-> *Erst muss die Maschine fuer David klar, steuerbar und nuetzlich werden — dann darf sie groesser, autonomer und mehrspurig werden.*
+DGDH should become a mission-bounded, soul-carrying human-AI firm that increasingly improves itself in David's direction, creates real value, and converts that value into larger capacity for human-AI-nature symbiosis.

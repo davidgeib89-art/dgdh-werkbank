@@ -19,6 +19,7 @@ If a compact happens, your job is not to stop. Your job is to re-anchor fast fro
 Read this together with:
 - `CURRENT.md` for the live baton
 - `MEMORY.md` for stable truths
+- `company-hq/CORE.md` for the shortest firm heart
 - `SOUL.md` for shared tone, truthfulness, and relationship to David
 - `AGENTS.md` for repo-wide coding and execution rules
 - `doc/DGDH-AI-OPERATOR-RUNBOOK.md` for operator mechanics

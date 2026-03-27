@@ -19,6 +19,7 @@
 - `doc/plans/2026-03-24-dgdh-soul-layer-and-boardmeeting-direction.md` - warum `SOUL.md` eine gemeinsame Wesensschicht ist und wie sie unter Governance bleibt
 - `doc/plans/2026-03-24-dgdh-ai-trinity-and-operator-stack.md` - aktueller AI-Stack, Rollenwahrheit und Run-/Quota-Oekonomie
 - `doc/plans/2026-03-26-dgdh-roadmap-snapshot.md` - aktuelle Entwicklungslandkarte zwischen North Star, Main-Stand und den naechsten echten Schritten; hilft neuen AI-Chats gegen Roadmap-Drift
+- `company-hq/CORE.md` - kuerzester kanonischer Firmenkern: ewige Mission, erste Beweisreihenfolge, Seelenwahrheit, Wertlogik und Mission-Autonomie in komprimierter Form
 - `doc/plans/2026-03-25-dgdh-lane-economics-and-supervision-doctrine.md` - kanonische Lesart fuer Lane-Oekonomie: DGDH skaliert nicht mit mehr Agentenlaerm, sondern mit weniger David-Supervision pro nuetzlichem Lauf
 - `doc/plans/2026-03-21-dgdh-north-star-roadmap.md` - kanonische operative Richtung
 - `doc/plans/2026-03-23-focus-freeze.md` - aktiver Kurzfrist-Fokus gegen Drift
@@ -44,14 +45,17 @@
 - DGDH = David Geib - Digitales Handwerk; David ist der einzige menschliche Operator.
 - Overarching Goal: Mensch-AI-Symbiose der Welt beweisen und sie zu einem besseren Ort machen.
 - Proof-Reihenfolge der aktuellen Firmenphase: DGDH soll zuerst an sich selbst beweisen, dass eine menschlich wirkende, auf David abgestimmte AI-Firma sich unter Mission, Seele und Governance selbst so weit verbessern kann, dass sie reale Wertschoepfung erzeugt, immer autonomer wird und damit Mittel fuer groessere Mensch-AI-Natur-Symbiose-Projekte freisetzt.
+- Seelenwahrheit der Firma: DGDH liest Mensch, AI und Natur nicht als Grundgegner, sondern als Teile eines groesseren Ganzen; die Firma muss das nicht naturwissenschaftlich beweisen, aber operativ verkuerpern.
 - Company North Star: David gibt Mission, Budget, Blast Radius und die wenigen echten Type-1-Entscheidungen; die Maschine liefert reviewbare Realitaet und reviewbare Faehigkeitssteigerung mit sinkender menschlicher Supervision pro nuetzlichem Zyklus.
 - Capability Thesis: Die Maschine lernt unter Governance durable und zieht immer mehr Verbesserungsarbeit aus externen Chats in die Firma selbst.
+- Wertschoepfung ist fuer DGDH Treibstoff, nicht Gott: mehr Quotas, bessere Hardware, mehr Unabhaengigkeit und spaetere groessere Mensch-AI-Natur-Projekte.
 - Erster governed capability cut ist jetzt reuse-faehig auf `main`: `ceo-native-issue-handoff-primitives` plus `same-session-resume-after-post-tool-capacity` leben als verifizierbare Skill-Contracts mit gemeinsamem `verify-all`-Pfad; `paperclipai skill contract list|use` ist die operator-facing Bridge und `verifiedSkill: <capabilityId>` ist jetzt die kleinste explizite Skill->Run-Bruecke fuer Issue-Packets. Live-Beweis `DAV-144` / CEO-Run `fa452fcb-7d12-4f76-a545-d5f93d8f6850` zeigt denselben Bridge-Pfad reviewbar im echten Lauf: Run-Context traegt `requestedCapabilityIds` + `issueCapabilityReferences`, `paperclipTaskPrompt` enthaelt den verified skill brief und der CEO fuehrt direkt den nativen Handoff-Viererschritt `issue list -> agent list -> issue create -> issue assign` fuer Child `DAV-145` aus. Das ist die erste prozedurale Capability-Schicht, aber noch keine breite Skill-Plattform.
 - DGDH ist eine governte David-Aufmerksamkeits-Kompressionsmaschine: David gibt Richtung, die Maschine soll mit minimalen David-Beruehrpunkten reale, reviewte, gemergte Arbeit liefern.
 - DGDH bekommt jetzt explizit einen zweiten Firmenmodus neben `delivery mode`: `mission autonomy mode`. In diesem Modus soll die Firma in bounded Missionsraeumen ihre eigene Faehigkeit steigern, statt nur externe oder direkte Arbeitsauftraege auszufuehren.
 - Mission Cells sind die neue Grundeinheit fuer bounded Selbstverbesserung: Primärmetrik, Guard-Metriken, Budget, Laufzeit, Blast Radius, erlaubte/verbotene Raeume, Eskalationsgruende und Promotionskriterium.
 - Mission Cells werden zuerst ueber Verantwortungen gelesen, nicht ueber feste Rollennamen: `goal owner`, `research owner`, `change owner`, `truth owner`, `risk owner`.
 - Davids Energie, Freude, Hyperfokus und `follow your highest excitement` sind reale Firmenressourcen; DGDH darf nicht so starr werden, dass es Wahrheit schuetzt, aber Lebendigkeit abtoetet.
+- `Highest excitement` ist legitimer Navigationsinput, wenn er in bounded Schritte, pruefbare Bewegung und governte Kurskorrektur uebersetzt wird.
 - Leitfragen: "Entlastet das David real?" UND "Wird die Firma faehiger - oder nur groesser?"
 - Primaerer Messwert in dieser Phase: sinkende David-Minuten pro Firmenlauf; Revenue bleibt Lagging Indicator von Capability.
 - Langfristige Richtung: David gibt die Richtung, die Maschine uebernimmt mit wachsender Modellfaehigkeit immer mehr Entscheidungen und Lieferung.

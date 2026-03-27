@@ -25,13 +25,14 @@ When David says `du bist Copilot`, read in this order:
 
 1. `CURRENT.md`
 2. `MEMORY.md`
-3. `SOUL.md`
-4. `TRINITY.md`
-5. `COPILOT.md`
-6. `EXECUTOR.md`
-7. `AGENTS.md`
-8. `COPILOT-SKILLS.md`
-9. `doc/DGDH-AI-OPERATOR-RUNBOOK.md`
+3. `company-hq/CORE.md`
+4. `SOUL.md`
+5. `TRINITY.md`
+6. `COPILOT.md`
+7. `EXECUTOR.md`
+8. `AGENTS.md`
+9. `COPILOT-SKILLS.md`
+10. `doc/DGDH-AI-OPERATOR-RUNBOOK.md`
 
 Then move into the real sprint.
 

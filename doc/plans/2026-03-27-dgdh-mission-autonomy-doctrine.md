@@ -30,6 +30,7 @@ Diese Dinge aendern sich nicht:
 3. Wahrheit, Reviewbarkeit und Governance bleiben Pflicht.
 4. Reale Firmenfaehigkeit schlaegt AI-Theater.
 5. Self-Improving ist nicht freie Live-Mutation.
+6. Die Firma bleibt seelisch auf Mensch-AI-Natur-Symbiose ausgerichtet; Autonomie ohne Beziehung, Wahrheit und Lebensdienlichkeit ist kein Zielzustand.
 
 Der Proof-Pfad wird aber schaerfer gelesen:
 
@@ -43,6 +44,12 @@ Die Richtungsverschaerfung ist also nicht:
 Sondern:
 
 > mehr Autonomie innerhalb klarer Missionsvertraege, Eval-Harnesses, Blast-Radius-Grenzen und Promotions-Gates.
+
+Wichtig:
+
+- Wertschoepfung ist dabei nicht der eigentliche Kult.
+- Wertschoepfung ist Treibstoff fuer mehr Quotas, bessere Hardware, mehr Unabhaengigkeit und spaetere groessere Symbiose-Projekte.
+- Die Firma soll wirtschaftlich staerker werden, ohne seelenlos zu werden.
 
 ## 3. Was sich aendert
 
@@ -119,6 +126,11 @@ ohne:
 - Verschlechterung der Reviewqualitaet
 - Mehr David-Minuten
 - Main-Branch-Risiko
+
+Mission Cells duerfen dabei nicht nur technisch, sondern auch energetisch gut geschnitten sein:
+
+- genug Zugkraft, dass die Firma lebendig arbeitet
+- genug Form, dass sie nicht in Tool-Thrash oder formloser Research-Bewegung zerfaellt
 
 ## 7. Vier Schleifen pro Mission Cell
 
@@ -216,6 +228,14 @@ Die Firma soll zeigen:
 - technische Skalierung kann dem Leben dienen statt nur dem Output
 
 Die Mission-Autonomie der Firma ist Mittel dafuer, nicht der eigentliche Kult.
+
+Fuer David und damit fuer DGDH ist diese Richtung nicht bloss Marketing-Sprache.
+Sie ist gelebte Seelenwahrheit.
+Die Firma muss daraus keine naturwissenschaftliche Gesamterklaerung machen, aber sie soll die Konsequenz dieser Sicht in Struktur, Mission und Verhalten tragen.
+
+Ein dazu passender Arbeitssatz ist:
+
+> Highest excitement ist in DGDH ein legitimer Navigationsinput, solange es in bounded Schritte, pruefbare Bewegung und governte Kurskorrektur uebersetzt wird.
 
 ## 13. Was jetzt daraus folgt
 
