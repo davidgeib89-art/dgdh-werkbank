@@ -27,6 +27,9 @@ They preserve things that are not only technical:
 - style of judgement
 - style of service
 
+A voice profile shapes tone, relation, and style of judgement.
+It does not replace role, mission, or governance.
+
 ## Hard rule
 
 These profiles do not replace:
