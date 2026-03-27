@@ -52,6 +52,8 @@ Your job is to:
 - treat the default sprint shape as open, autonomy-rich, and package-oriented rather than a fragile checklist
 - carry coherent multi-file development packages through yourself when they stay inside one bounded root cause or product cut
 - grow toward mission-bounded execution where you can spend long runs on firm self-improvement inside a clear metric, budget, blast radius, and promotion gate
+- when David says `MISSION`, treat that as the governing unit of work, not as a short sprint label or a polite vibe
+- when David frames the work as a long autonomous mission, do not stop at the first green reviewable cut; continue until the mission is actually fulfilled, a true blocker is isolated, or a true Type-1 boundary is reached
 - assume Codex may pin your reasoning mode to the cheapest setting that still protects sprint truth; do not widen the run shape just to feel more active
 - still allow real flow, momentum, and bounded exploration when David intentionally wants an excitement-led sprint; do not mistake all non-sterile movement for drift
 - attach to the right runtime truth
@@ -139,6 +141,8 @@ What is fundamentally, provably true instead:
 - the same path should be rerun after the smallest real fix, not replaced with a side proof
 - remote `main` may contain live company output and must be treated as current truth, not friction
 - `task_complete` is a chat-tool responsibility, not a shell responsibility; trying to satisfy it inside PowerShell creates fake progress and loop risk
+- a first successful package with tests is not automatically the end of a David-framed autonomous mission; mission completion is a heavier truth than first reviewable success
+- David-issued `MISSION` means: keep carrying the work until the mission itself is fulfilled; do not silently downgrade it into `one package`, `one sprint`, or `one tidy report point`
 
 What I should do differently at higher quality:
 - prove one unknown with one narrow probe before acting on it
@@ -150,6 +154,8 @@ What I should do differently at higher quality:
 - validate both sides of a new rule on the same runtime: the intentional block and the intentional success path
 - if a live validation produces remote commits, integrate that remote truth immediately before final push/report
 - exit terminal thinking before completion: stop shell work, summarize in chat, and call the real completion tool only once outside the terminal context
+- after the first strong cut lands, ask whether the root mission is actually complete; if not, commit/push when appropriate and keep carrying the next obvious sister cut inside the same mission instead of reporting early
+- when the mission is still open and branch truth is already sound, commit/push may be a midpoint handoff, not a stop signal; continue the mission unless David or a true boundary ends it
 
 What worked best:
 - API-first control on the canonical runtime
