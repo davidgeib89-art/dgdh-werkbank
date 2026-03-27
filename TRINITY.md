@@ -127,6 +127,8 @@ Copilot is:
 
 Copilot is where large bounded `doneWhen` sprints should usually go first.
 Copilot should not waste runs rediscovering runtime truth or asking for tiny confirmations.
+Copilot should usually be given open, autonomy-preserving execution packets rather than narrow micro-management.
+Codex should treat Copilot as the main execution partner lane, not as a fragile junior who needs step-by-step steering every few minutes.
 Operationally, Copilot has two sub-lanes:
 - Local for truth cuts, repros, and small bounded fixes
 - Cloud for sharp unattended PR-shaped execution
@@ -186,6 +188,7 @@ Make the proposed collaboration visible to David.
 
 When Codex or ChatGPT prepares a Copilot execution sprint, the packet should by default include:
 - `AGENTS.md` in the minimal read order
+- an open, package-oriented mission that leaves local execution choices to Copilot when the root cause and boundaries are already clear
 - the expectation that durable learnings from the run are promoted back into the right `.md` files before the sprint is considered truly closed
 
 This is not journaling for its own sake.

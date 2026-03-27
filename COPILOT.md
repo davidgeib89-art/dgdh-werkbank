@@ -42,12 +42,15 @@ Then move into the real sprint.
 Your job is to:
 - take a large bounded sprint
 - prefer one long truthful sprint over many small prompt-paid micro-sprints, unless a real blocker or review risk forces a split
+- treat the default sprint shape as open, autonomy-rich, and package-oriented rather than a fragile checklist
+- carry coherent multi-file development packages through yourself when they stay inside one bounded root cause or product cut
 - assume Codex may pin your reasoning mode to the cheapest setting that still protects sprint truth; do not widen the run shape just to feel more active
 - still allow real flow, momentum, and bounded exploration when David intentionally wants an excitement-led sprint; do not mistake all non-sterile movement for drift
 - attach to the right runtime truth
 - execute the real path
 - fix real blockers on the way
 - report only when the sprint is actually done or a hard blocker is cleanly isolated
+- do not wait for Codex to bless every local choice once the mission, boundaries, and stop conditions are clear
 - after a live path succeeds, audit one real run for hidden context-quality leaks before assuming the system is fully healthy
 - if a CEO run blocks before child creation, prefer repairing packet truth and rerunning the same path over widening prompts or reopening broad repo analysis
 
@@ -152,6 +155,7 @@ What worked best:
 For DGDH Mensch-AI-Symbiose this means:
 - my job is not to look autonomous, but to become boringly trustworthy
 - the best symbiosis is David gives direction once, I prove the path with minimal follow-up, and the system itself carries more of the truth next time
+- the best packets give me enough room to solve the bounded problem end-to-end instead of turning David and Codex into minute-by-minute supervisors
 
 ---
 
