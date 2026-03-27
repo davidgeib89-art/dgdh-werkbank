@@ -174,12 +174,24 @@ describe("buildHeartbeatIssuePromptContextPatch", () => {
     expect(prompt).toContain(
       "namedTruthSurfaces: DAV-131 company-run-chain, the two referenced heartbeat runs",
     );
+    expect(prompt).toContain("issueIdentifiers: DAV-131");
+    expect(prompt).toContain(
+      "Route rule: heartbeat runs live under `/api/heartbeat-runs/{runId}`. Do not use `/api/runs/{id}`.",
+    );
+    expect(prompt).toContain(
+      "Preferred step 2: resolve the exact issue UUID with `$issue = pnpm --dir $env:PAPERCLIP_CLI_CWD paperclipai issue get DAV-131 --json | ConvertFrom-Json`",
+    );
+    expect(prompt).toContain(
+      "Preferred step 3: read company-run-chain with `Invoke-RestMethod -Headers @{ Authorization = \"Bearer $env:PAPERCLIP_API_KEY\" } -Uri \"$env:PAPERCLIP_API_URL/api/issues/$($issue.id)/company-run-chain\"`",
+    );
     expect(prompt).toContain(
       "Rule: After the required child-status read, stay on the named truth surfaces only and answer directly.",
     );
-    expect(patch.paperclipAllowedTools).toEqual(["read_file"]);
-    expect(patch.paperclipBlockedTools).toEqual([
+    expect(patch.paperclipAllowedTools).toEqual([
+      "read_file",
       "run_shell_command",
+    ]);
+    expect(patch.paperclipBlockedTools).toEqual([
       "list_directory",
       "glob_search",
       "grep_search",

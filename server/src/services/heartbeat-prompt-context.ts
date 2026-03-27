@@ -335,6 +335,16 @@ function buildIssueTaskPrompt(
           `- namedTruthSurfaces: ${directAnswerAuditTruth.namedTruthSurfaces.join(
             ", ",
           )}`,
+          `- issueIdentifiers: ${
+            directAnswerAuditTruth.issueIdentifiers.length > 0
+              ? directAnswerAuditTruth.issueIdentifiers.join(", ")
+              : "none"
+          }`,
+          `- heartbeatRunIds: ${
+            directAnswerAuditTruth.heartbeatRunIds.length > 0
+              ? directAnswerAuditTruth.heartbeatRunIds.join(", ")
+              : "none"
+          }`,
           `- archaeologyForbidden: ${
             directAnswerAuditTruth.forbidArchaeology ? "yes" : "no"
           }`,
@@ -350,6 +360,22 @@ function buildIssueTaskPrompt(
           }`,
           "- Rule: After the required child-status read, stay on the named truth surfaces only and answer directly.",
           "- Rule: Do not open project lists, activity feeds, dashboards, repo files, or other archaeology unless a named surface fails or stronger truth contradicts it.",
+          "- Route rule: heartbeat runs live under `/api/heartbeat-runs/{runId}`. Do not use `/api/runs/{id}`.",
+          "- Auth rule: direct API reads use `Authorization: Bearer $env:PAPERCLIP_API_KEY`.",
+          "- Preferred step 1: `pnpm --dir $env:PAPERCLIP_CLI_CWD paperclipai issue list --company-id $env:PAPERCLIP_COMPANY_ID --parent-id $env:PAPERCLIP_TASK_ID --json`",
+          ...(directAnswerAuditTruth.issueIdentifiers.length > 0
+            ? [
+                `- Preferred step 2: resolve the exact issue UUID with \`$issue = pnpm --dir $env:PAPERCLIP_CLI_CWD paperclipai issue get ${directAnswerAuditTruth.issueIdentifiers[0]} --json | ConvertFrom-Json\``,
+                `- Preferred step 3: read company-run-chain with \`Invoke-RestMethod -Headers @{ Authorization = \"Bearer $env:PAPERCLIP_API_KEY\" } -Uri \"$env:PAPERCLIP_API_URL/api/issues/$($issue.id)/company-run-chain\"\``,
+              ]
+            : []),
+          ...directAnswerAuditTruth.heartbeatRunIds.map(
+            (runId, index) =>
+              `- Preferred step ${
+                directAnswerAuditTruth.issueIdentifiers.length > 0 ? index + 4 : index + 2
+              }: read heartbeat run ${runId} with \`Invoke-RestMethod -Headers @{ Authorization = \"Bearer $env:PAPERCLIP_API_KEY\" } -Uri \"$env:PAPERCLIP_API_URL/api/heartbeat-runs/${runId}\"\``,
+          ),
+          "- Stop rule: once the named surfaces answer the question, reply directly and stop.",
         ]
       : [];
 
@@ -715,9 +741,8 @@ export function buildHeartbeatIssuePromptContextPatch(input: {
   }
 
   if (directAnswerAuditTruth?.bounded === true) {
-    patch.paperclipAllowedTools = ["read_file"];
+    patch.paperclipAllowedTools = ["read_file", "run_shell_command"];
     patch.paperclipBlockedTools = [
-      "run_shell_command",
       "list_directory",
       "glob_search",
       "grep_search",

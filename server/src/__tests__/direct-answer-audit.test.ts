@@ -20,12 +20,35 @@ describe("resolveDirectAnswerAuditTruth", () => {
         "DAV-131 company-run-chain",
         "the two referenced heartbeat runs",
       ],
+      issueIdentifiers: ["DAV-131"],
+      heartbeatRunIds: [],
       forbidChildCreation: true,
       forbidRepoReads: true,
       forbidGit: true,
       forbidArchaeology: true,
       forbidResumeTriggerChase: true,
     });
+  });
+
+  it("extracts exact heartbeat run ids from direct-answer audit descriptions", () => {
+    const result = resolveDirectAnswerAuditTruth({
+      title: "Final bounded direct-answer audit proof",
+      description: [
+        "verifiedSkill: same-session-resume-after-post-tool-capacity",
+        "Scope: Direct answer only. Read child issue status first, then inspect only DAV-131 company-run-chain and the two referenced heartbeat runs. No child creation. No code. No file edits. No git. No repo reads. No resume-trigger chase.",
+        "Named truth surfaces: DAV-131 company-run-chain; blocked run 011bbf57-c596-4008-8d2c-5d2b003d7d0f; resume run fd981453-1b54-44da-8d7a-8f3fe4a396c1.",
+      ].join("\n"),
+    });
+
+    expect(result).toEqual(
+      expect.objectContaining({
+        issueIdentifiers: ["DAV-131"],
+        heartbeatRunIds: [
+          "011bbf57-c596-4008-8d2c-5d2b003d7d0f",
+          "fd981453-1b54-44da-8d7a-8f3fe4a396c1",
+        ],
+      }),
+    );
   });
 
   it("stays null for non-audit packets", () => {

@@ -27,11 +27,31 @@ function readNamedTruthSurfaces(text: string | null): string[] {
   return splitNamedTruthSurfaces(onlyMatch?.[1]?.trim() ?? null);
 }
 
+function readIssueIdentifiers(text: string | null): string[] {
+  if (!text) return [];
+  return [...text.matchAll(/\b[A-Z][A-Z0-9]+-\d+\b/g)]
+    .map((match) => match[0]?.trim() ?? "")
+    .filter((entry) => entry.length > 0);
+}
+
+function readHeartbeatRunIds(text: string | null): string[] {
+  if (!text) return [];
+  return [...text.matchAll(/\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/gi)]
+    .map((match) => match[0]?.trim() ?? "")
+    .filter((entry) => entry.length > 0);
+}
+
+function unique(values: string[]): string[] {
+  return [...new Set(values)];
+}
+
 export interface DirectAnswerAuditTruth {
   bounded: boolean;
   directAnswerOnly: boolean;
   requiresChildStatusRead: boolean;
   namedTruthSurfaces: string[];
+  issueIdentifiers: string[];
+  heartbeatRunIds: string[];
   forbidChildCreation: boolean;
   forbidRepoReads: boolean;
   forbidGit: boolean;
@@ -54,7 +74,11 @@ export function resolveDirectAnswerAuditTruth(input: {
   const requiresChildStatusRead = /read child(?: issue)? status first/i.test(
     searchText,
   );
-  const namedTruthSurfaces = readNamedTruthSurfaces(scope ?? description ?? null);
+  const namedTruthSurfaces = unique(
+    readNamedTruthSurfaces(scope ?? description ?? null),
+  );
+  const issueIdentifiers = unique(readIssueIdentifiers(searchText));
+  const heartbeatRunIds = unique(readHeartbeatRunIds(searchText));
   const forbidChildCreation = /no child creation/i.test(searchText);
   const forbidRepoReads = /no repo reads?/i.test(searchText);
   const forbidGit = /no git(?: work)?/i.test(searchText);
@@ -85,6 +109,8 @@ export function resolveDirectAnswerAuditTruth(input: {
     directAnswerOnly,
     requiresChildStatusRead,
     namedTruthSurfaces,
+    issueIdentifiers,
+    heartbeatRunIds,
     forbidChildCreation,
     forbidRepoReads,
     forbidGit,
