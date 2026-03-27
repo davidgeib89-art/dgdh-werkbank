@@ -20,6 +20,7 @@ next:
   2) nur wenn derselbe enge Hebel weiter traegt: hoechstens an einen weiteren bewiesenen Pfad wie Same-Session-Resume haengen oder Verify-Evidence leicht haerten; keine implizite Skill-Magic bauen
   3) erst danach wieder urteilen, ob lokale Skill-Registry, Replay-backed Promotion, skill-aware Runtime-Nutzung fuer mehr als opt-in hints oder `child-created`-Resume-Edge-Cases wirklich `Core` statt `Later` sind
   4) OpenAI Codex Plugins als spaetere Codex-Enablement-Schicht im Blick behalten: nuetzlich fuer gebuendelte Codex-Skills, MCP-/App-Integrationen und schnelleres Codex-Docking, aber kein Ersatz fuer DGDH-Skill-Contracts, keine neue Produktform und nicht vor dem aktuellen Reuse-/Firmenlauf-Hebel
+  5) Agentica / ARCgentica als spaetere Research-Lane im Blick behalten: potenziell stark fuer stateful execution, direkte Primitive und bounded subagent state handoffs, aber erst als kleiner `agentica-translation-spike-v1`, wenn der aktuelle verified-skill-/Firmenlauf-Hebel sauber genug traegt
 
 blockers:
   - Der alte reine `assignment-to-run kickoff loss` ist fuer frische ready Packets nicht mehr der erste Blocker
@@ -51,6 +52,7 @@ notes:
   - Der Skill-Layer bleibt bewusst `v1`: zwei verifizierte Seeds plus `list|use|verify|verify-all` und opt-in `verifiedSkill`-Bridge sind echter Firmenhebel, aber noch keine breite Skill-Plattform und noch kein freies Self-Learning
   - Der naechste Core-Test ist deshalb nicht mehr "koennen wir Skill-Reuse beweisen?", sondern "spart dieser kleine governed capability layer auf weiteren echten Firmenlaeufen genug Wiederentdecken, um spaeter weitere Reuse-/Evidence-Schnitte zu rechtfertigen?"
   - OpenAI Codex Plugins sind fuer DGDH als spaetere Codex-Enablement-/Packaging-Schicht interessant: moegliche Buendelung von Codex-Skills, MCP-Config und App-Integrationen fuer schnelleres Codex-Onboarding; sie ersetzen weder `company-hq/capabilities/*` noch den Firmenkern und gehoeren erst spaeter hinter den aktuellen Reuse-/Firmenlauf-Hebel
+  - Agentica / ARCgentica sind fuer DGDH als spaetere Uebersetzungsquelle interessant, weil sie stateful execution, direkte Primitive und code-first Agentik staerken; die aktuelle Lesart ist aber ausdruecklich `Study-this-carefully, not build-this-now`: spaeter kleiner Translation-Spike statt neuer Kernstack, ARC-Score-Jagd oder AGI-Produktmythos
   - Salvage-Worktree/Branch fuer diesen Truth Cut: `C:\Users\holyd\DGDH\worktrees\dgdh-werkbank-salvage`, `copilot/resume-proof-budget-gate-salvage-v1`; Basis war sauberes `origin/main`, nicht der alte schmutzige Branch
   - Nur die nuetzlichen Resume-/Operator-Truth-Aenderungen wurden portiert; alte Artefakte `doc/archive/chat.json`, `server-3112.out.log`, `server-3112.err.log` blieben bewusst draussen
   - `DAV-131` beweist jetzt reviewbar die Zielkette: blocked Run `011bbf57-c596-4008-8d2c-5d2b003d7d0f` -> scheduler Resume `fd981453-1b54-44da-8d7a-8f3fe4a396c1`; `sessionIdAfter(blocked)` entspricht `sessionIdBefore(resume)` exakt

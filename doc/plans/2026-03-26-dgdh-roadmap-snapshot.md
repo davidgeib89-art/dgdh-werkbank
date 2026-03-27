@@ -137,6 +137,7 @@ sondern:
 - governed evolution lane
 - breitere operator-facing Run-Wahrheit
 - OpenAI Codex Plugins als spaetere Codex-Enablement-Schicht: DGDH-Kontext, Skills, MCP-/App-Integrationen fuer Codex sauber buendeln, aber ausdruecklich nicht als Ersatz fuer `company-hq/capabilities/*` oder als neuer Firmenkern
+- `agentica-translation-spike-v1` als spaetere Research-Lane: Agentica / ARCgentica auf 1-2 uebersetzbare Prinzipien fuer DGDH reduzieren, vor allem stateful execution, direkte Primitive und bounded state handoff
 
 ### `Not now`
 
@@ -145,6 +146,7 @@ sondern:
 - Registry-/DB-/UI-Breitensprint
 - neue grosse Provider-/Routing-Romantik
 - Codex-Plugin-Sprint als Hauptfokus vor dem Nachweis, dass der aktuelle `verifiedSkill`-/Reuse-Pfad auf weiteren echten Laufklassen sichtbar Minuten spart
+- Agentica- oder ARC-Integration als neuer Core-Stack, zweite Produktionsruntime oder AGI-/Benchmark-Hauptmythos vor dem weiteren Beweis, dass der aktuelle Firmenloop und Skill-Reuse im Alltag sichtbar Minuten spart
 
 ## 6. Wie Skills richtig zu lesen sind
 
