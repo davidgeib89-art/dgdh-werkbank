@@ -179,7 +179,7 @@ describe("buildHeartbeatIssuePromptContextPatch", () => {
       "Route rule: heartbeat runs live under `/api/heartbeat-runs/{runId}`. Do not use `/api/runs/{id}`.",
     );
     expect(prompt).toContain(
-      "Preferred step 2: resolve the exact issue UUID with `$issue = pnpm --dir $env:PAPERCLIP_CLI_CWD paperclipai issue get DAV-131 --json | ConvertFrom-Json`",
+      "Preferred step 2: resolve the exact issue UUID with `$issue = (Invoke-RestMethod -Headers @{ Authorization = \"Bearer $env:PAPERCLIP_API_KEY\" } -Uri \"$env:PAPERCLIP_API_URL/api/companies/$env:PAPERCLIP_COMPANY_ID/issues?q=DAV-131\") | Where-Object { $_.identifier -eq \"DAV-131\" } | Select-Object -First 1`",
     );
     expect(prompt).toContain(
       "Preferred step 3: read company-run-chain with `Invoke-RestMethod -Headers @{ Authorization = \"Bearer $env:PAPERCLIP_API_KEY\" } -Uri \"$env:PAPERCLIP_API_URL/api/issues/$($issue.id)/company-run-chain\"`",
