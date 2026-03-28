@@ -1,0 +1,36 @@
+{
+  "featureId": "agent-status-command",
+  "status": "pass",
+  "findings": [],
+  "sharedStateObservations": [],
+  "transcriptSkeleton": {
+    "workerSessionId": "5b9718d8-4858-4ba0-a182-32b18b96a59c",
+    "commitId": "5272e384",
+    "commitMessage": "feat(cli): add agent status command",
+    "approach": "TDD - wrote 6 comprehensive tests first, then implementation",
+    "filesChanged": [
+      "cli/src/__tests__/agent-status.test.ts",
+      "cli/src/commands/client/agent.ts"
+    ],
+    "verificationSteps": [
+      "Tests written with mocked API responses",
+      "All 6 tests pass covering: idle agents, running agents, JSON output, triad readiness, empty state, missing company ID",
+      "Typecheck passes: pnpm --filter paperclipai typecheck",
+      "Build passes: pnpm --filter paperclipai build",
+      "Manual verification: pnpm paperclipai agent status --help works"
+    ],
+    "keyImplementationDetails": {
+      "command": "agent status",
+      "options": "-C, --company-id (required), --json (optional)",
+      "apiEndpoints": [
+        "/api/companies/:id/agents",
+        "/api/companies/:id/agents/health",
+        "/api/companies/:id/live-runs"
+      ],
+      "output": {
+        "human": "Company info, triad status, per-agent details with idle/running state",
+        "json": "Structured output with companyId, triadReady, triadStatus, agents array"
+      }
+    }
+  }
+}
