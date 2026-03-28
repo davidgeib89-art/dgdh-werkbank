@@ -1,16 +1,14 @@
 commands:
   install: pnpm install
-  typecheck: pnpm typecheck
+  typecheck: pnpm -r typecheck
   build: pnpm build
   test: pnpm test:run
-  dev: pnpm dev
-  dev_server: pnpm dev:server
-  paperclip: pnpm paperclipai
-
+  lint: echo "No root lint command configured"
+  
 services:
-  paperclip_api:
+  paperclip-server:
     start: pnpm dev:server
-    stop: "Get-Process -Name node | Where-Object {$_.CommandLine -like '*server*'} | Stop-Process"
-    healthcheck: Invoke-RestMethod -Uri http://127.0.0.1:3100/api/health -UseBasicParsing
+    stop: taskkill /F /IM node.exe 2>nul || echo "No node processes"
+    healthcheck: curl -sf http://localhost:3100/api/health
     port: 3100
     depends_on: []

@@ -1,43 +1,38 @@
-# DGDH Mission Init Script
-# Idempotent setup for mission execution on Windows PowerShell
+#!/bin/bash
+# Factory init script for DGDH Runtime Cleanup Mission
+# This script runs at the start of each worker session
 
-Write-Host "=== DGDH Mission Init ===" -ForegroundColor Cyan
+set -e
 
-# Check Node version
-try {
-    $nodeVersion = node --version
-    $majorVersion = [int]($nodeVersion -replace 'v', '').Split('.')[0]
-    if ($majorVersion -lt 20) {
-        Write-Host "ERROR: Node.js >=20 required, found $nodeVersion" -ForegroundColor Red
-        exit 1
-    }
-    Write-Host "✓ Node.js $nodeVersion" -ForegroundColor Green
-} catch {
-    Write-Host "ERROR: Node.js not found" -ForegroundColor Red
+echo "=== DGDH Runtime Cleanup Mission - Environment Setup ==="
+
+# Verify git is accessible
+if ! command -v git &> /dev/null; then
+    echo "ERROR: git not found"
     exit 1
-}
+fi
 
-# Check pnpm
-try {
-    $pnpmVersion = pnpm --version
-    Write-Host "✓ pnpm $pnpmVersion" -ForegroundColor Green
-} catch {
-    Write-Host "ERROR: pnpm not found" -ForegroundColor Red
+# Verify pnpm is accessible
+if ! command -v pnpm &> /dev/null; then
+    echo "ERROR: pnpm not found"
     exit 1
-}
+fi
+
+# Verify Node.js version
+node_version=$(node --version)
+echo "Node.js version: $node_version"
 
 # Install dependencies if node_modules missing
-if (-not (Test-Path "node_modules")) {
-    Write-Host "Installing dependencies..." -ForegroundColor Yellow
+if [ ! -d "node_modules" ]; then
+    echo "Installing dependencies..."
     pnpm install
-}
-Write-Host "✓ Dependencies installed" -ForegroundColor Green
+fi
 
-# Check for .env file
-if (Test-Path ".env") {
-    Write-Host "✓ .env file present" -ForegroundColor Green
-} else {
-    Write-Host "ℹ No .env file (API/CLI preferred anyway)" -ForegroundColor Yellow
-}
+# Verify CLI is available
+if ! pnpm paperclipai --help &> /dev/null; then
+    echo "WARNING: paperclipai CLI may not be fully configured"
+fi
 
-Write-Host "=== Init Complete ===" -ForegroundColor Cyan
+echo "=== Environment Setup Complete ==="
+echo "Working directory: $(pwd)"
+echo "Git branch: $(git rev-parse --abbrev-ref HEAD)"

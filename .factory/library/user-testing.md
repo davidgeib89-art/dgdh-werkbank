@@ -1,86 +1,73 @@
 # User Testing
 
-Testing surface, required tools, and resource costs for DGDH cleanup mission.
+Validation surface and resource cost classification for DGDH Runtime Cleanup Mission.
 
-**What belongs here:** Validation surfaces, tools needed, concurrency limits.
+## Validation Surface
 
----
+### CLI Surface
+- **Tool:** Direct CLI commands via `pnpm paperclipai`
+- **Commands used:**
+  - `pnpm paperclipai company list`
+  - `pnpm paperclipai agent list`
+  - `pnpm paperclipai project list`
+  - `pnpm paperclipai issue list`
+  - `pnpm paperclipai runtime status`
+  - `pnpm paperclipai triad start`
+- **Setup:** Requires Paperclip CLI to be built and configured
+- **Auth:** Uses local Paperclip instance credentials
 
-## Validation Surfaces
+### API Surface
+- **Tool:** curl or equivalent HTTP client
+- **Endpoints:**
+  - `GET /api/health` - runtime health check
+  - `GET /api/companies/:id/agents/triad-preflight` - triad readiness
+  - `GET /api/issues/:id/company-run-chain` - run chain observation
+- **Setup:** Requires Paperclip server running on port 3100
+- **Auth:** Bearer token from local Paperclip instance
 
-### 1. API Endpoints
-
-**Surface:** HTTP REST API on port 3100
-**Tools:** curl, fetch
-**Cost:** Low (~50ms per request)
-
-**Key endpoints:**
-- `GET /api/health` - Health check
-- `GET /api/companies/:id/agents/triad-preflight` - Triad readiness
-- `GET /api/issues/:id/company-run-chain` - Execution monitoring
-
-### 2. CLI Commands
-
-**Surface:** `paperclipai` binary via pnpm
-**Tools:** Direct shell execution
-**Cost:** Low (~1-2s per command)
-
-**Key commands:**
-- `paperclipai runtime status`
-- `paperclipai triad start`
-- `paperclipai issue archive-stale`
-
-### 3. Filesystem
-
-**Surface:** Local directories (.tmp/, doc/, root)
-**Tools:** ls, find, mv, rm
-**Cost:** Low (local filesystem ops)
+### Git Surface
+- **Tool:** Native git commands
+- **Commands:**
+  - `git rev-parse --abbrev-ref HEAD`
+  - `git status --porcelain`
+  - `git log --oneline`
+- **Setup:** None required, standard git
 
 ## Validation Concurrency
 
-**Max concurrent validators:** 1
+### Resource Classification
 
-**Rationale:**
-- Cleanup mission is sequential by nature
-- API server runs on single port (3100)
-- No parallel execution needed
-- Single worker handles all features
+**CLI/API Validators:**
+- Memory per instance: ~50-100 MB
+- CPU: Low (mostly waiting on API responses)
+- Processes spawned: 1 (CLI process)
 
-**Resource usage:**
-- API server: ~200MB RAM
-- CLI commands: ephemeral, no background processes
-- Filesystem ops: negligible
+**Git Validators:**
+- Memory per instance: ~10 MB
+- CPU: Negligible
+- Processes spawned: 1 (git process)
 
-## Testing Strategy
+### Machine Capacity
+- Total RAM: Check available (assumed 16GB+)
+- Available headroom: ~70% of free RAM
+- Conservative limit: **5 concurrent validators**
 
-**For audit features:**
-1. Start server: `pnpm dev:server`
-2. Execute API calls, capture responses
-3. Execute filesystem commands, capture listings
-4. Stop server
+### Isolation Approach
+- Each validator runs independently
+- No shared state between validators
+- No browser instances required
+- File system operations are read-only except for git commits
 
-**For cleanup features:**
-1. Verify classification report exists
-2. Execute cleanup commands
-3. Verify with re-audit
-4. Document before/after
+## Dry Run Notes
 
-**For proof features:**
-1. Start server
-2. Create test issue / triad parent
-3. Poll company-run-chain every 30s
-4. Max wait: 10 minutes
-5. Document full chain
-6. Stop server
+Pre-flight checks:
+1. Verify `pnpm paperclipai --help` works
+2. Verify runtime on port 3100 responds to health check
+3. Verify git commands work in worktree
+4. Verify no stale processes blocking ports
 
-## Required Setup
+## Known Limitations
 
-**Before testing:**
-- `pnpm install` completed
-- Port 3100 available
-- No other Paperclip instance running
-
-**During testing:**
-- Server process managed (start/stop cleanly)
-- API responses logged
-- CLI outputs captured
+- Requires local Paperclip server (port 3100) for full validation
+- Some CLI commands may require specific company context
+- API endpoints require valid authentication
