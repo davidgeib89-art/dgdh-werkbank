@@ -96,6 +96,26 @@ If those conditions are not met:
 - do not substitute ad-hoc task delegation for a running mission
 - either repair the mission artifacts or stop and restart cleanly
 
+## Continuation truth
+
+These gates are not there to create fear or force tiny work.
+
+Rebuilt from first principles:
+- the firm needs durable forward motion
+- durable forward motion needs truthful state
+- therefore gates exist to preserve state truth while the mission keeps moving
+
+Default bias:
+- continue automatically after each coherent step when the next mountain is already clear
+- absorb in-scope unfinished work into the next feature instead of turning it into a fake stop
+- widen one living mission family before cutting a fresh one too early
+
+Do not confuse "not complete yet" with "must stop now."
+The right move is usually:
+- re-anchor
+- recut
+- keep carrying
+
 ## Git truth gate
 
 Mission truth must land somewhere harder than chat.
