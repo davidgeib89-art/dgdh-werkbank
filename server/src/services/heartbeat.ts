@@ -997,9 +997,25 @@ export function buildPostToolCapacityDeferredContextSnapshot(input: {
   closeout?: PostToolCapacityCloseoutTruth | null;
 }) {
   const next = { ...input.contextSnapshot };
-  delete next.forceFreshSession;
+  
+  // DAV-167 root cause fix: Add resume iteration counter to prevent infinite capacity loops
+  const currentResumeCount = asNumber(input.contextSnapshot.postToolCapacityResumeCount) ?? 0;
+  
+  // DAV-167 fix: Force fresh session after 2 consecutive capacity resumes to break loop
+  // This prevents the misleading same-session cooldown/retry spiral when quota headroom exists
+  if (currentResumeCount >= 2) {
+    // Third or later resume - force fresh session to break the loop
+    next.forceFreshSession = true;
+    next.postToolCapacityResumeCount = 0; // Reset counter for fresh session
+    delete next.postToolCapacityResume; // Allow normal routing
+  } else {
+    // First or second resume - continue with session reuse
+    delete next.forceFreshSession;
+    next.postToolCapacityResume = true;
+    next.postToolCapacityResumeCount = currentResumeCount + 1;
+  }
+  
   next.wakeReason = "post_tool_capacity_resume";
-  next.postToolCapacityResume = true;
   if (input.source) {
     next.wakeSource = input.source;
   }
