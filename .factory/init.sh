@@ -1,46 +1,43 @@
-#!/bin/bash
-# DGDH Cleanup Mission Init Script
-# Idempotent setup for cleanup mission
+# DGDH Mission Init Script
+# Idempotent setup for mission execution on Windows PowerShell
 
-set -e
-
-echo "=== DGDH Cleanup Mission Init ==="
+Write-Host "=== DGDH Mission Init ===" -ForegroundColor Cyan
 
 # Check Node version
-if ! command -v node &> /dev/null; then
-    echo "ERROR: Node.js not found"
+try {
+    $nodeVersion = node --version
+    $majorVersion = [int]($nodeVersion -replace 'v', '').Split('.')[0]
+    if ($majorVersion -lt 20) {
+        Write-Host "ERROR: Node.js >=20 required, found $nodeVersion" -ForegroundColor Red
+        exit 1
+    }
+    Write-Host "✓ Node.js $nodeVersion" -ForegroundColor Green
+} catch {
+    Write-Host "ERROR: Node.js not found" -ForegroundColor Red
     exit 1
-fi
-
-NODE_VERSION=$(node --version | cut -d'v' -f2 | cut -d'.' -f1)
-if [ "$NODE_VERSION" -lt 20 ]; then
-    echo "ERROR: Node.js >=20 required, found $(node --version)"
-    exit 1
-fi
-
-echo "✓ Node.js $(node --version)"
+}
 
 # Check pnpm
-if ! command -v pnpm &> /dev/null; then
-    echo "ERROR: pnpm not found"
+try {
+    $pnpmVersion = pnpm --version
+    Write-Host "✓ pnpm $pnpmVersion" -ForegroundColor Green
+} catch {
+    Write-Host "ERROR: pnpm not found" -ForegroundColor Red
     exit 1
-fi
-
-echo "✓ pnpm $(pnpm --version)"
+}
 
 # Install dependencies if node_modules missing
-if [ ! -d "node_modules" ]; then
-    echo "Installing dependencies..."
+if (-not (Test-Path "node_modules")) {
+    Write-Host "Installing dependencies..." -ForegroundColor Yellow
     pnpm install
-fi
+}
+Write-Host "✓ Dependencies installed" -ForegroundColor Green
 
-echo "✓ Dependencies installed"
+# Check for .env file
+if (Test-Path ".env") {
+    Write-Host "✓ .env file present" -ForegroundColor Green
+} else {
+    Write-Host "ℹ No .env file (API/CLI preferred anyway)" -ForegroundColor Yellow
+}
 
-# Check for .env file (for DB access if needed)
-if [ -f ".env" ]; then
-    echo "✓ .env file present (for DB access if needed)"
-else
-    echo "ℹ No .env file (API/CLI preferred anyway)"
-fi
-
-echo "=== Init Complete ==="
+Write-Host "=== Init Complete ===" -ForegroundColor Cyan

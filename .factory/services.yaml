@@ -10,7 +10,7 @@ commands:
 services:
   paperclip_api:
     start: pnpm dev:server
-    stop: lsof -ti :3100 | xargs kill 2>/dev/null || true
-    healthcheck: curl -sf http://localhost:3100/api/health
+    stop: "Get-Process -Name node | Where-Object {$_.CommandLine -like '*server*'} | Stop-Process"
+    healthcheck: Invoke-RestMethod -Uri http://127.0.0.1:3100/api/health -UseBasicParsing
     port: 3100
     depends_on: []
