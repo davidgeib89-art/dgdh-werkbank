@@ -30,6 +30,7 @@ import {
   documentService,
   logActivity,
   projectService,
+  companyService,
 } from "../services/index.js";
 import { logger } from "../middleware/logger.js";
 import { forbidden, HttpError, unauthorized } from "../errors.js";
@@ -1708,6 +1709,67 @@ export function issueRoutes(db: Db, storage: StorageService) {
       res.status(200).json({
         success: true,
         issueId: updatedIssue.id,
+      });
+    },
+  );
+
+  // Archive stale issues endpoint - bulk archive for queue hygiene
+  const archiveStaleIssuesSchema = z.object({
+    daysOld: z.number().int().positive(),
+    dryRun: z.boolean().optional().default(false),
+  });
+
+  router.post(
+    "/companies/:companyId/issues/archive-stale",
+    validate(archiveStaleIssuesSchema),
+    async (req, res) => {
+      const companyId = req.params.companyId as string;
+      assertCompanyAccess(req, companyId);
+
+      // Validate company exists
+      const companiesSvc = companyService(db);
+      const company = await companiesSvc.getById(companyId);
+      if (!company) {
+        res.status(404).json({ error: "Company not found" });
+        return;
+      }
+
+      const { daysOld, dryRun } = req.body;
+      const cutoffDate = new Date(Date.now() - daysOld * 24 * 60 * 60 * 1000);
+
+      // Query stale issues with status todo or blocked, updated before cutoff
+      const staleIssues = await svc.list(companyId, {
+        status: "todo,blocked",
+      });
+
+      // Filter by updatedAt < cutoffDate
+      const matchingIssues = staleIssues.filter(
+        (issue) => new Date(issue.updatedAt).getTime() < cutoffDate.getTime()
+      );
+
+      const issueIds = matchingIssues.map((issue) => issue.id);
+
+      if (dryRun) {
+        // Do not update any issues, just return the IDs
+        res.status(200).json({
+          archived: 0,
+          issueIds,
+        });
+        return;
+      }
+
+      // Update all matching issues to cancelled status
+      let archivedCount = 0;
+      for (const issueId of issueIds) {
+        const updated = await svc.update(issueId, { status: "cancelled" });
+        if (updated) {
+          archivedCount++;
+        }
+      }
+
+      res.status(200).json({
+        archived: archivedCount,
+        issueIds,
       });
     },
   );
