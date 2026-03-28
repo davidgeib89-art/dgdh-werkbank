@@ -425,7 +425,7 @@ export function registerAgentCommands(program: Command): void {
               id: agent.id,
               name: agent.name,
               role: agent.role,
-              status: currentRun ? "running" : "idle",
+              status: currentRun ? "running" : agent.status,
             };
 
             if (currentRun) {

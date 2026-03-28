@@ -329,6 +329,107 @@ describe("agent status command", () => {
     expect(combinedLogs).toContain("issue-123");
   });
 
+  it("preserves non-running agent runtime states when there is no live run", async () => {
+    const program = new Command();
+    registerAgentCommands(program);
+
+    const mockAgents: Agent[] = [
+      {
+        id: "agent-error",
+        companyId: "test-company-id",
+        name: "Worker",
+        urlKey: "worker-agent",
+        role: "engineer",
+        title: null,
+        icon: null,
+        status: "error",
+        reportsTo: null,
+        capabilities: null,
+        adapterType: "gemini_local",
+        adapterConfig: {},
+        runtimeConfig: {},
+        budgetMonthlyCents: 10000,
+        spentMonthlyCents: 300,
+        permissions: { canCreateAgents: false },
+        lastHeartbeatAt: null,
+        metadata: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: "agent-paused",
+        companyId: "test-company-id",
+        name: "Reviewer",
+        urlKey: "reviewer-agent",
+        role: "qa",
+        title: null,
+        icon: null,
+        status: "paused",
+        reportsTo: null,
+        capabilities: null,
+        adapterType: "gemini_local",
+        adapterConfig: {},
+        runtimeConfig: {},
+        budgetMonthlyCents: 10000,
+        spentMonthlyCents: 200,
+        permissions: { canCreateAgents: false },
+        lastHeartbeatAt: null,
+        metadata: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    ];
+
+    const mockHealth: AgentHealthResponse = {
+      companyId: "test-company-id",
+      count: 2,
+      summary: {
+        countsByHealthStatus: { warning: 1, critical: 1 },
+        countsByBudgetStatus: { healthy: 2 },
+        highestSeverity: "critical",
+        atRiskAgents: ["agent-error", "agent-paused"],
+      },
+      agents: mockAgents.map((a) => ({
+        agentId: a.id,
+        agentName: a.name,
+        role: a.role,
+        adapterType: a.adapterType,
+        agentStatus: a.status,
+        healthStatus: a.status === "error" ? "critical" : "warning",
+        budgetStatus: "healthy",
+        usedTokens: 100,
+        softCapTokens: 5000,
+        hardCapTokens: 10000,
+        totalCostCents: 10,
+        lastRun: {
+          id: `run-${a.id}`,
+          status: "failed",
+          stopReason: a.status,
+          finishedAt: "2026-03-28T10:00:00.000Z",
+          createdAt: "2026-03-28T09:00:00.000Z",
+        },
+      })),
+    };
+
+    mockApi.get
+      .mockResolvedValueOnce(mockAgents)
+      .mockResolvedValueOnce(mockHealth)
+      .mockResolvedValueOnce([]);
+
+    await program.parseAsync([
+      "node",
+      "test",
+      "agent",
+      "status",
+      "--company-id",
+      "test-company-id",
+    ]);
+
+    const combinedLogs = logs.join(" ");
+    expect(combinedLogs).toContain("status=error");
+    expect(combinedLogs).toContain("status=paused");
+  });
+
   it("produces valid JSON output with --json flag", async () => {
     const program = new Command();
     registerAgentCommands(program);
