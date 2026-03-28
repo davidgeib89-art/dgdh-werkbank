@@ -66,6 +66,12 @@ interface IssueAssignOptions extends BaseClientOptions {
   agentId: string;
 }
 
+interface IssueArchiveStaleOptions extends BaseClientOptions {
+  companyId: string;
+  olderThan: string;
+  dryRun?: boolean;
+}
+
 export function registerIssueCommands(program: Command): void {
   const issue = program.command("issue").description("Issue operations");
 
@@ -323,6 +329,50 @@ export function registerIssueCommands(program: Command): void {
           handleCommandError(err);
         }
       }),
+  );
+
+  addCommonClientOptions(
+    issue
+      .command("archive-stale")
+      .description("Archive stale issues (todo/blocked not updated in N days)")
+      .option("-C, --company-id <id>", "Company ID (or set PAPERCLIP_COMPANY_ID env var)")
+      .requiredOption("--older-than <days>", "Archive issues not updated for more than N days")
+      .option("--dry-run", "Print what would be archived without archiving")
+      .action(async (opts: IssueArchiveStaleOptions) => {
+        try {
+          const ctx = resolveCommandContext(opts, { requireCompany: true });
+          const daysOld = Number.parseInt(opts.olderThan, 10);
+          if (!Number.isFinite(daysOld) || daysOld <= 0) {
+            throw new Error(`Invalid --older-than value: ${opts.olderThan}. Must be a positive integer.`);
+          }
+
+          const payload = {
+            daysOld,
+            dryRun: Boolean(opts.dryRun),
+          };
+
+          const result = await ctx.api.post<{ archived: number; issueIds: string[] }>(
+            `/api/companies/${ctx.companyId}/issues/archive-stale`,
+            payload,
+          );
+
+          if (result == null) {
+            throw new Error("Archive-stale API returned null response");
+          }
+
+          if (opts.dryRun) {
+            console.log(`Would archive ${result.issueIds.length} issues:`);
+            for (const issueId of result.issueIds) {
+              console.log(issueId);
+            }
+          } else {
+            console.log(`Archived ${result.archived} issues`);
+          }
+        } catch (err) {
+          handleCommandError(err);
+        }
+      }),
+    { includeCompany: false },
   );
 }
 
