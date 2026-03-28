@@ -181,6 +181,7 @@
 
 ## Bewiesener Systemstand
 - `Mission -> CEO -> Child-Issue -> Worker -> Reviewer -> done` ist reproduzierbar bewiesen.
+- reviewer-wake-retry ist jetzt automatisch via Heartbeat-Scan; in_review-Stalls mit >5 min triggern automatischen Retry auf idle Reviewer und setzen closeoutBlocker fuer Operator-Sichtbarkeit.
 - CEO Aggregation Mode ist bewiesen; Parent bleibt bei Luecken offen und erzeugt Follow-up statt blind zu schliessen.
 - `reviewer accepted` retriggert den CEO-Parent automatisch.
 - CEO-Merge-/Konflikt-Logging toleriert jetzt nicht-persistierte API-Run-IDs; freie `runId`s landen in `details.apiRunId` statt den Loop ueber `activity_log.run_id` (UUID-FK) zu crashen.

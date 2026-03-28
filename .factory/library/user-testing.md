@@ -25,6 +25,20 @@ Max concurrent validators: 1 (all via `pnpm test:run`).
 - `server/src/__tests__/heartbeat-reviewer-wake-retry.test.ts` (new)
 - `server/src/__tests__/issue-company-run-chain-route.test.ts` (extend)
 
+## Validation gate (David adjustment)
+
+Required gate: targeted test files pass. Full pnpm test:run is secondary.
+Use `pnpm vitest run server/src/__tests__/<file>.test.ts` for targeted runs.
+
+## Live-proof milestone
+
+The final milestone (live-proof) attempts a bounded live triad rerun against the actual Paperclip runtime. The worker for this feature:
+1. Checks if server is running on port 3100 (GET /api/health or /api/companies)
+2. If running and agents are free: creates a bounded parent issue and assigns to CEO
+3. Observes via company-run-chain and active-run
+4. Records outcome (run IDs or specific blocker) in CURRENT.md
+No browser automation needed. Pure API calls via curl or PowerShell Invoke-RestMethod.
+
 ## Known test quirks
 
 - `gemini-local-execute.test.ts` has 9 intentionally skipped tests — not a failure

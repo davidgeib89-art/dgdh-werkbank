@@ -65,11 +65,20 @@ after real worker progress, `DAV-166` fell into `post_tool_capacity_exhausted`
 and still needed manual lane rescue to complete canonical `worker-pr`, `worker-done`,
 and `reviewer-verdict` truth instead of boringly carrying the closing path itself.
 
+Reviewer wake retry is now a system capability.
+
+The silent reviewer wake stall is removed: `in_review` issues where reviewers are busy
+no longer stall permanently — the heartbeat now retries reviewer wakes automatically
+after `REVIEWER_WAKE_RETRY_THRESHOLD_MS` (5 minutes) and sets `closeoutBlocker`
+for operator visibility.
+
 ## Current direction
 
 The next real missing truth is no longer `can one triad loop happen?`.
 It is `can the same bounded triad closing path keep carrying after quota interruptions
 with less manual lane rescue than DAV-165 / DAV-166 still needed?`.
+
+Next mountain: second live triad proof with the hardened path.
 
 The lane has now proved that one mission can be shared across
 direction, work, and judgment without collapsing back into David micro-steering.

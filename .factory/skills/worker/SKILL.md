@@ -10,12 +10,13 @@ NOTE: Startup and cleanup are handled by `worker-base`. This skill defines the W
 ## When to Use This Skill
 
 Use for all code implementation features in this mission:
-- Adding activity log entries to existing route handlers
-- Adding new exported functions/constants to heartbeat.ts
+- Adding activity log entries to existing route handlers (e.g., issue.reviewer_wake_deferred)
+- Adding new exported functions/constants to heartbeat.ts (e.g., scanAndRetryReviewerWakes, REVIEWER_WAKE_RETRY_THRESHOLD_MS)
 - Adding new test files (heartbeat-reviewer-wake-retry.test.ts)
-- Extending existing test files
-- Adding API response fields to existing routes
+- Extending existing test files (issue-worker-done-route.test.ts, issue-company-run-chain-route.test.ts)
+- Adding API response fields to existing routes (e.g., reviewerWakeStatus to company-run-chain)
 - Documentation-only updates (CURRENT.md, ACTIVE-MISSION.md, MEMORY.md)
+- Live proof attempt (observe runtime, record outcome or blocker)
 
 ## Required Skills
 
@@ -26,7 +27,7 @@ None. This is a pure TypeScript/Vitest implementation worker.
 ### Step 0: Read the feature description and AGENTS.md
 Before touching any file, read:
 1. The assigned feature's `description`, `preconditions`, `expectedBehavior`, and `verificationSteps` from features.json
-2. `C:\Users\holyd\.factory\missions\3affaed3-5342-43af-aafc-33768b2beab2\AGENTS.md`
+2. The mission AGENTS.md (path is in mission context)
 3. The specific files mentioned in the feature description (read relevant sections, not the whole file)
 
 ### Step 1: TDD — Write failing tests FIRST
@@ -42,10 +43,11 @@ For every new behavior, write the test before the implementation:
 3. Add TypeScript types for all new parameters and return values
 4. Run `pnpm vitest run server/src/__tests__/<file>.test.ts` again and confirm tests PASS
 
-### Step 3: Run broader test suite
-1. `pnpm test:run` — must pass with 143+ test files
+### Step 3: Validate touched files and typecheck
+1. Run only the directly touched test files: `pnpm vitest run server/src/__tests__/<touched-file>.test.ts` — must pass
 2. `pnpm -r typecheck` — must exit 0 with no errors
 3. If either fails, fix before proceeding
+4. Only run `pnpm test:run` (full suite) if momentum allows; it is secondary, not mandatory
 
 ### Step 4: Scope check before handoff
 Before calling worker-pr and worker-done:

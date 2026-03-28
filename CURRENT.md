@@ -24,6 +24,7 @@ next:
   5) repo-root-stabile Datei-/Validate-Pfade und explizite reviewer packet truth als Invarianten fuer kuenftige Mission Cells halten
 
 blockers:
+  - Der stille reviewer-wake-Stall bei beschaeftigten Reviewern ist nicht mehr der Blocker; der Heartbeat retried jetzt automatisch nach REVIEWER_WAKE_RETRY_THRESHOLD_MS (5 Minuten) und setzt closeoutBlocker fuer Operator-Sichtbarkeit
   - Der alte reine `assignment-to-run kickoff loss` ist fuer frische ready Packets nicht mehr der erste Blocker
   - `child created -> no eligible worker assignment` gilt nicht mehr als erster Blocker; `DAV-95 -> DAV-96` beweist wieder echte Worker-Belegung
   - `worker run blocked -> worker dauerhaft error` gilt ebenfalls nicht mehr; `blocked` finalisiert/reconciled jetzt wieder zu `idle`
@@ -47,6 +48,7 @@ strategy_anchor:
   - `doc/plans/2026-03-23-focus-freeze.md`
 
 notes:
+  - `2026-03-28`: Der stille reviewer-wake-Stall ist jetzt beseitigt: `in_review` Issues mit beschaeftigten Reviewern stauen nicht mehr permanent - der Heartbeat retried Reviewer-Wakes automatisch nach `REVIEWER_WAKE_RETRY_THRESHOLD_MS` (5 Minuten) und setzt `closeoutBlocker` fuer Operator-Sichtbarkeit
   - `1cc7ecc1` liegt auf `origin/main` (Claude overnight 2026-03-27) und haertet die Role Templates fuer den Closeout-Resume-Pfad: `server/config/role-templates/worker.json` hat jetzt eine explizite `closeout resume procedure` fuer `resume_existing_session_worker_closeout` (skip loop, git log, worker-pr, worker-done, stop); `server/config/role-templates/reviewer.json` hat dieselbe fuer `resume_existing_session_reviewer_verdict` (read handoff, review, reviewer-verdict, stop); `server/src/__tests__/company-portability.test.ts` prueft jetzt korrekten Live-Baton-String in CURRENT.md
   - `66ea2c7c` liegt auf `origin/main` und liefert die naechste enge Closeout-Haertung nach `DAV-165` / `DAV-166`: `server/src/services/heartbeat.ts` schreibt jetzt rollenbewusste Post-Tool-Resume-Wahrheit in `resultJson`, `deferredState`, `resume` und Deferred-Wake-Context; `server/src/services/heartbeat-prompt-context.ts` macht denselben offenen Closeout-Schritt im Prompt explizit; `server/src/routes/issues.ts` plus `packages/shared/src/types/issue.ts` exponieren `triad.closeoutBlocker` in `company-run-chain` fuer Child-Issues
   - Neuer Merksatz der Firma: `DGDH ist ein Beweisraum fuer die Idee, dass Trennung nicht die tiefste Wahrheit ist.`

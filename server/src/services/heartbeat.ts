@@ -141,6 +141,7 @@ const CLOSED_ISSUE_STATUSES = new Set([
   "reviewer_accepted",
   "merged",
 ]);
+export const REVIEWER_WAKE_RETRY_THRESHOLD_MS = 5 * 60 * 1000; // 5 minutes
 const startLocksByAgent = new Map<string, Promise<void>>();
 
 const heartbeatRunListColumns = {
@@ -2486,6 +2487,167 @@ export function heartbeatService(db: Db) {
     const agentIds = [...new Set(queuedRuns.map((r) => r.agentId))];
     for (const agentId of agentIds) {
       await startNextQueuedRunForAgent(agentId);
+    }
+  }
+
+  async function scanAndRetryReviewerWakes(
+    deps: {
+      logActivity: (input: {
+        companyId: string;
+        actorType: "agent" | "user" | "system";
+        actorId: string;
+        action: string;
+        entityType: string;
+        entityId: string;
+        agentId?: string | null;
+        runId?: string | null;
+        details?: Record<string, unknown> | null;
+      }) => Promise<void>;
+    },
+  ) {
+    const now = new Date();
+    const thresholdTime = new Date(now.getTime() - REVIEWER_WAKE_RETRY_THRESHOLD_MS);
+
+    // Find stalled in_review issues
+    const stalledIssues = await db
+      .select({
+        id: issues.id,
+        companyId: issues.companyId,
+        status: issues.status,
+        updatedAt: issues.updatedAt,
+      })
+      .from(issues)
+      .where(
+        and(
+          eq(issues.status, "in_review"),
+          sql`${issues.updatedAt} < ${thresholdTime.toISOString()}`,
+        ),
+      );
+
+    for (const issue of stalledIssues) {
+      // Race condition guard: re-check issue status is still in_review
+      const [liveIssue] = await db
+        .select({ id: issues.id, companyId: issues.companyId, status: issues.status })
+        .from(issues)
+        .where(eq(issues.id, issue.id))
+        .limit(1);
+
+      if (!liveIssue || liveIssue.status !== "in_review") {
+        continue;
+      }
+
+      // Check if a reviewer run has already started for this issue
+      const existingReviewerRuns = await db
+        .select({
+          id: heartbeatRuns.id,
+          status: heartbeatRuns.status,
+          agentId: heartbeatRuns.agentId,
+          contextSnapshot: heartbeatRuns.contextSnapshot,
+        })
+        .from(heartbeatRuns)
+        .where(
+          and(
+            eq(heartbeatRuns.companyId, issue.companyId),
+            sql`${heartbeatRuns.contextSnapshot} ->> 'issueId' = ${issue.id}`,
+            inArray(heartbeatRuns.status, ["queued", "running", "recovering", "succeeded"]),
+          ),
+        );
+
+      // Check if any run has reviewer role template
+      const hasReviewerRun = existingReviewerRuns.some((run) => {
+        const contextSnapshot = parseObject(run.contextSnapshot);
+        const roleTemplateId = readNonEmptyString(contextSnapshot.roleTemplateId);
+        return roleTemplateId === "reviewer";
+      });
+
+      if (hasReviewerRun) {
+        // Skip - reviewer is already queued/running/completed
+        continue;
+      }
+
+      // Find idle reviewer agents for this company
+      const idleReviewers = await db
+        .select({
+          id: agents.id,
+          companyId: agents.companyId,
+          name: agents.name,
+          role: agents.role,
+          status: agents.status,
+          adapterConfig: agents.adapterConfig,
+          runtimeConfig: agents.runtimeConfig,
+        })
+        .from(agents)
+        .where(
+          and(
+            eq(agents.companyId, issue.companyId),
+            eq(agents.status, "idle"),
+            eq(agents.role, "reviewer"),
+          ),
+        );
+
+      if (idleReviewers.length > 0) {
+        // Found an idle reviewer - wake it up
+        const reviewerAgent = idleReviewers[0];
+        try {
+          await enqueueWakeup(reviewerAgent.id, {
+            source: "automation",
+            triggerDetail: "system",
+            reason: "issue_assigned",
+            payload: {
+              issueId: issue.id,
+              mutation: "heartbeat_reviewer_wake_retry",
+            },
+            requestedByActorType: "system",
+            requestedByActorId: "heartbeat_scanner",
+            contextSnapshot: {
+              issueId: issue.id,
+              roleTemplateId: "reviewer",
+              wakeReason: "heartbeat_reviewer_retry",
+            },
+          });
+
+          // Log activity for successful queue
+          await deps.logActivity({
+            companyId: issue.companyId,
+            actorType: "system",
+            actorId: "heartbeat_scanner",
+            action: "issue.reviewer_wake_queued_by_heartbeat",
+            entityType: "issue",
+            entityId: issue.id,
+            agentId: reviewerAgent.id,
+            details: {
+              issueId: issue.id,
+              reviewerAgentId: reviewerAgent.id,
+              reason: "stalled_in_review_retry",
+              thresholdMs: REVIEWER_WAKE_RETRY_THRESHOLD_MS,
+              timestamp: now.toISOString(),
+            },
+          });
+        } catch (err) {
+          logger.warn(
+            { err, issueId: issue.id, reviewerAgentId: reviewerAgent.id },
+            "failed to wake reviewer on heartbeat retry scan",
+          );
+        }
+      } else {
+        // No idle reviewer available - log stall and set closeout blocker
+        await deps.logActivity({
+          companyId: issue.companyId,
+          actorType: "system",
+          actorId: "heartbeat_scanner",
+          action: "issue.reviewer_wake_stalled",
+          entityType: "issue",
+          entityId: issue.id,
+          details: {
+            issueId: issue.id,
+            reason: "no_idle_reviewer_available",
+            timestamp: now.toISOString(),
+          },
+        });
+
+        // Note: closeoutBlocker is derived from company-run-chain endpoint,
+        // not stored directly on the issue. The stall is logged above.
+      }
     }
   }
 
@@ -5236,6 +5398,8 @@ export function heartbeatService(db: Db) {
     reapOrphanedRuns,
 
     resumeQueuedRuns,
+
+    scanAndRetryReviewerWakes,
 
     tickTimers: async (now = new Date()) => {
       const allAgents = await db.select().from(agents);
