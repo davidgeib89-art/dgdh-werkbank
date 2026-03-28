@@ -312,4 +312,188 @@ export function registerAgentCommands(program: Command): void {
       }),
     { includeCompany: false },
   );
+
+  // Agent status command - shows runtime state of all agents
+  interface AgentStatusOptions extends BaseClientOptions {
+    companyId?: string;
+  }
+
+  interface AgentHealthItem {
+    agentId: string;
+    agentName: string;
+    role: string;
+    adapterType: string;
+    agentStatus: string;
+    healthStatus: string;
+    budgetStatus: string;
+    usedTokens: number;
+    softCapTokens: number;
+    hardCapTokens: number;
+    totalCostCents: number;
+    lastRun: {
+      id: string;
+      status: string;
+      stopReason: string | null;
+      finishedAt: string | null;
+      createdAt: string;
+    } | null;
+  }
+
+  interface AgentHealthResponse {
+    companyId: string;
+    count: number;
+    summary: {
+      countsByHealthStatus: Record<string, number>;
+      countsByBudgetStatus: Record<string, number>;
+      highestSeverity: string;
+      atRiskAgents: string[];
+    };
+    agents: AgentHealthItem[];
+  }
+
+  interface LiveRun {
+    id: string;
+    status: string;
+    invocationSource: string;
+    triggerDetail: string;
+    startedAt: string;
+    finishedAt: string | null;
+    createdAt: string;
+    agentId: string;
+    agentName: string;
+    adapterType: string;
+    issueId: string | null;
+  }
+
+  interface AgentStatusOutput {
+    id: string;
+    name: string;
+    role: string;
+    status: string;
+    currentRun?: {
+      id: string;
+      issueId: string | null;
+      startedAt: string;
+    };
+    lastRun?: {
+      id: string;
+      status: string;
+      finishedAt: string | null;
+    };
+  }
+
+  addCommonClientOptions(
+    agent
+      .command("status")
+      .description("Show runtime status of all agents for a company")
+      .requiredOption("-C, --company-id <id>", "Company ID")
+      .action(async (opts: AgentStatusOptions) => {
+        try {
+          const ctx = resolveCommandContext(opts, { requireCompany: true });
+          const companyId = ctx.companyId!;
+
+          // Fetch agents list, health data, and live runs in parallel
+          const [agents, healthData, liveRuns] = await Promise.all([
+            ctx.api.get<Agent[]>(`/api/companies/${companyId}/agents`),
+            ctx.api.get<AgentHealthResponse>(`/api/companies/${companyId}/agents/health`),
+            ctx.api.get<LiveRun[]>(`/api/companies/${companyId}/live-runs`),
+          ]);
+
+          const agentList = agents ?? [];
+          const health = healthData ?? { companyId, count: 0, summary: { countsByHealthStatus: {}, countsByBudgetStatus: {}, highestSeverity: "ok", atRiskAgents: [] }, agents: [] };
+          const runningRuns = liveRuns ?? [];
+
+          // Build a map of agent health data by agentId
+          const healthByAgent = new Map(health.agents.map(h => [h.agentId, h]));
+
+          // Build a map of running runs by agentId
+          const runByAgent = new Map(runningRuns.map(r => [r.agentId, r]));
+
+          // Check triad readiness (ceo + worker + qa roles)
+          const presentRoles = new Set(agentList.map(a => a.role));
+          const hasCeo = presentRoles.has("ceo");
+          const hasWorker = presentRoles.has("engineer") || presentRoles.has("cto") || presentRoles.has("designer") || presentRoles.has("pm") || presentRoles.has("general");
+          const hasReviewer = presentRoles.has("qa");
+          const triadReady = hasCeo && hasWorker && hasReviewer;
+
+          // Build output for each agent
+          const output: AgentStatusOutput[] = agentList.map(agent => {
+            const agentHealth = healthByAgent.get(agent.id);
+            const currentRun = runByAgent.get(agent.id);
+
+            const result: AgentStatusOutput = {
+              id: agent.id,
+              name: agent.name,
+              role: agent.role,
+              status: currentRun ? "running" : "idle",
+            };
+
+            if (currentRun) {
+              result.currentRun = {
+                id: currentRun.id,
+                issueId: currentRun.issueId,
+                startedAt: currentRun.startedAt,
+              };
+            } else if (agentHealth?.lastRun) {
+              result.lastRun = {
+                id: agentHealth.lastRun.id,
+                status: agentHealth.lastRun.status,
+                finishedAt: agentHealth.lastRun.finishedAt,
+              };
+            }
+
+            return result;
+          });
+
+          if (ctx.json) {
+            printOutput({
+              companyId,
+              triadReady,
+              triadStatus: {
+                ceo: hasCeo,
+                worker: hasWorker,
+                reviewer: hasReviewer,
+              },
+              agents: output,
+            }, { json: true });
+            return;
+          }
+
+          // Human-readable output
+          console.log(`Company: ${companyId}`);
+          console.log(`Triad: ${triadReady ? "✓ Ready" : "✗ Incomplete"} (ceo=${hasCeo}, worker=${hasWorker}, reviewer=${hasReviewer})`);
+          console.log(`Agents: ${output.length}`);
+          console.log("");
+
+          if (output.length === 0) {
+            console.log("(no agents found)");
+            return;
+          }
+
+          for (const agent of output) {
+            const parts: Record<string, unknown> = {
+              id: agent.id,
+              name: agent.name,
+              role: agent.role,
+              status: agent.status,
+            };
+
+            if (agent.currentRun) {
+              parts.currentRun = agent.currentRun.id;
+              parts.issue = agent.currentRun.issueId ?? "-";
+              parts.startedAt = agent.currentRun.startedAt;
+            } else if (agent.lastRun) {
+              parts.lastRun = agent.lastRun.id;
+              parts.lastStatus = agent.lastRun.status;
+              parts.finishedAt = agent.lastRun.finishedAt ?? "-";
+            }
+
+            console.log(formatInlineRecord(parts));
+          }
+        } catch (err) {
+          handleCommandError(err);
+        }
+      }),
+    { includeCompany: false },
+  );
 }
