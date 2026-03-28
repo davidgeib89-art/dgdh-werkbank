@@ -342,6 +342,45 @@ function buildIssueTaskPrompt(
   const operatingBlocks = [missionCellPromptBlock, skillPromptBlock].filter(
     (value): value is string => Boolean(value),
   );
+
+  // Build closeout brief if resuming for closeout
+  const closeoutBriefLines: string[] = [];
+  const nextResumePoint = readNonEmptyString(postToolCapacityCloseout.nextResumePoint);
+  if (
+    input?.contextSnapshot?.postToolCapacityResume === true &&
+    nextResumePoint === "resume_existing_session_worker_closeout"
+  ) {
+    closeoutBriefLines.push(
+      "",
+      "══════════════════════════════════════════════════════════════════",
+      "CLOSEOUT MODE BRIEF (READ FIRST - HIGHEST PRIORITY)",
+      "══════════════════════════════════════════════════════════════════",
+      "You are resuming in CLOSEOUT MODE. Do not restart execution from scratch. Your ONLY task:",
+      "",
+      "1. Run `git log -1` to confirm your last commit is still present.",
+      "2. Call POST /api/issues/:id/worker-pr with your prUrl and branch.",
+      "3. Call POST /api/issues/:id/worker-done with prUrl, branch, commitHash, and summary.",
+      "4. Stop. Do not continue with more implementation.",
+      "══════════════════════════════════════════════════════════════════",
+    );
+  } else if (
+    input?.contextSnapshot?.postToolCapacityResume === true &&
+    nextResumePoint === "resume_existing_session_reviewer_verdict"
+  ) {
+    closeoutBriefLines.push(
+      "",
+      "══════════════════════════════════════════════════════════════════",
+      "CLOSEOUT MODE BRIEF (READ FIRST - HIGHEST PRIORITY)",
+      "══════════════════════════════════════════════════════════════════",
+      "You are resuming in CLOSEOUT MODE. Do not restart the review from scratch. Your ONLY task:",
+      "",
+      "1. Read the worker handoff (issue description, last comments, or worker-done activity).",
+      "2. Call POST /api/issues/:id/reviewer-verdict with your verdict (accepted or changes_requested), doneWhenCheck, evidence, and requiredFixes.",
+      "3. Stop.",
+      "══════════════════════════════════════════════════════════════════",
+    );
+  }
+
   const postToolCapacityLines =
     input?.contextSnapshot?.postToolCapacityResume === true &&
     Object.keys(postToolCapacityCloseout).length > 0
@@ -414,6 +453,7 @@ function buildIssueTaskPrompt(
   return [
     "Paperclip issue assignment:",
     summary,
+    ...closeoutBriefLines,
     "",
     "Paperclip API context:",
     `- PAPERCLIP_API_URL: ${apiUrl ?? "none"}`,

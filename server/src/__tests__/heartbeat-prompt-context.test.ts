@@ -334,3 +334,123 @@ describe("applyHeartbeatContextPatch", () => {
     });
   });
 });
+
+describe("closeout brief injection", () => {
+  it("injects worker closeout brief when nextResumePoint is resume_existing_session_worker_closeout", () => {
+    const patch = buildHeartbeatIssuePromptContextPatch({
+      contextSnapshot: {
+        postToolCapacityResume: true,
+        paperclipPostToolCapacityCloseout: {
+          roleTemplateId: "worker-ceo",
+          nextResumePoint: "resume_existing_session_worker_closeout",
+          parentDelegationPath: "DAV-100",
+          childIssueCreated: false,
+          guidance: "Complete worker closeout",
+        },
+      },
+      issue: {
+        id: "issue-closeout-1",
+        companyId: "company-1",
+        projectId: "project-1",
+        goalId: null,
+        parentId: null,
+        identifier: "DAV-500",
+        title: "Worker closeout test",
+        description: "Test worker closeout brief injection.",
+      },
+    });
+
+    const prompt = String(patch.paperclipTaskPrompt ?? "");
+    expect(prompt).toContain("You are resuming in CLOSEOUT MODE");
+    expect(prompt).toContain("Do not restart execution from scratch");
+    expect(prompt).toContain("worker-pr");
+    expect(prompt).toContain("worker-done");
+    expect(prompt).toContain("POST /api/issues/:id/worker-pr");
+    expect(prompt).toContain("POST /api/issues/:id/worker-done");
+    expect(prompt).toContain("git log -1");
+    expect(prompt).toContain("Stop. Do not continue with more implementation.");
+  });
+
+  it("injects reviewer closeout brief when nextResumePoint is resume_existing_session_reviewer_verdict", () => {
+    const patch = buildHeartbeatIssuePromptContextPatch({
+      contextSnapshot: {
+        postToolCapacityResume: true,
+        paperclipPostToolCapacityCloseout: {
+          roleTemplateId: "reviewer-ceo",
+          nextResumePoint: "resume_existing_session_reviewer_verdict",
+          parentDelegationPath: "DAV-100",
+          childIssueCreated: false,
+          guidance: "Complete reviewer verdict",
+        },
+      },
+      issue: {
+        id: "issue-closeout-2",
+        companyId: "company-1",
+        projectId: "project-1",
+        goalId: null,
+        parentId: null,
+        identifier: "DAV-501",
+        title: "Reviewer closeout test",
+        description: "Test reviewer closeout brief injection.",
+      },
+    });
+
+    const prompt = String(patch.paperclipTaskPrompt ?? "");
+    expect(prompt).toContain("You are resuming in CLOSEOUT MODE");
+    expect(prompt).toContain("Do not restart the review from scratch");
+    expect(prompt).toContain("reviewer-verdict");
+    expect(prompt).toContain("POST /api/issues/:id/reviewer-verdict");
+    expect(prompt).toContain("accepted or changes_requested");
+    expect(prompt).toContain("Stop.");
+  });
+
+  it("does not inject closeout brief when no deferred closeout state exists", () => {
+    const patch = buildHeartbeatIssuePromptContextPatch({
+      contextSnapshot: {},
+      issue: {
+        id: "issue-normal-1",
+        companyId: "company-1",
+        projectId: "project-1",
+        goalId: null,
+        parentId: null,
+        identifier: "DAV-502",
+        title: "Normal execution test",
+        description: "Test normal execution without closeout brief.",
+      },
+    });
+
+    const prompt = String(patch.paperclipTaskPrompt ?? "");
+    expect(prompt).not.toContain("You are resuming in CLOSEOUT MODE");
+    expect(prompt).not.toContain("worker-pr");
+    expect(prompt).not.toContain("worker-done");
+    expect(prompt).not.toContain("reviewer-verdict");
+  });
+
+  it("does not inject closeout brief when postToolCapacityResume is false", () => {
+    const patch = buildHeartbeatIssuePromptContextPatch({
+      contextSnapshot: {
+        postToolCapacityResume: false,
+        paperclipPostToolCapacityCloseout: {
+          roleTemplateId: "worker-ceo",
+          nextResumePoint: "resume_existing_session_worker_closeout",
+          parentDelegationPath: "DAV-100",
+          childIssueCreated: false,
+          guidance: "Complete worker closeout",
+        },
+      },
+      issue: {
+        id: "issue-closeout-3",
+        companyId: "company-1",
+        projectId: "project-1",
+        goalId: null,
+        parentId: null,
+        identifier: "DAV-503",
+        title: "Non-resume closeout test",
+        description: "Test that closeout brief only appears on actual resume.",
+      },
+    });
+
+    const prompt = String(patch.paperclipTaskPrompt ?? "");
+    expect(prompt).not.toContain("You are resuming in CLOSEOUT MODE");
+  });
+});
