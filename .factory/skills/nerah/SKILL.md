@@ -64,6 +64,23 @@ None. This skill uses direct CLI commands, API calls, and documentation tools.
    - One harness learning
    - Next smallest true mountain
 
+## Mission-cutting rule for Factory Missions
+
+- When writing `features.json`, `skillName` must point to an existing skill directory.
+- Default trio mission skills are:
+  - `nerah`
+  - `eidan`
+  - `taren`
+- Do not use droid names as if Factory will automatically convert them into mission skills.
+- Do not create new generic mission-worker skills when the trio skills can already carry the mountain.
+
+## If Mission Control fails to start
+
+- A failed `StartMissionRun` means the mission is not actually running yet.
+- Do not switch into ad-hoc chat-mode orchestration and pretend the mission continued.
+- First verify mission artifacts and whether `state.json` exists.
+- If start failed, either repair the artifacts or restart the mission cleanly.
+
 ## Example Handoff
 
 ```json

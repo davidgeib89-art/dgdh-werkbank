@@ -66,6 +66,36 @@ Rebuilt from first principles:
 Do not multiply identities to compensate for weak mission cuts.
 Strengthen the cut, the gates, or the skill procedure instead.
 
+## Mission engine truth
+
+Do not confuse droids with mission skills.
+
+- Droids carry the stable DGDH souls and review stance.
+- Mission execution is cut through `features[].skillName`.
+- Therefore `skillName` must reference a real skill directory, not a droid file.
+
+Default DGDH mission skill stack:
+- `nerah`
+- `eidan`
+- `taren`
+
+Use helper skills only when they truly add bounded procedure.
+Do not replace the mission engine by stuffing droid names into `skillName` and hoping Factory infers the rest.
+
+## Mission start gate
+
+If `StartMissionRun` fails, the mission is not running.
+
+Before continuing, verify:
+1. `features.json` exists and has real features
+2. the mission directory has the expected artifacts
+3. `state.json` is created after a successful start
+
+If those conditions are not met:
+- do not continue by improvising the mission in chat mode
+- do not substitute ad-hoc task delegation for a running mission
+- either repair the mission artifacts or stop and restart cleanly
+
 ## Git truth gate
 
 Mission truth must land somewhere harder than chat.

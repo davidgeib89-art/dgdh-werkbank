@@ -138,6 +138,33 @@ Do not create extra permanent droids for:
 
 Use skills, features, and validation contracts to specialize work without multiplying identities.
 
+## Factory mission planning truth
+
+For Factory Missions:
+
+- `features[].skillName` must name an actual skill
+- droid names are not skill names unless matching skills already exist
+- default DGDH trio mission skills are:
+  - `nerah`
+  - `eidan`
+  - `taren`
+
+Do not cut features with `skillName` pointing at a missing skill and then patch around it by creating generic mission workers mid-run.
+
+If a specialized helper skill is truly needed:
+- prefer a narrowly bounded helper
+- keep the trio as the role architecture
+- do not replace the role architecture with a pile of helper identities
+
+## Mission start failure rule
+
+If `StartMissionRun` fails:
+
+- do not pretend the mission is now running
+- do not continue by manually simulating the mission through chat and ad-hoc subagent calls
+- first verify whether `state.json` exists and Mission Control actually accepted the run
+- if not, fix the mission artifacts or restart the mission cleanly
+
 ## Mission complete gate
 
 Never declare `mission complete` or give a final success summary unless all are true:
