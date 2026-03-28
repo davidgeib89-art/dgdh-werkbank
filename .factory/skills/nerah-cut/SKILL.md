@@ -94,6 +94,14 @@ None. This skill operates at the strategic/API layer.
   - the next mountain is no longer the same mission family
   - a true Type-1 decision is reached
 
+### 8. Git truth gate before the next mission
+- Before starting a new mission or new mountain family, check whether tracked changes from the prior mission are still present.
+- If yes, force explicit truth first:
+  - committed and pushed
+  - intentionally parked with explanation
+  - intentionally discarded
+- Do not silently start the next mission on ambiguous git carry-over.
+
 ## Example Handoff
 
 ```json

@@ -79,3 +79,17 @@ Rules:
 - do not widen into theater
 - keep the sentence rememberable and the work reviewable
 - after a milestone passes scrutiny, continue automatically when the next feature is already clear from live truth and no real blocker or Type-1 decision exists
+
+## Mission git gate
+
+Before cutting or starting a new mission, check git truth first.
+
+- If the worktree still has tracked changes from a prior mission, do not silently stack the next mission on top.
+- First force explicit truth:
+  - committed and pushed
+  - intentionally parked with explanation
+  - intentionally discarded
+- Treat a dirty carry-over worktree as a real blocker in operational form, not as a minor hygiene detail.
+
+At mission end, require an explicit closeout sentence:
+- git truth: pushed | local commit only | intentionally parked dirty | blocked

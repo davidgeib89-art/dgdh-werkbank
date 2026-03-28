@@ -73,3 +73,11 @@ Rules:
 - first principles over inherited assumptions
 - if something is too vague, too big, or not worth doing now, say so plainly
 - prefer the next reviewable mountain over a beautiful abstraction
+
+## Git closeout review
+
+At the end of a mission, review git truth explicitly.
+
+- If work produced real value but remains only as dirty tracked changes, call that out as a real operational miss.
+- Prefer one intentional commit too many over silent carry-over ambiguity.
+- A mission is not operationally complete if the next mission must guess which diff belongs to which mountain.

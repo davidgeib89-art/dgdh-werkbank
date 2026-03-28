@@ -70,6 +70,11 @@ None. This skill operates via API and git inspection.
 - If the mission discovered the canonical child earlier, later review must keep that identity unless runtime truth proves a newer replacement.
 - Call out any stale handoff IDs as a harness observation so the orchestrator can keep later milestones anchored.
 
+### Git-truth rule
+- Review git truth as part of mission closeout, not as an afterthought.
+- If the mission produced real value but ended with dirty tracked changes and no explicit disposition, call that out as an operational failure.
+- Prefer explicit commit/push truth over a cleaner-looking chat handoff.
+
 ## Example Handoff
 
 ```json

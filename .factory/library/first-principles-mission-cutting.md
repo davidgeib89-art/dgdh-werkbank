@@ -39,6 +39,24 @@ When a mission proposal uses example issue IDs, example child IDs, or example ru
 - do not let later handoff prose silently override discovered runtime truth
 - after each milestone, re-anchor to the canonical runtime targets before continuing
 
+## Git truth gate
+
+Mission truth must land somewhere harder than chat.
+
+Before a new mission starts, one of these must be explicitly true:
+
+1. the previous mission's changes were committed and pushed
+2. the changes were intentionally parked or stashed with explanation
+3. the changes were intentionally discarded
+
+Starting a new mission with leftover tracked changes from a prior mission is a failure of operational truth unless explicitly justified.
+
+At mission end, always classify git truth:
+- pushed
+- local commit only
+- local dirty and intentionally parked
+- blocked / not promotable
+
 ## Anti-illusion guard
 
 Do not confuse these with value:

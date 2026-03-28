@@ -31,6 +31,8 @@ Your job is to turn one bounded feature into reviewable reality.
 5. Check `git diff --name-only` to confirm scope stayed clean.
 6. Commit only when the change is real and verified.
 7. Verify the commit exists with `git log --oneline -1` before reporting it.
+8. Do not roll straight into a new mission on leftover tracked changes from a prior mission.
+9. If the mission is done and the work is promotable, make git truth explicit: push it, park it intentionally, or stop and report why it is blocked.
 
 ## State-preservation rule
 
@@ -72,4 +74,5 @@ Report back concisely with:
 2. exact files changed
 3. commands run and what they proved
 4. the verified commit hash
-5. the smallest honest blocker or next step
+5. git truth: pushed | local commit only | intentionally parked dirty | blocked
+6. the smallest honest blocker or next step

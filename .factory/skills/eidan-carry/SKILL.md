@@ -76,6 +76,14 @@ None. This skill operates via git, CLI, and API calls.
 - Verify triad.closeoutBlocker is null (clean closeout) OR properly documented (deferred)
 - Document final state in handoff
 
+### 8. Closeout requires explicit git truth
+- Before leaving a finished mission behind, make git truth explicit:
+  - committed and pushed
+  - local commit only
+  - intentionally parked dirty with explanation
+  - blocked
+- Do not let a finished mission dissolve into leftover tracked changes for the next run to inherit silently.
+
 ### Truth discipline
 - Mission proposal example IDs are illustrative, not canonical.
 - Once runtime truth identifies the real child issue, use only that child in later worker steps unless live API proves a newer child replaced it.
@@ -108,7 +116,7 @@ Return immediately if:
 - Issue not assigned to Worker
 - targetFolder is outside allowed scope (security boundary)
 - Worker-pr or worker-done API calls fail with 4xx/5xx
-- Git state is unclean (uncommitted changes, wrong branch)
+- Git state is unclean in a way that cannot be explained as the current bounded mission's work
 - post_tool_capacity_exhausted occurs without deferredState set
 - canonical child ID in `validation-state.json` cannot be reconciled with live API truth in one or two probes
 - Any step fails with unclear resolution path
