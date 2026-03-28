@@ -43,6 +43,12 @@ export function registerTriadCommands(program: Command): void {
           }
 
           const ctx = resolveCommandContext(opts, { requireCompany: true });
+          const companyId = ctx.companyId;
+          if (!companyId) {
+            throw new Error(
+              "Company ID is required. Pass --company-id or set PAPERCLIP_COMPANY_ID.",
+            );
+          }
 
           // Build the triad description format
           const description = buildTriadDescription({
@@ -59,7 +65,7 @@ export function registerTriadCommands(program: Command): void {
             projectId: opts.projectId,
           });
 
-          const created = await ctx.api.post<Issue>(`/api/companies/${ctx.companyId}/issues`, payload);
+          const created = await ctx.api.post<Issue>(`/api/companies/${companyId}/issues`, payload);
 
           if (!created) {
             throw new Error("Failed to create issue: API returned null");
@@ -69,7 +75,7 @@ export function registerTriadCommands(program: Command): void {
 
           // If --assign-to-ceo flag is set, find and assign to first idle CEO agent
           if (opts.assignToCeo) {
-            const ceoAgentId = await findIdleCeoAgentId(ctx.api, ctx.companyId);
+            const ceoAgentId = await findIdleCeoAgentId(ctx.api, companyId);
             if (ceoAgentId) {
               finalIssue = await ctx.api.patch<Issue>(`/api/issues/${created.id}`, {
                 assigneeAgentId: ceoAgentId,
