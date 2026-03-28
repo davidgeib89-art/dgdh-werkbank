@@ -42,7 +42,7 @@ No browser automation needed. Pure API calls via curl or PowerShell Invoke-RestM
 ## Known test quirks
 
 - `gemini-local-execute.test.ts` has 9 intentionally skipped tests — not a failure
-- Total baseline at start of current mission (2026-03-28 triad-repeatability): 148 files, 765 passed, 9 skipped
+- Total baseline at start of current mission (2026-03-28 triad-repeatability): 153 files, 765+ passed, 9 skipped
 - After this mission: expect 153+ files (5 new test files: issue-worker-rescue-route, triad-rescue-command, issue-archive-stale-route, issue-archive-stale-command, heartbeat-prompt-context additions)
 
 ## New test files (triad-repeatability mission)

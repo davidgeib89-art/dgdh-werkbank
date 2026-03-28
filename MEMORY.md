@@ -181,6 +181,9 @@
 - Agenten duerfen nie direkt ein Kunden-Git als Primary Workspace verwenden.
 
 ## Bewiesener Systemstand
+- `paperclipai triad rescue` covers both worker-done and reviewer-verdict rescue paths in one command; operator no longer needs to know the API endpoints manually
+- `paperclipai issue archive-stale` provides CEO queue hygiene; stale todo/blocked issues can be bulk-archived in one command
+- Post-tool-capacity closeout resume prompt is now explicit and role-specific: worker gets worker-pr→worker-done steps, reviewer gets reviewer-verdict step
 - `Mission -> CEO -> Child-Issue -> Worker -> Reviewer -> done` ist reproduzierbar bewiesen.
 - reviewer-wake-retry ist jetzt automatisch via Heartbeat-Scan; in_review-Stalls mit >5 min triggern automatischen Retry auf idle Reviewer und setzen closeoutBlocker fuer Operator-Sichtbarkeit.
 - Triad-Readiness ist jetzt boringly sichtbar: `GET /api/companies/:id/agents/triad-preflight` liefert allRolesPresent, allAgentsIdle, triadReady, roles[], blockers[] in einem Aufruf. `GET /api/health` liefert seedStatus.dgdhCompanyFound und agentRolesFound. `paperclipai runtime status` fasst beides als CLI-Summary zusammen.

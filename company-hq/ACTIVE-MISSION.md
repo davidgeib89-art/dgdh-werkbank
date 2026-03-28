@@ -84,8 +84,14 @@ with less manual lane rescue than DAV-165 / DAV-166 still needed?`.
 - `paperclipai runtime status` — CLI summary of both
 - Operator runbook section 6.1 documents the full diagnostic path
 
-Next mountain: second live triad proof with the hardened path.
-The code is ready. The diagnostic tools are ready. The remaining gap is executing a live runtime proof.
+**Rescue path and queue hygiene commands are now available (2026-03-28):**
+- `paperclipai triad rescue --issue-id <id> --pr-url <url> --branch <branch> --commit <hash>` — rescues stalled worker closeout in one command
+- `paperclipai triad rescue --issue-id <id> --reviewer-verdict accepted` — rescues stalled reviewer verdict in one command
+- `paperclipai issue archive-stale --company-id <id> --older-than <days>` — archives stale todo/blocked issues in one command
+
+Next mountain: proving the second live triad proof actually completes without manual rescue.
+The code is ready. The diagnostic tools are ready. The rescue commands are ready.
+The remaining gap is executing a live runtime proof with the hardened path.
 
 The lane has now proved that one mission can be shared across
 direction, work, and judgment without collapsing back into David micro-steering.
