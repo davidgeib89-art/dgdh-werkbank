@@ -40,6 +40,7 @@ import { resolveVerifiedCapabilityRuntimeBridge } from "../services/capability-c
 import { resolveMissionCellRuntimeBridge } from "../services/mission-cell-contracts.js";
 import { resolveIssueExecutionPacketTruth } from "../services/issue-execution-packet.js";
 import { summarizeHeartbeatRunResultJson } from "../services/heartbeat-run-summary.js";
+import { REVIEWER_WAKE_RETRY_THRESHOLD_MS } from "../services/heartbeat.js";
 
 const MAX_ISSUE_COMMENT_LIMIT = 500;
 const WORKER_BRANCH_PREFIX = "dgdh/issue-";
@@ -285,6 +286,8 @@ export function issueRoutes(db: Db, storage: StorageService) {
       payload?: unknown;
     } | null;
     closeoutBlocker: ReturnType<typeof buildCompanyRunChainBlocker>;
+    reviewerRun: { status?: string | null } | null;
+    activityAsc: Array<{ action: string; details?: unknown; createdAt: Date | string }>;
   }) {
     const packetTruth = resolveIssueExecutionPacketTruth({
       title: input.child.title,
@@ -315,8 +318,40 @@ export function issueRoutes(db: Db, storage: StorageService) {
       state = "in_execution";
     }
 
+    // Calculate reviewerWakeStatus
+    let reviewerWakeStatus: "running" | "completed" | "queued" | "stalled" | null = null;
+    
+    // Only calculate for triad issues (has workerDoneAt)
+    if (input.workerDoneAt) {
+      const reviewerRun = input.reviewerRun;
+      
+      if (reviewerRun?.status === "running") {
+        reviewerWakeStatus = "running";
+      } else if (reviewerRun?.status === "completed" || reviewerRun?.status === "succeeded") {
+        reviewerWakeStatus = "completed";
+      } else {
+        // No reviewer run yet - check if wake was queued or stalled
+        const timeSinceWorkerDone = Date.now() - input.workerDoneAt.getTime();
+        
+        // Check activity log for wake events
+        const hasWakeQueued = input.activityAsc.some(
+          (event) =>
+            (event.action === "issue.worker_done_recorded" &&
+              asDetailsRecord(event.details)?.reviewerWakeQueued === true) ||
+            event.action === "issue.reviewer_wake_queued_by_heartbeat"
+        );
+        
+        if (timeSinceWorkerDone < REVIEWER_WAKE_RETRY_THRESHOLD_MS && hasWakeQueued) {
+          reviewerWakeStatus = "queued";
+        } else if (timeSinceWorkerDone >= REVIEWER_WAKE_RETRY_THRESHOLD_MS && !reviewerRun) {
+          reviewerWakeStatus = "stalled";
+        }
+      }
+    }
+
     return {
       state,
+      reviewerWakeStatus,
       ceoCut: packetTruth.triad,
       workerExecution: {
         status: input.child.status === "merged" || state === "ready_to_promote"
