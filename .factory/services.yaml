@@ -3,7 +3,22 @@ commands:
   typecheck: pnpm -r typecheck
   build: pnpm build
   test: pnpm test:run
-  lint: "echo 'no root lint script'"
-  build_cli: pnpm --filter paperclipai build
+  dev: pnpm dev
+  dev:once: pnpm dev:once
+  dev:server: pnpm dev:server
+  paperclip: pnpm paperclipai
 
-services: {}
+services:
+  paperclip-server:
+    start: pnpm dev:server
+    stop: lsof -ti :3100 | xargs kill -9 2>/dev/null || true
+    healthcheck: curl -sf http://localhost:3100/api/health
+    port: 3100
+    depends_on: []
+
+  paperclip-fullstack:
+    start: pnpm dev
+    stop: lsof -ti :3100,3101 | xargs kill -9 2>/dev/null || true
+    healthcheck: curl -sf http://localhost:3100/api/health && curl -sf http://localhost:3101
+    port: 3100
+    depends_on: []

@@ -1,0 +1,520 @@
+
+> paperclip@ dev:server C:\Users\holyd\DGDH\worktrees\dgdh-werkbank
+> pnpm --filter @paperclipai/server dev
+
+
+> @paperclipai/server@0.3.1 dev C:\Users\holyd\DGDH\worktrees\dgdh-werkbank\server
+> tsx src/index.ts
+
+[08:22:03] [32mINFO[39m: [36mUsing embedded PostgreSQL because no DATABASE_URL set (dataDir=C:\Users\holyd\.paperclip\instances\default\db, port=54329)[39m
+[08:22:03] [32mINFO[39m: [36mEmbedded PostgreSQL cluster already exists (C:\Users\holyd\.paperclip\instances\default\db\PG_VERSION); skipping init[39m
+[08:22:03] [33mWARN[39m: [36mRemoving stale embedded PostgreSQL lock file[39m
+
+[36m██████╗  █████╗ ██████╗ ███████╗██████╗  ██████╗██╗     ██╗██████╗ [0m
+[36m██╔══██╗██╔══██╗██╔══██╗██╔════╝██╔══██╗██╔════╝██║     ██║██╔══██╗[0m
+[36m██████╔╝███████║██████╔╝█████╗  ██████╔╝██║     ██║     ██║██████╔╝[0m
+[36m██╔═══╝ ██╔══██║██╔═══╝ ██╔══╝  ██╔══██╗██║     ██║     ██║██╔═══╝ [0m
+[36m██║     ██║  ██║██║     ███████╗██║  ██║╚██████╗███████╗██║██║     [0m
+[36m╚═╝     ╚═╝  ╚═╝╚═╝     ╚══════╝╚═╝  ╚═╝ ╚═════╝╚══════╝╚═╝╚═╝     [0m
+[34m  ───────────────────────────────────────────────────────[0m
+[2mMode            [0m [32membedded-postgres[0m  |  [35mstatic-ui[0m
+[2mDeploy          [0m local_trusted (private)
+[2mAuth            [0m [32mready[0m
+[2mServer          [0m 3100
+[2mAPI             [0m http://127.0.0.1:3100/api [2m(health: http://127.0.0.1:3100/api/health)[0m
+[2mUI              [0m http://127.0.0.1:3100
+[2mDatabase        [0m C:\Users\holyd\.paperclip\instances\default\db [2m(pg:54329)[0m
+[2mMigrations      [0m already applied
+[2mAgent JWT       [0m [32mset[0m
+[2mHeartbeat       [0m enabled [2m(30000ms)[0m
+[2mDB Backup       [0m enabled [2m(every 60m, keep 30d)[0m
+[2mBackup Dir      [0m C:\Users\holyd\.paperclip\instances\default\data\backups
+[2mHome            [0m C:\Users\holyd\.paperclip
+[2mInstance        [0m default
+[2mConfig          [0m C:\Users\holyd\.paperclip\instances\default\config.json
+[34m  ───────────────────────────────────────────────────────[0m
+
+[08:22:03] [32mINFO[39m: [36mEmbedded PostgreSQL ready[39m
+[08:22:03] [32mINFO[39m: [36mplugin job coordinator started — listening to lifecycle events[39m [90m{"service":"plugin-job-coordinator"}[39m
+[08:22:03] [32mINFO[39m: [36mplugin job scheduler started[39m [90m{"service":"plugin-job-scheduler","tickIntervalMs":30000,"maxConcurrentJobs":10}[39m
+[08:22:03] [32mINFO[39m: [36minitializing plugin tool dispatcher[39m [90m{"service":"plugin-tool-dispatcher"}[39m
+[08:22:03] [32mINFO[39m: [36mplugin-loader: loading all ready plugins[39m [90m{"service":"plugin-loader"}[39m
+[08:22:03] [32mINFO[39m: [36mAutomatic database backups enabled[39m [90m{"intervalMinutes":60,"retentionDays":30,"backupDir":"C:\Users\holyd\.paperclip\instances\default\data\backups"}[39m
+[08:22:03] [32mINFO[39m: [36mServer listening on 127.0.0.1:3100[39m
+[08:22:03] [32mINFO[39m: [36mloaded tools from ready plugins[39m [90m{"service":"plugin-tool-dispatcher","readyPlugins":0,"registeredTools":0}[39m
+[08:22:03] [32mINFO[39m: [36mplugin tool dispatcher initialized[39m [90m{"service":"plugin-tool-dispatcher","totalTools":0}[39m
+[08:22:03] [32mINFO[39m: [36mplugin-loader: no ready plugins to load[39m [90m{"service":"plugin-loader"}[39m
+[08:22:30] [32mINFO[39m: [36mGET / 200[39m
+[08:22:33] [33mWARN[39m: [36mreaped orphaned heartbeat runs[39m [90m{"reapedCount":2,"runIds":["41790c9d-3ae0-423f-a2f6-4e8802870195","df4fa23e-038e-46c0-9364-98111f1ca3eb"]}[39m
+[08:22:34] [33mWARN[39m: [36m[paperclip:quota-api] live quota fetch returned nothing — falling back to static config[39m
+[08:22:34] [33mWARN[39m: [36m[paperclip:quota-api] live quota fetch returned nothing — falling back to static config[39m
+[08:22:51] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=1d6a2dca-5e79-4fc4-b158-19bc580d582d 200[39m
+[08:23:00] [32mINFO[39m: [36mGET / 200[39m
+[08:23:02] [32mINFO[39m: [36mGET / 200[39m
+[08:23:48] [32mINFO[39m: [36mGET / 200[39m
+[08:24:06] [32mINFO[39m: [36mGET /issues/1a1a3473-073b-48d5-9954-f356b4ad62c1/approvals 200[39m
+[08:24:33] [32mINFO[39m: [36mGET / 200[39m
+[08:24:36] [32mINFO[39m: [36mGET / 304[39m
+[08:24:39] [32mINFO[39m: [36mGET / 304[39m
+[08:24:42] [32mINFO[39m: [36mGET / 304[39m
+[08:24:45] [32mINFO[39m: [36mGET / 304[39m
+[08:25:18] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T08:25:18.299Z","buckets":{"flash":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T08:25:18Z"},"flash-lite":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[08:26:06] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=63d7dc7f-e24b-4eba-bf4a-2ec1d9bf96fc 200[39m
+[08:27:54] [32mINFO[39m: [36mGET /issues/72d4f554-3fa5-4fb7-a7f9-fedd9ab1f0ad 200[39m
+[08:28:16] [33mWARN[39m: [36mPOST /api/issues/1a1a3473-073b-48d5-9954-f356b4ad62c1/worker-pr 400[39m [90m{"reqBody":{"branch":"DAV-169-wire-triad-closeout-blocker-truth-into-companyrunchaincard","title":"Wire triad closeout blocker truth into CompanyRunChainCard","body":"Goal: Wire triad closeout blocker truth into CompanyRunChainCard.\n\nResult: The CompanyRunChainCard component now conditionally displays closeout blocker details (summary, state, resume point, next point) for child issues when child.triad.closeoutBlocker exists. This change was made in ui/src/components/CompanyRunChainCard.tsx.\n\nFiles Changed:\n- ui/src/components/CompanyRunChainCard.tsx\n\nBlockers: None.\n\nNext: The implementation is complete and the task is ready for review and handoff."},"routePath":"/issues/:id/worker-pr"}[39m
+[08:28:16] [33mWARN[39m: [36mPOST /api/issues/1a1a3473-073b-48d5-9954-f356b4ad62c1/worker-done 400[39m [90m{"reqBody":{"branch":"DAV-169-wire-triad-closeout-blocker-truth-into-companyrunchaincard","prUrl":"http://example.com/pr/123","commitHash":"66ea2c7c","summary":"\"{\r\n    \\"result\\":  \\"The CompanyRunChainCard component now conditionally displays closeout blocker details (summary, state, resume point, next point) for child issues when child.triad.closeoutBlocker exists.\\",\r\n    \\"blockers\\":  [\r\n\r\n                 ],\r\n    \\"files\\":  [\r\n                  \\"ui/src/components/CompanyRunChainCard.tsx\\"\r\n              ],\r\n    \\"goal\\":  \\"Wire triad closeout blocker truth into CompanyRunChainCard.\\",\r\n    \\"next\\":  \\"The implementation is complete, and the task is ready for review and handoff.\\"\r\n}\""},"routePath":"/issues/:id/worker-done"}[39m
+[08:28:58] [33mWARN[39m: [36mPOST /api/issues/1a1a3473-073b-48d5-9954-f356b4ad62c1/worker-pr 400[39m [90m{"reqBody":{"branch":"dgdh/DAV-169-wire-triad-closeout-blocker-truth-into-companyrunchaincard","title":"Wire triad closeout blocker truth into CompanyRunChainCard","body":"Goal: Wire triad closeout blocker truth into CompanyRunChainCard.\n\nResult: The CompanyRunChainCard component now conditionally displays closeout blocker details (summary, state, resume point, next point) for child issues when child.triad.closeoutBlocker exists. This change was made in ui/src/components/CompanyRunChainCard.tsx.\n\nFiles Changed:\n- ui/src/components/CompanyRunChainCard.tsx\n\nBlockers: None.\n\nNext: The implementation is complete and the task is ready for review and handoff."},"routePath":"/issues/:id/worker-pr"}[39m
+[08:28:58] [33mWARN[39m: [36mPOST /api/issues/1a1a3473-073b-48d5-9954-f356b4ad62c1/worker-done 400[39m [90m{"reqBody":{"branch":"dgdh/DAV-169-wire-triad-closeout-blocker-truth-into-companyrunchaincard","prUrl":"http://example.com/pr/123","commitHash":"66ea2c7c","summary":"{\r\n    \"result\":  \"The CompanyRunChainCard component now conditionally displays closeout blocker details (summary, state, resume point, next point) for child issues when child.triad.closeoutBlocker exists.\",\r\n    \"blockers\":  [\r\n\r\n                 ],\r\n    \"files\":  [\r\n                  \"ui/src/components/CompanyRunChainCard.tsx\"\r\n              ],\r\n    \"goal\":  \"Wire triad closeout blocker truth into CompanyRunChainCard.\",\r\n    \"next\":  \"The implementation is complete, and the task is ready for review and handoff.\"\r\n}"},"routePath":"/issues/:id/worker-done"}[39m
+[08:29:01] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T08:29:01.349Z","buckets":{"flash":{"usagePercent":1,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T08:29:01Z"},"flash-lite":{"usagePercent":1,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[08:30:12] [33mWARN[39m: [36mPOST /issues/1a1a3473-073b-48d5-9954-f356b4ad62c1/worker-pr 403[39m [90m{"reqBody":{"branch":"dgdh/issue-1a1a3473-073b-48d5-9954-f356b4ad62c1","title":"Wire triad closeout blocker truth into CompanyRunChainCard","body":"Goal: Wire triad closeout blocker truth into CompanyRunChainCard.\n\nResult: The CompanyRunChainCard component now conditionally displays closeout blocker details (summary, state, resume point, next point) for child issues when child.triad.closeoutBlocker exists. This change was made in ui/src/components/CompanyRunChainCard.tsx.\n\nFiles Changed:\n- ui/src/components/CompanyRunChainCard.tsx\n\nBlockers: None.\n\nNext: The implementation is complete and the task is ready for review and handoff."},"reqParams":{"id":"1a1a3473-073b-48d5-9954-f356b4ad62c1"},"routePath":"/issues/:id/worker-pr"}[39m
+[08:30:12] [33mWARN[39m: [36mPOST /api/issues/1a1a3473-073b-48d5-9954-f356b4ad62c1/worker-done 400[39m [90m{"reqBody":{"branch":"dgdh/issue-1a1a3473-073b-48d5-9954-f356b4ad62c1","prUrl":"http://example.com/pr/123","commitHash":"66ea2c7c","summary":{"result":"The CompanyRunChainCard component now conditionally displays closeout blocker details (summary, state, resume point, next point) for child issues when child.triad.closeoutBlocker exists.","blockers":[],"files":["ui/src/components/CompanyRunChainCard.tsx"],"goal":"Wire triad closeout blocker truth into CompanyRunChainCard.","next":"The implementation is complete, and the task is ready for review and handoff."}},"routePath":"/issues/:id/worker-done"}[39m
+[08:30:59] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=68a17028-f125-4e71-9dcc-b463ce33ed79 200[39m
+[08:32:12] [32mINFO[39m: [36mGET /issues/dd54e88f-ac68-481e-b783-49efc8374aab/approvals 200[39m
+[08:32:13] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[08:32:56] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T08:32:56.146Z","buckets":{"flash":{"usagePercent":1,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T08:32:56Z"},"flash-lite":{"usagePercent":1,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[08:33:53] [33mWARN[39m: [36mPOST /api/issues/1a1a3473-073b-48d5-9954-f356b4ad62c1/worker-pr 422[39m [90m{"reqBody":{"branch":"dgdh/issue-1a1a3473-073b-48d5-9954-f356b4ad62c1","title":"Wire triad closeout blocker truth into CompanyRunChainCard","body":"Goal: Wire triad closeout blocker truth into CompanyRunChainCard.\n\nResult: The CompanyRunChainCard component now conditionally displays closeout blocker details (summary, state, resume point, next point) for child issues when child.triad.closeoutBlocker exists. This change was made in ui/src/components/CompanyRunChainCard.tsx.\n\nFiles Changed:\n- ui/src/components/CompanyRunChainCard.tsx\n\nBlockers: None.\n\nNext: The implementation is complete and the task is ready for review and handoff."},"routePath":"/issues/:id/worker-pr"}[39m
+[08:33:53] [33mWARN[39m: [36mPOST /api/issues/1a1a3473-073b-48d5-9954-f356b4ad62c1/worker-done 400[39m [90m{"reqBody":{"branch":"dgdh/issue-1a1a3473-073b-48d5-9954-f356b4ad62c1","prUrl":"http://example.com/pr/123","commitHash":"66ea2c7c","summary":{"result":"The CompanyRunChainCard component now conditionally displays closeout blocker details (summary, state, resume point, next point) for child issues when child.triad.closeoutBlocker exists.","blockers":[],"files":["ui/src/components/CompanyRunChainCard.tsx"],"goal":"Wire triad closeout blocker truth into CompanyRunChainCard.","next":"The implementation is complete, and the task is ready for review and handoff."}},"routePath":"/issues/:id/worker-done"}[39m
+[08:34:20] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=1d6a2dca-5e79-4fc4-b158-19bc580d582d 200[39m
+[08:35:00] [32mINFO[39m: [36mGET /issues/1a1a3473-073b-48d5-9954-f356b4ad62c1/approvals 200[39m
+[08:35:12] [33mWARN[39m: [36mPOST /api/issues/1a1a3473-073b-48d5-9954-f356b4ad62c1/worker-pr 422[39m [90m{"reqBody":{"branch":"dgdh/issue-1a1a3473-073b-48d5-9954-f356b4ad62c1","title":"Wire triad closeout blocker truth into CompanyRunChainCard","body":"Goal: Wire triad closeout blocker truth into CompanyRunChainCard.\n\nResult: The CompanyRunChainCard component now conditionally displays closeout blocker details (summary, state, resume point, next point) for child issues when child.triad.closeoutBlocker exists. This change was made in ui/src/components/CompanyRunChainCard.tsx.\n\nFiles Changed:\n- ui/src/components/CompanyRunChainCard.tsx\n\nBlockers: None.\n\nNext: The implementation is complete and the task is ready for review and handoff."},"routePath":"/issues/:id/worker-pr"}[39m
+[08:35:12] [33mWARN[39m: [36mPOST /api/issues/1a1a3473-073b-48d5-9954-f356b4ad62c1/worker-done 400[39m [90m{"reqBody":{"branch":"dgdh/issue-1a1a3473-073b-48d5-9954-f356b4ad62c1","prUrl":"http://example.com/pr/123","commitHash":"66ea2c7c","summary":"{\r\n    \"result\":  \"The CompanyRunChainCard component now conditionally displays closeout blocker details (summary, state, resume point, next point) for child issues when child.triad.closeoutBlocker exists.\",\r\n    \"blockers\":  null,\r\n    \"files\":  [\r\n                  \"ui/src/components/CompanyRunChainCard.tsx\"\r\n              ],\r\n    \"goal\":  \"Wire triad closeout blocker truth into CompanyRunChainCard.\",\r\n    \"next\":  \"The implementation is complete, and the task is ready for review and handoff.\"\r\n}"},"routePath":"/issues/:id/worker-done"}[39m
+[08:35:52] [33mWARN[39m: [36mPOST /api/issues/1a1a3473-073b-48d5-9954-f356b4ad62c1/worker-pr 422[39m [90m{"reqBody":{"branch":"dgdh/issue-1a1a3473-073b-48d5-9954-f356b4ad62c1","title":"Wire triad closeout blocker truth into CompanyRunChainCard","body":"Goal: Wire triad closeout blocker truth into CompanyRunChainCard.\n\nResult: The CompanyRunChainCard component now conditionally displays closeout blocker details (summary, state, resume point, next point) for child issues when child.triad.closeoutBlocker exists. This change was made in ui/src/components/CompanyRunChainCard.tsx.\n\nFiles Changed:\n- ui/src/components/CompanyRunChainCard.tsx\n\nBlockers: None.\n\nNext: The implementation is complete and the task is ready for review and handoff."},"routePath":"/issues/:id/worker-pr"}[39m
+[08:35:52] [33mWARN[39m: [36mPOST /api/issues/1a1a3473-073b-48d5-9954-f356b4ad62c1/worker-done 400[39m [90m{"reqBody":{"branch":"dgdh/issue-1a1a3473-073b-48d5-9954-f356b4ad62c1","prUrl":"http://example.com/pr/123","commitHash":"66ea2c7c","summary":{"result":"The CompanyRunChainCard component now conditionally displays closeout blocker details (summary, state, resume point, next point) for child issues when child.triad.closeoutBlocker exists.","blockers":null,"files":["ui/src/components/CompanyRunChainCard.tsx"],"goal":"Wire triad closeout blocker truth into CompanyRunChainCard.","next":"The implementation is complete, and the task is ready for review and handoff."}},"routePath":"/issues/:id/worker-done"}[39m
+[08:36:06] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T08:36:06.912Z","buckets":{"flash":{"usagePercent":1,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T08:36:07Z"},"flash-lite":{"usagePercent":2,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[08:36:57] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=63d7dc7f-e24b-4eba-bf4a-2ec1d9bf96fc 200[39m
+[08:38:17] [33mWARN[39m: [36mPOST /api/issues/1a1a3473-073b-48d5-9954-f356b4ad62c1/worker-pr 422[39m [90m{"reqBody":{"branch":"dgdh/issue-1a1a3473-073b-48d5-9954-f356b4ad62c1","title":"Wire triad closeout blocker truth into CompanyRunChainCard","body":"Goal: Wire triad closeout blocker truth into CompanyRunChainCard.\nResult: Display closeout blocker details for child issues.\nFiles Changed: ui/src/components/CompanyRunChainCard.tsx\nBlockers: None.\nNext: Review and handoff."},"routePath":"/issues/:id/worker-pr"}[39m
+[08:38:17] [33mWARN[39m: [36mPOST /api/issues/1a1a3473-073b-48d5-9954-f356b4ad62c1/worker-done 400[39m [90m{"reqBody":{"branch":"dgdh/issue-1a1a3473-073b-48d5-9954-f356b4ad62c1","prUrl":"http://example.com/pr/123","commitHash":"66ea2c7c","summary":{"result":"The CompanyRunChainCard component now conditionally displays closeout blocker details (summary, state, resume point, next point) for child issues when child.triad.closeoutBlocker exists.","blockers":"","files":["ui/src/components/CompanyRunChainCard.tsx"],"goal":"Wire triad closeout blocker truth into CompanyRunChainCard.","next":"The implementation is complete, and the task is ready for review and handoff."}},"routePath":"/issues/:id/worker-done"}[39m
+[08:41:16] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T08:41:16.012Z","buckets":{"flash":{"usagePercent":2,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T08:41:16Z"},"flash-lite":{"usagePercent":2,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[08:42:15] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=68a17028-f125-4e71-9dcc-b463ce33ed79 200[39m
+[08:42:57] [32mINFO[39m: [36mGET /issues/dd54e88f-ac68-481e-b783-49efc8374aab/approvals 200[39m
+[08:44:18] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[08:44:56] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T08:44:56.835Z","buckets":{"flash":{"usagePercent":2,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T08:44:56Z"},"flash-lite":{"usagePercent":2,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[08:46:19] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=1d6a2dca-5e79-4fc4-b158-19bc580d582d 200[39m
+[08:46:58] [32mINFO[39m: [36mGET /issues/1a1a3473-073b-48d5-9954-f356b4ad62c1/approvals 200[39m
+[08:48:11] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T08:48:11.035Z","buckets":{"flash":{"usagePercent":3,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T08:48:11Z"},"flash-lite":{"usagePercent":2,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[08:48:57] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=63d7dc7f-e24b-4eba-bf4a-2ec1d9bf96fc 200[39m
+[08:50:07] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T08:48:11.035Z","buckets":{"flash":{"usagePercent":3,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T08:48:11Z"},"flash-lite":{"usagePercent":2,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[08:50:58] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=68a17028-f125-4e71-9dcc-b463ce33ed79 200[39m
+[08:52:20] [32mINFO[39m: [36mGET /issues/dd54e88f-ac68-481e-b783-49efc8374aab/approvals 200[39m
+[08:53:00] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[08:54:18] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T08:54:18.021Z","buckets":{"flash":{"usagePercent":3,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T08:54:18Z"},"flash-lite":{"usagePercent":3,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[08:55:07] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=1d6a2dca-5e79-4fc4-b158-19bc580d582d 200[39m
+[08:56:16] [32mINFO[39m: [36mGET /issues/1a1a3473-073b-48d5-9954-f356b4ad62c1/approvals 200[39m
+[08:56:52] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T08:56:52.332Z","buckets":{"flash":{"usagePercent":3,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T08:56:52Z"},"flash-lite":{"usagePercent":3,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[08:58:14] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=63d7dc7f-e24b-4eba-bf4a-2ec1d9bf96fc 200[39m
+[08:58:54] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T08:58:54.618Z","buckets":{"flash":{"usagePercent":4,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T08:58:54Z"},"flash-lite":{"usagePercent":3,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[09:00:27] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=68a17028-f125-4e71-9dcc-b463ce33ed79 200[39m
+[09:00:29] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[09:01:10] [32mINFO[39m: [36mGET /issues/dd54e88f-ac68-481e-b783-49efc8374aab/approvals 200[39m
+[09:01:49] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T09:01:49.218Z","buckets":{"flash":{"usagePercent":4,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T09:01:49Z"},"flash-lite":{"usagePercent":3,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[09:03:10] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=1d6a2dca-5e79-4fc4-b158-19bc580d582d 200[39m
+[09:04:19] [32mINFO[39m: [36mGET /issues/1a1a3473-073b-48d5-9954-f356b4ad62c1/approvals 200[39m
+[09:04:57] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T09:04:57.750Z","buckets":{"flash":{"usagePercent":4,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T09:04:57Z"},"flash-lite":{"usagePercent":3,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[09:05:26] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=63d7dc7f-e24b-4eba-bf4a-2ec1d9bf96fc 200[39m
+[09:06:10] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/approvals 200[39m
+[09:06:50] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T09:04:57.750Z","buckets":{"flash":{"usagePercent":4,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T09:04:57Z"},"flash-lite":{"usagePercent":3,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[09:08:15] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=68a17028-f125-4e71-9dcc-b463ce33ed79 200[39m
+[09:08:59] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[09:11:00] [32mINFO[39m: [36mGET /issues/68a17028-f125-4e71-9dcc-b463ce33ed79 200[39m
+[09:13:18] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T09:13:18.491Z","buckets":{"flash":{"usagePercent":6,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T09:13:18Z"},"flash-lite":{"usagePercent":3,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[09:14:09] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=1d6a2dca-5e79-4fc4-b158-19bc580d582d 200[39m
+[09:14:51] [32mINFO[39m: [36mGET /issues/1a1a3473-073b-48d5-9954-f356b4ad62c1/approvals 200[39m
+[09:16:02] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T09:16:02.273Z","buckets":{"flash":{"usagePercent":6,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T09:16:02Z"},"flash-lite":{"usagePercent":4,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[09:16:54] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=63d7dc7f-e24b-4eba-bf4a-2ec1d9bf96fc 200[39m
+[09:18:10] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/approvals 200[39m
+[09:19:19] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T09:19:19.042Z","buckets":{"flash":{"usagePercent":7,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T09:19:19Z"},"flash-lite":{"usagePercent":4,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[09:20:11] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=68a17028-f125-4e71-9dcc-b463ce33ed79 200[39m
+[09:20:34] [32mINFO[39m: [36mheartbeat timer tick enqueued runs[39m [90m{"checked":1,"enqueued":1,"skipped":0}[39m
+[09:20:53] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[09:22:04] [32mINFO[39m: [36mAutomatic database backup complete: C:\Users\holyd\.paperclip\instances\default\data\backups\paperclip-20260328-102204.sql (52.5M)[39m [90m{"backupFile":"C:\Users\holyd\.paperclip\instances\default\data\backups\paperclip-20260328-102204.sql","sizeBytes":55013043,"prunedCount":0,"backupDir":"C:\Users\holyd\.paperclip\instances\default\data\backups","retentionDays":30}[39m
+[09:23:18] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T09:23:18.153Z","buckets":{"flash":{"usagePercent":7,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T09:23:18Z"},"flash-lite":{"usagePercent":4,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[09:24:09] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=1d6a2dca-5e79-4fc4-b158-19bc580d582d 200[39m
+[09:25:23] [32mINFO[39m: [36mGET /issues/1a1a3473-073b-48d5-9954-f356b4ad62c1/approvals 200[39m
+[09:26:03] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T09:26:03.757Z","buckets":{"flash":{"usagePercent":7,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T09:26:03Z"},"flash-lite":{"usagePercent":4,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[09:26:53] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=63d7dc7f-e24b-4eba-bf4a-2ec1d9bf96fc 200[39m
+[09:29:54] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[09:31:13] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/approvals 200[39m
+[09:31:54] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T09:31:54.437Z","buckets":{"flash":{"usagePercent":8,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T09:31:54Z"},"flash-lite":{"usagePercent":4,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[09:32:27] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=68a17028-f125-4e71-9dcc-b463ce33ed79 200[39m
+[09:33:43] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[09:34:24] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T09:34:24.857Z","buckets":{"flash":{"usagePercent":7,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T09:34:25Z"},"flash-lite":{"usagePercent":5,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[09:35:51] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=1d6a2dca-5e79-4fc4-b158-19bc580d582d 200[39m
+[09:36:34] [32mINFO[39m: [36mGET /issues/1a1a3473-073b-48d5-9954-f356b4ad62c1/approvals 200[39m
+[09:36:49] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T09:36:49.837Z","buckets":{"flash":{"usagePercent":8,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T09:36:50Z"},"flash-lite":{"usagePercent":5,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[09:37:44] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=63d7dc7f-e24b-4eba-bf4a-2ec1d9bf96fc 200[39m
+[09:40:25] [32mINFO[39m: [36mGET /issues/72d4f554-3fa5-4fb7-a7f9-fedd9ab1f0ad 200[39m
+[09:41:36] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/approvals 200[39m
+[09:42:55] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T09:42:55.462Z","buckets":{"flash":{"usagePercent":8,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T09:42:55Z"},"flash-lite":{"usagePercent":5,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[09:43:25] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=68a17028-f125-4e71-9dcc-b463ce33ed79 200[39m
+[09:44:42] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[09:46:33] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T09:46:33.336Z","buckets":{"flash":{"usagePercent":9,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T09:46:33Z"},"flash-lite":{"usagePercent":5,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[09:47:25] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=1d6a2dca-5e79-4fc4-b158-19bc580d582d 200[39m
+[09:48:38] [32mINFO[39m: [36mGET /issues/1a1a3473-073b-48d5-9954-f356b4ad62c1/approvals 200[39m
+[09:49:51] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T09:49:51.808Z","buckets":{"flash":{"usagePercent":9,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T09:49:51Z"},"flash-lite":{"usagePercent":6,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[09:50:28] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=63d7dc7f-e24b-4eba-bf4a-2ec1d9bf96fc 200[39m
+[09:51:42] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/approvals 200[39m
+[09:52:23] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T09:52:23.749Z","buckets":{"flash":{"usagePercent":9,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T09:52:23Z"},"flash-lite":{"usagePercent":6,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[09:53:53] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=68a17028-f125-4e71-9dcc-b463ce33ed79 200[39m
+[09:54:36] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[09:56:27] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T09:56:27.058Z","buckets":{"flash":{"usagePercent":10,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T09:56:27Z"},"flash-lite":{"usagePercent":6,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[09:57:51] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=1d6a2dca-5e79-4fc4-b158-19bc580d582d 200[39m
+[09:58:36] [32mINFO[39m: [36mGET /issues/1a1a3473-073b-48d5-9954-f356b4ad62c1/approvals 200[39m
+[10:00:21] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T10:00:21.492Z","buckets":{"flash":{"usagePercent":10,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T10:00:21Z"},"flash-lite":{"usagePercent":6,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[10:00:41] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=63d7dc7f-e24b-4eba-bf4a-2ec1d9bf96fc 200[39m
+[10:01:25] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/approvals 200[39m
+[10:03:12] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T10:03:12.697Z","buckets":{"flash":{"usagePercent":10,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T10:03:12Z"},"flash-lite":{"usagePercent":6,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[10:03:40] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=68a17028-f125-4e71-9dcc-b463ce33ed79 200[39m
+[10:04:26] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[10:05:44] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T10:05:44.858Z","buckets":{"flash":{"usagePercent":10,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T10:05:45Z"},"flash-lite":{"usagePercent":6,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[10:06:45] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=1d6a2dca-5e79-4fc4-b158-19bc580d582d 200[39m
+[10:07:27] [32mINFO[39m: [36mGET /issues/1a1a3473-073b-48d5-9954-f356b4ad62c1/approvals 200[39m
+[10:08:40] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T10:08:40.587Z","buckets":{"flash":{"usagePercent":11,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T10:08:40Z"},"flash-lite":{"usagePercent":6,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[10:09:41] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=63d7dc7f-e24b-4eba-bf4a-2ec1d9bf96fc 200[39m
+[10:12:53] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/approvals 200[39m
+[10:13:40] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T10:13:40.565Z","buckets":{"flash":{"usagePercent":11,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T10:13:40Z"},"flash-lite":{"usagePercent":6,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[10:14:36] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=68a17028-f125-4e71-9dcc-b463ce33ed79 200[39m
+[10:15:56] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[10:17:52] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T10:17:52.042Z","buckets":{"flash":{"usagePercent":12,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T10:17:52Z"},"flash-lite":{"usagePercent":6,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[10:18:47] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=1d6a2dca-5e79-4fc4-b158-19bc580d582d 200[39m
+[10:19:31] [32mINFO[39m: [36mGET /issues/1a1a3473-073b-48d5-9954-f356b4ad62c1/approvals 200[39m
+[10:20:35] [32mINFO[39m: [36mheartbeat timer tick enqueued runs[39m [90m{"checked":1,"enqueued":1,"skipped":0}[39m
+[10:20:46] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T10:20:46.625Z","buckets":{"flash":{"usagePercent":12,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T10:20:46Z"},"flash-lite":{"usagePercent":7,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[10:21:06] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=63d7dc7f-e24b-4eba-bf4a-2ec1d9bf96fc 200[39m
+[10:22:04] [32mINFO[39m: [36mAutomatic database backup complete: C:\Users\holyd\.paperclip\instances\default\data\backups\paperclip-20260328-112204.sql (56.0M)[39m [90m{"backupFile":"C:\Users\holyd\.paperclip\instances\default\data\backups\paperclip-20260328-112204.sql","sizeBytes":58706826,"prunedCount":0,"backupDir":"C:\Users\holyd\.paperclip\instances\default\data\backups","retentionDays":30}[39m
+[10:25:29] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/approvals 200[39m
+[10:26:19] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T10:26:19.570Z","buckets":{"flash":{"usagePercent":13,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T10:26:19Z"},"flash-lite":{"usagePercent":6,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[10:27:11] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=68a17028-f125-4e71-9dcc-b463ce33ed79 200[39m
+[10:28:25] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[10:29:05] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T10:29:05.176Z","buckets":{"flash":{"usagePercent":13,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T10:29:05Z"},"flash-lite":{"usagePercent":6,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[10:30:47] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=1d6a2dca-5e79-4fc4-b158-19bc580d582d 200[39m
+[10:31:07] [32mINFO[39m: [36mGET /issues/1a1a3473-073b-48d5-9954-f356b4ad62c1/approvals 200[39m
+[10:32:17] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T10:32:17.776Z","buckets":{"flash":{"usagePercent":13,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T10:32:18Z"},"flash-lite":{"usagePercent":6,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[10:33:11] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=63d7dc7f-e24b-4eba-bf4a-2ec1d9bf96fc 200[39m
+[10:35:05] [32mINFO[39m: [36mGET /issues/72d4f554-3fa5-4fb7-a7f9-fedd9ab1f0ad 200[39m
+[10:35:29] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/approvals 200[39m
+[10:36:16] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T10:36:16.135Z","buckets":{"flash":{"usagePercent":14,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T10:36:16Z"},"flash-lite":{"usagePercent":6,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[10:37:05] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=68a17028-f125-4e71-9dcc-b463ce33ed79 200[39m
+[10:38:18] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[10:39:31] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T10:39:31.143Z","buckets":{"flash":{"usagePercent":14,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T10:39:31Z"},"flash-lite":{"usagePercent":7,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[10:40:18] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=1d6a2dca-5e79-4fc4-b158-19bc580d582d 200[39m
+[10:41:34] [32mINFO[39m: [36mGET /issues/1a1a3473-073b-48d5-9954-f356b4ad62c1/approvals 200[39m
+[10:42:13] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T10:42:13.342Z","buckets":{"flash":{"usagePercent":14,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T10:42:13Z"},"flash-lite":{"usagePercent":7,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[10:43:34] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=63d7dc7f-e24b-4eba-bf4a-2ec1d9bf96fc 200[39m
+[10:43:35] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[10:45:11] [32mINFO[39m: [36mGET /issues/72d4f554-3fa5-4fb7-a7f9-fedd9ab1f0ad/approvals 200[39m
+[10:46:21] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T10:46:21.103Z","buckets":{"flash":{"usagePercent":15,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T10:46:21Z"},"flash-lite":{"usagePercent":7,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[10:47:14] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=68a17028-f125-4e71-9dcc-b463ce33ed79 200[39m
+[10:48:30] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[10:49:07] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T10:49:07.791Z","buckets":{"flash":{"usagePercent":15,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T10:49:08Z"},"flash-lite":{"usagePercent":7,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[10:50:33] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=1d6a2dca-5e79-4fc4-b158-19bc580d582d 200[39m
+[10:51:16] [32mINFO[39m: [36mGET /issues/1a1a3473-073b-48d5-9954-f356b4ad62c1/approvals 200[39m
+[10:52:28] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T10:52:28.845Z","buckets":{"flash":{"usagePercent":15,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T10:52:29Z"},"flash-lite":{"usagePercent":7,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[10:53:22] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=63d7dc7f-e24b-4eba-bf4a-2ec1d9bf96fc 200[39m
+[10:53:23] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[10:54:37] [32mINFO[39m: [36mGET /issues/72d4f554-3fa5-4fb7-a7f9-fedd9ab1f0ad/approvals 200[39m
+[10:55:19] [32mINFO[39m: [36mPATCH /issues/72d4f554-3fa5-4fb7-a7f9-fedd9ab1f0ad 200[39m
+[10:56:29] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T10:56:29.513Z","buckets":{"flash":{"usagePercent":16,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T10:56:29Z"},"flash-lite":{"usagePercent":7,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[10:57:24] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=68a17028-f125-4e71-9dcc-b463ce33ed79 200[39m
+[10:58:07] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[10:59:19] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T10:59:19.497Z","buckets":{"flash":{"usagePercent":16,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T10:59:19Z"},"flash-lite":{"usagePercent":7,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[11:00:14] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=1d6a2dca-5e79-4fc4-b158-19bc580d582d 200[39m
+[11:01:29] [32mINFO[39m: [36mGET /issues/1a1a3473-073b-48d5-9954-f356b4ad62c1/approvals 200[39m
+[11:02:16] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T11:02:16.707Z","buckets":{"flash":{"usagePercent":16,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T11:02:16Z"},"flash-lite":{"usagePercent":7,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[11:03:07] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=63d7dc7f-e24b-4eba-bf4a-2ec1d9bf96fc 200[39m
+[11:03:14] [32mINFO[39m: [36mGET / 200[39m
+[11:03:49] [32mINFO[39m: [36mGET / 200[39m
+[11:03:49] [32mINFO[39m: [36mGET / 200[39m
+[11:04:18] [32mINFO[39m: [36mGET /issues/72d4f554-3fa5-4fb7-a7f9-fedd9ab1f0ad/approvals 200[39m
+[11:04:53] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[11:05:14] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/live-runs 200[39m
+[11:05:29] [33mWARN[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues/63d7dc7f-e24b-4eba-bf4a-2ec1d9bf96fc 404[39m
+[11:05:30] [33mWARN[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues/68a17028-f125-4e71-9dcc-b463ce33ed79 404[39m
+[11:05:34] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[11:05:36] [33mWARN[39m: [36mGET /issues?companyId=44850e08-61ce-44de-8ccd-b645c1f292be 400[39m [90m{"reqQuery":{"companyId":"44850e08-61ce-44de-8ccd-b645c1f292be"},"routePath":"/issues"}[39m
+[11:05:41] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues 200[39m
+[11:06:12] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T11:06:12.915Z","buckets":{"flash":{"usagePercent":17,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T11:06:13Z"},"flash-lite":{"usagePercent":8,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[11:07:02] [32mINFO[39m: [36mGET /issues/63d7dc7f-e24b-4eba-bf4a-2ec1d9bf96fc/company-run-chain 200[39m
+[11:07:03] [32mINFO[39m: [36mGET /heartbeat-runs/6d4c1b69-d77e-48da-8ec7-ba435881b7bb 200[39m
+[11:07:36] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=68a17028-f125-4e71-9dcc-b463ce33ed79 200[39m
+[11:08:20] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[11:09:03] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T11:09:03.551Z","buckets":{"flash":{"usagePercent":17,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T11:09:03Z"},"flash-lite":{"usagePercent":8,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[11:10:25] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=1d6a2dca-5e79-4fc4-b158-19bc580d582d 200[39m
+[11:11:04] [32mINFO[39m: [36mGET /issues/1a1a3473-073b-48d5-9954-f356b4ad62c1/approvals 200[39m
+[11:12:19] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T11:12:19.210Z","buckets":{"flash":{"usagePercent":17,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T11:12:19Z"},"flash-lite":{"usagePercent":8,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[11:12:19] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/live-runs 200[39m
+[11:13:09] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=63d7dc7f-e24b-4eba-bf4a-2ec1d9bf96fc 200[39m
+[11:13:10] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[11:14:19] [32mINFO[39m: [36mGET /issues/72d4f554-3fa5-4fb7-a7f9-fedd9ab1f0ad/approvals 200[39m
+[11:15:33] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T11:15:33.332Z","buckets":{"flash":{"usagePercent":17,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T11:15:33Z"},"flash-lite":{"usagePercent":8,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[11:16:21] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=68a17028-f125-4e71-9dcc-b463ce33ed79 200[39m
+[11:17:43] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[11:18:19] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T11:18:19.505Z","buckets":{"flash":{"usagePercent":18,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T11:18:19Z"},"flash-lite":{"usagePercent":8,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[11:19:17] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=1d6a2dca-5e79-4fc4-b158-19bc580d582d 200[39m
+[11:20:36] [32mINFO[39m: [36mheartbeat timer tick enqueued runs[39m [90m{"checked":1,"enqueued":1,"skipped":0}[39m
+[11:20:39] [32mINFO[39m: [36mGET /issues/1a1a3473-073b-48d5-9954-f356b4ad62c1/approvals 200[39m
+[11:21:34] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T11:21:34.358Z","buckets":{"flash":{"usagePercent":18,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T11:21:34Z"},"flash-lite":{"usagePercent":8,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[11:22:04] [32mINFO[39m: [36mAutomatic database backup complete: C:\Users\holyd\.paperclip\instances\default\data\backups\paperclip-20260328-122204.sql (59.7M)[39m [90m{"backupFile":"C:\Users\holyd\.paperclip\instances\default\data\backups\paperclip-20260328-122204.sql","sizeBytes":62634084,"prunedCount":0,"backupDir":"C:\Users\holyd\.paperclip\instances\default\data\backups","retentionDays":30}[39m
+[11:22:24] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=63d7dc7f-e24b-4eba-bf4a-2ec1d9bf96fc 200[39m
+[11:23:05] [32mINFO[39m: [36mGET /issues/72d4f554-3fa5-4fb7-a7f9-fedd9ab1f0ad/approvals 200[39m
+[11:24:19] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[11:25:27] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T11:25:27.834Z","buckets":{"flash":{"usagePercent":18,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T11:25:28Z"},"flash-lite":{"usagePercent":8,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[11:26:52] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=68a17028-f125-4e71-9dcc-b463ce33ed79 200[39m
+[11:27:12] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[11:28:42] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T11:28:42.297Z","buckets":{"flash":{"usagePercent":19,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T11:28:42Z"},"flash-lite":{"usagePercent":8,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[11:29:24] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=1d6a2dca-5e79-4fc4-b158-19bc580d582d 200[39m
+[11:30:22] [32mINFO[39m: [36mGET /issues/1a1a3473-073b-48d5-9954-f356b4ad62c1/approvals 200[39m
+[11:31:40] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T11:31:40.635Z","buckets":{"flash":{"usagePercent":19,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T11:31:40Z"},"flash-lite":{"usagePercent":8,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[11:32:11] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=63d7dc7f-e24b-4eba-bf4a-2ec1d9bf96fc 200[39m
+[11:32:12] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[11:33:25] [32mINFO[39m: [36mGET /issues/72d4f554-3fa5-4fb7-a7f9-fedd9ab1f0ad/approvals 200[39m
+[11:34:05] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T11:34:05.529Z","buckets":{"flash":{"usagePercent":19,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T11:34:05Z"},"flash-lite":{"usagePercent":8,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[11:35:27] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=68a17028-f125-4e71-9dcc-b463ce33ed79 200[39m
+[11:36:08] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[11:37:24] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T11:37:24.689Z","buckets":{"flash":{"usagePercent":20,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T11:37:24Z"},"flash-lite":{"usagePercent":9,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[11:38:16] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=1d6a2dca-5e79-4fc4-b158-19bc580d582d 200[39m
+[11:40:03] [32mINFO[39m: [36mGET /issues/1a1a3473-073b-48d5-9954-f356b4ad62c1/approvals 200[39m
+[11:40:06] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T11:40:06.651Z","buckets":{"flash":{"usagePercent":20,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T11:40:06Z"},"flash-lite":{"usagePercent":9,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[11:41:31] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=63d7dc7f-e24b-4eba-bf4a-2ec1d9bf96fc 200[39m
+[11:41:32] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[11:42:11] [32mINFO[39m: [36mGET /issues/72d4f554-3fa5-4fb7-a7f9-fedd9ab1f0ad/approvals 200[39m
+[11:43:23] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T11:43:23.152Z","buckets":{"flash":{"usagePercent":20,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T11:43:23Z"},"flash-lite":{"usagePercent":9,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[11:44:16] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=68a17028-f125-4e71-9dcc-b463ce33ed79 200[39m
+[11:45:44] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[11:46:03] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T11:46:03.420Z","buckets":{"flash":{"usagePercent":20,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T11:46:03Z"},"flash-lite":{"usagePercent":9,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[11:47:29] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=1d6a2dca-5e79-4fc4-b158-19bc580d582d 200[39m
+[11:48:09] [32mINFO[39m: [36mGET /issues/1a1a3473-073b-48d5-9954-f356b4ad62c1/approvals 200[39m
+[11:49:27] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[11:50:50] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T11:50:50.081Z","buckets":{"flash":{"usagePercent":21,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T11:50:50Z"},"flash-lite":{"usagePercent":9,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[11:51:18] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=63d7dc7f-e24b-4eba-bf4a-2ec1d9bf96fc 200[39m
+[11:51:19] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[11:52:32] [32mINFO[39m: [36mGET /issues/72d4f554-3fa5-4fb7-a7f9-fedd9ab1f0ad/approvals 200[39m
+[11:53:10] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T11:53:10.671Z","buckets":{"flash":{"usagePercent":21,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T11:53:10Z"},"flash-lite":{"usagePercent":9,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[11:54:34] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=68a17028-f125-4e71-9dcc-b463ce33ed79 200[39m
+[11:55:18] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[11:56:34] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T11:56:34.149Z","buckets":{"flash":{"usagePercent":21,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T11:56:34Z"},"flash-lite":{"usagePercent":9,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[11:57:29] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=1d6a2dca-5e79-4fc4-b158-19bc580d582d 200[39m
+[11:58:08] [32mINFO[39m: [36mGET /issues/1a1a3473-073b-48d5-9954-f356b4ad62c1/approvals 200[39m
+[11:59:26] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[12:00:05] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T12:00:05.752Z","buckets":{"flash":{"usagePercent":22,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T12:00:06Z"},"flash-lite":{"usagePercent":9,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[12:01:31] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=63d7dc7f-e24b-4eba-bf4a-2ec1d9bf96fc 200[39m
+[12:01:33] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[12:02:13] [32mINFO[39m: [36mGET /issues/72d4f554-3fa5-4fb7-a7f9-fedd9ab1f0ad/approvals 200[39m
+[12:03:27] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T12:03:27.186Z","buckets":{"flash":{"usagePercent":22,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T12:03:27Z"},"flash-lite":{"usagePercent":10,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[12:04:19] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=68a17028-f125-4e71-9dcc-b463ce33ed79 200[39m
+[12:05:35] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[12:06:18] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T12:06:18.644Z","buckets":{"flash":{"usagePercent":22,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T12:06:18Z"},"flash-lite":{"usagePercent":10,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[12:07:06] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=1d6a2dca-5e79-4fc4-b158-19bc580d582d 200[39m
+[12:08:13] [32mINFO[39m: [36mGET /issues/1a1a3473-073b-48d5-9954-f356b4ad62c1/approvals 200[39m
+[12:09:25] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[12:10:33] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T12:10:33.185Z","buckets":{"flash":{"usagePercent":23,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T12:10:33Z"},"flash-lite":{"usagePercent":10,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[12:11:25] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=63d7dc7f-e24b-4eba-bf4a-2ec1d9bf96fc 200[39m
+[12:11:26] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[12:12:10] [32mINFO[39m: [36mGET /issues/72d4f554-3fa5-4fb7-a7f9-fedd9ab1f0ad/approvals 200[39m
+[12:13:25] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T12:13:25.090Z","buckets":{"flash":{"usagePercent":23,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T12:13:25Z"},"flash-lite":{"usagePercent":10,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[12:14:16] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=68a17028-f125-4e71-9dcc-b463ce33ed79 200[39m
+[12:15:33] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[12:16:59] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T12:16:59.097Z","buckets":{"flash":{"usagePercent":24,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T12:16:59Z"},"flash-lite":{"usagePercent":10,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[12:17:15] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=1d6a2dca-5e79-4fc4-b158-19bc580d582d 200[39m
+[12:18:29] [32mINFO[39m: [36mGET /issues/1a1a3473-073b-48d5-9954-f356b4ad62c1/approvals 200[39m
+[12:19:07] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[12:20:14] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T12:20:14.106Z","buckets":{"flash":{"usagePercent":24,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T12:20:14Z"},"flash-lite":{"usagePercent":10,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[12:20:38] [32mINFO[39m: [36mheartbeat timer tick enqueued runs[39m [90m{"checked":1,"enqueued":1,"skipped":0}[39m
+[12:21:38] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=63d7dc7f-e24b-4eba-bf4a-2ec1d9bf96fc 200[39m
+[12:21:39] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[12:22:04] [32mINFO[39m: [36mAutomatic database backup complete: C:\Users\holyd\.paperclip\instances\default\data\backups\paperclip-20260328-132204.sql (63.5M)[39m [90m{"backupFile":"C:\Users\holyd\.paperclip\instances\default\data\backups\paperclip-20260328-132204.sql","sizeBytes":66570257,"prunedCount":0,"backupDir":"C:\Users\holyd\.paperclip\instances\default\data\backups","retentionDays":30}[39m
+[12:22:20] [32mINFO[39m: [36mGET /issues/72d4f554-3fa5-4fb7-a7f9-fedd9ab1f0ad/approvals 200[39m
+[12:23:31] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T12:23:31.769Z","buckets":{"flash":{"usagePercent":24,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T12:23:32Z"},"flash-lite":{"usagePercent":10,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[12:24:55] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=68a17028-f125-4e71-9dcc-b463ce33ed79 200[39m
+[12:25:17] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[12:27:06] [32mINFO[39m: [36mGET /issues/dd54e88f-ac68-481e-b783-49efc8374aab 200[39m
+[12:28:21] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T12:28:21.047Z","buckets":{"flash":{"usagePercent":25,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T12:28:21Z"},"flash-lite":{"usagePercent":10,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[12:29:10] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=1d6a2dca-5e79-4fc4-b158-19bc580d582d 200[39m
+[12:30:23] [32mINFO[39m: [36mGET /issues/1a1a3473-073b-48d5-9954-f356b4ad62c1/approvals 200[39m
+[12:31:30] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[12:32:06] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T12:32:06.814Z","buckets":{"flash":{"usagePercent":25,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T12:32:07Z"},"flash-lite":{"usagePercent":11,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[12:33:28] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=63d7dc7f-e24b-4eba-bf4a-2ec1d9bf96fc 200[39m
+[12:33:29] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[12:34:12] [32mINFO[39m: [36mGET /issues/72d4f554-3fa5-4fb7-a7f9-fedd9ab1f0ad/approvals 200[39m
+[12:35:24] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T12:35:24.016Z","buckets":{"flash":{"usagePercent":25,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T12:35:24Z"},"flash-lite":{"usagePercent":11,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[12:36:16] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=68a17028-f125-4e71-9dcc-b463ce33ed79 200[39m
+[12:37:37] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[12:38:17] [32mINFO[39m: [36mGET /issues/dd54e88f-ac68-481e-b783-49efc8374aab 200[39m
+[12:39:34] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T12:39:34.403Z","buckets":{"flash":{"usagePercent":26,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T12:39:34Z"},"flash-lite":{"usagePercent":11,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[12:40:23] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=1d6a2dca-5e79-4fc4-b158-19bc580d582d 200[39m
+[12:41:34] [32mINFO[39m: [36mGET /issues/1a1a3473-073b-48d5-9954-f356b4ad62c1/approvals 200[39m
+[12:42:11] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[12:43:20] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T12:43:20.979Z","buckets":{"flash":{"usagePercent":26,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T12:43:21Z"},"flash-lite":{"usagePercent":11,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[12:44:12] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=63d7dc7f-e24b-4eba-bf4a-2ec1d9bf96fc 200[39m
+[12:44:13] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[12:45:27] [32mINFO[39m: [36mGET /issues/72d4f554-3fa5-4fb7-a7f9-fedd9ab1f0ad/approvals 200[39m
+[12:46:07] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T12:46:07.378Z","buckets":{"flash":{"usagePercent":26,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T12:46:07Z"},"flash-lite":{"usagePercent":11,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[12:47:30] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=68a17028-f125-4e71-9dcc-b463ce33ed79 200[39m
+[12:53:04] [32mINFO[39m: [36mGET /issues/dd54e88f-ac68-481e-b783-49efc8374aab 200[39m
+[12:54:19] [32mINFO[39m: [36mGET /issues/dd54e88f-ac68-481e-b783-49efc8374aab/approvals 200[39m
+[12:55:30] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[13:03:27] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/activity?entityId=dd54e88f-ac68-481e-b783-49efc8374aab 200[39m
+[13:06:17] [32mINFO[39m: [36mPOST /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues 201[39m
+[13:07:27] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T13:07:27.736Z","buckets":{"flash":{"usagePercent":29,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T13:07:28Z"},"flash-lite":{"usagePercent":11,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[13:08:18] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=1d6a2dca-5e79-4fc4-b158-19bc580d582d 200[39m
+[13:08:36] [32mINFO[39m: [36mGET /issues/1a1a3473-073b-48d5-9954-f356b4ad62c1/approvals 200[39m
+[13:09:54] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[13:10:36] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T13:10:36.655Z","buckets":{"flash":{"usagePercent":29,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T13:10:36Z"},"flash-lite":{"usagePercent":12,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[13:12:10] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=63d7dc7f-e24b-4eba-bf4a-2ec1d9bf96fc 200[39m
+[13:12:12] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[13:12:52] [32mINFO[39m: [36mGET /issues/72d4f554-3fa5-4fb7-a7f9-fedd9ab1f0ad/approvals 200[39m
+[13:14:01] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T13:14:01.686Z","buckets":{"flash":{"usagePercent":30,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T13:14:02Z"},"flash-lite":{"usagePercent":12,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[13:14:53] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=68a17028-f125-4e71-9dcc-b463ce33ed79 200[39m
+[13:16:09] [32mINFO[39m: [36mGET /issues/dd54e88f-ac68-481e-b783-49efc8374aab/approvals 200[39m
+[13:16:49] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[13:18:06] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T13:18:06.896Z","buckets":{"flash":{"usagePercent":30,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T13:18:07Z"},"flash-lite":{"usagePercent":12,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[13:18:59] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=1d6a2dca-5e79-4fc4-b158-19bc580d582d 200[39m
+[13:19:37] [32mINFO[39m: [36mGET /issues/1a1a3473-073b-48d5-9954-f356b4ad62c1/approvals 200[39m
+[13:20:39] [32mINFO[39m: [36mheartbeat timer tick enqueued runs[39m [90m{"checked":1,"enqueued":1,"skipped":0}[39m
+[13:20:51] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[13:22:04] [32mINFO[39m: [36mAutomatic database backup complete: C:\Users\holyd\.paperclip\instances\default\data\backups\paperclip-20260328-142204.sql (65.9M)[39m [90m{"backupFile":"C:\Users\holyd\.paperclip\instances\default\data\backups\paperclip-20260328-142204.sql","sizeBytes":69065760,"prunedCount":0,"backupDir":"C:\Users\holyd\.paperclip\instances\default\data\backups","retentionDays":30}[39m
+[13:22:05] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T13:22:05.024Z","buckets":{"flash":{"usagePercent":30,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T13:22:05Z"},"flash-lite":{"usagePercent":12,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[13:23:04] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=63d7dc7f-e24b-4eba-bf4a-2ec1d9bf96fc 200[39m
+[13:23:05] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[13:23:48] [32mINFO[39m: [36mGET /issues/72d4f554-3fa5-4fb7-a7f9-fedd9ab1f0ad/approvals 200[39m
+[13:25:08] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T13:25:08.056Z","buckets":{"flash":{"usagePercent":31,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T13:25:08Z"},"flash-lite":{"usagePercent":12,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[13:25:41] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=68a17028-f125-4e71-9dcc-b463ce33ed79 200[39m
+[13:26:53] [32mINFO[39m: [36mGET /issues/dd54e88f-ac68-481e-b783-49efc8374aab/approvals 200[39m
+[13:28:08] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[13:28:46] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T13:28:46.087Z","buckets":{"flash":{"usagePercent":31,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T13:28:46Z"},"flash-lite":{"usagePercent":12,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[13:29:17] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=1d6a2dca-5e79-4fc4-b158-19bc580d582d 200[39m
+[13:29:59] [32mINFO[39m: [36mGET /issues/1a1a3473-073b-48d5-9954-f356b4ad62c1/approvals 200[39m
+[13:30:49] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[13:32:02] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T13:32:02.491Z","buckets":{"flash":{"usagePercent":31,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T13:32:02Z"},"flash-lite":{"usagePercent":13,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[13:32:57] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=63d7dc7f-e24b-4eba-bf4a-2ec1d9bf96fc 200[39m
+[13:32:59] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[13:33:41] [32mINFO[39m: [36mGET /issues/72d4f554-3fa5-4fb7-a7f9-fedd9ab1f0ad/approvals 200[39m
+[13:35:04] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T13:35:04.179Z","buckets":{"flash":{"usagePercent":32,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T13:35:04Z"},"flash-lite":{"usagePercent":13,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[13:36:21] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=68a17028-f125-4e71-9dcc-b463ce33ed79 200[39m
+[13:36:39] [32mINFO[39m: [36mGET /issues/dd54e88f-ac68-481e-b783-49efc8374aab/approvals 200[39m
+[13:37:52] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[13:39:02] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T13:39:02.129Z","buckets":{"flash":{"usagePercent":32,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T13:39:02Z"},"flash-lite":{"usagePercent":13,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[13:40:10] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=1d6a2dca-5e79-4fc4-b158-19bc580d582d 200[39m
+[13:40:47] [32mINFO[39m: [36mGET /issues/1a1a3473-073b-48d5-9954-f356b4ad62c1/approvals 200[39m
+[13:42:07] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[13:42:47] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T13:42:47.975Z","buckets":{"flash":{"usagePercent":32,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T13:42:48Z"},"flash-lite":{"usagePercent":13,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[13:43:43] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=63d7dc7f-e24b-4eba-bf4a-2ec1d9bf96fc 200[39m
+[13:43:44] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[13:45:06] [32mINFO[39m: [36mGET /issues/72d4f554-3fa5-4fb7-a7f9-fedd9ab1f0ad/approvals 200[39m
+[13:45:47] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T13:45:47.797Z","buckets":{"flash":{"usagePercent":33,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T13:45:48Z"},"flash-lite":{"usagePercent":13,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[13:46:45] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=68a17028-f125-4e71-9dcc-b463ce33ed79 200[39m
+[13:47:56] [32mINFO[39m: [36mGET /issues/dd54e88f-ac68-481e-b783-49efc8374aab/approvals 200[39m
+[13:48:41] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[13:49:57] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T13:49:57.864Z","buckets":{"flash":{"usagePercent":33,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T13:49:58Z"},"flash-lite":{"usagePercent":13,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[13:50:52] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=1d6a2dca-5e79-4fc4-b158-19bc580d582d 200[39m
+[13:52:10] [32mINFO[39m: [36mGET /issues/1a1a3473-073b-48d5-9954-f356b4ad62c1/approvals 200[39m
+[13:52:54] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[13:53:11] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T13:53:11.282Z","buckets":{"flash":{"usagePercent":34,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T13:53:11Z"},"flash-lite":{"usagePercent":13,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[13:53:46] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=63d7dc7f-e24b-4eba-bf4a-2ec1d9bf96fc 200[39m
+[13:53:48] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[13:54:27] [32mINFO[39m: [36mGET /issues/72d4f554-3fa5-4fb7-a7f9-fedd9ab1f0ad/approvals 200[39m
+[13:54:46] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T13:53:11.282Z","buckets":{"flash":{"usagePercent":34,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T13:53:11Z"},"flash-lite":{"usagePercent":13,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[13:55:40] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=68a17028-f125-4e71-9dcc-b463ce33ed79 200[39m
+[13:55:56] [32mINFO[39m: [36mGET /issues/dd54e88f-ac68-481e-b783-49efc8374aab/approvals 200[39m
+[13:56:14] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[13:56:55] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T13:56:55.313Z","buckets":{"flash":{"usagePercent":35,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T13:56:55Z"},"flash-lite":{"usagePercent":14,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[13:57:50] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=1d6a2dca-5e79-4fc4-b158-19bc580d582d 200[39m
+[13:58:08] [32mINFO[39m: [36mGET /issues/1a1a3473-073b-48d5-9954-f356b4ad62c1/approvals 200[39m
+[13:58:16] [32mINFO[39m: [36mGET / 200[39m
+[13:58:16] [32mINFO[39m: [36mGET / 200[39m
+[13:58:20] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[13:58:21] [33mWARN[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents/triad-preflight 404[39m
+[13:58:26] [32mINFO[39m: [36mGET / 200[39m
+[13:58:27] [32mINFO[39m: [36mGET / 200[39m
+[13:58:50] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[14:00:01] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T14:00:01.849Z","buckets":{"flash":{"usagePercent":35,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T14:00:02Z"},"flash-lite":{"usagePercent":14,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[14:00:16] [32mINFO[39m: [36mGET / 200[39m
+[14:00:20] [32mINFO[39m: [36mGET / 200[39m
+[14:00:23] [33mWARN[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents/triad-preflight 404[39m
+[14:01:06] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=63d7dc7f-e24b-4eba-bf4a-2ec1d9bf96fc 200[39m
+[14:01:07] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[14:02:05] [32mINFO[39m: [36mGET /issues/72d4f554-3fa5-4fb7-a7f9-fedd9ab1f0ad/approvals 200[39m
+[14:03:04] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T14:03:04.978Z","buckets":{"flash":{"usagePercent":36,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T14:03:05Z"},"flash-lite":{"usagePercent":14,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[14:04:09] [32mINFO[39m: [36mGET / 200[39m
+[14:04:15] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[14:04:15] [31mERROR[39m: [36mGET /api/companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents/health 500 — column latest.agentId does not exist[39m [90m{"errorContext":{"message":"column latest.agentId does not exist","stack":"PostgresError: column latest.agentId does not exist\n    at ErrorResponse (file:///C:/Users/holyd/DGDH/worktrees/dgdh-werkbank/node_modules/.pnpm/postgres@3.4.8/node_modules/postgres/src/connection.js:815:30)\n    at handle (file:///C:/Users/holyd/DGDH/worktrees/dgdh-werkbank/node_modules/.pnpm/postgres@3.4.8/node_modules/postgres/src/connection.js:489:6)\n    at Socket.data (file:///C:/Users/holyd/DGDH/worktrees/dgdh-werkbank/node_modules/.pnpm/postgres@3.4.8/node_modules/postgres/src/connection.js:324:9)\n    at Socket.emit (node:events:508:28)\n    at addChunk (node:internal/streams/readable:559:12)\n    at readableAddChunkPushByteMode (node:internal/streams/readable:510:3)\n    at Readable.push (node:internal/streams/readable:390:5)\n    at TCP.onStreamRead (node:internal/stream_base_commons:189:23)","name":"PostgresError"},"reqParams":{},"reqQuery":{}}[39m
+    err: {
+      "type": "PostgresError",
+      "message": "column latest.agentId does not exist",
+      "stack":
+          PostgresError: column latest.agentId does not exist
+              at ErrorResponse (file:///C:/Users/holyd/DGDH/worktrees/dgdh-werkbank/node_modules/.pnpm/postgres@3.4.8/node_modules/postgres/src/connection.js:815:30)
+              at handle (file:///C:/Users/holyd/DGDH/worktrees/dgdh-werkbank/node_modules/.pnpm/postgres@3.4.8/node_modules/postgres/src/connection.js:489:6)
+              at Socket.data (file:///C:/Users/holyd/DGDH/worktrees/dgdh-werkbank/node_modules/.pnpm/postgres@3.4.8/node_modules/postgres/src/connection.js:324:9)
+              at Socket.emit (node:events:508:28)
+              at addChunk (node:internal/streams/readable:559:12)
+              at readableAddChunkPushByteMode (node:internal/streams/readable:510:3)
+              at Readable.push (node:internal/streams/readable:390:5)
+              at TCP.onStreamRead (node:internal/stream_base_commons:189:23)
+      "name": "PostgresError",
+      "severity_local": "ERROR",
+      "severity": "ERROR",
+      "code": "42703",
+      "hint": "Perhaps you meant to reference the column \"latest.agent_id\".",
+      "position": "452",
+      "file": "parse_relation.c",
+      "line": "3838",
+      "routine": "errorMissingColumn"
+    }
+[14:04:15] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/live-runs 200[39m
+[14:04:19] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=68a17028-f125-4e71-9dcc-b463ce33ed79 200[39m
+[14:04:22] [33mWARN[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents/triad-preflight 404[39m
+[14:04:28] [32mINFO[39m: [36mGET /issues/dd54e88f-ac68-481e-b783-49efc8374aab/approvals 200[39m
+[14:04:30] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[14:04:43] [32mINFO[39m: [36mGET / 200[39m
+[14:05:10] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T14:05:10.564Z","buckets":{"flash":{"usagePercent":35,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T14:05:10Z"},"flash-lite":{"usagePercent":14,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[14:05:23] [33mWARN[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents/triad-preflight 404[39m
+[14:05:25] [33mWARN[39m: [36mGET /issues?status=todo 400[39m [90m{"reqQuery":{"status":"todo"},"routePath":"/issues"}[39m
+[14:05:28] [33mWARN[39m: [36mGET /issues?status=in_progress 400[39m [90m{"reqQuery":{"status":"in_progress"},"routePath":"/issues"}[39m
+[14:05:31] [33mWARN[39m: [36mGET /agents 404[39m
+[14:05:35] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?status=todo 200[39m
+[14:05:38] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?status=in_progress 200[39m
+[14:05:40] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[14:05:44] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?status=todo 200[39m
+[14:05:49] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues 200[39m
+[14:05:53] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues 200[39m
+[14:05:58] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues 200[39m
+[14:06:02] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=1d6a2dca-5e79-4fc4-b158-19bc580d582d 200[39m
+[14:06:03] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues 200[39m
+[14:06:07] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues 200[39m
+[14:06:09] [33mWARN[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents/triad-preflight 404[39m
+[14:06:09] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues 200[39m
+[14:06:20] [33mWARN[39m: [36mGET /issues?parentId=63d7dc7f-e24b-4eba-bf4a-2ec1d9bf96fc 400[39m [90m{"reqQuery":{"parentId":"63d7dc7f-e24b-4eba-bf4a-2ec1d9bf96fc"},"routePath":"/issues"}[39m
+[14:06:20] [33mWARN[39m: [36mGET /issues/63d7dc7f-e24b-4eba-bf4a-2ec1d9bf96fc/execution-packet 404[39m
+[14:06:22] [33mWARN[39m: [36mGET /issues/63d7dc7f-e24b-4eba-bf4a-2ec1d9bf96fc/execution-packet 404[39m
+[14:06:24] [33mWARN[39m: [36mGET /issues/63d7dc7f-e24b-4eba-bf4a-2ec1d9bf96fc/execution-packet 404[39m
+[14:07:13] [32mINFO[39m: [36mGET /issues/1a1a3473-073b-48d5-9954-f356b4ad62c1/approvals 200[39m
+[14:07:54] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[14:09:07] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T14:09:07.107Z","buckets":{"flash":{"usagePercent":36,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T14:09:07Z"},"flash-lite":{"usagePercent":15,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[14:10:48] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=63d7dc7f-e24b-4eba-bf4a-2ec1d9bf96fc 200[39m
+[14:10:49] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[14:10:58] [32mINFO[39m: [36mGET /issues/72d4f554-3fa5-4fb7-a7f9-fedd9ab1f0ad/approvals 200[39m
+[14:12:11] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T14:12:11.252Z","buckets":{"flash":{"usagePercent":36,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T14:12:11Z"},"flash-lite":{"usagePercent":15,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[14:13:04] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=68a17028-f125-4e71-9dcc-b463ce33ed79 200[39m
+[14:13:07] [32mINFO[39m: [36mGET /issues/63d7dc7f-e24b-4eba-bf4a-2ec1d9bf96fc/company-run-chain 200[39m
+[14:13:16] [33mWARN[39m: [36mGET /issues?parentId=63d7dc7f-e24b-4eba-bf4a-2ec1d9bf96fc 400[39m [90m{"reqQuery":{"parentId":"63d7dc7f-e24b-4eba-bf4a-2ec1d9bf96fc"},"routePath":"/issues"}[39m
+[14:13:18] [32mINFO[39m: [36mGET /issues/63d7dc7f-e24b-4eba-bf4a-2ec1d9bf96fc 200[39m
+[14:14:18] [32mINFO[39m: [36mGET /issues/dd54e88f-ac68-481e-b783-49efc8374aab/approvals 200[39m
+[14:15:00] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[14:16:17] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T14:16:17.309Z","buckets":{"flash":{"usagePercent":37,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T14:16:17Z"},"flash-lite":{"usagePercent":15,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[14:17:07] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=1d6a2dca-5e79-4fc4-b158-19bc580d582d 200[39m
+[14:17:38] [32mINFO[39m: [36mGET / 200[39m
+[14:18:23] [32mINFO[39m: [36mGET /issues/1a1a3473-073b-48d5-9954-f356b4ad62c1/approvals 200[39m
+[14:19:01] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?limit=10 200[39m
+[14:19:04] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[14:20:20] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T14:20:20.233Z","buckets":{"flash":{"usagePercent":37,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T14:20:20Z"},"flash-lite":{"usagePercent":15,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[14:20:39] [32mINFO[39m: [36mheartbeat timer tick enqueued runs[39m [90m{"checked":1,"enqueued":1,"skipped":0}[39m
+[14:21:11] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=63d7dc7f-e24b-4eba-bf4a-2ec1d9bf96fc 200[39m
+[14:21:12] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[14:21:57] [32mINFO[39m: [36mGET /issues/72d4f554-3fa5-4fb7-a7f9-fedd9ab1f0ad/approvals 200[39m
+[14:22:04] [32mINFO[39m: [36mAutomatic database backup complete: C:\Users\holyd\.paperclip\instances\default\data\backups\paperclip-20260328-152204.sql (69.8M)[39m [90m{"backupFile":"C:\Users\holyd\.paperclip\instances\default\data\backups\paperclip-20260328-152204.sql","sizeBytes":73160346,"prunedCount":0,"backupDir":"C:\Users\holyd\.paperclip\instances\default\data\backups","retentionDays":30}[39m
+[14:23:16] [32mINFO[39m: [36m[paperclip:quota-api] live quota injected[39m [90m{"snapshotAt":"2026-03-28T14:23:16.644Z","buckets":{"flash":{"usagePercent":37,"state":"ok","resetAt":"2026-03-29T06:47:40Z"},"pro":{"usagePercent":0,"state":"ok","resetAt":"2026-03-29T14:23:17Z"},"flash-lite":{"usagePercent":15,"state":"ok","resetAt":"2026-03-29T06:47:24Z"}}}[39m
+[14:24:07] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?parentId=68a17028-f125-4e71-9dcc-b463ce33ed79 200[39m
+[14:26:08] [32mINFO[39m: [36mGET /issues/dd54e88f-ac68-481e-b783-49efc8374aab/approvals 200[39m
+[14:26:08] [32mINFO[39m: [36mGET /issues/df5ba168-1219-4cb4-bca9-6c683ec6ba5d/approvals 200[39m
+[14:26:49] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[14:26:59] [33mWARN[39m: [36mGET /issues/928d1d86-0740-424a-b50a-aa846a1e537d 404[39m [90m{"reqParams":{"id":"928d1d86-0740-424a-b50a-aa846a1e537d"},"routePath":"/issues/:id"}[39m
