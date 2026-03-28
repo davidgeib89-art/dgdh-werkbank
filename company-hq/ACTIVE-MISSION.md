@@ -84,6 +84,11 @@ The lane has now proved that one mission can be shared across
 direction, work, and judgment without collapsing back into David micro-steering.
 The next cut should reduce the remaining manual rescue on the worker->reviewer->promotion seam.
 
+While David availability is low, long Droid missions are explicitly allowed as an external
+async-leverage test: they may run large, long, and relatively open during the day, but they
+only count at night after hard review against real product value, operating value, hidden
+David dependency, and drift/slop.
+
 Keep the ontology clear:
 
 > Paperclip is the current carrier.
