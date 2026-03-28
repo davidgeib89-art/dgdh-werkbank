@@ -1,47 +1,86 @@
-# User Testing Surface
+# User Testing
 
-## Validation Surface
+Testing surface, required tools, and resource costs for DGDH cleanup mission.
 
-**Primary Surface:** API endpoints via CLI and HTTP
+**What belongs here:** Validation surfaces, tools needed, concurrency limits.
 
-**CLI Tools:**
-- `paperclipai runtime status` - Runtime health and triad readiness
-- `paperclipai agent status` - Agent state visibility
-- `paperclipai triad start` - Create triad parent issues
-- `paperclipai issue list` - Issue discovery
-- `paperclipai issue worker-pr` - Worker PR submission
-- `paperclipai issue worker-done` - Worker closeout
-- `paperclipai issue reviewer-verdict` - Reviewer verdict
-- `paperclipai triad rescue` - Stalled closeout rescue
+---
 
-**HTTP API:**
-- `GET /api/health` - Basic health check
+## Validation Surfaces
+
+### 1. API Endpoints
+
+**Surface:** HTTP REST API on port 3100
+**Tools:** curl, fetch
+**Cost:** Low (~50ms per request)
+
+**Key endpoints:**
+- `GET /api/health` - Health check
 - `GET /api/companies/:id/agents/triad-preflight` - Triad readiness
-- `GET /api/companies/:id/agents` - Agent status
-- `GET /api/issues/:id` - Issue details
-- `GET /api/issues/:id/company-run-chain` - Full triad chain
-- `GET /api/issues/:id/active-run` - Current run status
-- `POST /api/issues/:id/worker-pr` - Create PR
-- `POST /api/issues/:id/worker-done` - Worker completion
-- `POST /api/issues/:id/reviewer-verdict` - Reviewer verdict
+- `GET /api/issues/:id/company-run-chain` - Execution monitoring
 
-**Tools Used:**
-- PowerShell `Invoke-RestMethod` for HTTP API
-- CLI commands for operator-facing operations
-- Git commands for branch/PR verification
+### 2. CLI Commands
 
-## Resource Cost Classification
+**Surface:** `paperclipai` binary via pnpm
+**Tools:** Direct shell execution
+**Cost:** Low (~1-2s per command)
 
-**CLI Commands:**
-- Cost: Very low (< 1 second, no background processes)
-- Can run: Sequentially, no concurrency limits
+**Key commands:**
+- `paperclipai runtime status`
+- `paperclipai triad start`
+- `paperclipai issue archive-stale`
 
-**API Calls:**
-- Cost: Low (~100-500ms per call)
-- Can run: Up to 10 concurrent, but sequential preferred for clarity
+### 3. Filesystem
 
-**Git Operations:**
-- Cost: Medium (network latency to origin)
-- Can run: Sequential only to avoid conflicts
+**Surface:** Local directories (.tmp/, doc/, root)
+**Tools:** ls, find, mv, rm
+**Cost:** Low (local filesystem ops)
 
-**Max Concurrent Validators:** 1 (this is a single-path runtime proof, not parallel testing)
+## Validation Concurrency
+
+**Max concurrent validators:** 1
+
+**Rationale:**
+- Cleanup mission is sequential by nature
+- API server runs on single port (3100)
+- No parallel execution needed
+- Single worker handles all features
+
+**Resource usage:**
+- API server: ~200MB RAM
+- CLI commands: ephemeral, no background processes
+- Filesystem ops: negligible
+
+## Testing Strategy
+
+**For audit features:**
+1. Start server: `pnpm dev:server`
+2. Execute API calls, capture responses
+3. Execute filesystem commands, capture listings
+4. Stop server
+
+**For cleanup features:**
+1. Verify classification report exists
+2. Execute cleanup commands
+3. Verify with re-audit
+4. Document before/after
+
+**For proof features:**
+1. Start server
+2. Create test issue / triad parent
+3. Poll company-run-chain every 30s
+4. Max wait: 10 minutes
+5. Document full chain
+6. Stop server
+
+## Required Setup
+
+**Before testing:**
+- `pnpm install` completed
+- Port 3100 available
+- No other Paperclip instance running
+
+**During testing:**
+- Server process managed (start/stop cleanly)
+- API responses logged
+- CLI outputs captured

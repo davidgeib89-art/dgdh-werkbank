@@ -1,44 +1,41 @@
 # Environment
 
-**Node Version:** >=20 (repo requirement)
+Environment variables, external dependencies, and setup notes for DGDH cleanup mission.
 
-**Package Manager:** pnpm@9.15.4
+**What belongs here:** Required env vars, external API keys/services, dependency quirks, platform-specific notes.
+**What does NOT belong here:** Service ports/commands (use `.factory/services.yaml`).
 
-**Module System:** ESM ("type": "module")
+---
 
-**Runtime:** Port 3100 (canonical DGDH instance)
+## PostgreSQL (Embedded)
 
-**Company ID:** 44850e08-61ce-44de-8ccd-b645c1f292be
+**Host:** localhost
+**Port:** 54329
+**Mode:** Embedded (password protected)
 
-**Issue Prefix:** DAV (David Geib)
+**Access:**
+- Prefer API/CLI for all operations
+- If DB access truly required, credentials in `.env` file (untracked)
+- Never commit credentials to git
 
-**Next Issue Counter:** 171 (as of 2026-03-28)
+## Node.js / pnpm
 
-## External Dependencies
+**Node:** >=20
+**pnpm:** 9.15.4
+**Module System:** ESM
 
-**Required Services:**
-- Paperclip API server on localhost:3100
+## Paperclip CLI
 
-**Optional External:**
-- GitHub API (for PR operations)
-- Gemini API (for agent runs)
+**Entry point:** `pnpm paperclipai`
+**Key commands:**
+- `paperclipai runtime status`
+- `paperclipai triad start`
+- `paperclipai triad rescue`
+- `paperclipai issue archive-stale`
 
-## Environment Variables
+## Platform Notes
 
-**Paperclip CLI:**
-- `PAPERCLIP_API_KEY` - API authentication
-- `PAPERCLIP_RUN_ID` - Current run context
-- `PAPERCLIP_CLI_CWD` - Repo root for CLI operations
-
-**Git:**
-- Standard git environment (no special vars required)
-
-## Setup Notes
-
-**Windows Specific:**
-- `git config core.longpaths true` required for deep worktrees
-- PowerShell curl may conflict with native curl - use `Invoke-RestMethod`
-
-**Local Identity:**
-- Repo-local `.paperclip/.env` and `.paperclip/config.json` take precedence
-- Falls back to `~/.paperclip/instances/default` if no local context
+**Windows:**
+- Git worktrees need `core.longpaths true`
+- Use PowerShell or CMD for CLI commands
+- Embedded PostgreSQL runs as local process

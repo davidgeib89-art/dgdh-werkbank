@@ -48,6 +48,8 @@ For every new behavior, write the test before the implementation:
 3. If either fails, fix before proceeding
 4. Only run `pnpm test:run` (full suite) if momentum allows; it is secondary, not mandatory
 
+**Current-state rule**: Verification claims must match the current branch state at handoff time. If later edits touched the same surface, rerun the targeted verification before reporting success. Do not rely on an earlier green result from a now-stale state.
+
 ### Step 4: Scope check and commit verification
 Before handoff:
 1. Run `git diff --name-only` — confirm only in-scope files changed
@@ -58,6 +60,9 @@ Before handoff:
 
 ### Step 5: Handoff
 Report the commit hash from `git log --oneline -1`, not from memory.
+
+If there is still in-scope unfinished work, write it in `whatWasLeftUndone`.
+Do not convert an unresolved same-surface problem into a clean completion summary.
 
 ## Example Handoff
 

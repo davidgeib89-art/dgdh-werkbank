@@ -1,24 +1,16 @@
 commands:
   install: pnpm install
-  typecheck: pnpm -r typecheck
+  typecheck: pnpm typecheck
   build: pnpm build
   test: pnpm test:run
   dev: pnpm dev
-  dev:once: pnpm dev:once
-  dev:server: pnpm dev:server
+  dev_server: pnpm dev:server
   paperclip: pnpm paperclipai
 
 services:
-  paperclip-server:
+  paperclip_api:
     start: pnpm dev:server
-    stop: lsof -ti :3100 | xargs kill -9 2>/dev/null || true
+    stop: lsof -ti :3100 | xargs kill 2>/dev/null || true
     healthcheck: curl -sf http://localhost:3100/api/health
-    port: 3100
-    depends_on: []
-
-  paperclip-fullstack:
-    start: pnpm dev
-    stop: lsof -ti :3100,3101 | xargs kill -9 2>/dev/null || true
-    healthcheck: curl -sf http://localhost:3100/api/health && curl -sf http://localhost:3101
     port: 3100
     depends_on: []

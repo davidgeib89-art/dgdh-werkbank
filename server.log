@@ -2439,3 +2439,53 @@
 [15:27:19] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?issueNumber=167 200[39m
 [15:27:23] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?issueNumber=167 200[39m
 [15:27:26] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?issueNumber=167 200[39m
+[15:45:44] [32mINFO[39m: [36mGET / 200[39m
+[15:45:57] [32mINFO[39m: [36mGET / 200[39m
+[15:46:00] [32mINFO[39m: [36mGET / 200[39m
+[15:46:34] [32mINFO[39m: [36mGET / 200[39m
+[15:47:00] [32mINFO[39m: [36mGET / 200[39m
+[15:47:11] [32mINFO[39m: [36mGET / 200[39m
+[15:47:15] [32mINFO[39m: [36mGET / 200[39m
+[15:47:21] [32mINFO[39m: [36mGET / 200[39m
+[15:47:21] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[15:47:21] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues 200[39m
+[15:47:21] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/projects 200[39m
+[15:47:21] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/heartbeat-runs 200[39m
+[15:47:37] [32mINFO[39m: [36mGET / 200[39m
+[15:47:44] [32mINFO[39m: [36mGET / 200[39m
+[15:47:44] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[15:47:44] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues 200[39m
+[15:47:44] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/projects 200[39m
+[15:47:44] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/heartbeat-runs 200[39m
+[15:47:51] [32mINFO[39m: [36mGET / 200[39m
+[15:47:51] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 200[39m
+[15:47:51] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues 200[39m
+[15:47:51] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/projects 200[39m
+[15:47:51] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/heartbeat-runs 200[39m
+[15:53:16] [32mINFO[39m: [36mGET / 304[39m
+[15:53:16] [32mINFO[39m: [36mGET /api/auth/get-session 304[39m
+[15:53:16] [32mINFO[39m: [36mGET / 304[39m
+[15:53:16] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/approvals 304[39m
+[15:53:16] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/join-requests?status=pending_approval 304[39m
+[15:53:16] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/live-runs 304[39m
+[15:53:16] [32mINFO[39m: [36mGET /plugins/ui-contributions 304[39m
+[15:53:16] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents 304[39m
+[15:53:16] [32mINFO[39m: [36mGET /companies/00ab3dc5-895a-41dc-b6bd-38bb1613f0f9/live-runs 304[39m
+[15:53:16] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues?status=backlog%2Ctodo%2Cin_progress%2Cin_review%2Cblocked%2Cdone&touchedByUserId=me 304[39m
+[15:53:16] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/projects 304[39m
+[15:53:16] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/dashboard 304[39m
+[15:53:16] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/issues 304[39m
+[15:53:16] [32mINFO[39m: [36mGET /companies/00ab3dc5-895a-41dc-b6bd-38bb1613f0f9/sidebar-badges 304[39m
+[15:53:16] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/sidebar-badges 304[39m
+[15:53:17] [32mINFO[39m: [36mGET /companies/44850e08-61ce-44de-8ccd-b645c1f292be/heartbeat-runs 304[39m
+{
+  severity_local: 'WARNING',
+  severity: 'WARNING',
+  code: '57P02',
+  message: 'terminating connection because of crash of another server process',
+  detail: 'The postmaster has commanded this server process to roll back the current transaction and exit, because another server process exited abnormally and possibly corrupted shared memory.',
+  hint: 'In a moment you should be able to reconnect to the database and repeat your command.',
+  file: 'postgres.c',
+  line: '2994',
+  routine: 'quickdie'
+}

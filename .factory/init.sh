@@ -1,44 +1,46 @@
 #!/bin/bash
-# DGDH Mission Environment Setup
-# Idempotent initialization for worker sessions
+# DGDH Cleanup Mission Init Script
+# Idempotent setup for cleanup mission
 
 set -e
 
-echo "=== DGDH Mission Environment Setup ==="
+echo "=== DGDH Cleanup Mission Init ==="
 
 # Check Node version
-node_version=$(node --version 2>/dev/null || echo "none")
-if [ "$node_version" = "none" ]; then
+if ! command -v node &> /dev/null; then
     echo "ERROR: Node.js not found"
     exit 1
 fi
-echo "Node version: $node_version"
+
+NODE_VERSION=$(node --version | cut -d'v' -f2 | cut -d'.' -f1)
+if [ "$NODE_VERSION" -lt 20 ]; then
+    echo "ERROR: Node.js >=20 required, found $(node --version)"
+    exit 1
+fi
+
+echo "✓ Node.js $(node --version)"
 
 # Check pnpm
-pnpm_version=$(pnpm --version 2>/dev/null || echo "none")
-if [ "$pnpm_version" = "none" ]; then
+if ! command -v pnpm &> /dev/null; then
     echo "ERROR: pnpm not found"
     exit 1
 fi
-echo "pnpm version: $pnpm_version"
 
-# Install dependencies if needed
-if [ ! -d "node_modules" ] || [ package.json -nt node_modules/.package-lock ]; then
+echo "✓ pnpm $(pnpm --version)"
+
+# Install dependencies if node_modules missing
+if [ ! -d "node_modules" ]; then
     echo "Installing dependencies..."
     pnpm install
 fi
 
-# Verify workspace
-if [ -f "pnpm-workspace.yaml" ]; then
-    echo "Workspace verified: pnpm-workspace.yaml found"
-fi
+echo "✓ Dependencies installed"
 
-# Check runtime connectivity
-echo "Checking runtime connectivity on port 3100..."
-if curl -sf http://localhost:3100/api/health > /dev/null 2>&1; then
-    echo "✓ Runtime 3100 is healthy"
+# Check for .env file (for DB access if needed)
+if [ -f ".env" ]; then
+    echo "✓ .env file present (for DB access if needed)"
 else
-    echo "⚠ Runtime 3100 not responding (may need to start)"
+    echo "ℹ No .env file (API/CLI preferred anyway)"
 fi
 
-echo "=== Setup complete ==="
+echo "=== Init Complete ==="

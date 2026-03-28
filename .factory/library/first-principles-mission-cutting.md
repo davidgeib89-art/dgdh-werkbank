@@ -39,6 +39,33 @@ When a mission proposal uses example issue IDs, example child IDs, or example ru
 - do not let later handoff prose silently override discovered runtime truth
 - after each milestone, re-anchor to the canonical runtime targets before continuing
 
+## Role-stack truth
+
+Do not confuse "new mission" with "new worker identity."
+
+- Prefer the existing DGDH role stack when it can already carry the work.
+- A mission-specific skill may narrow procedure, but it should not bypass the established trio without a proved reason.
+- If a mission starts by generating new generic worker forms instead of using the existing role stack, treat that as harness drift.
+
+Rebuilt from first principles:
+
+- A durable long-running harness only needs three living functions:
+  1. cut and re-anchor
+  2. carry and verify
+  3. judge and close
+- In DGDH those are:
+  - Nerah
+  - Eidan
+  - Taren
+- Everything else should be:
+  - a skill
+  - a validation contract
+  - a mission feature
+  - or a temporary procedure
+
+Do not multiply identities to compensate for weak mission cuts.
+Strengthen the cut, the gates, or the skill procedure instead.
+
 ## Git truth gate
 
 Mission truth must land somewhere harder than chat.
@@ -56,6 +83,27 @@ At mission end, always classify git truth:
 - local commit only
 - local dirty and intentionally parked
 - blocked / not promotable
+
+## Handoff truth gate
+
+If the mission runner halts because a worker returned `discoveredIssues` or `whatWasLeftUndone`:
+
+- treat that as active mission truth, not as annoyance
+- if it is still in scope, convert it into a real next feature or reopen the existing feature
+- dismiss it as `Later` only when it is truly outside the mission family
+
+Never jump from unresolved in-scope handoff truth to `mission complete`.
+
+## Mission complete gate
+
+A mission is not honestly complete unless all are true:
+
+1. all required features are complete
+2. required validation is no longer pending
+3. no in-scope handoff item remains unresolved
+4. git truth is explicit
+
+If the product movement is real but these gates are not closed, call it a truthful partial and keep going or stop honestly.
 
 ## Anti-illusion guard
 
