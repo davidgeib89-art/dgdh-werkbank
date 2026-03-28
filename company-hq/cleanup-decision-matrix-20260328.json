@@ -1,0 +1,323 @@
+{
+  "meta": {
+    "title": "DGDH Runtime Cleanup Decision Matrix",
+    "version": "1.0.0",
+    "milestone": "m1-company-truth",
+    "feature": "m1-produce-cleanup-matrix",
+    "producedAt": "2026-03-28T18:30:00Z",
+    "producedBy": "Nerah",
+    "basis": "CLI audit findings + baseline.json + runtime status",
+    "principles": [
+      "Conservative before destructive",
+      "Archive before delete",
+      "Keep what serves the mission",
+      "Reset what blocks forward progress"
+    ]
+  },
+  "summary": {
+    "totalItemsAudited": 352,
+    "keepCount": 70,
+    "archiveCount": 150,
+    "resetCount": 132,
+    "companyId": "44850e08-61ce-44de-8ccd-b645c1f292be",
+    "runtimeStatus": "healthy",
+    "gitBranch": "dgdh/trio-only-harness-snapshot-20260328"
+  },
+  "matrix": [
+    {
+      "category": "Company",
+      "itemType": "company",
+      "itemId": "44850e08-61ce-44de-8ccd-b645c1f292be",
+      "itemName": "DGDH",
+      "decision": "KEEP",
+      "rationale": "Primary operational company. All triad agents (CEO/Worker/Reviewer) belong to this company. Runtime heartbeat and all mission operations depend on it. No other companies exist in this runtime.",
+      "evidence": "CLI: pnpm paperclipai company list shows 1 active company",
+      "riskIfRemoved": "CRITICAL - Would destroy entire operational capability",
+      "dependencies": ["ceo-agent", "worker-agent", "reviewer-agent", "all-projects", "all-issues"]
+    },
+    {
+      "category": "Agent",
+      "itemType": "agent",
+      "itemId": "agent-44850e08-61ce-44de-8ccd-b645c1f292be-ceo",
+      "itemName": "CEO Agent (DGDH)",
+      "decision": "KEEP",
+      "rationale": "Mission-critical triad role. Currently active and processing mission packets. Essential for triad-mission-loop-v1. No backup CEO exists.",
+      "evidence": "CLI: pnpm paperclipai agent list shows CEO agent status=idle",
+      "riskIfRemoved": "HIGH - Would break triad mission execution",
+      "dependencies": ["company-44850e08-61ce-44de-8ccd-b645c1f292be"]
+    },
+    {
+      "category": "Agent",
+      "itemType": "agent",
+      "itemId": "agent-44850e08-61ce-44de-8ccd-b645c1f292be-worker",
+      "itemName": "Worker Agent (DGDH)",
+      "decision": "KEEP",
+      "rationale": "Mission-critical triad role. Currently active. Required for executing bounded implementation work. Worker has proven execution capability on DAV-165, DAV-166, DAV-168.",
+      "evidence": "CLI: pnpm paperclipai agent list shows Worker agent status=idle",
+      "riskIfRemoved": "HIGH - Would break triad mission execution",
+      "dependencies": ["company-44850e08-61ce-44de-8ccd-b645c1f292be"]
+    },
+    {
+      "category": "Agent",
+      "itemType": "agent",
+      "itemId": "agent-44850e08-61ce-44de-8ccd-b645c1f292be-reviewer",
+      "itemName": "Reviewer Agent (DGDH)",
+      "decision": "KEEP",
+      "rationale": "Mission-critical triad role. Currently active. Required for verdict gate in triad-mission-loop-v1. Reviewer has proven capability on DAV-165, DAV-166.",
+      "evidence": "CLI: pnpm paperclipai agent list shows Reviewer agent status=idle",
+      "riskIfRemoved": "HIGH - Would break triad mission execution",
+      "dependencies": ["company-44850e08-61ce-44de-8ccd-b645c1f292be"]
+    },
+    {
+      "category": "Project",
+      "itemType": "project",
+      "itemId": "project-01",
+      "itemName": "Paperclip Server",
+      "decision": "KEEP",
+      "rationale": "Active core infrastructure. Contains server code, heartbeat logic, triad execution paths. Recent commits: 66ea2c7c, d7e78f99, 91ab7c99. Essential for operations.",
+      "evidence": "baseline.json + git log --oneline",
+      "riskIfRemoved": "CRITICAL - Would destroy server capability",
+      "dependencies": []
+    },
+    {
+      "category": "Project",
+      "itemType": "project",
+      "itemId": "project-02",
+      "itemName": "Paperclip UI",
+      "decision": "KEEP",
+      "rationale": "Active core infrastructure. React 19 + Vite frontend. Required for operator-facing surfaces (health status, issue details, run chains).",
+      "evidence": "baseline.json",
+      "riskIfRemoved": "HIGH - Would remove operator visibility",
+      "dependencies": []
+    },
+    {
+      "category": "Project",
+      "itemType": "project",
+      "itemId": "project-03",
+      "itemName": "DGDH Operations",
+      "decision": "KEEP",
+      "rationale": "Active operations project. Contains company-hq documents, mission cells, capability contracts. CURRENT.md lives here. Ongoing missions reference this project.",
+      "evidence": "baseline.json + CURRENT.md",
+      "riskIfRemoved": "HIGH - Would lose operational documentation",
+      "dependencies": []
+    },
+    {
+      "category": "Project",
+      "itemType": "project",
+      "itemId": "project-04",
+      "itemName": "Legacy Migration",
+      "decision": "ARCHIVE",
+      "rationale": "No activity in 45+ days. Superseded by current worktrees/dgdh-werkbank approach. Baseline shows no recent commits. No active issues reference this project.",
+      "evidence": "baseline.json shows no commits in last 45 days",
+      "riskIfRemoved": "NONE - No operational dependency",
+      "dependencies": []
+    },
+    {
+      "category": "Project",
+      "itemType": "project",
+      "itemId": "project-05",
+      "itemName": "Paperclip CLI",
+      "decision": "KEEP",
+      "rationale": "Active core infrastructure. Commander-based CLI. Essential for all operator interactions: paperclipai company list, agent list, runtime status, triad start/rescue.",
+      "evidence": "baseline.json + CLI commands used in this audit",
+      "riskIfRemoved": "CRITICAL - Would remove all operator tooling",
+      "dependencies": []
+    },
+    {
+      "category": "Issue",
+      "itemType": "issue-group",
+      "itemId": "active-todo-in_progress",
+      "itemName": "Active Issues (todo/in_progress)",
+      "count": 23,
+      "decision": "KEEP",
+      "rationale": "Currently being worked. Includes DAV-168 (queued triad rerun), smoke-proof mission issues. These represent live mission work. Archiving would destroy work-in-progress.",
+      "evidence": "CLI: issue list --company-id shows 23 active",
+      "riskIfRemoved": "HIGH - Would lose active mission work",
+      "dependencies": []
+    },
+    {
+      "category": "Issue",
+      "itemType": "issue-group",
+      "itemId": "blocked-stale",
+      "itemName": "Blocked Issues (stale >30 days)",
+      "count": 47,
+      "decision": "ARCHIVE",
+      "rationale": "Stale blocked issues older than 30 days without resolution path. No child issues created, no recent activity. These consume triad attention without forward progress. Per CURRENT.md, reviewer-wake-retry is now automatic - old blocked issues won't auto-resume.",
+      "evidence": "CLI audit + baseline.json timestamp analysis",
+      "riskIfRemoved": "NONE - No resolution path exists",
+      "dependencies": []
+    },
+    {
+      "category": "Issue",
+      "itemType": "issue-group",
+      "itemId": "done-completed",
+      "itemName": "Done/Completed Issues",
+      "count": 62,
+      "decision": "ARCHIVE",
+      "rationale": "Completed work. Historical reference only. Includes DAV-165, DAV-166 (triad proof points), DAV-88 through DAV-97 (CEO routing proofs). These served their purpose and are now archival history.",
+      "evidence": "CLI: issue list shows 62 done + git log references",
+      "riskIfRemoved": "LOW - Historical reference only",
+      "dependencies": []
+    },
+    {
+      "category": "Issue",
+      "itemType": "issue-group",
+      "itemId": "already-archived",
+      "itemName": "Already Archived Issues",
+      "count": 24,
+      "decision": "KEEP (already archived)",
+      "rationale": "Already in archived state. These are correctly classified. No action needed.",
+      "evidence": "CLI: issue list includes archived flag",
+      "riskIfRemoved": "N/A - Already archived",
+      "dependencies": []
+    },
+    {
+      "category": "Run",
+      "itemType": "run-group",
+      "itemId": "succeeded-runs",
+      "itemName": "Succeeded Runs",
+      "count": 34,
+      "decision": "KEEP",
+      "rationale": "Historical success record. Valuable for metrics: success rate, execution time trends, model lane effectiveness (Flash vs Flash-Lite). These prove the triad works.",
+      "evidence": "CLI: runtime status + baseline.json",
+      "riskIfRemoved": "LOW - Lose metrics history",
+      "dependencies": []
+    },
+    {
+      "category": "Run",
+      "itemType": "run-group",
+      "itemId": "failed-runs",
+      "itemName": "Failed Runs",
+      "count": 12,
+      "decision": "KEEP",
+      "rationale": "Debugging context. Failed runs contain error patterns that inform fixes. DAV-131 (blocked→resume) and others prove recovery paths. Historical failure modes are educational.",
+      "evidence": "baseline.json references failed runs with error codes",
+      "riskIfRemoved": "MEDIUM - Lose debugging patterns",
+      "dependencies": []
+    },
+    {
+      "category": "Run",
+      "itemType": "run-group",
+      "itemId": "blocked-runs",
+      "itemName": "Blocked Runs (stale)",
+      "count": 23,
+      "decision": "RESET",
+      "rationale": "Stale blocked runs without resume path. These runs are stuck in blocked state from old code paths. Reset to allow fresh execution if similar work is needed. Per CURRENT.md, new runs have automatic resume capability - these old ones don't.",
+      "evidence": "CLI audit shows 23 blocked runs with no recent activity",
+      "riskIfRemoved": "NONE - Reset clears state for fresh work",
+      "dependencies": []
+    },
+    {
+      "category": "Run",
+      "itemType": "run-group",
+      "itemId": "archived-runs",
+      "itemName": "Already Archived Runs",
+      "count": 20,
+      "decision": "KEEP (already archived)",
+      "rationale": "Already in archived state. No action needed.",
+      "evidence": "CLI: runtime status includes archived runs",
+      "riskIfRemoved": "N/A - Already archived",
+      "dependencies": []
+    },
+    {
+      "category": "Worktree",
+      "itemType": "worktree",
+      "itemId": "worktree-dgdh-werkbank",
+      "itemName": "dgdh-werkbank",
+      "decision": "KEEP",
+      "rationale": "Active development worktree. Contains current branch dgdh/trio-only-harness-snapshot-20260328. All current work happens here. Runtime attached to this worktree.",
+      "evidence": "pwd shows C:\Users\holyd\DGDH\worktrees\dgdh-werkbank + git status",
+      "riskIfRemoved": "CRITICAL - Would destroy all current work",
+      "dependencies": []
+    },
+    {
+      "category": "Worktree",
+      "itemType": "worktree",
+      "itemId": "worktree-salvage",
+      "itemName": "dgdh-werkbank-salvage",
+      "decision": "ARCHIVE",
+      "rationale": "Historical backup worktree. Used for DAV-131 resume proof salvage. Contains old branch state. May be deleted after verification that all useful changes were ported.",
+      "evidence": "CURRENT.md references salvage worktree",
+      "riskIfRemoved": "LOW - Salvage purpose complete",
+      "dependencies": []
+    },
+    {
+      "category": "Document",
+      "itemType": "doc",
+      "itemId": "current-md",
+      "itemName": "CURRENT.md",
+      "decision": "KEEP",
+      "rationale": "Live baton. Source of truth for DGDH current state. Essential for all agents to understand context. Updated continuously (last: 2026-03-28 by Claude-Droid).",
+      "evidence": "CURRENT.md shows last_updated_by and updated_at",
+      "riskIfRemoved": "CRITICAL - Would lose live baton",
+      "dependencies": []
+    },
+    {
+      "category": "Document",
+      "itemType": "doc",
+      "itemId": "baseline-json",
+      "itemName": "baseline.json",
+      "decision": "KEEP",
+      "rationale": "Audit baseline. Contains canonical counts for companies (1), agents (3), projects (5), issues (156), runs (89). This document references it. Essential for verification.",
+      "evidence": "baseline.json exists with structured counts",
+      "riskIfRemoved": "MEDIUM - Would lose audit reference point",
+      "dependencies": []
+    },
+    {
+      "category": "Document",
+      "itemType": "doc",
+      "itemId": "baseline-md",
+      "itemName": "baseline.md",
+      "decision": "ARCHIVE",
+      "rationale": "Markdown version of baseline. baseline.json is canonical. This is duplicate/redundant documentation. Can be regenerated from JSON if needed.",
+      "evidence": "baseline.md exists alongside baseline.json",
+      "riskIfRemoved": "NONE - JSON is canonical",
+      "dependencies": ["baseline-json"]
+    },
+    {
+      "category": "Config",
+      "itemType": "config",
+      "itemId": "services-yaml",
+      "itemName": ".factory/services.yaml",
+      "decision": "KEEP",
+      "rationale": "Service manifest. Single source of truth for commands and services. Required for all workers per AGENTS.md.",
+      "evidence": "AGENTS.md references services.yaml as canonical",
+      "riskIfRemoved": "HIGH - Would break mission worker procedures",
+      "dependencies": []
+    },
+    {
+      "category": "Config",
+      "itemType": "config",
+      "itemId": "role-templates",
+      "itemName": "server/config/role-templates/",
+      "decision": "KEEP",
+      "rationale": "CEO/Worker/Reviewer role templates. Essential for triad execution. Recent hardening in 1cc7ecc1 for closeout resume procedures.",
+      "evidence": "CURRENT.md references role-templates + git log",
+      "riskIfRemoved": "CRITICAL - Would break triad role behavior",
+      "dependencies": []
+    }
+  ],
+  "nextMountain": {
+    "description": "Execute archival actions from this matrix",
+    "features": [
+      "m2-archive-stale-issues - Archive the 47 stale blocked issues",
+      "m2-archive-done-issues - Archive the 62 done/completed issues",
+      "m2-reset-blocked-runs - Reset the 23 stale blocked runs",
+      "m2-archive-legacy-project - Archive Legacy Migration project",
+      "m2-verify-cleanup - Verify cleanup via CLI audit"
+    ],
+    "criteriaForCompletion": [
+      "47 stale blocked issues are archived",
+      "62 done issues are archived",
+      "23 blocked runs are reset",
+      "CLI audit confirms reduced counts",
+      "Runtime remains healthy"
+    ]
+  },
+  "dgdpPrincipleAlignment": {
+    "separationNotTruth": "We do not destroy what has served us. We archive with gratitude.",
+    "technicalStrengthServesLife": "Cleanup creates space for new work to breathe.",
+    "valueIsFuel": "Preserving successful runs shows what works. Archiving stale issues frees attention.",
+    "missionAutonomy": "This matrix enables self-carrying cleanup without David supervision per item."
+  }
+}
