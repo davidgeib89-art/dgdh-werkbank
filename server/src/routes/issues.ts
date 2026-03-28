@@ -1581,6 +1581,137 @@ export function issueRoutes(db: Db, storage: StorageService) {
     },
   );
 
+  // Worker rescue endpoint - operator-facing rescue path for stalled closeouts
+  const workerRescueSchema = submitWorkerDoneSchema;
+
+  router.post(
+    "/issues/:id/worker-rescue",
+    validate(workerRescueSchema),
+    async (req, res) => {
+      const id = req.params.id as string;
+      const issue = await svc.getById(id);
+      if (!issue) {
+        res.status(404).json({ error: "Issue not found" });
+        return;
+      }
+      assertCompanyAccess(req, issue.companyId);
+
+      // Check rescue eligibility - cannot rescue terminal states
+      const terminalStatuses = ["done", "merged", "cancelled", "reviewer_accepted"];
+      if (terminalStatuses.includes(issue.status)) {
+        res.status(422).json({ error: "Issue is already in a terminal state and cannot be rescued" });
+        return;
+      }
+
+      const actor = getActorInfo(req);
+      const activityRunId = await resolvePersistedActivityRunId(actor.runId);
+
+      // Find an idle reviewer agent (same logic as worker-done)
+      const companyAgents = await agentsSvc.list(issue.companyId);
+      const reviewerAgent =
+        companyAgents.find(
+          (agent) =>
+            agent.id !== issue.assigneeAgentId &&
+            agent.status === "idle" &&
+            (agent.role.toLowerCase() === "reviewer" ||
+              hasRoleTemplateLegacy(agent, "reviewer")),
+        ) ?? null;
+
+      const updatedIssue = await db.transaction(async (tx) => {
+        const txIssueSvc = issueService(tx as unknown as Db);
+        const nextIssue = await txIssueSvc.update(issue.id, {
+          status: "in_review",
+          assigneeAgentId: reviewerAgent?.id ?? issue.assigneeAgentId,
+        });
+        if (!nextIssue) return null;
+
+        await logActivity(tx as unknown as Db, {
+          companyId: nextIssue.companyId,
+          actorType: actor.actorType,
+          actorId: actor.actorId,
+          agentId: actor.agentId,
+          runId: activityRunId,
+          action: "issue.worker_done_recorded",
+          entityType: "issue",
+          entityId: nextIssue.id,
+          details: withApiRunIdFallbackDetails(
+            {
+              identifier: nextIssue.identifier,
+              autoTransition: true,
+              transitionReason: "worker_rescue_handoff",
+              roleTemplateId: actor.agentId ? undefined : "operator",
+              prUrl: req.body.prUrl,
+              branch: req.body.branch,
+              commitHash: req.body.commitHash,
+              summary: req.body.summary,
+              reviewerAgentId: reviewerAgent?.id ?? null,
+              _previous: {
+                status: issue.status,
+                assigneeAgentId: issue.assigneeAgentId,
+              },
+            },
+            actor.runId,
+            activityRunId,
+          ),
+        });
+        return nextIssue;
+      });
+
+      if (!updatedIssue) {
+        res.status(404).json({ error: "Issue not found" });
+        return;
+      }
+
+      // Wake the reviewer if one was found
+      if (reviewerAgent) {
+        try {
+          await heartbeat.wakeup(reviewerAgent.id, {
+            source: "assignment",
+            triggerDetail: "system",
+            reason: "issue_assigned",
+            payload: {
+              issueId: updatedIssue.id,
+              mutation: "worker_rescue_handoff",
+            },
+            requestedByActorType: actor.actorType,
+            requestedByActorId: actor.actorId,
+            contextSnapshot: buildIssueContextSnapshot(updatedIssue, "issue.worker_rescue", {
+              wakeReason: "issue_assigned",
+            }),
+          });
+        } catch (err) {
+          logger.warn(
+            { err, issueId: updatedIssue.id, reviewerAgentId: reviewerAgent.id },
+            "failed to wake reviewer on worker rescue",
+          );
+        }
+      } else {
+        // No idle reviewer available - log deferred wake
+        await logActivity(db, {
+          companyId: updatedIssue.companyId,
+          actorType: actor.actorType,
+          actorId: actor.actorId,
+          agentId: actor.agentId,
+          runId: activityRunId,
+          action: "issue.reviewer_wake_deferred",
+          entityType: "issue",
+          entityId: updatedIssue.id,
+          details: {
+            issueId: updatedIssue.id,
+            reason: "no_idle_reviewer_available",
+            source: "worker_rescue",
+            timestamp: new Date().toISOString(),
+          },
+        });
+      }
+
+      res.status(200).json({
+        success: true,
+        issueId: updatedIssue.id,
+      });
+    },
+  );
+
   router.post(
     "/issues/:id/reviewer-verdict",
     validate(submitReviewerVerdictSchema),
