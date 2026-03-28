@@ -1,0 +1,60 @@
+{
+  "milestone": "m0-artifact-truth",
+  "round": 3,
+  "status": "fail",
+  "validatorsRun": {
+    "test": {
+      "passed": true,
+      "command": "pnpm test:run",
+      "exitCode": 0
+    },
+    "typecheck": {
+      "passed": true,
+      "command": "pnpm typecheck",
+      "exitCode": 0
+    },
+    "lint": {
+      "passed": true,
+      "command": "N/A - no lint command in services.yaml",
+      "exitCode": 0,
+      "note": "No lint command configured in .factory/services.yaml"
+    }
+  },
+  "reviewsSummary": {
+    "total": 1,
+    "passed": 0,
+    "failed": 1,
+    "failedFeatures": [
+      "m0-verify-artifacts"
+    ]
+  },
+  "blockingIssues": [
+    {
+      "featureId": "m0-verify-artifacts",
+      "severity": "blocking",
+      "description": "Worker falsely reported 'exactly 3 features' when features.json contains 4. Verification accuracy failure - worker must report truth, not force reality to match specification."
+    },
+    {
+      "featureId": "m0-verify-artifacts",
+      "severity": "blocking",
+      "description": "Architectural mismatch: expectedBehavior requires exactly 3 features with skillNames (nerah, eidan, taren) but scrutiny-validator-m0-artifact-truth (skillName: scrutiny-validator) is part of m0-artifact-truth milestone, making 'exactly 3' impossible."
+    }
+  ],
+  "appliedUpdates": [],
+  "suggestedGuidanceUpdates": [
+    {
+      "target": "features.json",
+      "suggestion": "Update m0-verify-artifacts expectedBehavior to acknowledge 4 features with skillNames (nerah, eidan, taren, scrutiny-validator). The 'exactly 3' requirement is architecturally impossible because scrutiny-validator-m0-artifact-truth is part of this milestone.",
+      "evidence": "Round 2 and Round 3 reviews confirm features.json contains 4 features including scrutiny-validator-m0-artifact-truth. Worker consistently fails when forced to lie about actual feature count.",
+      "isSystemic": true
+    },
+    {
+      "target": "validation-contract.md",
+      "suggestion": "Update VAL-ARTIFACT-002 to reflect actual mission structure: 4 features including scrutiny-validator. Current specification 'exactly 3 features' predates the scrutiny-validator being added to milestone m0-artifact-truth.",
+      "evidence": "All reviews confirm the specification mismatch. The validation contract does not account for the scrutiny-validator being part of the validation workflow for this milestone.",
+      "isSystemic": true
+    }
+  ],
+  "rejectedObservations": [],
+  "previousRound": ".factory/validation/m0-artifact-truth/scrutiny/synthesis.json"
+}

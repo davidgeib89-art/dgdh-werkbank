@@ -1,0 +1,71 @@
+{
+  "features": [
+    {
+      "id": "m0-verify-artifacts",
+      "description": "Verify mission artifacts are valid and complete. Check that mission.md, validation-contract.md, features.json, and AGENTS.md exist and are well-formed. Report any missing or malformed artifacts.",
+      "skillName": "nerah",
+      "milestone": "m0-artifact-truth",
+      "preconditions": [
+        "Mission directory exists at .factory/missions/"
+      ],
+      "expectedBehavior": [
+        "All required mission artifacts exist",
+        "features.json contains valid non-empty features array",
+        "Validation contract has at least one assertion per area"
+      ],
+      "verificationSteps": [
+        "Check file existence for mission.md, validation-contract.md, features.json, AGENTS.md",
+        "Validate features.json schema",
+        "Report artifact status"
+      ],
+      "fulfills": ["VAL-ARTIFACT-001", "VAL-ARTIFACT-002"],
+      "status": "pending"
+    },
+    {
+      "id": "m1-run-one-real-check",
+      "description": "Execute one bounded real check in-repo through the mission runner. Verify current branch name matches expected (dgdh/trio-only-harness-snapshot-20260328), verify git status is clean, verify .factory/droids contains only nerah.md, eidan.md, taren.md. This proves the runner actually executes real work.",
+      "skillName": "eidan",
+      "milestone": "m1-start-truth",
+      "preconditions": [
+        "Mission runner has started",
+        "Git repository is accessible"
+      ],
+      "expectedBehavior": [
+        "Branch name is correctly identified",
+        "Git status shows truth (clean or known state)",
+        "Droids directory contains exactly the trio files"
+      ],
+      "verificationSteps": [
+        "Run git rev-parse --abbrev-ref HEAD",
+        "Run git status --porcelain",
+        "List .factory/droids directory contents"
+      ],
+      "fulfills": ["VAL-RUNNER-002", "VAL-RUNNER-003"],
+      "status": "pending"
+    },
+    {
+      "id": "m2-closeout-review",
+      "description": "Taren reviews the entire mission execution and provides explicit verdict. Report: 1) what was proven, 2) what failed, 3) whether Mission Control is trustworthy enough for a larger cleanup mission now, 4) exact blocker if not. This must be an honest assessment based on actual evidence.",
+      "skillName": "taren",
+      "milestone": "m2-honest-closeout",
+      "preconditions": [
+        "Previous features have completed",
+        "Mission state files exist"
+      ],
+      "expectedBehavior": [
+        "Explicit verdict on mission success/failure",
+        "Truthful listing of proven items",
+        "Truthful listing of any failures",
+        "Clear go/no-go recommendation for larger missions"
+      ],
+      "verificationSteps": [
+        "Review progress_log.jsonl for evidence",
+        "Review state.json for mission status",
+        "Check git status for any uncommitted changes",
+        "Synthesize closeout report"
+      ],
+      "fulfills": ["VAL-CLOSEOUT-001", "VAL-CLOSEOUT-002"],
+      "status": "pending"
+    }
+  ]
+}

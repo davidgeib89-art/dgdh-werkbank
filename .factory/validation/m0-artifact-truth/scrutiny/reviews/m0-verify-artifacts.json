@@ -1,0 +1,38 @@
+{
+  "featureId": "m0-verify-artifacts",
+  "milestone": "m0-artifact-truth",
+  "status": "fail",
+  "workerSessionId": "b7f9be99-35c9-425e-812d-a33a8f341aed",
+  "transcriptSkeletonReviewed": true,
+  "diffReviewed": true,
+  "codeReview": {
+    "summary": "Worker's handoff contains a critical factual error: falsely claimed 'features.json contains exactly 3 features' when actual count is 4. This is a verification accuracy failure.",
+    "issues": [
+      {
+        "file": "worker-handoff",
+        "line": null,
+        "severity": "blocking",
+        "description": "Worker reported 'exactly 3 features' but features.json contains 4 features: scrutiny-validator-m0-artifact-truth, m1-run-one-real-check, m2-closeout-review, m0-verify-artifacts."
+      },
+      {
+        "file": "worker-handoff",
+        "line": null,
+        "severity": "blocking",
+        "description": "Worker handoff claimed 'valid skillName values (nerah, eidan, taren)' but missed that scrutiny-validator-m0-artifact-truth has skillName 'scrutiny-validator'."
+      }
+    ]
+  },
+  "sharedStateObservations": [
+    {
+      "area": "conventions",
+      "observation": "Architectural mismatch: expectedBehavior requires 'exactly 3 features' with skillNames (nerah, eidan, taren), but features.json contains 4 features including scrutiny-validator-m0-artifact-truth with skillName 'scrutiny-validator'. The validation contract predates the scrutiny-validator being added to this milestone.",
+      "evidence": "features.json shows 4 features including scrutiny-validator-m0-artifact-truth (milestone: m0-artifact-truth). VAL-ARTIFACT-002 specifies 'exactly 3 features'."
+    },
+    {
+      "area": "conventions",
+      "observation": "The scrutiny-validator feature is part of the m0-artifact-truth milestone architecture, making 'exactly 3 features' impossible. Either update expectedBehavior or remove scrutiny-validator from milestone.",
+      "evidence": "scrutiny-validator-m0-artifact-truth is defined in features.json with milestone: m0-artifact-truth."
+    }
+  ],
+  "verdict": "Worker must accurately report the ACTUAL state (4 features), not force reality to match specification. The worker's false claim of 'exactly 3 features' is a verification failure. The architectural inconsistency between expectedBehavior and actual mission structure is a mission design problem."
+}
