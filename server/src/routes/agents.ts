@@ -2310,6 +2310,71 @@ export function agentRoutes(db: Db) {
     res.json(result);
   });
 
+  router.get("/companies/:companyId/agents/triad-preflight", async (req, res) => {
+    const companyId = req.params.companyId as string;
+    assertCompanyAccess(req, companyId);
+
+    // Check if company exists
+    const company = await db
+      .select({ id: companies.id })
+      .from(companies)
+      .where(eq(companies.id, companyId))
+      .then((rows) => rows[0] ?? null);
+    if (!company) {
+      res.status(404).json({ error: "Company not found" });
+      return;
+    }
+
+    const REQUIRED_ROLES = ["ceo", "worker", "reviewer"] as const;
+    type RoleTemplateId = (typeof REQUIRED_ROLES)[number];
+
+    const agentsList = await svc.list(companyId);
+
+    // Build role info for each required role
+    const roles = REQUIRED_ROLES.map((roleTemplateId) => {
+      const agent = agentsList.find((a) => {
+        const adapterConfig = a.adapterConfig as Record<string, unknown> | null;
+        const agentRoleTemplateId =
+          typeof adapterConfig?.roleTemplateId === "string"
+            ? adapterConfig.roleTemplateId
+            : null;
+        return agentRoleTemplateId === roleTemplateId;
+      });
+
+      return {
+        roleTemplateId,
+        present: agent != null,
+        agentId: agent?.id ?? null,
+        agentName: agent?.name ?? null,
+        status: agent?.status ?? null,
+      };
+    });
+
+    const allRolesPresent = roles.every((r) => r.present);
+    const allAgentsIdle = roles
+      .filter((r) => r.present)
+      .every((r) => r.status === "idle");
+    const triadReady = allRolesPresent && allAgentsIdle;
+
+    // Build blockers list
+    const blockers: string[] = [];
+    for (const role of roles) {
+      if (!role.present) {
+        blockers.push(`Missing ${role.roleTemplateId} role agent`);
+      } else if (role.status !== "idle") {
+        blockers.push(`${role.agentName} (${role.roleTemplateId}) is ${role.status}`);
+      }
+    }
+
+    res.json({
+      allRolesPresent,
+      allAgentsIdle,
+      triadReady,
+      roles,
+      blockers,
+    });
+  });
+
   router.get("/companies/:companyId/heartbeat-runs", async (req, res) => {
     const companyId = req.params.companyId as string;
     assertCompanyAccess(req, companyId);
