@@ -1513,6 +1513,23 @@ export function issueRoutes(db: Db, storage: StorageService) {
             "failed to wake reviewer on worker handoff",
           );
         }
+      } else {
+        // No idle reviewer available - log deferred wake for retry mechanism
+        await logActivity(db, {
+          companyId: updatedIssue.companyId,
+          actorType: actor.actorType,
+          actorId: actor.actorId,
+          agentId: actor.agentId,
+          runId: activityRunId,
+          action: "issue.reviewer_wake_deferred",
+          entityType: "issue",
+          entityId: updatedIssue.id,
+          details: {
+            issueId: updatedIssue.id,
+            reason: "no_idle_reviewer_available",
+            timestamp: new Date().toISOString(),
+          },
+        });
       }
 
       res.status(200).json({
