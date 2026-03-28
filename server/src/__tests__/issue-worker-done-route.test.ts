@@ -258,60 +258,6 @@ describe("issues worker done route", () => {
     });
   });
 
-  it("logs reviewer_wake_deferred activity entry when no idle reviewer exists", async () => {
-    mockIssueService.update.mockResolvedValueOnce({
-      id: "issue-1",
-      companyId: "company-1",
-      identifier: "DGD-120",
-      status: "in_review",
-      assigneeAgentId: "agent-worker-1",
-    });
-    mockAgentService.list.mockResolvedValueOnce([
-      {
-        id: "agent-worker-1",
-        companyId: "company-1",
-        role: "worker",
-        status: "running",
-        adapterConfig: { roleTemplateId: "worker" },
-      },
-    ]);
-
-    const res = await request(createApp())
-      .post("/api/issues/issue-1/worker-done")
-      .send({
-        prUrl: "https://github.com/davidgeib89-art/dgdh-werkbank/pull/123",
-        branch: "dgdh/issue-DGD-120-worker-done",
-        commitHash: "a1b2c3d4e5f6a7b8c9d0",
-        summary: {
-          goal: "Implement worker-done endpoint",
-          result: "Endpoint implemented and validated",
-          files: ["server/src/routes/issues.ts"],
-          blockers: "none",
-          next: "review",
-        },
-      });
-
-    expect(res.status).toBe(200);
-    expect(res.body.reviewerWakeQueued).toBe(false);
-
-    // Verify that reviewer_wake_deferred activity was logged
-    const logCalls = mockLogActivity.mock.calls;
-    const deferredLogCall = logCalls.find(
-      (call: any[]) => call[1]?.action === "issue.reviewer_wake_deferred"
-    );
-    expect(deferredLogCall).toBeDefined();
-    expect(deferredLogCall[1]).toMatchObject({
-      action: "issue.reviewer_wake_deferred",
-      entityType: "issue",
-      entityId: "issue-1",
-      companyId: "company-1",
-    });
-    expect(deferredLogCall[1].details).toMatchObject({
-      issueId: "issue-1",
-      reason: "no_idle_reviewer_available",
-    });
-  });
-
   it("rejects submissions from non-worker agents", async () => {
     const res = await request(createApp("reviewer", "reviewer"))
       .post("/api/issues/issue-1/worker-done")

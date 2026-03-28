@@ -55,20 +55,69 @@ describe("heartbeat reviewer wake retry", () => {
       runtimeConfig: {},
     };
 
-    // Track which query we're on and return appropriate results
-    // Query 1: stalled issues (no limit)
-    // Query 2: race condition check (has limit)
-    // Query 3: existing reviewer runs (no limit)
-    // Query 4: idle reviewers (no limit)
+    const issueContext = {
+      id: "issue-1",
+      companyId: "company-1",
+      projectId: null,
+      goalId: null,
+      parentId: null,
+      identifier: "DAV-201",
+      title: "Triad task in review",
+      description: null,
+    };
+
+    const issueExecutionState = {
+      id: "issue-1",
+      companyId: "company-1",
+      executionRunId: null,
+      executionAgentNameKey: null,
+    };
+
+    const queuedRun = {
+      id: "new-run-id",
+      companyId: "company-1",
+      agentId: "agent-reviewer-1",
+      invocationSource: "automation",
+      triggerDetail: "system",
+      wakeupRequestId: "new-wakeup-id",
+      status: "queued",
+    };
+
+    const wakeupRequest = {
+      id: "new-wakeup-id",
+    };
+
     const queryResults = [
-      [stalledIssue], // Query 1: stalled issues
-      [stalledIssue], // Query 2: race condition check (live issue)
-      [], // Query 3: no existing reviewer runs
-      [idleReviewer], // Query 4: idle reviewers found
-      // Additional queries from enqueueWakeup - return empty/mocked data
-      [], [], [], [], [], [], [], [], [], [], [], [], [], [], [],
+      [stalledIssue],
+      [stalledIssue],
+      [],
+      [idleReviewer],
+      [idleReviewer],
+      [issueContext],
+      [],
+      [],
+      [issueExecutionState],
+      [],
+      [idleReviewer],
+      [{ count: 0 }],
+      [],
     ];
     let queryIndex = 0;
+    const insertResults = [wakeupRequest, queuedRun];
+    let insertIndex = 0;
+
+    const buildWhereResult = (result: unknown) => {
+      const promise = Promise.resolve(result);
+      return {
+        then: promise.then.bind(promise),
+        catch: promise.catch.bind(promise),
+        finally: promise.finally.bind(promise),
+        limit: vi.fn(() => Promise.resolve(result)),
+        orderBy: vi.fn(() => ({
+          limit: vi.fn(() => Promise.resolve(result)),
+        })),
+      };
+    };
 
     const mockDb = {
       select: vi.fn(() => {
@@ -76,16 +125,7 @@ describe("heartbeat reviewer wake retry", () => {
         queryIndex++;
         return {
           from: vi.fn(() => ({
-            where: vi.fn(() => {
-              // First and third queries don't have limit
-              if (queryIndex === 1 || queryIndex === 3) {
-                return Promise.resolve(result);
-              }
-              // Second query has limit
-              return {
-                limit: vi.fn(() => Promise.resolve(result)),
-              };
-            }),
+            where: vi.fn(() => buildWhereResult(result)),
           })),
         };
       }),
@@ -98,7 +138,9 @@ describe("heartbeat reviewer wake retry", () => {
       })),
       insert: vi.fn(() => ({
         values: vi.fn(() => ({
-          returning: vi.fn(() => Promise.resolve([{ id: "new-run-id" }])),
+          returning: vi.fn(() =>
+            Promise.resolve([insertResults[Math.min(insertIndex++, insertResults.length - 1)]]),
+          ),
         })),
       })),
       transaction: vi.fn((fn: (tx: unknown) => Promise<unknown>) => fn(mockDb)),
@@ -113,11 +155,11 @@ describe("heartbeat reviewer wake retry", () => {
     // Verify logActivity was called with the correct action
     const logCalls = mockLogActivity.mock.calls;
     const queuedLogCall = logCalls.find(
-      (call: unknown[]) => (call[1] as { action: string }).action === "issue.reviewer_wake_queued_by_heartbeat"
+      (call: unknown[]) => (call[0] as { action?: string } | undefined)?.action === "issue.reviewer_wake_queued_by_heartbeat"
     );
     expect(queuedLogCall).toBeDefined();
-    expect((queuedLogCall[1] as { entityId: string }).entityId).toBe("issue-1");
-    expect((queuedLogCall[1] as { agentId: string }).agentId).toBe("agent-reviewer-1");
+    expect((queuedLogCall[0] as { entityId: string }).entityId).toBe("issue-1");
+    expect((queuedLogCall[0] as { agentId: string }).agentId).toBe("agent-reviewer-1");
   });
 
   it("skips issue where reviewer run is already running", async () => {
@@ -172,11 +214,11 @@ describe("heartbeat reviewer wake retry", () => {
 
     const logCalls = mockLogActivity.mock.calls;
     const queuedLogCall = logCalls.find(
-      (call: unknown[]) => (call[1] as { action: string }).action === "issue.reviewer_wake_queued_by_heartbeat"
+      (call: unknown[]) => (call[0] as { action?: string } | undefined)?.action === "issue.reviewer_wake_queued_by_heartbeat"
     );
     expect(queuedLogCall).toBeUndefined();
     const stallLogCall = logCalls.find(
-      (call: unknown[]) => (call[1] as { action: string }).action === "issue.reviewer_wake_stalled"
+      (call: unknown[]) => (call[0] as { action?: string } | undefined)?.action === "issue.reviewer_wake_stalled"
     );
     expect(stallLogCall).toBeUndefined();
   });
@@ -228,10 +270,10 @@ describe("heartbeat reviewer wake retry", () => {
 
     const logCalls = mockLogActivity.mock.calls;
     const stallLogCall = logCalls.find(
-      (call: unknown[]) => (call[1] as { action: string }).action === "issue.reviewer_wake_stalled"
+      (call: unknown[]) => (call[0] as { action?: string } | undefined)?.action === "issue.reviewer_wake_stalled"
     );
     expect(stallLogCall).toBeDefined();
-    expect((stallLogCall[1] as { entityId: string }).entityId).toBe("issue-1");
+    expect((stallLogCall[0] as { entityId: string }).entityId).toBe("issue-1");
   });
 
   it("logs stall activity when no idle reviewer available (closeoutBlocker is derived from company-run-chain)", async () => {
@@ -282,11 +324,11 @@ describe("heartbeat reviewer wake retry", () => {
     // Verify stall activity is logged - closeoutBlocker is derived, not stored
     const logCalls = mockLogActivity.mock.calls;
     const stallLogCall = logCalls.find(
-      (call: unknown[]) => (call[1] as { action: string }).action === "issue.reviewer_wake_stalled"
+      (call: unknown[]) => (call[0] as { action?: string } | undefined)?.action === "issue.reviewer_wake_stalled"
     );
     expect(stallLogCall).toBeDefined();
-    expect((stallLogCall[1] as { entityId: string }).entityId).toBe("issue-1");
-    expect((stallLogCall[1] as { details: { reason: string } }).details.reason).toBe("no_idle_reviewer_available");
+    expect((stallLogCall[0] as { entityId: string }).entityId).toBe("issue-1");
+    expect((stallLogCall[0] as { details: { reason: string } }).details.reason).toBe("no_idle_reviewer_available");
   });
 
   it("skips issue that is no longer in_review when heartbeat fires (race condition guard)", async () => {
@@ -341,11 +383,11 @@ describe("heartbeat reviewer wake retry", () => {
 
     const logCalls = mockLogActivity.mock.calls;
     const queuedLogCall = logCalls.find(
-      (call: unknown[]) => (call[1] as { action: string }).action === "issue.reviewer_wake_queued_by_heartbeat"
+      (call: unknown[]) => (call[0] as { action?: string } | undefined)?.action === "issue.reviewer_wake_queued_by_heartbeat"
     );
     expect(queuedLogCall).toBeUndefined();
     const stallLogCall = logCalls.find(
-      (call: unknown[]) => (call[1] as { action: string }).action === "issue.reviewer_wake_stalled"
+      (call: unknown[]) => (call[0] as { action?: string } | undefined)?.action === "issue.reviewer_wake_stalled"
     );
     expect(stallLogCall).toBeUndefined();
   });

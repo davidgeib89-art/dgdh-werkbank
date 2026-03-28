@@ -1158,6 +1158,8 @@ export function issueRoutes(db: Db, storage: StorageService) {
             workerPrDetails,
             reviewerApproval,
             closeoutBlocker,
+            reviewerRun: reviewerRun ?? null,
+            activityAsc,
           }),
           stages: [
             stageShape({
