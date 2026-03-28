@@ -54,6 +54,35 @@ Call it from the main exported heartbeat function alongside existing work.
 
 `reviewerWakeStatus` is added as an optional field on the `reviewer_assigned` stageShape. It is derived at query time from: (a) active reviewer runs, (b) activity log entries for wake events, (c) time elapsed since issue entered in_review. Null for non-triad issues.
 
+## ensure-seed-data — ALREADY COMPLETE (do not re-implement)
+
+`server/src/services/ensure-seed-data.ts` is a complete seeding service that:
+- Reads `server/config/seed/dgdh-firm.json` which defines the DGDH company + CEO Agent / Worker Agent / Reviewer Agent
+- Creates company + agents in a transaction if missing
+- Backfills empty `runtimeConfig` for existing agents
+- Has 4 regression tests in `server/src/__tests__/ensure-seed-data.test.ts`
+- Takes a `db: Db` parameter
+
+The agents use `gemini_local` adapter with `model: "auto"` and `roleTemplateId: "ceo"|"worker"|"reviewer"`, plus `wakeOnAssignment: true, wakeOnAutomation: true`.
+
+**Do not create new seeding logic. The seed path already exists.** The gap is that readiness is not *visible* — no single call tells an operator whether the seed ran, whether the company exists, or whether agents are idle.
+
+## CLI command pattern
+
+CLI commands follow Commander.js conventions. Each command lives in `cli/src/commands/<category>/`. New categories need an index.ts that creates the Command and adds subcommands. The root `cli/src/commands/index.ts` adds the category command via `.addCommand()`. All API calls use `api` from `../../lib/api`.
+
+## Companies route pattern
+
+Company-scoped routes live in `server/src/routes/companies.ts`. New GET endpoints that read company state (like preflight) should validate the companyId param, find the company or 404, then query agents. Use the `agentService(db)` for agent queries (it has `list()` and similar). For preflight-style endpoints look at how the company-run-chain route works: find company, assert access, return structured shape.
+
+## Agents route pattern
+
+Agent-scoped routes live in `server/src/routes/agents.ts` (large file). Company-agent-scoped routes like triad preflight can be added there under `/companies/:companyId/agents/triad-preflight`. They use `agentService(db).list()` to get all agents for a company, then filter by `adapterConfig.roleTemplateId`. Agent status comes from `agent.status` field (idle/running/error/paused/terminated).
+
+## Health route pattern
+
+`server/src/routes/health.ts` defines `GET /` (mapped to `/api/health`). It returns `{ status: "ok" }` plus optionally `{ db: "connected"|"unavailable" }` when db is provided. Extending it with seed status requires reading company + agents from db inside the health handler. Keep the existing `{ status: "ok" }` field unchanged for backward compatibility. Add seed status as an optional field.
+
 ## TDD rule
 
 Tests first (red), implementation second (green). No exceptions. Handoff must prove the test was written before the implementation.

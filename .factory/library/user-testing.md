@@ -42,5 +42,5 @@ No browser automation needed. Pure API calls via curl or PowerShell Invoke-RestM
 ## Known test quirks
 
 - `gemini-local-execute.test.ts` has 9 intentionally skipped tests — not a failure
-- Total baseline: 143 files, 729 passed, 9 skipped
-- After this mission: expect 144+ files (1 new test file)
+- Total baseline (2026-03-28): 144 files, 746 passed, 9 skipped
+- After this mission: expect 147+ files (3 new test files for seed-agents, cli-bootstrap, preflight)

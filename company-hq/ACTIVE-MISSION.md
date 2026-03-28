@@ -78,7 +78,14 @@ The next real missing truth is no longer `can one triad loop happen?`.
 It is `can the same bounded triad closing path keep carrying after quota interruptions
 with less manual lane rescue than DAV-165 / DAV-166 still needed?`.
 
+**Runtime readiness is now boringly visible (2026-03-28):**
+- `GET /api/companies/:id/agents/triad-preflight` — one call shows allRolesPresent, allAgentsIdle, triadReady, blockers
+- `GET /api/health` — seedStatus shows whether seeding ran and which roles are present
+- `paperclipai runtime status` — CLI summary of both
+- Operator runbook section 6.1 documents the full diagnostic path
+
 Next mountain: second live triad proof with the hardened path.
+The code is ready. The diagnostic tools are ready. The remaining gap is executing a live runtime proof.
 
 The lane has now proved that one mission can be shared across
 direction, work, and judgment without collapsing back into David micro-steering.
