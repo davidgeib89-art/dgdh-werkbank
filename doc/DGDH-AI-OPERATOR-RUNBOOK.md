@@ -132,6 +132,103 @@ Important:
 - Running inside a configured worktree should auto-load repo-local `.paperclip/.env`.
 - Do not manually export Paperclip env vars unless you know why you are overriding the local context.
 
+## 6.1 Triad Readiness Check
+
+Before launching a triad mission, prove the runtime is ready: DGDH company exists with CEO, Worker, and Reviewer agents all in `idle` status.
+
+### Step 1 — Health Check
+
+Check seeding status via API or CLI:
+
+```powershell
+$base = "http://127.0.0.1:3100"
+Invoke-RestMethod "$base/api/health" | Select-Object -Property status, seedStatus
+```
+
+Or use the CLI:
+
+```powershell
+pnpm paperclipai runtime status
+```
+
+**What `seedStatus` fields mean:**
+- `dgdhCompanyFound: true` — The DGDH company ("David Geib Digitales Handwerk") exists in the database
+- `agentRolesFound.ceo/worker/reviewer: true` — An agent with that `roleTemplateId` exists for the company
+
+**If `dgdhCompanyFound` is false:**
+- Seeding did not run at startup
+- Check DB connectivity (is the database running and accessible?)
+- Ensure `ensureSeedData` was called at server startup
+- Restart the server after fixing DB connectivity — seeding runs automatically on boot
+
+### Step 2 — Preflight Check
+
+Once health shows the company exists, verify full triad readiness:
+
+```powershell
+# Get the company ID
+$companies = Invoke-RestMethod "$base/api/companies"
+$company = $companies | Where-Object { $_.name -eq "David Geib Digitales Handwerk" } | Select-Object -First 1
+$companyId = $company.id
+
+# Run preflight check
+Invoke-RestMethod "$base/companies/$companyId/agents/triad-preflight"
+```
+
+**Response fields:**
+- `allRolesPresent: true` — All three role agents (ceo, worker, reviewer) exist
+- `allAgentsIdle: true` — All present agents have status `"idle"`
+- `triadReady: true` — Both conditions above are true (this is the launch signal)
+- `roles[]` — Per-role details: `present`, `agentId`, `agentName`, `status`
+- `blockers[]` — Human-readable list of what's blocking readiness
+
+**If `triadReady: false`, check `blockers`:**
+- Missing role (e.g., `"Missing reviewer role agent"`) — Seeding issue; restart server to trigger seeding backfill
+- Busy agent (e.g., `"CEO Agent (ceo) is running"`) — Wait for completion or check stuck runs via `/api/issues/{id}/live-runs`
+
+### Common Failure Modes
+
+**"Seeding ran but runtimeConfig was empty"**
+- Backfill happens automatically on next server startup
+- Restart the server
+
+**"Company exists but reviewer never wakes"**
+- The reviewer may be stuck in a previous run
+- Check `/api/companies/{id}/live-runs` for stuck runs
+- Use the reviewer-wake-retry procedure if needed
+
+**"Agents present but all busy"**
+- Check `/api/issues/{id}/live-runs` for the specific company
+- Look for runs stuck in `running` or `queued` status
+- Consider resetting agent sessions if runs are truly stuck
+
+### PowerShell Example: Full Check Sequence
+
+```powershell
+$base = "http://127.0.0.1:3100"
+
+# 1. Health check
+$health = Invoke-RestMethod "$base/api/health"
+Write-Host "Health: $($health.status)"
+Write-Host "DGDH Company: $($health.seedStatus.dgdhCompanyFound)"
+
+# 2. Preflight (only if company exists)
+if ($health.seedStatus.dgdhCompanyFound) {
+    $companies = Invoke-RestMethod "$base/api/companies"
+    $companyId = ($companies | Where-Object { $_.name -eq "David Geib Digitales Handwerk" }).id
+    
+    $preflight = Invoke-RestMethod "$base/companies/$companyId/agents/triad-preflight"
+    Write-Host "Triad Ready: $($preflight.triadReady)"
+    
+    if ($preflight.blockers.Count -gt 0) {
+        Write-Host "Blockers:"
+        $preflight.blockers | ForEach-Object { Write-Host "  - $_" }
+    }
+}
+```
+
+Only proceed with triad mission launch when `triadReady: true`.
+
 ---
 
 ## 7. Canonical Run Control
