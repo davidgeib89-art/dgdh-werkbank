@@ -183,6 +183,9 @@
 ## Bewiesener Systemstand
 - `Mission -> CEO -> Child-Issue -> Worker -> Reviewer -> done` ist reproduzierbar bewiesen.
 - reviewer-wake-retry ist jetzt automatisch via Heartbeat-Scan; in_review-Stalls mit >5 min triggern automatischen Retry auf idle Reviewer und setzen closeoutBlocker fuer Operator-Sichtbarkeit.
+- Triad-Readiness ist jetzt boringly sichtbar: `GET /api/companies/:id/agents/triad-preflight` liefert allRolesPresent, allAgentsIdle, triadReady, roles[], blockers[] in einem Aufruf. `GET /api/health` liefert seedStatus.dgdhCompanyFound und agentRolesFound. `paperclipai runtime status` fasst beides als CLI-Summary zusammen.
+- `paperclipai triad start --title ... --objective ... --done-when ... --target-folder ... --assign-to-ceo` erstellt eine vollstaendig formatierte Triad-Parent-Issue mit missionCell: triad-mission-loop-v1 und allen reviewerFocus/AcceptWhen/ChangeWhen Feldern in einem Aufruf.
+- Operator-Runbook Sections 6.1 (Triad Readiness Check) und 6.2 (Starting a Triad Loop) dokumentieren den boring path von fresh runtime zu laufendem CEO-Loop.
 - CEO Aggregation Mode ist bewiesen; Parent bleibt bei Luecken offen und erzeugt Follow-up statt blind zu schliessen.
 - `reviewer accepted` retriggert den CEO-Parent automatisch.
 - CEO-Merge-/Konflikt-Logging toleriert jetzt nicht-persistierte API-Run-IDs; freie `runId`s landen in `details.apiRunId` statt den Loop ueber `activity_log.run_id` (UUID-FK) zu crashen.

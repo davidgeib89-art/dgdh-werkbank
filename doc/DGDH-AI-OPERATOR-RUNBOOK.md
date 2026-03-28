@@ -231,6 +231,42 @@ Only proceed with triad mission launch when `triadReady: true`.
 
 ---
 
+## 6.2 Starting a Triad Loop
+
+Once `triadReady: true`, create and launch a bounded triad mission in one command:
+
+```powershell
+node cli/dist/index.js triad start `
+  --title "Improve X in Y" `
+  --objective "Add the missing Z so that W no longer requires manual repair" `
+  --target-folder "server/src/services/" `
+  --done-when "Z is implemented with tests, typecheck passes, no regressions" `
+  --assign-to-ceo `
+  --project-id $projectId `
+  --company-id $companyId
+```
+
+The command:
+1. Creates a parent issue with the full triad description format (`missionCell: triad-mission-loop-v1`, `reviewerFocus`, `reviewerAcceptWhen`, `reviewerChangeWhen`, `[NEEDS INPUT]: none`)
+2. With `--assign-to-ceo`: finds the first idle CEO agent and assigns the issue to it, triggering the CEO loop immediately
+3. Prints the issue identifier and ID so you can observe via `company-run-chain`
+
+Without `--assign-to-ceo`, the issue is created in `todo` status for manual assignment later:
+
+```powershell
+$response = Invoke-RestMethod -Method Patch -Uri "$base/issues/$issueId" `
+  -ContentType "application/json" -Body (@{ assigneeAgentId = $ceo.id; status = "todo" } | ConvertTo-Json -Depth 10)
+```
+
+After assignment, observe with:
+
+```powershell
+Invoke-RestMethod "$base/issues/$issueId/company-run-chain"
+Invoke-RestMethod "$base/issues/$issueId/active-run"
+```
+
+---
+
 ## 7. Canonical Run Control
 
 ### 7.1 Skill-Layer Reuse Shortcut

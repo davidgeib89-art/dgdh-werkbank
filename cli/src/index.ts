@@ -22,6 +22,7 @@ import { registerPluginCommands } from "./commands/client/plugin.js";
 import { registerMissionCellCommands } from "./commands/mission-cell.js";
 import { registerSkillContractCommands } from "./commands/skill-contract.js";
 import { registerRuntimeCommands } from "./commands/runtime/index.js";
+import { registerTriadCommands } from "./commands/client/triad.js";
 
 const program = new Command();
 const DATA_DIR_OPTION_HELP =
@@ -144,6 +145,7 @@ registerPluginCommands(program);
 registerMissionCellCommands(program);
 registerSkillContractCommands(program);
 registerRuntimeCommands(program);
+registerTriadCommands(program);
 
 const auth = program.command("auth").description("Authentication and bootstrap utilities");
 
