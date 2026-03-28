@@ -10,13 +10,12 @@ NOTE: Startup and cleanup are handled by `worker-base`. This skill defines the W
 ## When to Use This Skill
 
 Use for all code implementation features in this mission:
-- Adding activity log entries to existing route handlers (e.g., issue.reviewer_wake_deferred)
-- Adding new exported functions/constants to heartbeat.ts (e.g., scanAndRetryReviewerWakes, REVIEWER_WAKE_RETRY_THRESHOLD_MS)
-- Adding new test files (heartbeat-reviewer-wake-retry.test.ts)
-- Extending existing test files (issue-worker-done-route.test.ts, issue-company-run-chain-route.test.ts)
-- Adding API response fields to existing routes (e.g., reviewerWakeStatus to company-run-chain)
+- Adding/modifying route handlers and service functions
+- Adding new exported functions/constants to large service files
+- Creating new test files or extending existing ones
+- Adding API response fields to existing routes
 - Documentation-only updates (CURRENT.md, ACTIVE-MISSION.md, MEMORY.md)
-- Live proof attempt (observe runtime, record outcome or blocker)
+- Live proof attempts (observe runtime, record outcome or blocker)
 
 ## Required Skills
 
@@ -49,18 +48,16 @@ For every new behavior, write the test before the implementation:
 3. If either fails, fix before proceeding
 4. Only run `pnpm test:run` (full suite) if momentum allows; it is secondary, not mandatory
 
-### Step 4: Scope check before handoff
-Before calling worker-pr and worker-done:
-1. Run `git diff --name-only` — confirm only the files listed in the feature's scope changed
+### Step 4: Scope check and commit verification
+Before handoff:
+1. Run `git diff --name-only` — confirm only in-scope files changed
 2. If unexpected files appear, fix the scope problem
-3. summary.files must match exactly what git shows
+3. Stage and commit: `git add <files>; git commit -m "<scope>: <what changed>"`
+4. **Verify the commit actually landed**: run `git log --oneline -1` and confirm the hash matches what you will report. If `git log` does not show your commit, do NOT report a commit hash — report `no commit` and explain why.
+5. Do not report fabricated or assumed commit hashes. The orchestrator verifies them.
 
-### Step 5: Commit and handoff
-```
-git add <files>
-git commit -m "<scope>: <what changed>"
-# then worker-pr → worker-done
-```
+### Step 5: Handoff
+Report the commit hash from `git log --oneline -1`, not from memory.
 
 ## Example Handoff
 
@@ -113,8 +110,14 @@ git commit -m "<scope>: <what changed>"
 
 ## When to Return to Orchestrator
 
+Return with a clear reason — never pause silently. The reason must be specific enough for the orchestrator to act without re-reading the full session.
+
+Return when:
 - The file to be modified has unexpected structure that contradicts the feature description
-- A TypeScript circular import issue arises when importing `REVIEWER_WAKE_RETRY_THRESHOLD_MS` from heartbeat.ts into issues.ts
+- A circular import issue blocks an import that the feature spec assumed would work
 - Any test failure that cannot be resolved within 2 attempts
-- scope requires touching files outside the approved list in AGENTS.md
+- Scope requires touching files outside the approved list in AGENTS.md
 - A discovered issue is blocking and requires a different approach than specified
+- `git log --oneline -1` does not show your commit after `git commit` (HEAD drift — do not guess)
+
+**Pausing rule**: If you must pause before completing a feature, write the exact reason in `whatWasLeftUndone` before pausing. "Pausing to think" is not a reason. State what was done, what the next concrete step is, and what specific uncertainty caused the pause.

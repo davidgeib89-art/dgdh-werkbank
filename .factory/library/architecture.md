@@ -57,3 +57,7 @@ Call it from the main exported heartbeat function alongside existing work.
 ## TDD rule
 
 Tests first (red), implementation second (green). No exceptions. Handoff must prove the test was written before the implementation.
+
+## Commit verification rule
+
+After `git commit`, always run `git log --oneline -1` and confirm the reported hash actually appears. Workers have reported fabricated commit hashes (`d0f6f2c` in the 2026-03-28 reviewer-wake mission) when operating from an unexpected HEAD state. If the commit is not in `git log`, do not report a hash — report the problem to the orchestrator instead. The orchestrator must verify every reported commitId before closing a feature.
