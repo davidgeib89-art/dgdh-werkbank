@@ -267,7 +267,122 @@ Invoke-RestMethod "$base/issues/$issueId/active-run"
 
 ---
 
-## 7. Canonical Run Control
+## 6.3 Rescuing a Stalled Closeout
+
+When a worker makes real progress but hits `post_tool_capacity_exhausted` before calling `worker-done`, the closeout stalls. The worker PR exists, the branch exists, but the handoff to reviewer never fires. This section documents the rescue path.
+
+### Overview
+
+Stalls happen when:
+- Worker consumed tool capacity after creating a PR but before calling `worker-done`
+- Next resume point is `resume_existing_session_worker_closeout` or `resume_existing_session_reviewer_verdict`
+- The deferred wakeup hasn't fired (scheduler ordering or agent state mismatch)
+
+The rescue command manually completes the stalled handoff without losing the work already done.
+
+### Step 1 — Diagnose the Stall
+
+Check the company run chain to identify the stall type:
+
+```powershell
+$base = "http://127.0.0.1:3100"
+$childId = "<child-issue-id>"
+
+Invoke-RestMethod "$base/issues/$childId/company-run-chain"
+Invoke-RestMethod "$base/issues/$childId/active-run"
+```
+
+Look for:
+- `closeoutBlocker` in the triad data — indicates where the stall occurred
+- `nextResumePoint` in the deferred state:
+  - `resume_existing_session_worker_closeout` → worker rescue needed (PR exists, needs `worker-done` call)
+  - `resume_existing_session_reviewer_verdict` → reviewer rescue needed (worker done, needs verdict)
+
+If the child issue shows `nextResumePoint = resume_existing_session_worker_closeout`, proceed to Step 2. If `nextResumePoint = resume_existing_session_reviewer_verdict`, skip to Step 3.
+
+### Step 2 — Worker Rescue (Closeout Path)
+
+Required information:
+- PR URL (check GitHub or `git log` on the worker's branch)
+- Branch name
+- Commit hash of the final worker commit
+
+Command:
+
+```powershell
+paperclipai triad rescue `
+  --issue-id <childIssueId> `
+  --pr-url <url> `
+  --branch <branch> `
+  --commit <hash>
+```
+
+What happens after:
+- Server records the PR, branch, and commit
+- Worker-done state is marked complete
+- Idle reviewer is assigned automatically
+- Reviewer wake is queued (no manual wakeup needed)
+
+### Step 3 — Reviewer Rescue (Verdict Missing)
+
+Use this only after reading the worker output and confirming the change is acceptable.
+
+Command:
+
+```powershell
+paperclipai triad rescue `
+  --issue-id <childIssueId> `
+  --reviewer-verdict accepted
+```
+
+Alternative if changes are required:
+
+```powershell
+paperclipai triad rescue `
+  --issue-id <childIssueId> `
+  --reviewer-verdict changes_requested
+```
+
+### PowerShell Example: Full Rescue Sequence
+
+```powershell
+$base = "http://127.0.0.1:3100"
+$parentId = "<parent-issue-id>"
+
+# 1. Get the child issue ID from company-run-chain
+$chain = Invoke-RestMethod "$base/issues/$parentId/company-run-chain"
+$childId = $chain.children[-1].issueId
+
+Write-Host "Child issue: $childId"
+
+# 2. Check active run for resume point
+$active = Invoke-RestMethod "$base/issues/$childId/active-run"
+$resumePoint = $active.runContext.deferredState.nextResumePoint
+Write-Host "Resume point: $resumePoint"
+
+# 3. Worker rescue (if needed)
+if ($resumePoint -eq "resume_existing_session_worker_closeout") {
+    # Get PR details from git
+    $branch = git -C .paperclip/worktrees/$childId branch --show-current
+    $commit = git -C .paperclip/worktrees/$childId rev-parse HEAD
+    $prUrl = "https://github.com/davidgeib/dgdh-paperclip/pull/<pr-number>"
+    
+    paperclipai triad rescue `
+      --issue-id $childId `
+      --pr-url $prUrl `
+      --branch $branch `
+      --commit $commit
+}
+
+# 4. Reviewer rescue (if needed)
+if ($resumePoint -eq "resume_existing_session_reviewer_verdict") {
+    paperclipai triad rescue `
+      --issue-id $childId `
+      --reviewer-verdict accepted
+}
+```
+
+---
 
 ### 7.1 Skill-Layer Reuse Shortcut
 
