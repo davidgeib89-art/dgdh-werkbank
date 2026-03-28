@@ -99,6 +99,45 @@ states what is fundamentally true, and says what changes when you act on that tr
 
 ---
 
+---
+
+## Mission: dgdh-autonomy-bootstrap (2026-03-28)
+
+### Raw timeline facts
+
+| Event | Note |
+|---|---|
+| Initial proposal rejected | Feature 1 assumed seeding was missing; David corrected — seeding already existed and was tested |
+| Reshaped mission accepted | 3 new primitives + runbook instead of re-implementing what existed |
+| Mountain 1 complete (4 features) | readiness-truth + operator-path milestones; 147 files, 762 passing |
+| Mountain 2 complete (1 feature) | `paperclipai triad start` command; 148 files, 765 passing |
+
+---
+
+### Assumption 7: "If the mission prompt identifies a gap, the gap is real"
+
+**What was assumed:** The orchestrator's analysis of `CURRENT.md` saying "ZERO companies configured" meant `ensure-seed-data.ts` didn't seed agents. The logical conclusion was to implement agent seeding.
+
+**What is provably true:** `ensure-seed-data.ts` already seeded the DGDH company AND CEO/Worker/Reviewer agents, backed by tests. The "ZERO companies" was a runtime configuration state (no DB data), not a code gap. The orchestrator read the symptom as a code deficiency without verifying the code.
+
+**What changes:** Before any feature that claims to "add missing capability X," run a quick grep/glob to confirm X really is missing. One targeted read of the relevant service file would have prevented the wrong proposal in <2 minutes.
+
+**Durable rule:** For any feature described as "add X that is missing" — verify X is actually absent before writing the feature description. One targeted Read/Grep call before writing the feature description is cheaper than a rejected proposal.
+
+---
+
+### Assumption 8: "Symptoms and causes are the same thing"
+
+**What was assumed:** "ZERO companies on runtime" = "seeding code is missing" → "add seeding code."
+
+**What is actually true:** A symptom can have multiple causes. "ZERO companies on runtime" could mean: (a) seeding code missing, (b) seeding code present but not wired, (c) seeding code wired but DB was empty and seeding ran correctly, (d) seeding ran but agents were deleted after. The correct response to a runtime symptom is an observability primitive (can I tell which cause?) before a fix attempt.
+
+**What changes:** When a symptom is identified, enumerate at least 2-3 possible causes before choosing a solution. The highest-value response is often an observability primitive that distinguishes the causes, not an immediate fix for the assumed cause.
+
+**Durable rule:** "Runtime state X is wrong" → first ask "which of several causes could produce X?" → the right feature is often an observability endpoint or health check, not a fix for the assumed first cause.
+
+---
+
 ## Speed vs quality levers (ranked by actual impact in this mission)
 
 1. **Codebase investigation depth** — knowing exact line numbers and call signatures before writing feature descriptions prevented all worker confusion. Highest leverage.
