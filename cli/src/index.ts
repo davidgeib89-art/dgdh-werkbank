@@ -21,6 +21,7 @@ import { registerWorktreeCommands } from "./commands/worktree.js";
 import { registerPluginCommands } from "./commands/client/plugin.js";
 import { registerMissionCellCommands } from "./commands/mission-cell.js";
 import { registerSkillContractCommands } from "./commands/skill-contract.js";
+import { registerRuntimeCommands } from "./commands/runtime/index.js";
 
 const program = new Command();
 const DATA_DIR_OPTION_HELP =
@@ -142,6 +143,7 @@ registerWorktreeCommands(program);
 registerPluginCommands(program);
 registerMissionCellCommands(program);
 registerSkillContractCommands(program);
+registerRuntimeCommands(program);
 
 const auth = program.command("auth").description("Authentication and bootstrap utilities");
 
