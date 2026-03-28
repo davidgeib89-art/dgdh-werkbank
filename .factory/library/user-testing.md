@@ -42,5 +42,13 @@ No browser automation needed. Pure API calls via curl or PowerShell Invoke-RestM
 ## Known test quirks
 
 - `gemini-local-execute.test.ts` has 9 intentionally skipped tests — not a failure
-- Total baseline (2026-03-28): 144 files, 746 passed, 9 skipped
-- After this mission: expect 147+ files (3 new test files for seed-agents, cli-bootstrap, preflight)
+- Total baseline at start of current mission (2026-03-28 triad-repeatability): 148 files, 765 passed, 9 skipped
+- After this mission: expect 153+ files (5 new test files: issue-worker-rescue-route, triad-rescue-command, issue-archive-stale-route, issue-archive-stale-command, heartbeat-prompt-context additions)
+
+## New test files (triad-repeatability mission)
+
+- `server/src/__tests__/issue-worker-rescue-route.test.ts` (new) — rescue-api feature
+- `cli/src/__tests__/triad-rescue-command.test.ts` (new) — rescue-cli feature
+- `server/src/__tests__/issue-archive-stale-route.test.ts` (new) — archive-api feature
+- `cli/src/__tests__/issue-archive-stale-command.test.ts` (new) — archive-cli feature
+- existing heartbeat-prompt-context test (extended) — closeout-prompt-context feature

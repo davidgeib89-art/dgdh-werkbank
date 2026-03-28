@@ -83,6 +83,38 @@ Agent-scoped routes live in `server/src/routes/agents.ts` (large file). Company-
 
 `server/src/routes/health.ts` defines `GET /` (mapped to `/api/health`). It returns `{ status: "ok" }` plus optionally `{ db: "connected"|"unavailable" }` when db is provided. Extending it with seed status requires reading company + agents from db inside the health handler. Keep the existing `{ status: "ok" }` field unchanged for backward compatibility. Add seed status as an optional field.
 
+## Rescue route pattern (triad-repeatability mission)
+
+`POST /issues/:id/worker-rescue` is an operator-facing composite endpoint in `server/src/routes/issues.ts`. It combines worker-pr + worker-done in one call with a state validation gate:
+- 404 if issue not found
+- 422 if issue is in a terminal status (done, merged, cancelled, reviewer_accepted)
+- 200 { success: true } on success
+
+Schema defined locally (not in packages/shared): reuses `submitWorkerDoneSchema` fields: `{ prUrl, branch, commitHash, summary }`.
+
+Reference for tests: `server/src/__tests__/issue-worker-done-route.test.ts` (existing mock setup pattern).
+
+## Archive-stale route pattern (triad-repeatability mission)
+
+`POST /companies/:companyId/issues/archive-stale` in `server/src/routes/issues.ts`:
+- Body: `{ daysOld: number (positive int), dryRun?: boolean }`
+- Dry run: returns `{ archived: 0, issueIds: [...] }` without updating DB
+- Real run: sets `status = "cancelled"` for matching todo/blocked issues older than N days
+- Returns `{ archived: N, issueIds: [...] }`
+
+Excluded statuses from archival: `in_progress`, `in_review`, `merged`, `done`, `reviewer_accepted`.
+
+## Rescue CLI pattern (triad-repeatability mission)
+
+`paperclipai triad rescue` extends `registerTriadCommands` in `cli/src/commands/client/triad.ts`.
+Two paths:
+1. Worker rescue: `--issue-id --pr-url --branch --commit [--summary]` → POST /api/issues/:id/worker-rescue
+2. Reviewer rescue: `--issue-id --reviewer-verdict` → POST /api/issues/:id/reviewer-verdict
+
+## Closeout prompt brief pattern (triad-repeatability mission)
+
+In `server/src/services/heartbeat-prompt-context.ts`: when context snapshot contains a resume state with `nextResumePoint` in `["resume_existing_session_worker_closeout", "resume_existing_session_reviewer_verdict"]`, inject a role-specific closeout brief as a high-priority system message prepended to the prompt patch. The brief must explicitly name the API calls the agent should make (worker-pr + worker-done for worker; reviewer-verdict for reviewer).
+
 ## TDD rule
 
 Tests first (red), implementation second (green). No exceptions. Handoff must prove the test was written before the implementation.

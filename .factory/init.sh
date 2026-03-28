@@ -1,10 +1,12 @@
-#!/usr/bin/env bash
-# init.sh — idempotent environment setup for mission workers
-# Run from repo root: C:\Users\holyd\DGDH\worktrees\dgdh-werkbank
+#!/bin/sh
+# Mission init script — idempotent
+# Installs dependencies if node_modules is missing or stale
 
 set -e
 
-echo "[init] Installing dependencies..."
-pnpm install --frozen-lockfile 2>/dev/null || pnpm install
-
-echo "[init] Done."
+if [ ! -d "node_modules" ]; then
+  echo "[init] Installing dependencies..."
+  pnpm install
+else
+  echo "[init] Dependencies already installed."
+fi
