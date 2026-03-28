@@ -48,6 +48,15 @@ For example, a status surface should prove what happens for states like:
 - `error`
 - `terminated`
 
+## Runtime identity rule
+
+If a mission discovered canonical issue IDs or run IDs dynamically:
+
+- re-anchor to the mission state or validation-state file before acting
+- trust that canonical runtime truth over stale handoff prose
+- if a later handoff names a different target, verify it with one focused probe before switching
+- do not carry issue-ID drift forward just because it appeared in a newer chat message
+
 ## Return early instead of drifting when
 
 - the feature description contradicts the codebase

@@ -29,6 +29,8 @@ None. This skill operates via API and git inspection.
 ## Work Procedure
 
 ### 1. Verify Reviewer Assignment
+- Re-anchor to the canonical child in `validation-state.json` before reviewing.
+- If review handoff text and runtime truth disagree on the child issue ID, trust `validation-state.json` plus live API over stale prose.
 - Confirm issue status is `in_review`: `GET /api/issues/{id}`
 - Verify assigned_to is Reviewer
 - Check `reviewerVerdict` field - if already set, mission may be complete
@@ -63,6 +65,11 @@ None. This skill operates via API and git inspection.
 - Verify triad.state progression: `ready_for_review` -> `ready_to_promote` (if accepted)
 - Document final state in handoff
 
+### Truth-holding rule
+- Do not let issue-ID drift survive review.
+- If the mission discovered the canonical child earlier, later review must keep that identity unless runtime truth proves a newer replacement.
+- Call out any stale handoff IDs as a harness observation so the orchestrator can keep later milestones anchored.
+
 ## Example Handoff
 
 ```json
@@ -92,6 +99,7 @@ Return immediately if:
 - Scope violations detected that need CEO escalation
 - reviewer-verdict API fails
 - Verdict submission blocked by schema validation
+- canonical review target cannot be reconciled between `validation-state.json` and live API truth
 - Any step fails with unclear resolution path
 
 Do NOT submit verdict without explicit reasoning. Do NOT bypass quality gaps.

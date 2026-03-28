@@ -59,6 +59,15 @@ If the feature shows or transforms domain state, review it adversarially:
 `has tests` is not enough.
 The question is whether the tests prove semantic truth.
 
+## Runtime truth review
+
+If a mission discovers canonical runtime targets dynamically:
+
+1. review against the discovered canonical IDs, not the illustrative IDs from the mission title
+2. flag later stale handoff IDs as harness drift
+3. require one focused runtime check before accepting any identity change
+4. treat unjustified issue-ID drift as a real review concern, not harmless wording noise
+
 Rules:
 - evidence first
 - first principles over inherited assumptions

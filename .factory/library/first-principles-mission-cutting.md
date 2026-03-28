@@ -30,6 +30,15 @@ Do not use this as a default mode for small implementation tasks.
    - reviewability without blind trust
    - proximity to the North Star
 
+## Runtime truth override
+
+When a mission proposal uses example issue IDs, example child IDs, or example run IDs:
+
+- treat them as illustrative until runtime truth proves the real targets
+- once the real targets are discovered, make them canonical for the rest of the mission
+- do not let later handoff prose silently override discovered runtime truth
+- after each milestone, re-anchor to the canonical runtime targets before continuing
+
 ## Anti-illusion guard
 
 Do not confuse these with value:

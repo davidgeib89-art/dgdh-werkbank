@@ -50,6 +50,18 @@ Then choose the next mountain by:
 Do not use this to inflate small tasks.
 Use it to choose the right mountain and cut it cleanly.
 
+## Runtime truth precedence
+
+When a mission discovers issue IDs, run IDs, or runtime state dynamically:
+
+1. treat the discovered canonical truth as higher than mission prose examples
+2. keep that truth in the mission state or validation-state file
+3. re-anchor to it before every new milestone
+4. dismiss later stale handoff IDs unless runtime truth proves they replaced the canonical target
+
+Mission titles like `DAV-168 -> DAV-169` are often illustrative.
+Runtime-discovered truth is canonical.
+
 ## State-surface rule
 
 If the mission touches status, health, summaries, readiness, queues, or any other truth surface that compresses domain state:
@@ -66,3 +78,4 @@ Rules:
 - do not shrink a living mission into lifeless fragments
 - do not widen into theater
 - keep the sentence rememberable and the work reviewable
+- after a milestone passes scrutiny, continue automatically when the next feature is already clear from live truth and no real blocker or Type-1 decision exists

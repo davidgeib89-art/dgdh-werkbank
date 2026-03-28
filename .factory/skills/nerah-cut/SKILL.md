@@ -33,6 +33,16 @@ None. This skill operates at the strategic/API layer.
 - Verify CEO agent is idle before assigning to CEO
 - If preconditions fail, return to orchestrator with specific blocker
 
+### Runtime truth precedence
+- When issue IDs are discovered at runtime, treat them as canonical truth.
+- Use this precedence order:
+  1. `validation-state.json` discovered IDs and assertions
+  2. live API truth
+  3. older worker handoffs
+  4. mission prose examples such as `DAV-168 -> DAV-169`
+- If a later handoff names different issue IDs without proving them in runtime truth, treat that as stale handoff noise until verified.
+- After discovering a real parent or child, write or update that truth in `validation-state.json` so later milestones do not drift.
+
 ### 2. Create Parent Issue (if needed)
 - Use `paperclipai triad start` CLI for bounded triad missions, OR
 - Use direct API `POST /api/issues` with explicit packet structure:
@@ -63,10 +73,26 @@ None. This skill operates at the strategic/API layer.
 - Verify child assigned to Worker (not idle/CEO)
 - Document child issue ID in handoff
 
+### 5a. Re-anchor before every new milestone
+- Before starting a new milestone, re-read `validation-state.json` and the relevant live API surface.
+- Confirm the canonical parent ID, child ID, and current statuses before selecting the next feature.
+- Do not keep repeating stale illustrative IDs from the mission proposal once runtime truth exists.
+
 ### 6. Verify Closeout/Promotion
 - For promotion steps: verify PR merged via git log or API
 - Confirm parent status closed via `GET /api/issues/{id}`
 - Document full triad chain via `GET /api/issues/{id}/company-run-chain`
+
+### 7. Continue unless a real blocker exists
+- After a milestone scrutiny pass, continue automatically into the next milestone when:
+  - the next feature is already clear from validation-state and live truth
+  - no Type-1 decision is required
+  - no blocker needs David interpretation
+- Only return to orchestrator for guidance when:
+  - runtime truth is contradictory
+  - a real blocker was proven
+  - the next mountain is no longer the same mission family
+  - a true Type-1 decision is reached
 
 ## Example Handoff
 
@@ -97,6 +123,7 @@ Return immediately if:
 - Issue creation fails with API error
 - Child creation does not occur within reasonable time
 - Execution packet is missing triad-critical fields
+- runtime truth and validation-state disagree and the conflict cannot be resolved in one or two focused probes
 - Any step fails with unclear resolution path
 
 Do NOT retry loops more than 3 times. Escalate instead.

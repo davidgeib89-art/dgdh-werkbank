@@ -30,6 +30,8 @@ None. This skill operates via git, CLI, and API calls.
 ## Work Procedure
 
 ### 1. Verify Issue Assignment and Packet
+- Re-anchor to `validation-state.json` first when the mission discovers runtime IDs dynamically.
+- If the worker handoff names a child issue but `validation-state.json` names a different canonical child, trust `validation-state.json` and re-verify against live API before proceeding.
 - Confirm issue assigned to Worker: `GET /api/issues/{id}`
 - Read execution packet for:
   - `targetFolder` - execution scope boundary
@@ -74,6 +76,11 @@ None. This skill operates via git, CLI, and API calls.
 - Verify triad.closeoutBlocker is null (clean closeout) OR properly documented (deferred)
 - Document final state in handoff
 
+### Truth discipline
+- Mission proposal example IDs are illustrative, not canonical.
+- Once runtime truth identifies the real child issue, use only that child in later worker steps unless live API proves a newer child replaced it.
+- If a different issue ID appears in a later handoff, do one focused check against live API. If it is stale, explicitly dismiss it as stale handoff noise instead of carrying it forward.
+
 ## Example Handoff
 
 ```json
@@ -103,6 +110,7 @@ Return immediately if:
 - Worker-pr or worker-done API calls fail with 4xx/5xx
 - Git state is unclean (uncommitted changes, wrong branch)
 - post_tool_capacity_exhausted occurs without deferredState set
+- canonical child ID in `validation-state.json` cannot be reconciled with live API truth in one or two probes
 - Any step fails with unclear resolution path
 
 Do NOT exceed 3 retry attempts on any API call. Escalate instead.

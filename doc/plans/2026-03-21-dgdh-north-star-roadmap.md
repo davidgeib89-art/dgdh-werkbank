@@ -23,6 +23,7 @@ Doctrine update 2026-03-27:
 - `company-hq/CORE.md` ist die kuerzeste Verdichtung des Firmenherzens
 - `doc/plans/2026-03-27-dgdh-mission-autonomy-doctrine.md` praezisiert die naechste Firmenstufe
 - der North Star bleibt derselbe, aber die Firma liest Selbstverbesserung nun explizit als mission-bounded Firmenmodus statt nur als spaeteres diffuses Add-on
+- naechste operative Korrektur: bevor weitere Live-Beweise, Dashboard-Sprints oder neue Missionen wieder auf demselben Runtime-Sumpf laufen, beginnt die naechste Firmenmission mit Company-Cleanup
 
 ## 2. Der Kern des Zielbilds
 
@@ -55,6 +56,25 @@ Die Leitfragen:
 
 > Entlastet das David real oder verschoenert es nur die Maschine?
 > Wird die Firma faehiger — oder nur groesser?
+
+### Firmenhygiene vor dem naechsten grossen Lauf
+
+Die naechste Mission beginnt mit **Firma aufraeumen**.
+
+Die aktuelle Firmenruntime ist prototypisch verschlammt: grob `170+` Issues, `50+` Projects,
+alte Queue-/Run-Reste und zu viel historischer Betriebslaerm. Das ist kein Schatz.
+Das ist teure Betriebsunklarheit.
+
+Fuer die naechste Firmenstufe gilt deshalb:
+
+- ausser der minimalen produktiven Rollenbasis `ceo`, `worker`, `reviewer` hat der restliche Runtime-Muell keinen Schutzanspruch
+- alte Projekte, alte Issues, alte Queue-/Run-Reste und tote Firmenartefakte duerfen geloescht, archiviert oder hart zurueckgesetzt werden
+- lieber eine kleine saubere Firma mit echter Startwahrheit als eine grosse falsche Firma voller Altlasten
+- Cleanup ist kein Aufraeumfetisch, sondern ein Hebel fuer billigere Live-Proofs, weniger falsche Blocker und weniger David-Archaeologie
+
+Die Regel dahinter:
+
+> Wenn historische Firmenreste die aktuelle Betriebswahrheit verwischen, ist Reset naeher an Wahrheit als Bewahren.
 
 ### First-Principles-Arbeitslesart (Update 2026-03-24)
 
