@@ -19,6 +19,17 @@ interface TriadStartOptions extends BaseClientOptions {
   assignToCeo?: boolean;
 }
 
+interface TriadRescueOptions extends BaseClientOptions {
+  issueId: string;
+  prUrl?: string;
+  branch?: string;
+  commit?: string;
+  summary?: string;
+  reviewerVerdict?: string;
+}
+
+const DEFAULT_API_URL = "http://127.0.0.1:3100";
+
 export function registerTriadCommands(program: Command): void {
   const triad = program.command("triad").description("Triad mission loop operations");
 
@@ -90,6 +101,89 @@ export function registerTriadCommands(program: Command): void {
       }),
     { includeCompany: false },
   );
+
+  // Rescue subcommand
+  triad
+    .command("rescue")
+    .description("Rescue a stalled triad child (operator rescue path)")
+    .requiredOption("--issue-id <id>", "Issue ID to rescue")
+    .option("--pr-url <url>", "Pull request URL (required for worker rescue)")
+    .option("--branch <branch>", "Branch name (required for worker rescue)")
+    .option("--commit <hash>", "Commit hash (required for worker rescue)")
+    .option("--summary <text>", "Summary for the rescue", "Operator rescue closeout")
+    .option("--reviewer-verdict <verdict>", "Reviewer verdict (accepted | changes_requested)")
+    .option("--api-url <url>", "API base URL")
+    .option("-C, --company-id <id>", "Company ID")
+    .action(async (opts: TriadRescueOptions) => {
+      try {
+        // Resolve API URL: flag > PAPERCLIP_API_URL env > default
+        const apiUrl = opts.apiBase?.trim() ||
+          process.env.PAPERCLIP_API_URL?.trim() ||
+          DEFAULT_API_URL;
+
+        const ctx = resolveCommandContext({
+          ...opts,
+          apiBase: apiUrl,
+        }, { requireCompany: false });
+
+        const issueId = opts.issueId;
+        if (!issueId) {
+          throw new Error("--issue-id is required.");
+        }
+
+        // Reviewer verdict path
+        if (opts.reviewerVerdict) {
+          if (!["accepted", "changes_requested"].includes(opts.reviewerVerdict)) {
+            throw new Error("--reviewer-verdict must be one of: accepted, changes_requested");
+          }
+
+          const payload = {
+            verdict: opts.reviewerVerdict,
+            requiredFixes: [],
+            evidence: "Operator rescue",
+            doneWhenCheck: opts.summary || "Operator rescue closeout",
+          };
+
+          const result = await ctx.api.post(
+            `/api/issues/${issueId}/reviewer-verdict`,
+            payload,
+          );
+
+          if (!result) {
+            throw new Error("API returned null response");
+          }
+
+          console.log(`✓ Reviewer verdict '${opts.reviewerVerdict}' recorded for issue ${issueId}`);
+          process.exit(0);
+        }
+
+        // Worker rescue path
+        if (!opts.prUrl || !opts.branch || !opts.commit) {
+          throw new Error(
+            "Worker rescue requires --pr-url, --branch, and --commit. " +
+            "Or provide --reviewer-verdict for reviewer rescue."
+          );
+        }
+
+        const payload = {
+          prUrl: opts.prUrl,
+          branch: opts.branch,
+          commitHash: opts.commit,
+          summary: opts.summary || "Operator rescue closeout",
+        };
+
+        const result = await ctx.api.post(`/api/issues/${issueId}/worker-rescue`, payload);
+
+        if (!result) {
+          throw new Error("API returned null response");
+        }
+
+        console.log(`✓ Worker rescue successful for issue ${issueId}`);
+        process.exit(0);
+      } catch (err) {
+        handleCommandError(err);
+      }
+    });
 }
 
 interface TriadDescriptionParams {
