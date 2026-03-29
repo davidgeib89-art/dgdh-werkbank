@@ -453,4 +453,41 @@ describe("closeout brief injection", () => {
     const prompt = String(patch.paperclipTaskPrompt ?? "");
     expect(prompt).not.toContain("You are resuming in CLOSEOUT MODE");
   });
+
+  it("3rd resume (forceFreshSession) still gets CLOSEOUT MODE BRIEF in prompt", () => {
+    // This test verifies DAV-167 fix: On the 3rd post-tool capacity resume,
+    // forceFreshSession is set to true and postToolCapacityResume is deleted.
+    // The closeout brief must STILL be injected because paperclipPostToolCapacityCloseout
+    // with nextResumePoint indicates this is a closeout resume scenario.
+    const patch = buildHeartbeatIssuePromptContextPatch({
+      contextSnapshot: {
+        forceFreshSession: true,
+        // postToolCapacityResume is NOT set (it was deleted in 3rd resume)
+        paperclipPostToolCapacityCloseout: {
+          roleTemplateId: "worker-ceo",
+          nextResumePoint: "resume_existing_session_worker_closeout",
+          parentDelegationPath: "DAV-100",
+          childIssueCreated: false,
+          guidance: "Complete worker closeout",
+        },
+      },
+      issue: {
+        id: "issue-closeout-4",
+        companyId: "company-1",
+        projectId: "project-1",
+        goalId: null,
+        parentId: null,
+        identifier: "DAV-504",
+        title: "Third resume closeout test",
+        description: "Test that closeout brief appears even on 3rd resume with forceFreshSession.",
+      },
+    });
+
+    const prompt = String(patch.paperclipTaskPrompt ?? "");
+    expect(prompt).toContain("CLOSEOUT MODE BRIEF");
+    expect(prompt).toContain("You are resuming in CLOSEOUT MODE");
+    expect(prompt).toContain("Do not restart execution from scratch");
+    expect(prompt).toContain("worker-pr");
+    expect(prompt).toContain("worker-done");
+  });
 });

@@ -346,8 +346,18 @@ function buildIssueTaskPrompt(
   // Build closeout brief if resuming for closeout
   const closeoutBriefLines: string[] = [];
   const nextResumePoint = readNonEmptyString(postToolCapacityCloseout.nextResumePoint);
+
+  // Primary condition: postToolCapacityResume is set (1st/2nd resume)
+  // Secondary condition: forceFreshSession with closeout state (3rd+ resume)
+  const isCloseoutResume =
+    input?.contextSnapshot?.postToolCapacityResume === true ||
+    (input?.contextSnapshot?.forceFreshSession === true &&
+      nextResumePoint === "resume_existing_session_worker_closeout") ||
+    (input?.contextSnapshot?.forceFreshSession === true &&
+      nextResumePoint === "resume_existing_session_reviewer_verdict");
+
   if (
-    input?.contextSnapshot?.postToolCapacityResume === true &&
+    isCloseoutResume &&
     nextResumePoint === "resume_existing_session_worker_closeout"
   ) {
     closeoutBriefLines.push(
@@ -364,7 +374,7 @@ function buildIssueTaskPrompt(
       "══════════════════════════════════════════════════════════════════",
     );
   } else if (
-    input?.contextSnapshot?.postToolCapacityResume === true &&
+    isCloseoutResume &&
     nextResumePoint === "resume_existing_session_reviewer_verdict"
   ) {
     closeoutBriefLines.push(

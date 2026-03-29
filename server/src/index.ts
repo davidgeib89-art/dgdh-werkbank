@@ -29,6 +29,7 @@ import { setupLiveEventsWebSocketServer } from "./realtime/live-events-ws.js";
 import {
   heartbeatService,
   reconcilePersistedRuntimeServicesOnStartup,
+  logActivity,
 } from "./services/index.js";
 import { createStorageServiceFromConfig } from "./storage/index.js";
 import { printStartupBanner } from "./startup-banner.js";
@@ -693,6 +694,13 @@ export async function startServer(): Promise<StartedServer> {
         .then(() => heartbeat.resumeQueuedRuns())
         .catch((err) => {
           logger.error({ err }, "periodic heartbeat recovery failed");
+        });
+
+      // Scan for stalled in_review issues and retry reviewer wakes
+      void heartbeat
+        .scanAndRetryReviewerWakes({ logActivity: (input) => logActivity(db, input) })
+        .catch((err) => {
+          logger.warn({ err }, "periodic reviewer wake retry scan failed");
         });
     }, config.heartbeatSchedulerIntervalMs);
   }
