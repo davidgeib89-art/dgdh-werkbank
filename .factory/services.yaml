@@ -3,12 +3,14 @@ commands:
   typecheck: pnpm -r typecheck
   build: pnpm build
   test: pnpm test:run
-  lint: echo "No root lint command configured"
-  
+  test_watch: pnpm test
+  test_single: pnpm vitest run
+
 services:
-  paperclip-server:
-    start: pnpm dev:server
-    stop: taskkill /F /IM node.exe 2>nul || echo "No node processes"
+  server:
+    start: PORT=3100 pnpm dev:server
+    stop: npx kill-port 3100
     healthcheck: curl -sf http://localhost:3100/api/health
     port: 3100
     depends_on: []
+    note: "Already running in this environment. Do NOT start a second instance."

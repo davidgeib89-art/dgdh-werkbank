@@ -1,38 +1,16 @@
-#!/bin/bash
-# Factory init script for DGDH Runtime Cleanup Mission
-# This script runs at the start of each worker session
+#!/bin/sh
+# init.sh — idempotent environment setup for Triad Closeout mission
+# Runs at the start of each worker session.
 
 set -e
 
-echo "=== DGDH Runtime Cleanup Mission - Environment Setup ==="
+# Install dependencies if needed
+pnpm install --frozen-lockfile
 
-# Verify git is accessible
-if ! command -v git &> /dev/null; then
-    echo "ERROR: git not found"
-    exit 1
+# Verify the server is alive (it should already be running on 3100)
+# Workers do NOT start a new server — only check if it's there.
+if curl -sf http://localhost:3100/api/health > /dev/null 2>&1; then
+  echo "Server healthy on port 3100"
+else
+  echo "WARNING: Server not responding on port 3100. Workers must not start a new instance without orchestrator approval."
 fi
-
-# Verify pnpm is accessible
-if ! command -v pnpm &> /dev/null; then
-    echo "ERROR: pnpm not found"
-    exit 1
-fi
-
-# Verify Node.js version
-node_version=$(node --version)
-echo "Node.js version: $node_version"
-
-# Install dependencies if node_modules missing
-if [ ! -d "node_modules" ]; then
-    echo "Installing dependencies..."
-    pnpm install
-fi
-
-# Verify CLI is available
-if ! pnpm paperclipai --help &> /dev/null; then
-    echo "WARNING: paperclipai CLI may not be fully configured"
-fi
-
-echo "=== Environment Setup Complete ==="
-echo "Working directory: $(pwd)"
-echo "Git branch: $(git rev-parse --abbrev-ref HEAD)"

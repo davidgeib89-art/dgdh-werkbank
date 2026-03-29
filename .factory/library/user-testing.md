@@ -1,73 +1,40 @@
 # User Testing
 
-Validation surface and resource cost classification for DGDH Runtime Cleanup Mission.
-
 ## Validation Surface
 
-### CLI Surface
-- **Tool:** Direct CLI commands via `pnpm paperclipai`
-- **Commands used:**
-  - `pnpm paperclipai company list`
-  - `pnpm paperclipai agent list`
-  - `pnpm paperclipai project list`
-  - `pnpm paperclipai issue list`
-  - `pnpm paperclipai runtime status`
-  - `pnpm paperclipai triad start`
-- **Setup:** Requires Paperclip CLI to be built and configured
-- **Auth:** Uses local Paperclip instance credentials
+This mission's testable surfaces are:
 
-### API Surface
-- **Tool:** curl or equivalent HTTP client
-- **Endpoints:**
-  - `GET /api/health` - runtime health check
-  - `GET /api/companies/:id/agents/triad-preflight` - triad readiness
-  - `GET /api/issues/:id/company-run-chain` - run chain observation
-- **Setup:** Requires Paperclip server running on port 3100
-- **Auth:** Bearer token from local Paperclip instance
+1. **Unit tests (Vitest)** — primary surface for all assertions. All behavioral changes are verified through unit tests with mocked DB/service dependencies. No integration test server is started.
+   - Tool: `pnpm vitest run <file>` or `pnpm test:run`
+   - Auth: not required (mocked)
 
-### Git Surface
-- **Tool:** Native git commands
-- **Commands:**
-  - `git rev-parse --abbrev-ref HEAD`
-  - `git status --porcelain`
-  - `git log --oneline`
-- **Setup:** None required, standard git
+2. **CLI smoke test** — for VAL-CROSS-005: run `pnpm paperclipai triad status <id>` against the live server on port 3100.
+   - Tool: shell command + `curl`
+   - Auth: not required for local trusted deployment
+   - The server is already running — no startup needed
+
+3. **Static assertion** — for VAL-SCHED-001 / VAL-CROSS-001: confirm `scanAndRetryReviewerWakes` appears in `server/src/index.ts` scheduler block.
+   - Tool: `grep` or file read
 
 ## Validation Concurrency
 
-### Resource Classification
+- **Unit tests:** Tests are isolated via Vitest. Full suite (`pnpm test:run`) runs all 154+ files. On this machine (16 cores, 32 GB RAM, 5% baseline CPU), Vitest can run with default parallelism safely.
+- **CLI smoke test:** Single invocation, negligible resource cost.
+- Max concurrent validators: 5 (unit-test surface is low-cost per validator).
 
-**CLI/API Validators:**
-- Memory per instance: ~50-100 MB
-- CPU: Low (mostly waiting on API responses)
-- Processes spawned: 1 (CLI process)
+## Isolation Approach
 
-**Git Validators:**
-- Memory per instance: ~10 MB
-- CPU: Negligible
-- Processes spawned: 1 (git process)
+Unit tests use in-process mocks (`vi.fn()`, `vi.mock()`). No shared state between test files. No test server process needed.
 
-### Machine Capacity
-- Total RAM: Check available (assumed 16GB+)
-- Available headroom: ~70% of free RAM
-- Conservative limit: **5 concurrent validators**
+## Known Pre-existing Issues
 
-### Isolation Approach
-- Each validator runs independently
-- No shared state between validators
-- No browser instances required
-- File system operations are read-only except for git commits
+9 revenue pipeline test failures (Windows `.tmp` directory missing) — fixed in milestone 1 feature `fix-windows-tmp-test-failures`. If milestone 1 is not yet complete when validating, these 9 failures are expected and should be noted but not treated as regressions.
 
-## Dry Run Notes
+## Triad Status CLI Test
 
-Pre-flight checks:
-1. Verify `pnpm paperclipai --help` works
-2. Verify runtime on port 3100 responds to health check
-3. Verify git commands work in worktree
-4. Verify no stale processes blocking ports
+For VAL-CROSS-005, the validator should:
+1. Confirm `curl -sf http://localhost:3100/api/health` returns `status: "ok"`
+2. Run `pnpm paperclipai triad status --help` and confirm it exits 0
+3. Optionally, call the actual endpoint: `curl -s http://localhost:3100/api/health | python -c "import json,sys; d=json.load(sys.stdin); print(d)"` to get a company ID, then test against a real issue if one is available
 
-## Known Limitations
-
-- Requires local Paperclip server (port 3100) for full validation
-- Some CLI commands may require specific company context
-- API endpoints require valid authentication
+The CLI smoke test is intentionally lightweight — the unit tests (VAL-CLI-001 through VAL-CLI-006) provide the behavioral guarantee.

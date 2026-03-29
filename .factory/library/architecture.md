@@ -1,44 +1,74 @@
-# Architecture
+# Architecture — Triad Closeout Mission
 
-Architectural decisions and patterns for DGDH cleanup mission.
+## The Triad Execution Loop
 
-**What belongs here:** System structure, key patterns, boundary definitions.
+The triad is the core DGDH execution unit: CEO (parent issue) → Worker (child issue) → Reviewer (child issue) → CEO merge.
 
----
+**Key types/routes:**
+- Issues: `server/src/routes/issues.ts` — all issue CRUD, worker-done, reviewer-verdict, triad-preflight
+- Heartbeat service: `server/src/services/heartbeat.ts` — runs agent sessions, manages state transitions, scheduler
+- CEO service: `server/src/services/ceo.ts` — merge orchestration after reviewer accepts
 
-## System Layers
-
+**State transitions:**
 ```
-┌─────────────────────────────────────┐
-│  CLI / API Surface                  │  <- Cleanup commands here
-├─────────────────────────────────────┤
-│  Paperclip Server (port 3100)       │  <- Health, triad preflight
-├─────────────────────────────────────┤
-│  Embedded PostgreSQL (port 54329)   │  <- Prefer API over direct DB
-├─────────────────────────────────────┤
-│  Filesystem (.tmp/, doc/, root)     │  <- Direct cleanup allowed
-└─────────────────────────────────────┘
+todo → in_progress (worker assigned)
+in_progress → in_review (POST /issues/:id/worker-done)
+in_review → reviewer_accepted (POST /issues/:id/reviewer-verdict {verdict: "accepted"})
+reviewer_accepted → done (CEO merge orchestrator)
 ```
 
-## Protected Core
+## Heartbeat Scheduler
 
-**Never cleanup:**
-- `.paperclip/worktrees/` - Active isolation infrastructure
-- `server/`, `ui/`, `cli/`, `packages/*` - Core code
-- CEO, Worker, Reviewer agent definitions
+Lives in `server/src/index.ts`. Two `setInterval` calls:
 
-## Cleanup Hierarchy
+1. **Heartbeat scheduler** (interval: `config.heartbeatSchedulerIntervalMs`, default ~60s):
+   - `heartbeat.tickTimers()` — process timer-based wakeups
+   - `heartbeat.reapOrphanedRuns()` — clean up lost runs
+   - `heartbeat.resumeQueuedRuns()` — promote deferred capacity wakes, process queued runs
+   - `heartbeat.scanAndRetryReviewerWakes()` — **MISSING from production, fixed in this mission**
 
-**Preferred approaches (in order):**
-1. CLI commands (`paperclipai issue archive-stale`)
-2. API endpoints (`GET /api/health`, `GET /api/companies/:id/agents/triad-preflight`)
-3. Direct DB queries (only for irreducible residue)
-4. Filesystem operations (for .tmp/, doc/, root artifacts)
+2. **Backup scheduler** — unrelated, separate interval
 
-## Key API Endpoints
+## The Closeout Seam
 
-- `GET /api/health` - Server health and seed status
-- `GET /api/companies` - List companies
-- `GET /api/companies/:id/agents/triad-preflight` - Triad readiness
-- `GET /api/issues/:id/company-run-chain` - Full execution chain
-- `GET /api/heartbeat-runs` - Run status and history
+The seam this mission fixes: the path from a completed worker run to a merged PR.
+
+**Normal path:**
+1. Worker run finishes → agent calls `POST /issues/:id/worker-done`
+2. `worker-done` handler: sets issue `status = "in_review"`, finds idle reviewer, calls `heartbeat.wakeup(reviewer)`
+3. Reviewer run starts → reads issue → calls `POST /issues/:id/reviewer-verdict { verdict: "accepted" }`
+4. `reviewer-verdict` handler: sets `status = "reviewer_accepted"`, calls `ceoSvc.maybeRunCeoMergeOrchestratorAfterReviewerVerdict()`
+5. CEO merge orchestrator: merges PRs, sets parent `done`
+
+**Stall class 1 — No idle reviewer at worker-done time:**
+- `worker-done` finds no idle reviewer, logs `issue.reviewer_wake_deferred`
+- `scanAndRetryReviewerWakes()` should retry after 5 min — **but was never wired into the scheduler** (Gap 1)
+
+**Stall class 2 — Reviewer wake retry lacks context:**
+- When the retry fires, the context snapshot is minimal — no `workerRunId` or handoff summary
+- Reviewer must make an extra API call to reconstruct context (Gap 3)
+
+## The Resume / Capacity Path
+
+When an agent run hits `post_tool_capacity_exhausted`:
+1. Heartbeat detects it → `outcome = "blocked"`
+2. `schedulePostToolCapacityResume()` creates a deferred wake in `agentWakeupRequests` with `status = "deferred_capacity_cooldown"`
+3. After cooldown (~3 min), `promoteDuePostToolCapacityWakeups()` promotes the wake to `queued`
+4. Scheduler runs → `resumeQueuedRuns()` processes the queued wake
+5. New run starts with `paperclipPostToolCapacityCloseout` in context
+
+**Closeout brief injection** (`heartbeat-prompt-context.ts`):
+- `buildIssueTaskPrompt()` checks `context.postToolCapacityResume === true` to inject CLOSEOUT MODE BRIEF
+- On 3rd resume (`resumeCount >= 2`): `postToolCapacityResume` is deleted from context → **brief is silently dropped** (Gap 2)
+- Fix: preserve or restore the closeout brief gate when `paperclipPostToolCapacityCloseout` is present
+
+## CLI Triad Commands
+
+Lives in `cli/src/commands/client/triad.ts`. Registered via `registerTriadCommands(program)`.
+
+Existing commands: `triad start`, `triad rescue`
+
+New command added by this mission: `triad status <issue-id>`
+- Calls `GET /api/issues/:id/company-run-chain`
+- The response shape includes `children[].triad.reviewerWakeStatus` and `children[].triad.closeoutBlocker`
+- Command displays human-readable stall diagnosis and pre-filled rescue command when stall is detected
