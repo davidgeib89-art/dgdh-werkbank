@@ -721,4 +721,185 @@ describe("agent status command", () => {
     exitSpy.mockRestore();
     consoleErrorSpy.mockRestore();
   });
+
+  it("handles API error on agents list and exits with code 1", async () => {
+    const program = new Command();
+    registerAgentCommands(program);
+
+    const exitSpy = vi.spyOn(process, "exit").mockImplementation((code) => {
+      throw new Error(`Process exit: ${code}`);
+    });
+    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    mockApi.get.mockRejectedValueOnce(new Error("API Error: Failed to fetch agents"));
+
+    try {
+      await program.parseAsync([
+        "node",
+        "test",
+        "agent",
+        "status",
+        "--company-id",
+        "test-company-id",
+      ]);
+    } catch (err) {
+      // Expected to throw
+    }
+
+    expect(exitSpy).toHaveBeenCalledWith(1);
+    expect(mockApi.get).toHaveBeenCalledWith("/api/companies/test-company-id/agents");
+
+    exitSpy.mockRestore();
+    consoleErrorSpy.mockRestore();
+  });
+
+  it("handles API error on health endpoint and exits with code 1", async () => {
+    const program = new Command();
+    registerAgentCommands(program);
+
+    const exitSpy = vi.spyOn(process, "exit").mockImplementation((code) => {
+      throw new Error(`Process exit: ${code}`);
+    });
+    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    const mockAgents: Agent[] = [
+      {
+        id: "agent-1",
+        companyId: "test-company-id",
+        name: "CEO Agent",
+        urlKey: "ceo-agent",
+        role: "ceo",
+        title: null,
+        icon: null,
+        status: "idle",
+        reportsTo: null,
+        capabilities: null,
+        adapterType: "gemini_local",
+        adapterConfig: {},
+        runtimeConfig: {},
+        budgetMonthlyCents: 10000,
+        spentMonthlyCents: 500,
+        permissions: { canCreateAgents: true },
+        lastHeartbeatAt: null,
+        metadata: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    ];
+
+    mockApi.get
+      .mockResolvedValueOnce(mockAgents) // /api/companies/:id/agents succeeds
+      .mockRejectedValueOnce(new Error("API Error: Failed to fetch health data")); // /api/companies/:id/agents/health fails
+
+    try {
+      await program.parseAsync([
+        "node",
+        "test",
+        "agent",
+        "status",
+        "--company-id",
+        "test-company-id",
+      ]);
+    } catch (err) {
+      // Expected to throw
+    }
+
+    expect(exitSpy).toHaveBeenCalledWith(1);
+    expect(mockApi.get).toHaveBeenNthCalledWith(2, "/api/companies/test-company-id/agents/health");
+
+    exitSpy.mockRestore();
+    consoleErrorSpy.mockRestore();
+  });
+
+  it("handles API error on live-runs endpoint and exits with code 1", async () => {
+    const program = new Command();
+    registerAgentCommands(program);
+
+    const exitSpy = vi.spyOn(process, "exit").mockImplementation((code) => {
+      throw new Error(`Process exit: ${code}`);
+    });
+    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    const mockAgents: Agent[] = [
+      {
+        id: "agent-1",
+        companyId: "test-company-id",
+        name: "CEO Agent",
+        urlKey: "ceo-agent",
+        role: "ceo",
+        title: null,
+        icon: null,
+        status: "idle",
+        reportsTo: null,
+        capabilities: null,
+        adapterType: "gemini_local",
+        adapterConfig: {},
+        runtimeConfig: {},
+        budgetMonthlyCents: 10000,
+        spentMonthlyCents: 500,
+        permissions: { canCreateAgents: true },
+        lastHeartbeatAt: null,
+        metadata: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    ];
+
+    const mockHealth: AgentHealthResponse = {
+      companyId: "test-company-id",
+      count: 1,
+      summary: {
+        countsByHealthStatus: { ok: 1 },
+        countsByBudgetStatus: { healthy: 1 },
+        highestSeverity: "ok",
+        atRiskAgents: [],
+      },
+      agents: [
+        {
+          agentId: "agent-1",
+          agentName: "CEO Agent",
+          role: "ceo",
+          adapterType: "gemini_local",
+          agentStatus: "idle",
+          healthStatus: "ok",
+          budgetStatus: "healthy",
+          usedTokens: 1000,
+          softCapTokens: 5000,
+          hardCapTokens: 10000,
+          totalCostCents: 50,
+          lastRun: {
+            id: "run-1",
+            status: "succeeded",
+            stopReason: "completed",
+            finishedAt: "2026-03-28T10:00:00.000Z",
+            createdAt: "2026-03-28T09:00:00.000Z",
+          },
+        },
+      ],
+    };
+
+    mockApi.get
+      .mockResolvedValueOnce(mockAgents) // /api/companies/:id/agents succeeds
+      .mockResolvedValueOnce(mockHealth) // /api/companies/:id/agents/health succeeds
+      .mockRejectedValueOnce(new Error("API Error: Failed to fetch live runs")); // /api/companies/:id/live-runs fails
+
+    try {
+      await program.parseAsync([
+        "node",
+        "test",
+        "agent",
+        "status",
+        "--company-id",
+        "test-company-id",
+      ]);
+    } catch (err) {
+      // Expected to throw
+    }
+
+    expect(exitSpy).toHaveBeenCalledWith(1);
+    expect(mockApi.get).toHaveBeenNthCalledWith(3, "/api/companies/test-company-id/live-runs");
+
+    exitSpy.mockRestore();
+    consoleErrorSpy.mockRestore();
+  });
 });

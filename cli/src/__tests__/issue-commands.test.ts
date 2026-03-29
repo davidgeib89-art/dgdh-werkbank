@@ -95,4 +95,71 @@ describe("issue commands", () => {
 
     expect(consoleSpy).toHaveBeenCalledWith(JSON.stringify(issueData, null, 2));
   });
+
+  it("handles API error on issue list and exits with code 1", async () => {
+    const program = new Command();
+    registerIssueCommands(program);
+
+    mockApi.get.mockRejectedValue({
+      status: 500,
+      message: "Internal Server Error",
+    });
+
+    const exitSpy = vi.spyOn(process, "exit").mockImplementation(() => {
+      throw new Error("Process exit called");
+    });
+    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    try {
+      await program.parseAsync([
+        "node",
+        "test",
+        "issue",
+        "list",
+        "--company-id",
+        "test-company",
+      ]);
+    } catch (err) {
+      // Expected
+    }
+
+    expect(exitSpy).toHaveBeenCalledWith(1);
+
+    exitSpy.mockRestore();
+    consoleErrorSpy.mockRestore();
+  });
+
+  it("handles API error on issue assign and exits with code 1", async () => {
+    const program = new Command();
+    registerIssueCommands(program);
+
+    mockApi.patch.mockRejectedValue({
+      status: 404,
+      message: "Issue not found",
+    });
+
+    const exitSpy = vi.spyOn(process, "exit").mockImplementation(() => {
+      throw new Error("Process exit called");
+    });
+    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    try {
+      await program.parseAsync([
+        "node",
+        "test",
+        "issue",
+        "assign",
+        VALID_ISSUE_ID,
+        "--agent-id",
+        VALID_AGENT_ID,
+      ]);
+    } catch (err) {
+      // Expected
+    }
+
+    expect(exitSpy).toHaveBeenCalledWith(1);
+
+    exitSpy.mockRestore();
+    consoleErrorSpy.mockRestore();
+  });
 });

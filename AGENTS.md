@@ -7,6 +7,20 @@ Use this file as the default operating guide for coding agents working in this r
 
 If you are a long-running execution agent such as Copilot, read this file before substantial coding or live-run work even when a sprint prompt already gave you a narrowed read order.
 
+## DGDH Canon First
+
+When the task touches DGDH firm direction, Paperclip or Werkbank operating
+model, governance, mission autonomy, self-improvement, CEO/worker/reviewer
+structure, or company-hq doctrine:
+
+1. Read `CURRENT.md`.
+2. Read `MEMORY.md`.
+3. Read `company-hq/AI-CONTEXT-START-HERE.md`.
+4. Follow that file's compact canonical read order before using older docs.
+
+Do not default to archived material or sibling worktrees when the canonical
+repo already contains the current answer.
+
 ## Workspace shape
 
 - Root workspace members: `server`, `ui`, `cli`, `packages/*`, `packages/adapters/*`, `packages/plugins/*`

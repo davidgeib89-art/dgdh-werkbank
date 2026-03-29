@@ -213,4 +213,78 @@ describe("triad rescue command", () => {
     exitSpy.mockRestore();
     consoleLogSpy.mockRestore();
   });
+
+  it("API error on worker rescue exits with code 1", async () => {
+    const program = new Command();
+    registerTriadCommands(program);
+
+    mockApi.post.mockRejectedValue({
+      status: 500,
+      message: "Internal Server Error",
+    });
+
+    const exitSpy = vi.spyOn(process, "exit").mockImplementation(() => {
+      throw new Error("Process exit called");
+    });
+    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    try {
+      await program.parseAsync([
+        "node",
+        "test",
+        "triad",
+        "rescue",
+        "--issue-id",
+        "issue-123",
+        "--pr-url",
+        "https://github.com/davidgeib89-art/dgdh-werkbank/pull/123",
+        "--branch",
+        "dgdh/issue-DGDH-123-worker-rescue",
+        "--commit",
+        "a1b2c3d4e5f6a7b8c9d0",
+      ]);
+    } catch (err) {
+      // Expected
+    }
+
+    expect(exitSpy).toHaveBeenCalledWith(1);
+
+    exitSpy.mockRestore();
+    consoleErrorSpy.mockRestore();
+  });
+
+  it("API error on reviewer verdict exits with code 1", async () => {
+    const program = new Command();
+    registerTriadCommands(program);
+
+    mockApi.post.mockRejectedValue({
+      status: 404,
+      message: "Issue not found",
+    });
+
+    const exitSpy = vi.spyOn(process, "exit").mockImplementation(() => {
+      throw new Error("Process exit called");
+    });
+    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    try {
+      await program.parseAsync([
+        "node",
+        "test",
+        "triad",
+        "rescue",
+        "--issue-id",
+        "issue-123",
+        "--reviewer-verdict",
+        "accepted",
+      ]);
+    } catch (err) {
+      // Expected
+    }
+
+    expect(exitSpy).toHaveBeenCalledWith(1);
+
+    exitSpy.mockRestore();
+    consoleErrorSpy.mockRestore();
+  });
 });

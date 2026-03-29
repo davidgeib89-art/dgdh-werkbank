@@ -444,4 +444,35 @@ describe("project list command", () => {
     expect(archived.archivedAt).not.toBeNull();
     expect(archived.archivedAt).toBe("2026-03-01T00:00:00.000Z");
   });
+
+  it("handles API error gracefully and exits with code 1", async () => {
+    const program = new Command();
+    registerProjectCommands(program);
+
+    mockApi.get.mockRejectedValueOnce({
+      status: 500,
+      message: "Internal Server Error",
+    });
+
+    const exitSpy = vi.spyOn(process, "exit").mockImplementation(() => {
+      throw new Error("Process exit called");
+    });
+
+    try {
+      await program.parseAsync([
+        "node",
+        "test",
+        "project",
+        "list",
+        "--company-id",
+        "test-company-id",
+      ]);
+    } catch (err) {
+      // Expected to throw due to process.exit mock
+    }
+
+    expect(exitSpy).toHaveBeenCalledWith(1);
+
+    exitSpy.mockRestore();
+  });
 });

@@ -38,6 +38,7 @@ tmp/
 .vscode/
 .claude/settings.local.json
 .paperclip-local/
+.openclaw/
 
 # Doc maintenance cursor
 .doc-review-cursor
