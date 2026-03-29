@@ -455,4 +455,159 @@ describe("heartbeat reviewer wake retry", () => {
     expect(mockReapOrphanedRuns).toHaveBeenCalledTimes(1);
     expect(mockResumeQueuedRuns).toHaveBeenCalledTimes(1);
   });
-});
+
+  it("retry context includes handoff summary from worker_done_recorded activity", async () => {
+    const stalledIssue = {
+      id: "issue-1",
+      companyId: "company-1",
+      status: "in_review",
+      updatedAt: new Date(Date.now() - REVIEWER_WAKE_RETRY_THRESHOLD_MS - 1000).toISOString(),
+    };
+
+    const idleReviewer = {
+      id: "agent-reviewer-1",
+      companyId: "company-1",
+      name: "Reviewer Agent",
+      role: "reviewer",
+      status: "idle",
+      adapterConfig: {},
+      runtimeConfig: {},
+    };
+
+    const workerDoneRecordedActivity = {
+      id: "activity-1",
+      companyId: "company-1",
+      action: "issue.worker_done_recorded",
+      entityType: "issue",
+      entityId: "issue-1",
+      details: {
+        summary: "Implemented feature X with tests",
+        prUrl: "https://github.com/example/repo/pull/123",
+        branch: "feature/x",
+        commitHash: "abc123",
+        identifier: "DAV-201",
+        reviewerAgentId: "agent-reviewer-1",
+      },
+      createdAt: new Date().toISOString(),
+    };
+
+    const issueContext = {
+      id: "issue-1",
+      companyId: "company-1",
+      projectId: null,
+      goalId: null,
+      parentId: null,
+      identifier: "DAV-201",
+      title: "Triad task in review",
+      description: null,
+    };
+
+    const issueExecutionState = {
+      id: "issue-1",
+      companyId: "company-1",
+      executionRunId: null,
+      executionAgentNameKey: null,
+    };
+
+    const queuedRun = {
+      id: "new-run-id",
+      companyId: "company-1",
+      agentId: "agent-reviewer-1",
+      invocationSource: "automation",
+      triggerDetail: "system",
+      wakeupRequestId: "new-wakeup-id",
+      status: "queued",
+    };
+
+    const wakeupRequest = {
+      id: "new-wakeup-id",
+    };
+
+    // Track the select calls to inject the activity log query result
+    let selectCallCount = 0;
+    const queryResults: unknown[][] = [
+      [stalledIssue], // Query 1: stalled issues
+      [stalledIssue], // Query 2: race condition check
+      [], // Query 3: no existing reviewer runs
+      [idleReviewer], // Query 4: idle reviewers
+      [idleReviewer], // Query 5: idle reviewers (re-check)
+      [issueContext], // Query 6: issue context
+      [], // Query 7: memory context
+      [], // Query 8: skipped
+      [issueExecutionState], // Query 9: execution state
+      [], // Query 10: no existing runs
+      [idleReviewer], // Query 11: agent state
+      [{ count: 0 }], // Query 12: run count
+      [workerDoneRecordedActivity], // Query 13: worker_done_recorded activity (NEW)
+      [], // Query 14: any additional queries
+    ];
+    let queryIndex = 0;
+    const insertResults = [wakeupRequest, queuedRun];
+    let insertIndex = 0;
+
+    // Track insert calls to capture the contextSnapshot
+    const capturedInsertCalls: unknown[][] = [];
+
+    const buildWhereResult = (result: unknown) => {
+      const promise = Promise.resolve(result);
+      return {
+        then: promise.then.bind(promise),
+        catch: promise.catch.bind(promise),
+        finally: promise.finally.bind(promise),
+        limit: vi.fn(() => Promise.resolve(result)),
+        orderBy: vi.fn(() => ({
+          limit: vi.fn(() => Promise.resolve(result)),
+        })),
+      };
+    };
+
+    const mockDb = {
+      select: vi.fn(() => {
+        selectCallCount++;
+        const result = queryResults[queryIndex] ?? [];
+        queryIndex++;
+        return {
+          from: vi.fn(() => ({
+            where: vi.fn(() => buildWhereResult(result)),
+          })),
+        };
+      }),
+      update: vi.fn(() => ({
+        set: vi.fn(() => ({
+          where: vi.fn(() => Promise.resolve({})),
+          returning: vi.fn(() => Promise.resolve([{}])),
+        })),
+        returning: vi.fn(() => Promise.resolve([{}])),
+      })),
+      insert: vi.fn((table: unknown) => ({
+        values: vi.fn((values: unknown) => {
+          capturedInsertCalls.push([table, values]);
+          return {
+            returning: vi.fn(() =>
+              Promise.resolve([insertResults[Math.min(insertIndex++, insertResults.length - 1)]]),
+            ),
+          };
+        }),
+      })),
+      transaction: vi.fn((fn: (tx: unknown) => Promise<unknown>) => fn(mockDb)),
+      execute: vi.fn(() => Promise.resolve()),
+    };
+
+    const service = heartbeatService(mockDb as any);
+    await service.scanAndRetryReviewerWakes({
+      logActivity: mockLogActivity,
+    });
+
+    // Find the heartbeatRuns insert call and check its contextSnapshot
+    const runsInsertCall = capturedInsertCalls.find((call) => {
+      const tableName = String(call[0] ?? "");
+      return tableName.includes("heartbeat_runs") || tableName === "heartbeatRuns";
+    });
+
+    expect(runsInsertCall).toBeDefined();
+    if (runsInsertCall) {
+      const insertValues = runsInsertCall[1] as { contextSnapshot?: { workerHandoffSummary?: string; workerRunId?: string; issueId?: string } } | undefined;
+      expect(insertValues?.contextSnapshot?.workerHandoffSummary).toBe("Implemented feature X with tests");
+      expect(insertValues?.contextSnapshot?.issueId).toBe("issue-1");
+    }
+  });

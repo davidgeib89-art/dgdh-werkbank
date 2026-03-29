@@ -2608,6 +2608,35 @@ export function heartbeatService(db: Db) {
         // Found an idle reviewer - wake it up
         const reviewerAgent = idleReviewers[0];
         try {
+          // Query activity log for most recent worker_done_recorded to enrich context
+          const workerDoneActivity = await db
+            .select({
+              details: activityLog.details,
+              runId: activityLog.runId,
+            })
+            .from(activityLog)
+            .where(
+              and(
+                eq(activityLog.companyId, issue.companyId),
+                eq(activityLog.entityType, "issue"),
+                eq(activityLog.entityId, issue.id),
+                eq(activityLog.action, "issue.worker_done_recorded"),
+              ),
+            )
+            .orderBy(desc(activityLog.createdAt))
+            .limit(1)
+            .then((rows) => rows[0] ?? null);
+
+          const workerDoneDetails = workerDoneActivity
+            ? parseObject(workerDoneActivity.details)
+            : null;
+          const workerHandoffSummary = readNonEmptyString(workerDoneDetails?.summary);
+          // apiRunId is added by withApiRunIdFallbackDetails as fallback to runId
+          const workerRunId =
+            readNonEmptyString(workerDoneDetails?.apiRunId) ??
+            workerDoneActivity?.runId ??
+            null;
+
           await enqueueWakeup(reviewerAgent.id, {
             source: "automation",
             triggerDetail: "system",
@@ -2622,6 +2651,8 @@ export function heartbeatService(db: Db) {
               issueId: issue.id,
               roleTemplateId: "reviewer",
               wakeReason: "heartbeat_reviewer_retry",
+              ...(workerHandoffSummary ? { workerHandoffSummary } : {}),
+              ...(workerRunId ? { workerRunId } : {}),
             },
           });
 
