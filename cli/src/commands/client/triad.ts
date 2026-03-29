@@ -79,7 +79,7 @@ export function registerTriadCommands(program: Command): void {
     .action(async (issueId: string, opts: TriadStatusOptions) => {
       try {
         // Resolve API URL: flag > PAPERCLIP_API_URL env > default
-        const apiUrl = opts.apiBase?.trim() ||
+        const apiUrl = opts.apiUrl?.trim() ||
           process.env.PAPERCLIP_API_URL?.trim() ||
           DEFAULT_API_URL;
 
@@ -193,7 +193,7 @@ export function registerTriadCommands(program: Command): void {
     .action(async (opts: TriadRescueOptions) => {
       try {
         // Resolve API URL: flag > PAPERCLIP_API_URL env > default
-        const apiUrl = opts.apiBase?.trim() ||
+        const apiUrl = opts.apiUrl?.trim() ||
           process.env.PAPERCLIP_API_URL?.trim() ||
           DEFAULT_API_URL;
 
@@ -317,37 +317,6 @@ async function findIdleCeoAgentId(
   } catch {
     return null;
   }
-}
-
-// Types for company-run-chain response
-interface CompanyRunChainChild {
-  issueId: string;
-  identifier: string | null;
-  title: string | null;
-  status: string;
-  assigneeAgentId: string | null;
-  assigneeAgentName: string | null;
-  triad: {
-    state: string;
-    reviewerWakeStatus: "running" | "completed" | "queued" | "stalled" | null;
-    closeoutBlocker: {
-      blockerClass?: string;
-      blockerState?: string;
-      summary?: string;
-      message?: string;
-      knownBlocker?: boolean;
-    } | null;
-  };
-}
-
-interface CompanyRunChainResponse {
-  parentIssueId: string;
-  parentIdentifier: string | null;
-  parentTitle: string | null;
-  parentStatus: string;
-  focusIssueId: string | null;
-  parentBlocker: unknown;
-  children: CompanyRunChainChild[];
 }
 
 function printStatusOutput(response: CompanyRunChainResponse): void {

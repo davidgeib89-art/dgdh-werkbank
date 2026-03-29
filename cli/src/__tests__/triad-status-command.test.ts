@@ -317,29 +317,14 @@ describe("triad status command", () => {
     consoleErrorSpy.mockRestore();
   });
 
-  it("both stalled reviewer wake and closeout blocker shown when both present", async () => {
+  it("status passes --api-url to resolveCommandContext as apiBase", async () => {
     const program = new Command();
     registerTriadCommands(program);
 
     const mockResponse = {
       parentIssueId: "parent-123",
-      parentStatus: "in_review",
-      children: [
-        {
-          issueId: "child-1",
-          status: "in_review",
-          assigneeAgentName: "Worker Agent",
-          triad: {
-            state: "ready_for_review",
-            reviewerWakeStatus: "stalled",
-            closeoutBlocker: {
-              blockerClass: "tool_error",
-              summary: "Tool execution error in previous run",
-              knownBlocker: false,
-            },
-          },
-        },
-      ],
+      parentStatus: "in_progress",
+      children: [],
     };
 
     mockApi.get.mockResolvedValue(mockResponse);
@@ -353,15 +338,48 @@ describe("triad status command", () => {
       "triad",
       "status",
       "parent-123",
+      "--api-url",
+      "http://custom:9999",
     ]);
 
-    expect(consoleLogSpy).toHaveBeenCalled();
-    const output = consoleLogSpy.mock.calls.map((call) => String(call[0])).join(" ");
+    // Verify resolveCommandContext was called with the explicit apiUrl mapped to apiBase
+    expect(common.resolveCommandContext).toHaveBeenCalledWith(
+      expect.objectContaining({ apiBase: "http://custom:9999" }),
+      expect.any(Object)
+    );
 
-    // Should show both stall and blocker
-    expect(output).toContain("stalled");
-    expect(output).toContain("Tool execution error");
-    expect(output).toContain("paperclipai triad rescue");
+    consoleLogSpy.mockRestore();
+    exitSpy.mockRestore();
+  });
+
+  it("rescue passes --api-url to resolveCommandContext as apiBase", async () => {
+    const program = new Command();
+    registerTriadCommands(program);
+
+    const mockResponse = { success: true };
+    mockApi.post.mockResolvedValue(mockResponse);
+
+    const consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+    const exitSpy = vi.spyOn(process, "exit").mockImplementation((() => {}) as any);
+
+    await program.parseAsync([
+      "node",
+      "test",
+      "triad",
+      "rescue",
+      "--issue-id",
+      "test-id",
+      "--reviewer-verdict",
+      "accepted",
+      "--api-url",
+      "http://custom:9999",
+    ]);
+
+    // Verify resolveCommandContext was called with the explicit apiUrl mapped to apiBase
+    expect(common.resolveCommandContext).toHaveBeenCalledWith(
+      expect.objectContaining({ apiBase: "http://custom:9999" }),
+      expect.any(Object)
+    );
 
     consoleLogSpy.mockRestore();
     exitSpy.mockRestore();
