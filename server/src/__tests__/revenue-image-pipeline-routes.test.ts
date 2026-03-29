@@ -3,7 +3,7 @@ import path from "node:path";
 import { promises as fs } from "node:fs";
 import request from "supertest";
 import sharp from "sharp";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { errorHandler } from "../middleware/index.js";
 import { revenueLaneRoutes } from "../routes/revenue-lane.js";
 
@@ -50,6 +50,10 @@ function createApp() {
 
 describe("revenue lane routes", () => {
   const tempRoots: string[] = [];
+
+  beforeAll(async () => {
+    await fs.mkdir(path.join(process.cwd(), ".tmp"), { recursive: true });
+  });
 
   beforeEach(() => {
     vi.clearAllMocks();

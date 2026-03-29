@@ -1,7 +1,7 @@
 import path from "node:path";
 import { promises as fs } from "node:fs";
 import sharp from "sharp";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, beforeAll, describe, expect, it } from "vitest";
 import { revenueImagePipelineService } from "../services/revenue-image-pipeline.js";
 
 async function createFixtureImage(filePath: string, width: number, height: number, color: string) {
@@ -40,6 +40,10 @@ async function removeDirWithRetries(dirPath: string, attempts = 5): Promise<void
 
 describe("revenueImagePipelineService", () => {
   const tempRoots: string[] = [];
+
+  beforeAll(async () => {
+    await fs.mkdir(path.join(process.cwd(), ".tmp"), { recursive: true });
+  });
 
   afterEach(async () => {
     await Promise.all(tempRoots.map((root) => removeDirWithRetries(root)));

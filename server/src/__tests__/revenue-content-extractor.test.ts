@@ -1,6 +1,6 @@
 import path from "node:path";
 import { promises as fs } from "node:fs";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 const hoisted = vi.hoisted(() => ({
   ensureCommandResolvableMock: vi.fn(),
@@ -71,6 +71,10 @@ async function writeManifest(root: string) {
 
 describe("revenueContentExtractorService", () => {
   const tempRoots: string[] = [];
+
+  beforeAll(async () => {
+    await fs.mkdir(path.join(process.cwd(), ".tmp"), { recursive: true });
+  });
 
   beforeEach(() => {
     vi.clearAllMocks();

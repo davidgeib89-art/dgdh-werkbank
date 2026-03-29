@@ -1,6 +1,6 @@
 import path from "node:path";
 import { promises as fs } from "node:fs";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, beforeAll, describe, expect, it } from "vitest";
 import { revenueSchemaFillService } from "../services/revenue-schema-fill.js";
 
 async function writeJson(filePath: string, value: unknown) {
@@ -122,6 +122,10 @@ async function createSchemaFillFixture(root: string) {
 
 describe("revenueSchemaFillService", () => {
   const tempRoots: string[] = [];
+
+  beforeAll(async () => {
+    await fs.mkdir(path.join(process.cwd(), ".tmp"), { recursive: true });
+  });
 
   afterEach(async () => {
     await Promise.all(tempRoots.map((root) => fs.rm(root, { recursive: true, force: true })));
