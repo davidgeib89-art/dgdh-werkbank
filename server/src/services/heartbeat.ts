@@ -1093,6 +1093,38 @@ export function resolveRunStartSessionIdBefore(input: {
   );
 }
 
+export function buildReviewerRetryContext(input: {
+  issueId: string;
+  workerDoneActivity: {
+    details: unknown;
+    runId: string | null;
+  } | null;
+}): {
+  issueId: string;
+  roleTemplateId: string;
+  wakeReason: string;
+  workerHandoffSummary?: string;
+  workerRunId?: string;
+} {
+  const workerDoneDetails = input.workerDoneActivity
+    ? parseObject(input.workerDoneActivity.details)
+    : null;
+  const workerHandoffSummary = readNonEmptyString(workerDoneDetails?.summary);
+  // apiRunId is added by withApiRunIdFallbackDetails as fallback to runId
+  const workerRunId =
+    readNonEmptyString(workerDoneDetails?.apiRunId) ??
+    input.workerDoneActivity?.runId ??
+    null;
+
+  return {
+    issueId: input.issueId,
+    roleTemplateId: "reviewer",
+    wakeReason: "heartbeat_reviewer_retry",
+    ...(workerHandoffSummary ? { workerHandoffSummary } : {}),
+    ...(workerRunId ? { workerRunId } : {}),
+  };
+}
+
 function buildPostToolCapacityResultJson(input: {
   baseResultJson: unknown;
   state: PostToolCapacityState;
@@ -2627,15 +2659,10 @@ export function heartbeatService(db: Db) {
             .limit(1)
             .then((rows) => rows[0] ?? null);
 
-          const workerDoneDetails = workerDoneActivity
-            ? parseObject(workerDoneActivity.details)
-            : null;
-          const workerHandoffSummary = readNonEmptyString(workerDoneDetails?.summary);
-          // apiRunId is added by withApiRunIdFallbackDetails as fallback to runId
-          const workerRunId =
-            readNonEmptyString(workerDoneDetails?.apiRunId) ??
-            workerDoneActivity?.runId ??
-            null;
+          const contextSnapshot = buildReviewerRetryContext({
+            issueId: issue.id,
+            workerDoneActivity,
+          });
 
           await enqueueWakeup(reviewerAgent.id, {
             source: "automation",
@@ -2647,13 +2674,7 @@ export function heartbeatService(db: Db) {
             },
             requestedByActorType: "system",
             requestedByActorId: "heartbeat_scanner",
-            contextSnapshot: {
-              issueId: issue.id,
-              roleTemplateId: "reviewer",
-              wakeReason: "heartbeat_reviewer_retry",
-              ...(workerHandoffSummary ? { workerHandoffSummary } : {}),
-              ...(workerRunId ? { workerRunId } : {}),
-            },
+            contextSnapshot,
           });
 
           // Log activity for successful queue
