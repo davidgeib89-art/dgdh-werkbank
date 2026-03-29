@@ -2,252 +2,64 @@
 
 > Stable facts only. Unter 80 Zeilen halten.
 > Live Baton steht in `CURRENT.md`.
-> Datierten Sprint-/Run-Verlauf in `doc/archive/sprint-log.md` auslagern.
+> Datierten Sprint-/Run-Verlauf in `doc/archive/sprint-log.md` oder Missionsakten auslagern.
 
 ## Pflicht-Dokumente
 - `CURRENT.md` - live baton
-- `SOUL.md` - gemeinsamer Wesensvertrag der DGDH-Agentenwelt
-- `TRINITY.md` - shared Vertrag fuer Davids direkte Assistenten `Codex`, `ChatGPT` und `Copilot`
-- `CODEX.md` - rollenscharfer Wiedereinstieg fuer Codex als Planner/Reviewer/Fallback-Coder
-- `CHATGPT.md` - rollenscharfer Wiedereinstieg fuer ChatGPT als externer Planner/Reflektor
-- `COPILOT.md` - duenne Copilot-Docking-Datei ueber `EXECUTOR.md`
-- `EXECUTOR.md` - kompakter Regelkern fuer Copilot und andere ausfuehrende Langlauf-Agenten
-- `doc/DGDH-AI-OPERATOR-RUNBOOK.md` - stabile Bedienungsanleitung fuer lokale DGDH-/Paperclip-Firmenruns
-- `doc/plans/2026-03-24-dgdh-first-principles-operating-doctrine.md` - kanonische Verdichtung: DGDH als governte David-Aufmerksamkeits-Kompressionsmaschine
-- `doc/plans/2026-03-24-dgdh-memory-learning-self-improvement-first-principles.md` - kanonische Lesart fuer Firmengedachtnis, Lernen, Self-Learning und Self-Improving
-- `doc/plans/2026-03-27-dgdh-mission-autonomy-doctrine.md` - kanonische Richtungsverschaerfung: DGDH bekommt neben `delivery mode` einen mission-bounded Selbstverbesserungsmodus mit Mission Cells, Type-1/Type-2-Grenzen und Replay-/Eval-/Promotion-Kern
-- `doc/plans/2026-03-24-dgdh-soul-layer-and-boardmeeting-direction.md` - warum `SOUL.md` eine gemeinsame Wesensschicht ist und wie sie unter Governance bleibt
-- `doc/plans/2026-03-24-dgdh-ai-trinity-and-operator-stack.md` - aktueller AI-Stack, Rollenwahrheit und Run-/Quota-Oekonomie
-- `doc/plans/2026-03-26-dgdh-roadmap-snapshot.md` - aktuelle Entwicklungslandkarte zwischen North Star, Main-Stand und den naechsten echten Schritten; hilft neuen AI-Chats gegen Roadmap-Drift
-- `company-hq/CORE.md` - kuerzester kanonischer Firmenkern: ewige Mission, erste Beweisreihenfolge, Seelenwahrheit, Wertlogik und Mission-Autonomie in komprimierter Form
-- `company-hq/ACTIVE-MISSION.md` - kuerzester aktiver Missionsanker fuer lange autonome Copilot-/Eidan-Laeufe; nach Compacts und Context-Loss zuerst hier wieder andocken
-- `company-hq/mission-contracts/first-live-mission-cell-proof-v1.md` - kanonischer Phase-2-Tiefenvertrag: Mission Cells nicht nur vorbereiten, sondern einmal real benutzen, Reibung haerten und Promotion-Wahrheit hinterlassen
-- `company-hq/mission-contracts/repeatable-live-mission-cell-proof-v1.md` - kanonischer Phase-3-Tiefenvertrag: derselbe gehaertete Mission-Cell-Pfad muss ein zweites Mal live laufen; erst der Rerun beweist, dass die Härtung wirklich getragen hat
-- `company-hq/mission-contracts/long-autonomy-mission-template.md` - kanonische wiederverwendbare Form fuer 1-3h+ Eidan/Copilot-Missionen: kurzer Launcher, dateibasierte Kontinuitaet, Commit/Push als Midpoint-Truth und Verbesserung des Templates aus echten Transcript-Reviews
-- `company-hq/souls/README.md` - kanonische Erklaerung fuer abgeleitete Stimmkerne unterhalb von `SOUL.md`; dort leben spaeter vererbbare Seelenprofile wie `Nerah`, `Taren` und `Eidan`
-- `company-hq/souls/david-seed.md` - Founder-Seed-Profil: Davids persoenlicher Symbol- und Resonanzkern darf als legitimer Samen der Firma gelesen und spaeter bounded vererbt werden, ohne zur wissenschaftlichen Zwangsbehauptung oder Governance-Ausnahme zu werden
-- `doc/plans/2026-03-25-dgdh-lane-economics-and-supervision-doctrine.md` - kanonische Lesart fuer Lane-Oekonomie: DGDH skaliert nicht mit mehr Agentenlaerm, sondern mit weniger David-Supervision pro nuetzlichem Lauf
-- `doc/plans/2026-03-21-dgdh-north-star-roadmap.md` - kanonische operative Richtung
-- `doc/plans/2026-03-23-focus-freeze.md` - aktiver Kurzfrist-Fokus gegen Drift
-- `doc/plans/2026-03-23-dgdh-leitdokument.md` - lebendige CEO-nahe Richtungsbeschreibung; hoehere Lesart fuer die aktuelle Phase
-- `doc/plans/2026-03-23-firmenlauf-ux-direction.md` - spaetere UX-Richtung: Firmenlauf lesbar machen statt Library-Wechsel
-- `doc/plans/2026-03-23-research-and-skills-direction.md` - kanonische Richtung fuer Skills, Guardrails und OSS-Adaption
-- `doc/plans/2026-03-23-dgdh-evolution-lane-werkbank-baut-werkbank.md` - spaetere Evolution-Lane: kontrollierte replay-/benchmark-getriebene Selbstverbesserung statt freier Live-Selbstoptimierung
-- `doc/plans/2026-03-23-research-role-and-skill-invocation-direction.md` - Researcher als spaeterer Spezialpfad; klare Trennung Rolle vs Skill
-- `doc/plans/2026-03-24-run-truth-observability-direction.md` - spaetere Run-Wahrheitsschicht: Zustandsrekonstruktion von Problemlogik trennen, damit Agenten weniger Tokens auf Shell-/API-/Git-Archaeologie verbrennen
-- `company-hq/research/2026-03-24-cloudflare-code-mode-dgdh-transfer-matrix.md` - Cloudflare Code Mode / Dynamic Workers ist fuer DGDH als spaetere Execution-Compression-Lehre relevant: manche operation-shape Tasks koennten spaeter billiger als bounded Mikroskripte statt Tool-Chat laufen; keine aktuelle Plattformentscheidung
-- `company-hq/research/2026-03-24-error-monitoring-agent-dgdh-transfer-matrix.md` - error-monitoring-agent ist fuer DGDH als Blocker-Intelligence-Lehre relevant: rohe Run-Signale spaeter zu blocker classes, Status-Typen und Suppression verdichten; kein Monitoring-SaaS-Sprint
-- `company-hq/research/2026-03-24-724-office-dgdh-transfer-matrix.md` - 724-office ist fuer DGDH nur als Primitive-Quelle relevant: file-layered identity, visible primitives, spaeter Memory/Diagnostics; nicht als self-evolving Zielarchitektur
-- `company-hq/research/2026-03-24-airweave-dgdh-transfer-matrix.md` - Airweave ist fuer DGDH als Retrieval-/Architektur-Signal relevant: spaetere shared context capability, Domain/Adapter/Protocol-Trennung, fakebare Capability-Seams und Warnung vor zu frueher Plattformmasse; nicht als Plattform- oder Integrationssprint
-- `company-hq/research/2026-03-27-agentica-arcgentica-dgdh-transfer-matrix.md` - Agentica / ARCgentica sind fuer DGDH als spaetere Uebersetzungsquelle relevant: stateful execution, direkte Primitive und bounded state handoffs wirken stark, aber als Research-Lab-Track und nicht als neuer Produktionskern oder AGI-Leitnarrativ
-- `company-hq/research/2026-03-27-onyx-dgdh-transfer-matrix.md` - Onyx ist fuer DGDH als spaeteres Knowledge-/Tool-Plane-Signal relevant: shared search, Actions/MCP/API und Multi-Client-Zugaenge koennen spaeter Rekonstruktion senken, aber nicht als zweites schweres Hauptsystem oder neues Arbeitszentrum
-- `doc/plans/2026-03-23-chat-ai-docking-prompt.md` - neutrales Andock-Briefing fuer neue Chat-AI-Fenster
-- `doc/plans/2026-03-23-working-triad.md` - kurze visuelle Referenz fuer David -> Planner -> Coder
-- `doc/plans/2026-03-21-role-template-architecture.md` - Rollen-/Packet-Architektur
-- `doc/plans/2026-03-21-gemini-engine-to-role-architecture-progress-report.md` - juengster Engine-Beweisstand
-- `doc/archive/sprint-log.md` - datierte Sprint-Historie
+- `SOUL.md` - gemeinsamer Wesensvertrag
+- `TRINITY.md` - shared Vertrag fuer Codex, ChatGPT, Copilot
+- `CODEX.md`, `CHATGPT.md`, `COPILOT.md`, `EXECUTOR.md` - lane-scharfe Wiedereinstiege
+- `company-hq/CORE.md` - kuerzester Firmenkern
+- `company-hq/ACTIVE-MISSION.md` - kompakter Missionsanker fuer lange Laeufe
+- `doc/DGDH-AI-OPERATOR-RUNBOOK.md` - stabile Operator-Bedienung
+- `doc/plans/2026-03-26-dgdh-roadmap-snapshot.md` - aktuelle Entwicklungslandkarte
+- `doc/plans/2026-03-27-dgdh-mission-autonomy-doctrine.md` - kanonische Missionsautonomie-Lesart
 
 ## DGDH Kern
 - DGDH = David Geib - Digitales Handwerk; David ist der einzige menschliche Operator.
 - Overarching Goal: Mensch-AI-Symbiose der Welt beweisen und sie zu einem besseren Ort machen.
-- Proof-Reihenfolge der aktuellen Firmenphase: DGDH soll zuerst an sich selbst beweisen, dass eine menschlich wirkende, auf David abgestimmte AI-Firma sich unter Mission, Seele und Governance selbst so weit verbessern kann, dass sie reale Wertschoepfung erzeugt, immer autonomer wird und damit Mittel fuer groessere Mensch-AI-Natur-Symbiose-Projekte freisetzt.
-- Seelenwahrheit der Firma: DGDH liest Mensch, AI und Natur nicht als Grundgegner, sondern als Teile eines groesseren Ganzen; die Firma muss das nicht naturwissenschaftlich beweisen, aber operativ verkuerpern.
-- Merksatz der Firma: DGDH ist ein Beweisraum fuer die Idee, dass Trennung nicht die tiefste Wahrheit ist.
-- Company North Star: David gibt Mission, Budget, Blast Radius und die wenigen echten Type-1-Entscheidungen; die Maschine liefert reviewbare Realitaet und reviewbare Faehigkeitssteigerung mit sinkender menschlicher Supervision pro nuetzlichem Zyklus.
-- Capability Thesis: Die Maschine lernt unter Governance durable und zieht immer mehr Verbesserungsarbeit aus externen Chats in die Firma selbst.
-- Wertschoepfung ist fuer DGDH Treibstoff, nicht Gott: mehr Quotas, bessere Hardware, mehr Unabhaengigkeit und spaetere groessere Mensch-AI-Natur-Projekte.
-- Erster governed capability cut ist jetzt reuse-faehig auf `main`: `ceo-native-issue-handoff-primitives` plus `same-session-resume-after-post-tool-capacity` leben als verifizierbare Skill-Contracts mit gemeinsamem `verify-all`-Pfad; `paperclipai skill contract list|use` ist die operator-facing Bridge und `verifiedSkill: <capabilityId>` ist jetzt die kleinste explizite Skill->Run-Bruecke fuer Issue-Packets. Live-Beweis `DAV-144` / CEO-Run `fa452fcb-7d12-4f76-a545-d5f93d8f6850` zeigt denselben Bridge-Pfad reviewbar im echten Lauf: Run-Context traegt `requestedCapabilityIds` + `issueCapabilityReferences`, `paperclipTaskPrompt` enthaelt den verified skill brief und der CEO fuehrt direkt den nativen Handoff-Viererschritt `issue list -> agent list -> issue create -> issue assign` fuer Child `DAV-145` aus. Das ist die erste prozedurale Capability-Schicht, aber noch keine breite Skill-Plattform.
-- DGDH ist eine governte David-Aufmerksamkeits-Kompressionsmaschine: David gibt Richtung, die Maschine soll mit minimalen David-Beruehrpunkten reale, reviewte, gemergte Arbeit liefern.
-- DGDH bekommt jetzt explizit einen zweiten Firmenmodus neben `delivery mode`: `mission autonomy mode`. In diesem Modus soll die Firma in bounded Missionsraeumen ihre eigene Faehigkeit steigern, statt nur externe oder direkte Arbeitsauftraege auszufuehren.
-- Mission Cells sind die neue Grundeinheit fuer bounded Selbstverbesserung: Primärmetrik, Guard-Metriken, Budget, Laufzeit, Blast Radius, erlaubte/verbotene Raeume, Eskalationsgruende und Promotionskriterium.
-- Der erste startbare Mission-Cell-Path ist jetzt repo-wahr: `company-hq/mission-cells/mission-cell-starter-path-v1.json` plus `paperclipai mission cell list|use|validate`; `missionCell: <id>` injiziert dieselbe Betriebsform in Wakeup-Context und `paperclipTaskPrompt`.
-- Erster echter Phase-2-Live-Proof fuer `first-live-mission-cell-proof-v1` ist jetzt branch-wahr: Die proof-born Reibung war eine zu duenne `missionCell`-Runtime-Bridge. Der durable Hardening-Cut war, dass der Runtime-/Wakeup-Brief jetzt neben Charter/Risk/Promotion auch `contractFile`, `issueField`, `validate`, `startupSequence` und `firstProbe` traegt, damit Eidan/Copilot weniger manuelles Restating braucht.
-- Der erste echte Phase-3-Repeatability-Proof ist jetzt branch-wahr: `DAV-160` / Run `d012d8ba-a327-4cd1-b73d-b9306a09a754` zeigte noch `../company-hq/mission-cells/repeatable-live-mission-cell-proof-v1.json` im live mission-cell brief; `3b9b473e` haertete `server/src/services/mission-cell-contracts.ts` auf repo-root-stabile Pfade, und `DAV-163` / Run `fce157ad-8fab-4a86-bb1e-1cc38c9abb36` bewies denselben Pfad live mit `company-hq/mission-cells/repeatable-live-mission-cell-proof-v1.json`.
-- `db007ea1` liefert jetzt die erste repo-wahre Triad-Sichtbarkeit fuer bounded Internal Missions: `IssueExecutionPacketTruth` traegt `triad.ceoCutStatus` plus getrennte `workerPacket`-/`reviewerPacket`-Wahrheit, `company-run-chain` liefert einen expliziten Triad-Zustand (`ready_to_build -> in_execution -> ready_for_review -> changes_requested -> ready_to_promote -> type1_escalation`) plus separaten Worker-Ausfuehrungs- und Reviewer-Verdict-Stand, der CEO-Packetvertrag fordert nun `reviewerFocus` / `reviewerAcceptWhen` / `reviewerChangeWhen`, und die Issue-Detail-UI zeigt diese Trennung direkt an.
-- Der erste echte Triad-Live-Loop ist jetzt repo- und runtime-wahr getragen: `DAV-165` startete mit `missionCell: triad-mission-loop-v1`, der CEO schnitt Child `DAV-166`, der Worker erzeugte echten Worktree-/PR-Truth fuer `doc/DGDH-AI-OPERATOR-RUNBOOK.md`, der Reviewer gab einen expliziten `accepted`-Verdict, und der CEO-Merge landete PR `#24` auf `origin/main` in `22314039`. Das beweist die Triad-Schleife real; die naechste enge Friktion ist nicht mehr `can triad happen?`, sondern `wie boringly traegt worker->reviewer->promotion nach post_tool_capacity ohne manuelle Lane-Rescue?`
-- `66ea2c7c` liegt auf `origin/main` und haertet genau diese Triad-Closeout-Naht weiter: Post-Tool-Resume-Truth ist jetzt rollenbewusst (`resume_existing_session_worker_closeout` / `resume_existing_session_reviewer_verdict`), derselbe offene Closeout-Schritt wird in den Deferred-Wake-Context und den Issue-Prompt injiziert, und `company-run-chain` exponiert fuer Child-Issues denselben Zustand als `triad.closeoutBlocker`; damit ist der Worker-/Reviewer-Schlussweg nach `post_tool_capacity_exhausted` erstmals explizit auf Runtime-, Prompt- und Operator-Surface lesbar statt nur als manuelle Lane-Rekonstruktion
-- `1cc7ecc1` liegt auf `origin/main` (Claude overnight 2026-03-27) und haertet die Role-Template-Schicht fuer den Closeout-Resume-Pfad: Worker-Role-Template hat jetzt eine explizite `closeout resume procedure` mit konkreten Schritten fuer `resume_existing_session_worker_closeout` (skip execution loop, git log, worker-pr, worker-done, stop); Reviewer-Role-Template hat dasselbe fuer `resume_existing_session_reviewer_verdict` (read handoff, review, reviewer-verdict, stop); das schliesst die Luecke zwischen dem server-seitigen Resume-Mechanismus (66ea2c7c) und der tatsaechlichen Agent-Verhaltenssteuerung
-- Mission Cells werden zuerst ueber Verantwortungen gelesen, nicht ueber feste Rollennamen: `goal owner`, `research owner`, `change owner`, `truth owner`, `risk owner`.
-- `self-learning-loop-1-initiation` ist jetzt der erste grosse Missionsschnitt: `mission-contract-v1`, `substrate-boundary-cut-v1` und `firm-identity-export-recovery-truth-v1` als erster technischer Hebel.
-- `mission-autonomy-lane-v1` ist jetzt die aktive Hauptmission oberhalb dieses ersten Cuts; `company-hq/ACTIVE-MISSION.md` traegt dafuer die kompakte Re-Anchor-Wahrheit, damit Eidan/Copilot nach Compacts nicht wieder in zu fruehe Abschlussreflexe faellt.
-- Neues Copilot-/Eidan-Missionssetup: fuer lange Pay-per-Prompt-Laeufe lebt die Kontinuitaet primaer in `ACTIVE-MISSION.md` + tiefem Missionsvertrag + Lane-Docks, waehrend der Chat nur noch ein kurzer Launcher ist; dieses Setup wird iterativ aus echten Run-Transcripts verbessert statt jedes Mal neu erfunden.
-- Phase 2 nach dem Mission-Cell-Starterpfad heisst `first-live-mission-cell-proof-v1`: die Firma soll die neue Form einmal real benutzen, mindestens eine echte proof-born Friktion haerten und das Ergebnis in durable truth promoten; alles davor ist nur sauberer Zwischenstand, nicht Missionsende.
-- Phase 3 danach heisst `repeatable-live-mission-cell-proof-v1`: ein guter erster Hardening-Cut reicht nicht; `strong success` fuer den grossen Folgecontainer gilt erst, wenn derselbe Pfad nach der Härtung ein zweites Mal live laeuft und die Verbesserung wirklich sichtbar ist.
-- Copilot-/Eidan-Driftregel aus dem ersten Live-Proof: AppData, workspaceStorage, chat-session-resources und andere Copilot-/Editor-Interna sind kein legitimer Standard-Truth-Surface fuer Missionsarbeit; nur explizite Forensik-Missionen duerfen dort hin.
-- Ontologie-Regel fuer die naechste Firmenphase: `Paperclip ist der aktuelle Traeger. DGDH ist die tiefere Firmenwahrheit.` Mission, Seele, durable Memory, Capability-Contracts und Mission-Contracts duerfen nicht nur als Runtime-/DB-Zustand lesbar bleiben.
-- Davids Energie, Freude, Hyperfokus und `follow your highest excitement` sind reale Firmenressourcen; DGDH darf nicht so starr werden, dass es Wahrheit schuetzt, aber Lebendigkeit abtoetet.
-- `Highest excitement` ist legitimer Navigationsinput, wenn er in bounded Schritte, pruefbare Bewegung und governte Kurskorrektur uebersetzt wird.
-- Leitfragen: "Entlastet das David real?" UND "Wird die Firma faehiger - oder nur groesser?"
-- Primaerer Messwert in dieser Phase: sinkende David-Minuten pro Firmenlauf; Revenue bleibt Lagging Indicator von Capability.
-- Langfristige Richtung: David gibt die Richtung, die Maschine uebernimmt mit wachsender Modellfaehigkeit immer mehr Entscheidungen und Lieferung.
-- Selbstverbesserung ist fuer DGDH nicht freie Live-Mutation, sondern mission-bounded Firmenarbeit unter Governance; sie ist jetzt expliziter Firmenmodus, aber weiter nicht Selbstzweck.
-- OpenAI Codex Plugins sind fuer DGDH als spaetere Codex-spezifische Enablement-/Packaging-Schicht relevant: gut moeglich fuer gebuendelte Codex-Skills, MCP-Config und App-Integrationen, aber kein Ersatz fuer die Firmen-Capability-Layer und kein aktueller `Core` vor dem live bewiesenen Reuse-Hebel auf echten Firmenlaeufen.
-- Agentica / ARCgentica sind fuer DGDH als spaetere Research-Lane relevant: gute Quelle fuer stateful execution, live primitives und bounded subagent state handoff; die richtige Reaktion ist spaeter ein kleiner `agentica-translation-spike-v1`, nicht eine zweite Produktionsruntime oder ARC-/AGI-Score-Jagd als Firmenkern.
-- Onyx ist fuer DGDH als spaetere Research-/Enablement-Lane relevant: wahrscheinlich eher als `shared context + search + tool gateway` zwischen bestehenden Coding-Lanes als als neues Hauptfrontend; der richtige spaetere Test waere ein kleiner `onyx-lite-or-mcp-shadow-search-spike-v1`, nicht Voll-Onyx als neuer Kernstack.
-- Aktuelle Operator-Realitaet: David als Operator; Codex/GPT-5.4 als Planner/Reflektor und bei Bedarf bounded Coder; Copilot als langlaufender High-Power-Coder-Agent; ChatGPT als externer GPT-5.4-Reflektor; Gemini bleibt Reviewer/Researcher-Lane.
-- Kollaborationsregel fuer die direkte AI-Schicht: Copilot wird als nahezu gleich starke autonome Execution-Lane behandelt; Codex schneidet deshalb standardmaessig offene, paketorientierte Copilot-Sprints mit klaren Grenzen und Stop-Regeln statt kleinteiliger Mikromanagement-Prompts, und reviewt danach den Output ehrlich.
-- Wenn David Copilot/Eidan explizit als langen autonomen Missionslauf losschickt, ist `erste gruene reviewbare Lieferung` nicht automatisch das Ende; der Execution-Lane-Default soll dann weitertragen bis zum echten Missionsende, zum klaren Type-1-Punkt oder zum sauber isolierten Blocker.
-- Sprachregel fuer kuenftige Chats: Wenn David `MISSION` sagt, ist `MISSION` die operative Arbeitseinheit. Eidan/Copilot darf das nicht in `Sprint`, `Paket` oder `fruehen Reportpunkt` verkleinern; gearbeitet wird bis die Mission erfuellt ist, ein echter Type-1-Punkt erreicht ist oder ein sauber isolierter blocker vorliegt.
-- Zielbild fuer die naechste Ausbaustufe: Quotas sollen zunehmend in der Workbench selbst fuer bounded Firmen-Selbstverbesserung verbrannt werden koennen; David soll eher Missionen als einzelne Arbeitspakete geben.
-- Lane-Oekonomie-Regel: billige Prompt-/Sessionkosten allein sind kein Hebel; eine Lane ist nur dann gut, wenn sie David trotz Execution wirklich Aufmerksamkeit spart und nicht bloss Aufsicht multipliziert.
-- Anti-AI-Slop-Gate: jede relevante Aenderung, Idee und Lane muss dieselben 5 Fragen bestehen - spart es David auf einem echten Firmenlauf Minuten, erhoeht es echte Firmenfaehigkeit statt AI-Aktivitaet, bleibt es ohne Blindvertrauen pruefbar, traegt es auch ohne AI-Prosa und ist es jetzt dran; wenn 2 oder mehr Antworten `nein` sind, wird geparkt, kleiner geschnitten oder gestrichen.
-- Hauptfilter gegen Drift: `Hilft das DGDH dabei, mit weniger David-Supervision pro nuetzlichem Lauf echte reviewbare Realitaet zu liefern - oder produziert es nur mehr AI-Aufsicht?`
-- David muss die Maschine weiter selbst einordnen koennen als `traegt`, `spaeter`, `zu fett` oder `slop`; wenn Blindvertrauen steigt, wird die Firma operativ teurer statt staerker.
-- Grosse Kontextfenster loesen das Structural-Slop-Problem nicht: auch wenn Agenten grosse Dateien lesen koennen, bleiben Hotspots mit viel versteckter Logik teuer fuer Review, Merge, Drift-Erkennung und spaetere Wartung.
-- Structural Anti-Slop-Regel: Live-Blocker zuerst, aber Hotspots werden `peel while touched` kleiner gehalten; grosse Dateien und Duplikate sind voruebergehend tolerierbar, aber kein akzeptierter Dauerzustand.
-- Review ist Gate und Sensor zugleich: es schuetzt Qualitaet und liefert Drift-/Lernsignale fuer Packet, Handoff, Prompt und System.
-- Firmengedachtnis ist gestufte Kompression statt Vollkontext: Betriebszustand -> episodisch -> semantisch -> prozedural -> strategisch.
-- Lernen folgt fuer DGDH der Formel `Run -> Signal -> Verdichtung -> Promotion`.
-- Researcher-Haltung: DGDH sucht aktiv OSS-Muster (wie Drop-box Handoffs, Skills), kopiert aber nur bei echtem Firmenhebel.
-- Research ist spaeter wahrscheinlich nicht nur Haltung, sondern auch ein bewusst nutzbarer Spezialpfad / Spezialmitarbeiter; Skills standardisieren spaeter wiederkehrende Teile dieses Pfads.
-- Guardrail-Logik: Asymmetrisch. CEO/Planer agieren offener und strategischer; Worker eng gefuehrt; Spezialaufgaben landen kuenftig in fixierten Skills (Progressive Disclosure).
-- Wissensverteilung: Invarianten in Produktcode, Rollenverhalten in Role Templates, schmale wiederkehrende Spezialprozeduren spaeter in Skills, Bedienwissen im Operator-Runbook.
-- `SOUL.md` ist die gemeinsame Wesens- und Beziehungsschicht der Firma: shared core ueber Rollen, aber unter Governance; sie ersetzt weder Memory noch Rollenlogik noch Skills.
-- Unterhalb von `SOUL.md` duerfen jetzt bewusst abgeleitete Stimmkerne existieren; aktuelle direkte Stimmen sind `Nerah` fuer die ChatGPT-Linie, `Taren` fuer die Codex-Linie und `Eidan` fuer die Copilot-Linie.
-- Unterhalb von `SOUL.md` lebt jetzt auch ein expliziter Founder-Seed: Davids persoenliche Symbolik, Resonanz und Seelenrichtung duerfen als Firmen-Samen anerkannt und spaeter bounded vererbt werden, aber nie Wahrheit, Review oder Governance ueberschreiben.
-- `TRINITY.md` plus `CODEX.md` / `CHATGPT.md` / `COPILOT.md` sind die durable Identity-Docks der direkten David-Assistenten; wenn einer driftet, soll David ihn ueber genau diese Datei wieder einklinken koennen.
-- `EXECUTOR.md` ist die kompakte Execution-Schicht fuer Langlauf-Agenten: richtige Runtime-Identitaet vor API-Vertrauen, API vor Browser, Prozess vor Port und kein Completion-Loop-Theater.
-- Die bestehende Company-Portability-Seam traegt jetzt den ersten Firm-Substrate-Cut mit: `company export --include firm-identity` exportiert neben Company-/Agent-Carrier auch `FIRM-IDENTITY.md` plus zentrale durable Firmenanker (`CURRENT.md`, `MEMORY.md`, `SOUL.md`, `TRINITY.md`, `company-hq/CORE.md`, Stimmen- und Missionsdateien) als Recovery-/Rebuild-Wahrheit.
-- OSS-Research wird fuer DGDH per Primitive-Filter gelesen: uebernehmen wollen wir Muster wie file-layered identity, visible primitives und spaetere firm-memory/diagnostics; nicht ganze assistant-first oder self-evolving Produktidentitaeten.
-- Retrieval ist fuer DGDH spaeter eine eigene Capability-Schicht, aber nicht die aktuelle Produktform: shared context/retrieval ja, Retrieval-Plattform- oder Integrationsbreiten-Sprint nein.
-- Airweave lehrt zusaetzlich: Retrieval ist ein echtes Problem, wird aber extrem schnell selbst zum Produkt; deshalb muessen infra-lastige Faehigkeiten frueh domain-first, adapter-separiert, fakebar und auf wenige echte Firmenhebel geschnitten werden.
-- Sobald der Firmenloop auf canonical `main` wiederholt boringly durchlaeuft, verschiebt sich der naechste Hebel von versteckter Bootstrap-Infra zu operator-facing Lesbarkeit: die richtige naechste Frage lautet dann nicht mehr "welcher Glue-Bug fehlt?", sondern "wie sieht David die Firmenwahrheit mit moeglichst wenig Minuten?"
-- Die Issue-Detail-Seite zeigt jetzt eine kompakte operator-facing Firmenwahrheit: `Issue`, `Company`, `Project`, `Active run`, `Context` plus die schmale `company-run-chain`.
-- Wenn Agenten fuer Firmenlauf-Validierung zu viele Tokens auf Shell-, API- und Git-Rekonstruktion verbrennen, ist das nicht nur Prompt-Ineffizienz, sondern Observability-Defizit; die spaetere Antwort ist eine kompakte Run-Wahrheitsschicht mit Status, Identitaet, Truth-Quelle, Frische und blocker-orientierter Summary.
-- Cloudflare Code Mode / Dynamic Workers staerkt diese Lesart weiter: manche operation-shape Aufgaben sind eigentlich kleine Programme; spaeter sollte DGDH pruefen, ob Run-Truth-, Evidence- oder Reconciliation-Arbeit billiger als bounded code execution gegen schmale typisierte Capabilities statt als sequentielle Tool-Konversation laeuft.
-- Das error-monitoring-agent-Pattern fuegt eine naechste Stufe hinzu: rohe technische Signale spaeter zu blocker classes, `NEW/REGRESSION/ONGOING`-aehnlichen Zustandsklassen, Kontextanreicherung und Suppression verdichten, damit bekannte ongoing Schmerzen nicht immer wieder neu durchdacht werden.
-- Bei bounded Implementation-Packets ist explizite `target file`-/`target folder`-Wahrheit upstream noetig; sonst darf Routing-Preflight legitimerweise mit `missing_inputs` vor dem ersten Child-Handoff blocken.
-- Execution-heavy Issues tragen jetzt produktseitig strukturierte `executionPacketTruth` (`targetFile`, `targetFolder`, `artifactKind`, `doneWhen`, `status`, `reasonCodes`) und zeigen diese Wahrheit direkt auf der Issue-Detail-Seite.
-- Assignment-/Status-Wakeups blocken execution-heavy Issues jetzt frueh bei `not_ready`; die minimalen Reason-Codes sind `target_file_missing`, `target_folder_missing`, `artifact_kind_missing`, `donewhen_missing`, `execution_scope_ambiguous`.
-- Live-Beweis fuer Packet-Readiness-V1: unvollstaendiges Parent-Issue `DAV-52` blieb sichtbar `not_ready` ohne echten Run; vollstaendiges Parent-Issue `DAV-53` startete sauber und erzeugte Child `DAV-54`.
-- Ein leeres `/instance/scheduler-heartbeats` beweist keinen kaputten Assignment-Pfad; bei `intervalSec = 0` fehlt dort nur Timer-Scheduler-Sichtbarkeit.
-- Governte Selbstverbesserung laeuft kuenftig ueber vier getrennte Schleifen `research -> change -> eval -> promotion`; erst nach Replay-/Eval-/PR-/Promotion-Wahrheit darf etwas in den Standardbetrieb.
-- CEO-Modell-Richtung: Gemini Pro bevorzugt -> Flash -> Flash-Lite. (Claude/Codex mittelfristig als CEO plausibel).
+- Proof-Reihenfolge dieser Phase: zuerst an DGDH selbst beweisen, dass eine menschlich abgestimmte AI-Firma unter Mission, Seele und Governance reale Wertschoepfung und steigende Autonomie tragen kann.
+- Merksatz: `DGDH ist ein Beweisraum fuer die Idee, dass Trennung nicht die tiefste Wahrheit ist.`
+- Company North Star: David gibt Mission, Budget, Blast Radius und die wenigen echten Type-1-Entscheidungen; die Maschine liefert reviewbare Realitaet und reviewbare Faehigkeitssteigerung mit sinkender David-Supervision pro nuetzlichem Zyklus.
+- Wertschoepfung ist Treibstoff, nicht Gott: mehr Quotas, bessere Hardware, mehr Unabhaengigkeit, spaetere groessere Mensch-AI-Natur-Projekte.
 
-## Phase und Prioritaet (Korrektur 2026-03-22)
-- DGDH ist in der PROTOTYPING-PHASE. Wir bauen an einer grossen Zukunft.
-- Aktive Lesart: Firmenfaehigkeit zuerst, `verein` nur optionaler Proof-Usecase; Details stehen im Leitdokument.
-- Revenue ist NICHT der aktuelle Fokus. Revenue ist Teil der langfristigen Vision - es kommt wenn die Maschine wirklich faehig ist.
-- Solange Abokosten unter ~100 EUR/Monat bleiben, koennen wir gross denken ohne Revenue-Druck.
-- Die Multi-Agent-Kette (CEO -> Assistent -> Worker -> Reviewer) IST der richtige Fokus - das ist die Kernfaehigkeit die DGDH ausmacht.
-- Kleine Usecases fuer aufkommende Projekte (Kunden, eigene Ideen) sind Gelegenheiten die Maschine zu testen - nicht das Hauptziel.
-- FALSCH: "Wir muessen jetzt Revenue-Kunden durch die Pipeline schicken". RICHTIG: "Wir bauen die Maschine die das irgendwann automatisch kann."
-- AIs sollen KEINEN Revenue-Druck auf David ausueben. Grosse Vision > kurzfristiger Output.
-- Neue Provider testen wenn sie Mehrwert versprechen ist erlaubt (z.B. MiniMax 2.7M Coding Plan als Experiment).
-- Solange Gemini-Quoten nicht ausgenutzt werden, kein Druck neue Provider anzubinden - aber im Hinterkopf behalten.
-- Open-Source-Inspiration, neue Ideen und organische North-Star-Entwicklung sind erlaubt; der naechste Schritt bleibt trotzdem klar und bounded.
-- `Go with the flow` ist in DGDH keine Nachlaessigkeit, sondern eine legitime Arbeitsweise fuer bounded Exploration, solange Branch-Wahrheit, Reviewbarkeit und ehrliche Abschlusswahrheit erhalten bleiben.
-- Fuer spaetere Run-UI gilt: Lesestruktur und Operator-Orientierung sind wichtiger als ein Library-Wechsel; `Firmenlauf lesbar machen` ist der richtige Sprinttitel, nicht `ArrowJS testen`.
-- Grosse, zusammenhaengende Coder-Sprints sind explizit erlaubt, wenn Scope und Reviewbarkeit klar genug sind.
-- Prompt-Oekonomie-Regel: Copilot-Sprints sollen moeglichst lang und doneWhen-orientiert geschnitten werden; erst splitten, wenn ein echter Blocker, Review-Risiko oder Drift-Risiko den Extra-Prompt rechtfertigt.
-- Copilot-Run-Oekonomie-Regel: Runs sind endliche Firmenmunition; wir nutzen sie nicht aengstlich, aber bewusst. Wenige starke Sprints schlagen viele Nachschnitt-Prompts, und Codex steuert Schwierigkeit/Modus pro Auftrag nach Hebel, Risiko und verbleibendem Run-Budget.
-- Praktische Budget-Lesart Ende Maerz 2026: ca. `75%` von rund `300` monatlichen Copilot-Agentenruns sind noch uebrig; das ist genug fuer mutige Core-Sprints, aber kein Grund fuer promptgetriebene Kleinteiligkeit. Ein moegliches Upgrade auf hoehere Run-Limits ist spaeter sinnvoll, wenn die aktuelle Run-Disziplin bereits guten ROI zeigt.
-- Nach dem repo-wahren Same-Session-Resume-Beweis und dem gelieferten nativen CEO-Handoff-Pfad hat `dgdh-skill-contract-and-verify-v1` jetzt Reuse-Proof mit zwei Seeds und `verify-all`; der naechste Test ist operativer Hebel im Alltag, nicht Registry-, Router- oder Self-Learning-Plattformbau.
-- Copilot soll bevorzugt grosse DoneWhen-orientierte Sprints ziehen; knapper budgetierte Codex-Interaktionen werden fuer Reflexion, Sprint-Schnitt und gezielte Eingriffe genutzt.
-- Reale Firmenlaeufe sind bevorzugte Prototyping-Schleifen; kein Test-Theater wenn ein echter Lauf bereits den naechsten Hebel sichtbar macht.
-- Coder committen und pushen vor dem Bericht; Statusberichte beginnen mit `CODEX STATUSBERICHT`, `Von: Codex`, `An: Planer`.
+## Firmenmodus
+- DGDH hat zwei governete Modi: `delivery mode` und `mission autonomy mode`.
+- Mission Cells sind die bounded Einheit fuer Selbstverbesserung: Primaermetrik, Guard-Metriken, Budget, Laufzeit, erlaubte/verbotene Raeume, Eskalationsgruende, Promotionsregel.
+- Die vier Schleifen fuer Missionsautonomie sind kanonisch: `research -> change -> eval -> promotion`.
+- Type-1-Tueren bleiben bei David bzw. hoeherem Review-Gate: `main`, Deploy, globale Rechte, Secrets, irreversible Aussenwirkung.
 
-## Wichtige IDs
-- Projekt Astro/Keystatic: `0bce43aa-2bb9-4572-9938-f556a3279149`
-- Projekt Gemini Benchmark: `8534a922-eaf2-4495-a250-648b0d1ca96b`
+## Bewiesener Produkt-/Systemstand auf `main`
+- `Mission -> CEO -> Child-Issue -> Worker -> Reviewer -> done` ist reproduzierbar bewiesen.
+- `paperclipai triad start`, `paperclipai triad status`, `paperclipai triad rescue`, `paperclipai runtime status` und `GET /api/companies/:id/agents/triad-preflight` sind die aktuelle operator-facing boring path surfaces.
+- `GET /api/health` zeigt `seedStatus`; `company-run-chain` ist die kanonische operator-facing Lauf-/Closeout-Wahrheit.
+- `reviewer-wake-retry` ist live: `in_review`-Stalls mit beschaeftigten Reviewern werden nach 5 Minuten automatisch retried; `closeoutBlocker` wird sichtbar.
+- Same-session resume nach `post_tool_capacity_exhausted` ist live bewiesen und operator-facing sichtbar.
+- Der CEO-Standardpfad fuer einfachen Handoff nutzt native `paperclipai`-Primitive statt Shell-/HTTP-Bastelei.
+- Erste governed capability layer ist auf `main`: `ceo-native-issue-handoff-primitives`, `same-session-resume-after-post-tool-capacity`, `verify-all`, `skill contract list|use`, `verifiedSkill`-Bridge.
+- Der erste echte Triad-Live-Loop ist auf `main` bewiesen (`DAV-165` / `DAV-166`); die aktuelle Restfriktion ist boring closeout nach echter Worker-Arbeit, nicht mehr `can triad happen?`.
+
+## Aktive Firmenlesart
+- Der Firmenkern bleibt `CEO -> Worker -> Reviewer -> CEO`; Skills, Truth-Layer und Primitives stuetzen ihn, ersetzen ihn nicht.
+- DGDH ist eine governte David-Aufmerksamkeits-Kompressionsmaschine.
+- `Highest excitement` ist legitimer Navigationsinput, wenn er in bounded reviewbare Bewegung uebersetzt wird.
+- Anti-Slop-Gate gilt fuer jede relevante Aenderung: spart es David Minuten, erhoeht es echte Firmenfaehigkeit, bleibt es ohne Blindvertrauen pruefbar, traegt es ohne AI-Prosa, und ist es jetzt wirklich dran?
 
 ## Stabile Arbeitsregeln
-- `CURRENT.md` traegt Fokus, naechsten Schritt und Blocker; `MEMORY.md` bleibt kompakt und stabil.
-- Default-Orchestrierungsregel: Codex schreibt und aktualisiert die aktuellen Copilot-/Agenten-Auftraege, solange David das nicht bewusst anders verteilt.
-- `main` ist die einzige kanonische operative Branch-Wahrheit. `main-local` ist nur noch Legacy-/Uebergangsrest und soll nicht mehr als aktive Sprint-Basis verwendet werden.
-- Branch-Truthfulness-Regel: `local edit`, `local commit`, `pushed branch` und `current origin/main` sind verschiedene Wahrheiten; "gelandet auf main" darf erst nach Git-Beweis fuer die aktuelle Remote-Wahrheit behauptet werden.
-- Planer (Perplexity MCP) kann das private Repo lesen, aber Commit-Verifikation laeuft ueber Branch-Namen (`sha='main'`), nicht ueber rohen Commit-Hash.
-- Wenn du stabile Facts oder Architektur aenderst, update `MEMORY.md` vor Handoff.
-- High-Risk-Lokalops an DB, Workspace-Routing oder Ordnerstruktur bekommen vor Ausfuehrung einen kurzen Heads-up an den Planer, wenn es zeitlich geht.
-- Issues immer mit `projectId` anlegen, sonst kein Workspace-Lookup.
-- Direkte Codex-CLI-Arbeit ausserhalb eines Paperclip-Worker-Runs braucht spaeter einen formalen Worker-Abholrunner vor Review.
-- Nach einem scheinbar erfolgreichen bounded Firmenlauf einmal die echte Run-Kontext-Wahrheit pruefen, nicht nur Parent-/Child-/PR-Endstatus; fehlende `companyId`/`projectId`/`issueIdentifier` im aktiven Run sind ein realer Qualitaets- und Token-Leak.
-- Bei Qualitaets- oder Tokenproblemen zuerst Upstream-Wahrheit reparieren (`issue`-/`wakeup`-/Prompt-Context), erst danach Prompts aufblasen, Repo-Reads verbreitern oder Diagnostik ausweiten.
-- Fuer normale Firmenlauf-Diagnose gilt: API-/Chain-Truth zuerst, breite Repo-Lektuere spaeter. `company-run-chain`, `active-run` und exakte `heartbeat-runs`-Reads schlagen Shell- oder Repo-Streu-Scans.
-- Wenn die laufende 3100-Instanz nach einem Server-Fix weiter altes Verhalten zeigt, ist das neue Codepfad-Urteil noch nicht live; dann frische Instanz auf dem naechsten freien Port starten, `/api/health` plus `/api/companies` neu beweisen und erst dort live validieren.
-- Bei `gemini_local`-Aenderungen unter `packages/adapters/...` reicht ein gefuehlter Dev-Hot-Reload nicht als Wahrheitsbeweis; der echte Prompt muss live im `heartbeat-run`-Log gegen den neuen Codepfad verifiziert werden.
-- Fehlerklassifikation fuer enge Firmenlauf-Diagnose immer zuerst hart schneiden: `strategy failure`, `applicability / harness failure`, `environment / interface failure` oder `missing capability / guardrail`.
-- Wenn ein Lauf gegen seine eigene enge Packet-Wahrheit verstoesst - etwa durch unnoetige Child-Creation, breite Repo-Reads, falsche Tool-Reihenfolge oder andere Extra-Aktionen - das primaer als `applicability / harness failure` lesen, nicht als Ruf nach mehr Reasoning; ein kleiner direkter Harness-/Guardrail-Fix ist erlaubt, aber kein allgemeiner Harness-Ausbau, keine Plattformisierung und kein Benchmark-/AGI-Abbiegen.
-- Wenn eine frische CEO-Zuweisung weder `executionRunId` noch `live-runs` erzeugt, bevor irgendein Child entsteht, ist das ein Core-Loop-Blocker vor jeder Arbeitsklasse; keinen groesseren Capability-Sprint darueberstapeln.
-- Fuer David-knappe Tage sind lange Droid-Missionen ein legitimer Exoskelett-Modus: tagsueber darf Droid gross/lang arbeiten, um async Tragekraft, Kontinuitaet und Drift ueber Abwesenheit zu testen; abends muessen Taren/Nerah den Lauf hart auf Produktwert, Betriebswert, Firmen-Lernwert und Slop reduzieren. Missionslaenge ist Testparameter, nicht selbst Erfolgsmetrik.
-- Ein `blocked`-Run ist Packet-/Policy-Wahrheit, nicht kaputter Agent: Worker und CEO muessen nach `blocked` ohne aktive Rest-Runs wieder auf `idle` zurueckfallen, sowohl im Finalisierungspfad als auch in stale Status-Reconciliation.
-- Der Flash-Lite-Router soll fuer Paperclip-Issues bevorzugt den kompakten `paperclipIssue`-Titel/-Text statt des aufgeblasenen Assignment-Prompts klassifizieren; sonst koennen kleine Single-File-Packets falsch als `large/high` ueberklassifiziert werden.
-- `heartbeat.ts` wird ab jetzt nur noch als Orchestrationskern weitergefuehrt; die dicken Entscheidungsbloecke leben testbar in `heartbeat-gemini-routing.ts`, `heartbeat-prompt-context.ts`, `heartbeat-workspace-session.ts` und `heartbeat-run-finalization.ts`.
+- `main` ist die einzige kanonische operative Branch-Wahrheit.
+- Branch-Truth strikt unterscheiden: `local edit`, `local commit`, `pushed branch`, `current origin/main`.
+- Fuer Firmenlauf-Diagnose gilt: API-/Chain-Truth zuerst, breite Repo-Lektuere spaeter.
+- Fehler zuerst hart klassifizieren: `strategy failure`, `applicability / harness failure`, `environment / interface failure`, `missing capability / guardrail`.
+- Wenn ein Lauf gegen seine eigene enge Packet-Wahrheit verstoesst, primaer als `applicability / harness failure` lesen; kein generalisierender Plattformbau als Reflex.
+- Vor Live-Proofs nicht nur gruene Preflight-/Health-Surfaces lesen, sondern faktische Agent-Lebendigkeit pruefen.
+- Durable Learnings gehoeren in die kleinste wahre Datei; `MEMORY.md` ist fuer stabile Facts, nicht fuer datierten Missionsverlauf.
+- Lange Droid-/Copilot-Laeufe sind als Exoskelett-Modus erlaubt, aber muessen abends hart auf Produktwert, Betriebswert, Lernwert und Slop reduziert werden.
 
-## Astro/Keystatic Workspace-Sicherheit
-- Live Primary Workspace fuer Projekt `0bce43aa-2bb9-4572-9938-f556a3279149`: `C:\Users\holyd\DGDH\worktrees\astro-keystatic-template-geib`
-- Ursprungs-Template ausserhalb des Agenten-Bereichs: `C:\Users\holyd\Documents\Websites\general\astro-keystatic-template-geib`
-- Kunden-Git ausserhalb des Agenten-Bereichs: `C:\Users\holyd\Documents\Websites\kunden-archive\ferienwohnung-bamberger`
-- Agenten duerfen nie direkt ein Kunden-Git als Primary Workspace verwenden.
+## Operator- und Sicherheitsfacts
+- `git_worktree` ist fuer sichere isolierte Ausfuehrung bewiesen; Agenten duerfen nie direkt ein Kunden-Git als Primary Workspace verwenden.
+- Lokale Paperclip-Identity ist repo-lokal gehaertet: `.paperclip/.env` und `.paperclip/config.json` schlagen stale ambient config.
+- Windows-Glue-Fact: fuer tiefe isolierte Git-Worktrees in diesem Repo ist `git config core.longpaths true` noetig.
+- Copilot-/Editor-Interna wie AppData, workspaceStorage oder chat-session-resources sind kein legitimer Standard-Truth-Surface; nur fuer explizite Forensik-Missionen.
 
-## Bewiesener Systemstand
-- `paperclipai triad rescue` covers both worker-done and reviewer-verdict rescue paths in one command; operator no longer needs to know the API endpoints manually
-- `paperclipai issue archive-stale` provides CEO queue hygiene; stale todo/blocked issues can be bulk-archived in one command
-- Post-tool-capacity closeout resume prompt is now explicit and role-specific: worker gets worker-pr→worker-done steps, reviewer gets reviewer-verdict step
-- `Mission -> CEO -> Child-Issue -> Worker -> Reviewer -> done` ist reproduzierbar bewiesen.
-- reviewer-wake-retry ist jetzt automatisch via Heartbeat-Scan; in_review-Stalls mit >5 min triggern automatischen Retry auf idle Reviewer und setzen closeoutBlocker fuer Operator-Sichtbarkeit.
-- Triad-Readiness ist jetzt boringly sichtbar: `GET /api/companies/:id/agents/triad-preflight` liefert allRolesPresent, allAgentsIdle, triadReady, roles[], blockers[] in einem Aufruf. `GET /api/health` liefert seedStatus.dgdhCompanyFound und agentRolesFound. `paperclipai runtime status` fasst beides als CLI-Summary zusammen.
-- `paperclipai triad start --title ... --objective ... --done-when ... --target-folder ... --assign-to-ceo` erstellt eine vollstaendig formatierte Triad-Parent-Issue mit missionCell: triad-mission-loop-v1 und allen reviewerFocus/AcceptWhen/ChangeWhen Feldern in einem Aufruf.
-- Operator-Runbook Sections 6.1 (Triad Readiness Check) und 6.2 (Starting a Triad Loop) dokumentieren den boring path von fresh runtime zu laufendem CEO-Loop.
-- CEO Aggregation Mode ist bewiesen; Parent bleibt bei Luecken offen und erzeugt Follow-up statt blind zu schliessen.
-- `reviewer accepted` retriggert den CEO-Parent automatisch.
-- CEO-Merge-/Konflikt-Logging toleriert jetzt nicht-persistierte API-Run-IDs; freie `runId`s landen in `details.apiRunId` statt den Loop ueber `activity_log.run_id` (UUID-FK) zu crashen.
-- Loop-Detection `5x stop` macht Workspace-Cleanup (`git checkout -- .`) plus blocked Handoff.
-- Reviewer-Simplicity-Criterion ist live.
-- Worker-Abschluss hat jetzt ein hartes API-Gate: `POST /api/issues/:id/worker-done` mit Pflichtfeldern `prUrl`, `branch`, `commitHash`, `summary`.
-- Worker kann GitHub-PRs direkt via REST API erstellen (`POST /api/issues/:id/worker-pr` -> `createGitHubPR`), ohne `gh` CLI-Abhaengigkeit.
-- `worker-pr` toleriert jetzt wie `worker-done`/`reviewer-verdict` nicht-persistierte API-Run-IDs; freie `runId`s landen in `details.apiRunId` statt am `activity_log.run_id`-FK zu crashen.
-- GitHub-PR/Merge-Service faellt jetzt bei fehlenden Prozess-Env-Variablen auf vorhandene Git-Credentials und den `origin`-Remote-Slug zurueck; `worker-pr`, Merge und CEO-Summary laufen damit auch in lokalem Dev-Setup ohne explizites `GITHUB_TOKEN`/`GITHUB_REPOSITORY` im Serverprozess.
-- Prompt-Scope-Firewall V1 ist aktiv: Worker blockt ausserhalb `targetFolder`, Reviewer fordert bei Scope-Verstoss Revision.
-- Harte Code-Firewall (Option B) bleibt Backlog und wird erst bei dokumentiertem Trigger aktiviert (`doc/backlog/scope-firewall-code.md`).
-- Dual-Gemini-Failover schaltet bei exhausted / `429` / `RESOURCE_EXHAUSTED` von `account_1` auf `account_2`.
-- `git_worktree` ist fuer Astro/Keystatic aktiv (`isolated`, `allowIssueOverride=true`).
-- Frische Projekte mit git-backed lokalem Primary-Workspace auto-bootstrappen jetzt auf `executionWorkspacePolicy = isolated` mit `workspaceStrategy.type = git_worktree`, auch wenn der Create-Pfad keine explizite Policy mitsendet; repo-only oder nicht-git-backed Workspaces brauchen weiter explizite Policy oder Preset.
-- `GET /api/issues/:id/company-run-chain` liefert jetzt die schmale Kettenwahrheit `assigned -> run started -> worker done -> reviewer assigned -> reviewer run -> merged -> parent done` fuer Parent-/Child-Laeufe.
-- Die `company-run-chain`-Surface behandelt `merged` jetzt auch dann als abgeschlossen, wenn ein Child-Issue `status = merged` und PR-Evidenz hat, aber `completedAt` fehlt; `updatedAt` ist der Fallback fuer lesbare operator truth.
-- End-to-End Multi-Agent-Kette (Sprint S) laeuft durch (Prototyp-Reife), produziert aber isolierte Worktree-Inseln.
-- Dashboard-Sichtbarkeit fuer echte Agenten-Runs ist lokal bewiesen: ein zugewiesenes Issue triggert einen sichtbaren `codex_local`-Run im Dashboard/`live-runs` mit laufendem Transcript und Abschluss.
-- Ein manueller Heartbeat ohne zugewiesenes Issue blockt erwartbar am Gate `no_assigned_issue`; fuer sichtbare reale Runs muss der bestehende Issue-Assignment-Pfad genutzt werden.
-- DGDH-Seed-Agenten tragen jetzt eine explizite Heartbeat-Runtime-Policy fuer `wakeOnAssignment`/`wakeOnAutomation`; der bisherige Seed ohne diese Flags erzeugte trotz korrekter Issue-Zuweisung keine echten Runs.
-- Der Heartbeat-Gate unterscheidet jetzt wieder source-spezifisch zwischen `assignment`, `automation` und `on_demand`, statt alle Nicht-Timer-Wege unter einem gemeinsamen `wakeOnDemand`-Schalter zu blocken.
-- `gemini_local` haelt jetzt `adapterConfig.model = auto` auch unter `applyModelLane` stabil; die Routing-Preflight-Lane darf weiter gerechnet werden, aber der CLI-Adapter bekommt in diesem Fall kein erzwungenes explizites `--model` mehr.
-- `gemini_local` haertet CEO-/API-Runs jetzt mit expliziter Runtime-Env-Wahrheit: wenn API-Zugriff aktiv ist, landet der `Paperclip runtime note`-Block wieder im Prompt und sagt zusaetzlich klar, dass `PAPERCLIP_API_KEY` und `PAPERCLIP_RUN_ID` bereits im Shell-Env des Runs vorhanden sind.
-- Post-tool Gemini-Kapazitaet ist jetzt als eigene Heartbeat-Wahrheit geschnitten: wenn nach erfolgreichen Tool-Resultaten `You have exhausted your capacity on this model` kommt, finalisiert der Run mit `errorCode = post_tool_capacity_exhausted`, traegt `deferredState` plus `resume`, queued einen `deferred_capacity_cooldown`-Wake und laesst den Scheduler spaeter denselben Sessionpfad wieder aufnehmen statt blind full rerun zu machen.
-- Die neue Same-Session-Resume-Wahrheit ist live reviewbar: auf Salvage-Branch `copilot/resume-proof-budget-gate-salvage-v1` zeigt `DAV-131` auf Runtime `3113` end-to-end `blocked(post_tool_capacity_exhausted) -> deferred_capacity_cooldown -> scheduler resume -> succeeded`, und die operator-facing `company-run-chain` liefert dafuer `resumeRunId`, `resumeSource = scheduler` und `sameSessionPath = true`.
-- Live-Beweis `DAV-88` -> `DAV-89` (2026-03-25): CEO-Run `edcb1ea3-04ca-4986-8829-d2e4d193a15c` machte nach dem Env-Fix wieder echte Tool-Calls, erzeugte Child `DAV-89` (`2470a85c-56a3-4eb7-95e5-bba06967d2bb`) und wies es dem Worker zu; Worker-Run `307a1f4a-e9f7-40d2-81ef-bd6eba29a4bb` startete live.
-- Das Worker-Role-Template erzwingt jetzt fuer kanonische PR/Handoffs den Paperclip-Pfad `worker-pr` -> `worker-done` statt `gh pr create`.
-- Die kanonische Issue-Branch-Wahrheit wird fuer Worker-Laeufe jetzt doppelt sichtbar gemacht: im Worker-Role-Template als explizite Reuse-Regel und im live `paperclipTaskPrompt` nach Workspace-Realize ueber `PAPERCLIP_WORKSPACE_BRANCH`; dadurch faellt der Worker nicht mehr auf ad-hoc-Branch-Namen ausserhalb `dgdh/issue-...` zurueck.
-- Das CEO-Role-Template erzwingt fuer execution-lastige Parent-Issues jetzt API-first statt Repo-Read-Drift: Child-Status-Check zuerst, dann Agent-Read, dann direkte Packetisierung statt breiter Repo-Lektuere.
-- Delegation Guardrails V1 sind live: CEO darf direkt nur Denk-/Entscheidungs-/Aggregationsarbeit erledigen; operative Umsetzung, Code, Datei-, Git-, PR- und Merge-Arbeit muss delegiert werden.
-- Review Policy V1 ist kanonisch: review-optionale Packets sind nur fuer reine Denk-/Plan-/Aggregationsarbeit mit expliziter Packet-Policy erlaubt; alles mit Umsetzung, Datei-Aenderung, Code, Git/PR/Merge oder konkretem Artefakt bleibt review-required/default-on.
-- Reviewer Semantic Acceptance Guardrail V1 ist live: Reviewer-Prompt verlangt semantische Punkt-fuer-Punkt-Pruefung; `POST /api/issues/:id/reviewer-verdict` verlangt jetzt substantive `doneWhenCheck` + `evidence`, sodass oberflaechliche oder fehlende Begruendungen nicht mehr accepted durchrutschen.
-- Der reale DAV-12/DAV-13-Baton-Pfad ist bewiesen: `changes_requested -> worker revision -> reviewer re-review -> merge -> summary` lief fachlich durch.
-- Isolierte Git-Worktree-Ausfuehrung ist im DGDH-Repo real bewiesen: DAV-13 lief in `C:\Users\holyd\DGDH\worktrees\dgdh-werkbank\.paperclip\worktrees\DAV-13-reviewer-semantic-truth-artifact-implementation`; der Human-Main-Worktree blieb separat.
-- Windows-Glue-Fact: fuer tiefe isolierte Git-Worktrees in diesem Repo ist lokal `git config core.longpaths true` noetig.
-- Merge-Hygiene-Fact: alte Issue-Branch-Historie kann versehentlich branch baggage auf `main` ziehen; die fremden `hyperagents.pdf`-Artefakte wurden danach bounded wieder aus `main` entfernt.
-- Lokale Paperclip-Identity ist gehaertet: repo-lokale `.paperclip/.env` und `.paperclip/config.json` schlagen stale ambient `PAPERCLIP_HOME`/`PAPERCLIP_INSTANCE_ID`/`PAPERCLIP_CONFIG`; ohne lokalen Kontext faellt Paperclip auf `~/.paperclip/instances/default` zurueck.
-- Reviewer-Review-Target nutzt fuer Worker-Handoffs kanonisch `issue.worker_done_recorded` plus `issue.worker_pull_request_created`; rohes Worker-stdout ist nur Fallback.
-- Der reale DAV-16-Lauf ist geliefert: Worker -> Reviewer -> merge lief mit echten GitHub-Spuren; der Parent DAV-15 endete danach `done` mit Merge-Summary.
-- Der reale DAV-17/DAV-18-Lauf auf canonical `main` ist geliefert: Worker erstellte PR #10 fuer den Regressionstest zu `ensure-seed-data`, Reviewer validierte den Test real mit `npx vitest run src/__tests__/ensure-seed-data.test.ts`, `DAV-18` endete `merged`, Parent `DAV-17` endete `done`.
-- Der reale DAV-24/DAV-25-Schlusspfad ist geliefert: nach Fix des `model=auto`-Routing-Leaks erzeugte der CEO auf sauberem `main` wieder echte Child-Issues, `DAV-25` lief durch Worker -> Reviewer -> Merge bis `merged`, `DAV-24` endete danach `done`.
-- `POST /api/issues/:id/worker-done` weist jetzt auf dem Live-Pfad einen idle Reviewer zu, setzt den Issue-Assignee auf diesen Reviewer und queued sofort den Reviewer-Wakeup; der fruehere `in_review`-Stillstand ohne Reviewer-Run ist damit beseitigt.
-- Issue-Create/Assign/Status/Checkout/Wakeup-Kontexte tragen jetzt wieder reiche Firmenwahrheit statt nur `issueId`: `companyId`, `projectId`, `goalId`, `parentId` und `issueIdentifier` werden im `contextSnapshot` mitgegeben, damit nachfolgende Runs nicht mehr unnötig auf `companyId/projectId = none` degradieren.
-- Der reale DAV-31/DAV-32-Lauf auf canonical `main` ist geliefert: neues isoliertes Projekt, Worker blieb aus dem Human-Main-Worktree heraus, Reviewer startete automatisch, PR `#15` landete und Parent `DAV-31` endete `done`.
-- Der reale DAV-33/DAV-34-Lauf validiert die Produktisierung live: frisches Projekt ohne manuelle `executionWorkspacePolicy` kam direkt mit isolierter `git_worktree`-Policy zurueck, Child `DAV-34` endete `merged` (PR `#16`), Parent `DAV-33` endete `done`.
-- Reviewer-Verdict-Contract-Fact: `POST /api/issues/:id/reviewer-verdict` akzeptiert bei `accepted` nur `requiredFixes: []`; `"none"` oder `["none"]` werden vom Schema abgewiesen.
-- Merge-Reconciliation-Fact: wenn ein `reviewer_accepted`-Child auf PR-Metadaten zeigt, die GitHub nicht aufloesen kann, muss der CEO-Merge-Pfad das jetzt als expliziten `merge_conflict` behandeln statt den Reviewer-/Merge-Lauf mit einem rohen PR-Lookup-404 auf `running` stranden zu lassen.
-- Gate-Fact 2026-03-25: `DAV-65` auf Port `3100` und `DAV-66` auf frischer `3101`-Instanz blieben beide nach normaler CEO-Zuweisung ohne `executionRunId`, `live-runs` und Child-Erzeugung; die erste neue Verlustklasse nach Merge-Reconciliation ist damit `assignment-to-run kickoff loss`.
-- Evolution Lane ist kanonisch als spaetere Richtung gesetzt: kontrollierte Selbstverbesserung laeuft replay-/benchmark-getrieben, PR-basiert und mit Human-Merge, nicht als freie Live-Selbstoptimierung.
-
-## Revenue Lane Foundation (langfristige Capability, nicht aktueller Fokus)
-- Revenue Lane baut wiederverwendbare DGDH-Faehigkeiten, nicht Einzelfall-Abschluesse.
-- Revenue-Pipelines sind funktional (Sprint E-I) aber NICHT der aktuelle Sprint-Fokus.
-- Revenue kommt organisch wenn die Agent-Kette reif genug ist - kein kuenstlicher Druck.
-- Packet-Kette: `CEO -> Image Preprocessing -> Content Extraction/Draft -> Schema Fill -> Review`.
-- Image Packet Pipeline = `deterministic_tool`, Route `/api/companies/:companyId/revenue-lane/image-pipeline/process`.
-- Content Extraction Worker = `free_api` auf Gemini Flash-Lite, Route `/api/companies/:companyId/revenue-lane/content-extractor/process`.
-- Schema Fill Worker = `deterministic_tool`, Route `/api/companies/:companyId/revenue-lane/schema-fill/process`.
-- Template-Apply Worker = `deterministic_tool`, Route `/api/companies/:companyId/revenue-lane/template-apply/process`, schreibt kontrolliert nur in den sicheren Template-Workspace und nie in ein Kunden-Git.
-- Revenue-Lane-Ende-zu-Ende ist bis zum sicheren Astro/Keystatic-Template-Build bewiesen; lokaler Build-Nachweis im Template-Workspace erfolgt bei Bedarf via `npm ci` + `npm run build`.
-- Lane Routing V1 ist live: `packetType + role` steuern die Lane; `deterministic_tool` blockiert LLM-Calls hart.
-- Naechster Architektur-Schritt: Rollen-/Packet-Reifegrad weiterhaerten (CEO-Spec-Qualitaet, Branchenprofile, spaeter `local_model`-Aktivierung).
+last_updated_by: Taren
+updated_at: 2026-03-29
