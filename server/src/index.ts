@@ -1,5 +1,6 @@
 import { existsSync, readFileSync, rmSync } from "node:fs";
 import { createServer } from "node:http";
+import net from "node:net";
 import { resolve } from "node:path";
 import { createInterface } from "node:readline/promises";
 import { stdin, stdout } from "node:process";
@@ -408,11 +409,18 @@ export async function startServer(): Promise<StartedServer> {
     };
 
     const runningPid = getRunningPid();
-    if (runningPid) {
+    const reuseExistingEmbeddedPostgres =
+      runningPid !== null && (await canConnectToLocalPort(port));
+    if (runningPid && reuseExistingEmbeddedPostgres) {
       logger.warn(
         `Embedded PostgreSQL already running; reusing existing process (pid=${runningPid}, port=${port})`,
       );
     } else {
+      if (runningPid && !reuseExistingEmbeddedPostgres) {
+        logger.warn(
+          `Embedded PostgreSQL pid file points to pid=${runningPid}, but port ${port} is not accepting connections; treating it as stale and starting a fresh embedded process`,
+        );
+      }
       const detectedPort = await detectPort(configuredPort);
       if (detectedPort !== configuredPort) {
         logger.warn(
@@ -855,3 +863,18 @@ if (isMainModule(import.meta.url)) {
     process.exit(1);
   });
 }
+  async function canConnectToLocalPort(port: number): Promise<boolean> {
+    await new Promise((resolvePromise) => setTimeout(resolvePromise, 0));
+    return await new Promise((resolvePromise) => {
+      const socket = net.createConnection({ host: "127.0.0.1", port });
+      const finish = (result: boolean) => {
+        socket.removeAllListeners();
+        if (!socket.destroyed) socket.destroy();
+        resolvePromise(result);
+      };
+      socket.setTimeout(750);
+      socket.once("connect", () => finish(true));
+      socket.once("timeout", () => finish(false));
+      socket.once("error", () => finish(false));
+    });
+  }

@@ -1,5 +1,6 @@
 import { existsSync, readFileSync, rmSync } from "node:fs";
 import { createRequire } from "node:module";
+import net from "node:net";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { ensurePostgresDatabase } from "./client.js";
@@ -51,6 +52,21 @@ function readPidFilePort(postmasterPidFile: string): number | null {
   }
 }
 
+async function canConnectToLocalPort(port: number): Promise<boolean> {
+  return await new Promise((resolvePromise) => {
+    const socket = net.createConnection({ host: "127.0.0.1", port });
+    const finish = (result: boolean) => {
+      socket.removeAllListeners();
+      if (!socket.destroyed) socket.destroy();
+      resolvePromise(result);
+    };
+    socket.setTimeout(750);
+    socket.once("connect", () => finish(true));
+    socket.once("timeout", () => finish(false));
+    socket.once("error", () => finish(false));
+  });
+}
+
 async function loadEmbeddedPostgresCtor(): Promise<EmbeddedPostgresCtor> {
   const require = createRequire(import.meta.url);
   const resolveCandidates = [
@@ -80,7 +96,7 @@ async function ensureEmbeddedPostgresConnection(
   const runningPid = readRunningPostmasterPid(postmasterPidFile);
   const runningPort = readPidFilePort(postmasterPidFile);
 
-  if (runningPid) {
+  if (runningPid && await canConnectToLocalPort(runningPort ?? preferredPort)) {
     const port = runningPort ?? preferredPort;
     const adminConnectionString = `postgres://paperclip:paperclip@127.0.0.1:${port}/postgres`;
     await ensurePostgresDatabase(adminConnectionString, "paperclip");
