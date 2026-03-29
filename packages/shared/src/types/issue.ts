@@ -284,8 +284,16 @@ export interface CompanyRunChainReviewerVerdictTruth {
   at: Date | null;
 }
 
+export type CompanyRunChainReviewerWakeStatus =
+  | "queued"
+  | "running"
+  | "completed"
+  | "stalled"
+  | null;
+
 export interface CompanyRunChainTriadTruth {
   state: CompanyRunChainTriadState;
+  reviewerWakeStatus: CompanyRunChainReviewerWakeStatus;
   ceoCut: IssueTriadPacketTruth;
   workerExecution: CompanyRunChainWorkerExecutionTruth;
   reviewerVerdict: CompanyRunChainReviewerVerdictTruth;

@@ -1,4 +1,21 @@
-import type { CompanyRunChain } from "@paperclipai/shared";
+import type { CompanyRunChain, CompanyRunChainChild } from "@paperclipai/shared";
+
+// Internal copy of CompanyRunChainParentBlocker to avoid needing it exported from shared
+interface BlockerData {
+  blockerClass: string | null;
+  blockerState: string | null;
+  summary: string | null;
+  knownBlocker: boolean;
+  nextResumePoint: string | null;
+  nextWakeStatus: string | null;
+  nextWakeNotBefore: Date | null;
+  resumeStrategy: string | null;
+  resumeSource: string | null;
+  resumeRunId: string | null;
+  resumeRunStatus: string | null;
+  resumeAt: Date | null;
+  sameSessionPath: boolean;
+}
 
 export interface CompanyRunActiveIdentity {
   id: string;
@@ -33,6 +50,13 @@ export interface ParentBlockerTruth {
     value: string;
     note: string;
   };
+}
+
+export interface ChildRecoveryTruth {
+  type: "stalled_reviewer_wake" | "child_closeout_blocker" | "parent_blocker" | "none";
+  title: string;
+  description: string;
+  blockerDetails: ParentBlockerTruth | null;
 }
 
 function asRecord(value: unknown): Record<string, unknown> | null {
@@ -113,12 +137,37 @@ export function hasVisibleCompanyRunChainTruth(
   return chain.children.length > 0 || Boolean(chain.parentBlocker?.blockerClass);
 }
 
+export function hasRecoverableState(chain: CompanyRunChain | null | undefined): boolean {
+  if (!chain) return false;
+
+  // Check for stalled reviewer wake on any child
+  const hasStalledReviewerWake = chain.children.some(
+    (child) => child.triad.reviewerWakeStatus === "stalled",
+  );
+  if (hasStalledReviewerWake) return true;
+
+  // Check for child closeout blocker on any child
+  const hasChildCloseoutBlocker = chain.children.some(
+    (child) => child.triad.closeoutBlocker?.blockerClass,
+  );
+  if (hasChildCloseoutBlocker) return true;
+
+  // Check for parent blocker
+  if (chain.parentBlocker?.blockerClass) return true;
+
+  return false;
+}
+
 export function getParentBlockerTruth(
   blocker: CompanyRunChain["parentBlocker"],
 ): ParentBlockerTruth | null {
   if (!blocker?.blockerClass) return null;
 
-  const blockerNote = blocker.summary ?? "Parent is blocked before child execution.";
+  return formatBlockerTruth(blocker);
+}
+
+function formatBlockerTruth(blocker: BlockerData): ParentBlockerTruth {
+  const blockerNote = blocker.summary ?? "Execution is blocked before completion.";
   const stateNote = blocker.knownBlocker
     ? "Known blocker class. David does not need to rediscover it."
     : "Blocker exists but is not yet classified as known.";
@@ -135,7 +184,7 @@ export function getParentBlockerTruth(
 
   return {
     blocker: {
-      value: blocker.blockerClass,
+      value: blocker.blockerClass ?? "unknown",
       note: blockerNote,
     },
     state: {
@@ -157,4 +206,82 @@ export function getParentBlockerTruth(
       note: nextPointNote,
     },
   };
+}
+
+export function getChildRecoveryTruth(
+  child: CompanyRunChainChild,
+): ChildRecoveryTruth {
+  // Check for stalled reviewer wake first (highest priority for operator attention)
+  if (child.triad.reviewerWakeStatus === "stalled") {
+    return {
+      type: "stalled_reviewer_wake",
+      title: "Reviewer closeout stalled",
+      description: `Reviewer wake for ${child.identifier ?? child.issueId.slice(0, 8)} is stalled and needs recovery-oriented follow-up. The reviewer handoff was not completed within the expected time window.`,
+      blockerDetails: null,
+    };
+  }
+
+  // Check for child closeout blocker
+  if (child.triad.closeoutBlocker?.blockerClass) {
+    const blockerDetails = formatBlockerTruth(child.triad.closeoutBlocker);
+    return {
+      type: "child_closeout_blocker",
+      title: "Closeout paused",
+      description: `Worker closeout is paused with blocker: ${child.triad.closeoutBlocker.blockerClass}. Resume/check procedure is available.`,
+      blockerDetails,
+    };
+  }
+
+  return {
+    type: "none",
+    title: "",
+    description: "",
+    blockerDetails: null,
+  };
+}
+
+export function getRecoveryGuidanceForChain(
+  chain: CompanyRunChain,
+): ChildRecoveryTruth | null {
+  // Find first child with stalled reviewer wake (most actionable)
+  const stalledChild = chain.children.find(
+    (child) => child.triad.reviewerWakeStatus === "stalled",
+  );
+  if (stalledChild) {
+    return getChildRecoveryTruth(stalledChild);
+  }
+
+  // Find first child with closeout blocker
+  const blockedChild = chain.children.find(
+    (child) => child.triad.closeoutBlocker?.blockerClass,
+  );
+  if (blockedChild) {
+    return getChildRecoveryTruth(blockedChild);
+  }
+
+  // Check parent blocker
+  if (chain.parentBlocker?.blockerClass) {
+    const blockerDetails = getParentBlockerTruth(chain.parentBlocker);
+    return {
+      type: "parent_blocker",
+      title: "Parent execution blocked",
+      description: `Parent issue is blocked with ${chain.parentBlocker.blockerClass} before child execution can proceed.`,
+      blockerDetails,
+    };
+  }
+
+  return null;
+}
+
+// Reviewer wake status helpers for passive/active state checking
+export function isReviewerWakePassive(
+  status: CompanyRunChainChild["triad"]["reviewerWakeStatus"],
+): boolean {
+  return status === "queued" || status === "running" || status === "completed" || status === null;
+}
+
+export function isReviewerWakeStalled(
+  status: CompanyRunChainChild["triad"]["reviewerWakeStatus"],
+): boolean {
+  return status === "stalled";
 }

@@ -5,6 +5,11 @@ import {
   getParentBlockerTruth,
   getRunContextHealth,
   hasVisibleCompanyRunChainTruth,
+  hasRecoverableState,
+  getChildRecoveryTruth,
+  getRecoveryGuidanceForChain,
+  isReviewerWakePassive,
+  isReviewerWakeStalled,
   type CompanyRunActiveIdentity,
 } from "../lib/company-run-truth";
 
@@ -138,5 +143,281 @@ describe("company run chain truth helpers", () => {
         note: "Next wake status: deferred_capacity_cooldown",
       },
     });
+  });
+});
+
+describe("recovery truth helpers", () => {
+  it("detects recoverable state for stalled reviewer wake", () => {
+    const chain = {
+      parentIssueId: "parent-1",
+      parentIdentifier: "DAV-100",
+      parentTitle: "Parent",
+      parentStatus: "in_progress" as const,
+      focusIssueId: null,
+      parentBlocker: null,
+      children: [
+        {
+          issueId: "child-1",
+          identifier: "DAV-101",
+          title: "Child issue",
+          status: "in_review" as const,
+          assigneeAgentId: "agent-1",
+          assigneeAgentName: "Worker",
+          stages: [],
+          triad: {
+            state: "ready_for_review" as const,
+            reviewerWakeStatus: "stalled" as const,
+            ceoCut: {
+              ceoCutStatus: "ready" as const,
+              workerPacket: { source: "explicit" as const, goal: null, scope: null, doneWhen: null },
+              reviewerPacket: { source: "explicit" as const, focus: null, acceptWhen: null, changeWhen: null },
+            },
+            workerExecution: {
+              status: "ready_for_review" as const,
+              runId: "run-1",
+              branch: "feature/test",
+              commitHash: "abc123",
+              prUrl: "https://github.com/test/repo/pull/1",
+              at: new Date(),
+            },
+            reviewerVerdict: {
+              verdict: null,
+              approvalStatus: null,
+              packet: null,
+              doneWhenCheck: null,
+              evidence: null,
+              requiredFixes: [],
+              next: null,
+              at: null,
+            },
+            closeoutBlocker: null,
+          },
+        },
+      ],
+    };
+
+    expect(hasRecoverableState(chain)).toBe(true);
+    expect(getRecoveryGuidanceForChain(chain)?.type).toBe("stalled_reviewer_wake");
+  });
+
+  it("detects recoverable state for child closeout blocker", () => {
+    const chain = {
+      parentIssueId: "parent-1",
+      parentIdentifier: "DAV-100",
+      parentTitle: "Parent",
+      parentStatus: "in_progress" as const,
+      focusIssueId: null,
+      parentBlocker: null,
+      children: [
+        {
+          issueId: "child-1",
+          identifier: "DAV-101",
+          title: "Child issue",
+          status: "in_progress" as const,
+          assigneeAgentId: "agent-1",
+          assigneeAgentName: "Worker",
+          stages: [],
+          triad: {
+            state: "in_execution" as const,
+            reviewerWakeStatus: null,
+            ceoCut: {
+              ceoCutStatus: "ready" as const,
+              workerPacket: { source: "explicit" as const, goal: null, scope: null, doneWhen: null },
+              reviewerPacket: { source: "explicit" as const, focus: null, acceptWhen: null, changeWhen: null },
+            },
+            workerExecution: {
+              status: "in_execution" as const,
+              runId: "run-1",
+              branch: "feature/test",
+              commitHash: "abc123",
+              prUrl: null,
+              at: new Date(),
+            },
+            reviewerVerdict: {
+              verdict: null,
+              approvalStatus: null,
+              packet: null,
+              doneWhenCheck: null,
+              evidence: null,
+              requiredFixes: [],
+              next: null,
+              at: null,
+            },
+            closeoutBlocker: {
+              blockerClass: "post_tool_capacity_exhausted",
+              blockerState: "cooldown_pending",
+              summary: "Post-tool capacity cooldown",
+              knownBlocker: true,
+              nextResumePoint: "resume_existing_session_worker_closeout",
+              nextWakeStatus: "deferred_capacity_cooldown",
+              nextWakeNotBefore: new Date("2026-03-25T10:05:00.000Z"),
+              resumeStrategy: "reuse_session",
+              resumeSource: "scheduler",
+              resumeRunId: "run-resume-1234",
+              resumeRunStatus: "queued",
+              resumeAt: new Date("2026-03-25T10:05:01.000Z"),
+              sameSessionPath: true,
+            },
+          },
+        },
+      ],
+    };
+
+    expect(hasRecoverableState(chain)).toBe(true);
+    expect(getRecoveryGuidanceForChain(chain)?.type).toBe("child_closeout_blocker");
+  });
+
+  it("detects recoverable state for parent blocker", () => {
+    const chain = {
+      parentIssueId: "parent-1",
+      parentIdentifier: "DAV-100",
+      parentTitle: "Parent",
+      parentStatus: "todo" as const,
+      focusIssueId: null,
+      parentBlocker: {
+        blockerClass: "post_tool_capacity_exhausted",
+        blockerState: "cooldown_pending",
+        summary: "Post-tool capacity cooldown",
+        knownBlocker: true,
+        nextResumePoint: "resume_existing_session_before_child_create",
+        nextWakeStatus: "deferred_capacity_cooldown",
+        nextWakeNotBefore: new Date("2026-03-25T10:05:00.000Z"),
+        resumeStrategy: "reuse_session",
+        resumeSource: "scheduler",
+        resumeRunId: "run-resume-1234",
+        resumeRunStatus: "queued",
+        resumeAt: new Date("2026-03-25T10:05:01.000Z"),
+        sameSessionPath: true,
+      },
+      children: [],
+    };
+
+    expect(hasRecoverableState(chain)).toBe(true);
+    expect(getRecoveryGuidanceForChain(chain)?.type).toBe("parent_blocker");
+  });
+
+  it("returns no recoverable state for passive reviewer wake statuses", () => {
+    const baseChild = {
+      issueId: "child-1",
+      identifier: "DAV-101",
+      title: "Child issue",
+      status: "in_review" as const,
+      assigneeAgentId: "agent-1",
+      assigneeAgentName: "Worker",
+      stages: [],
+      triad: {
+        state: "ready_for_review" as const,
+        ceoCut: {
+          ceoCutStatus: "ready" as const,
+          workerPacket: { source: "explicit" as const, goal: null, scope: null, doneWhen: null },
+          reviewerPacket: { source: "explicit" as const, focus: null, acceptWhen: null, changeWhen: null },
+        },
+        workerExecution: {
+          status: "ready_for_review" as const,
+          runId: "run-1",
+          branch: "feature/test",
+          commitHash: "abc123",
+          prUrl: "https://github.com/test/repo/pull/1",
+          at: new Date(),
+        },
+        reviewerVerdict: {
+          verdict: null,
+          approvalStatus: null,
+          packet: null,
+          doneWhenCheck: null,
+          evidence: null,
+          requiredFixes: [],
+          next: null,
+          at: null,
+        },
+        closeoutBlocker: null,
+      },
+    };
+
+    // Queued, running, completed, and null are all passive
+    expect(isReviewerWakePassive("queued")).toBe(true);
+    expect(isReviewerWakePassive("running")).toBe(true);
+    expect(isReviewerWakePassive("completed")).toBe(true);
+    expect(isReviewerWakePassive(null)).toBe(true);
+    expect(isReviewerWakeStalled("stalled")).toBe(true);
+
+    const chainQueued = {
+      parentIssueId: "parent-1",
+      parentIdentifier: "DAV-100",
+      parentTitle: "Parent",
+      parentStatus: "in_progress" as const,
+      focusIssueId: null,
+      parentBlocker: null,
+      children: [{ ...baseChild, triad: { ...baseChild.triad, reviewerWakeStatus: "queued" as const } }],
+    };
+    expect(hasRecoverableState(chainQueued)).toBe(false);
+    expect(getRecoveryGuidanceForChain(chainQueued)).toBeNull();
+
+    const chainRunning = {
+      parentIssueId: "parent-1",
+      parentIdentifier: "DAV-100",
+      parentTitle: "Parent",
+      parentStatus: "in_progress" as const,
+      focusIssueId: null,
+      parentBlocker: null,
+      children: [{ ...baseChild, triad: { ...baseChild.triad, reviewerWakeStatus: "running" as const } }],
+    };
+    expect(hasRecoverableState(chainRunning)).toBe(false);
+
+    const chainCompleted = {
+      parentIssueId: "parent-1",
+      parentIdentifier: "DAV-100",
+      parentTitle: "Parent",
+      parentStatus: "in_progress" as const,
+      focusIssueId: null,
+      parentBlocker: null,
+      children: [{ ...baseChild, triad: { ...baseChild.triad, reviewerWakeStatus: "completed" as const } }],
+    };
+    expect(hasRecoverableState(chainCompleted)).toBe(false);
+  });
+
+  it("returns none recovery type for child without recoverable state", () => {
+    const child = {
+      issueId: "child-1",
+      identifier: "DAV-101",
+      title: "Child issue",
+      status: "in_progress" as const,
+      assigneeAgentId: "agent-1",
+      assigneeAgentName: "Worker",
+      stages: [],
+      triad: {
+        state: "in_execution" as const,
+        reviewerWakeStatus: null,
+        ceoCut: {
+          ceoCutStatus: "ready" as const,
+          workerPacket: { source: "explicit" as const, goal: null, scope: null, doneWhen: null },
+          reviewerPacket: { source: "explicit" as const, focus: null, acceptWhen: null, changeWhen: null },
+        },
+        workerExecution: {
+          status: "in_execution" as const,
+          runId: "run-1",
+          branch: "feature/test",
+          commitHash: "abc123",
+          prUrl: null,
+          at: new Date(),
+        },
+        reviewerVerdict: {
+          verdict: null,
+          approvalStatus: null,
+          packet: null,
+          doneWhenCheck: null,
+          evidence: null,
+          requiredFixes: [],
+          next: null,
+          at: null,
+        },
+        closeoutBlocker: null,
+      },
+    };
+
+    const result = getChildRecoveryTruth(child);
+    expect(result.type).toBe("none");
+    expect(result.title).toBe("");
+    expect(result.description).toBe("");
   });
 });
