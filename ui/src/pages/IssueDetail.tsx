@@ -22,6 +22,7 @@ import { IssueProperties } from "../components/IssueProperties";
 import { LiveRunWidget } from "../components/LiveRunWidget";
 import { NeedsInputNotice } from "../components/NeedsInputNotice";
 import { CompanyRunChainCard } from "../components/CompanyRunChainCard";
+import { RecoveryGuidanceCard } from "../components/RecoveryGuidanceCard";
 import { hasVisibleCompanyRunChainTruth } from "../lib/company-run-truth";
 import { ExecutionPacketReadinessCard } from "../components/ExecutionPacketReadinessCard";
 import type { MentionOption } from "../components/MarkdownEditor";
@@ -987,6 +988,7 @@ export function IssueDetail() {
           activeRun={operatorVisibleRun}
         />
       )}
+      {companyRunChain && <RecoveryGuidanceCard chain={companyRunChain} />}
 
       <IssueDocumentsSection
         issue={issue}
