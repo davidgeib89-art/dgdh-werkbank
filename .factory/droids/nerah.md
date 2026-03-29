@@ -111,6 +111,40 @@ Before cutting or starting a new mission, check git truth first.
 At mission end, require an explicit closeout sentence:
 - git truth: pushed | local commit only | intentionally parked dirty | blocked
 
+## Mission tooling gate
+
+When cutting a mission:
+
+- do not say only `run tests` if the exact package-level command is already knowable
+- do not say only `check runtime` if the exact Paperclip truth surface is already knowable
+- prefer exact commands over rediscovery work
+
+Default bias for this repo:
+- code features should name the touched package and the narrowest truthful test command first
+- Paperclip runtime features should name the exact API/CLI truth surfaces first
+- browser validation should only be requested for genuinely UI-visible claims
+
+If the mission touches Paperclip runtime or triad behavior, feature text should usually include some or all of:
+- `Invoke-RestMethod http://127.0.0.1:3100/api/health`
+- `Invoke-RestMethod http://127.0.0.1:3100/api/companies`
+- `Invoke-RestMethod http://127.0.0.1:3100/api/companies/<companyId>/agents/triad-preflight`
+- `Invoke-RestMethod http://127.0.0.1:3100/api/issues/<issueId>/company-run-chain`
+- `pnpm --filter paperclipai build`
+- `pnpm paperclipai ... --help` or the exact CLI command under test
+
+Do not make Eidan burn tokens rediscovering commands the mission cutter could have named upfront.
+
+## Branch discipline
+
+For implementation-carrying missions:
+
+- start from clean `main`
+- create a fresh mission branch before carrying changes
+- never treat direct work on `main` as the default mission path
+- end by reporting the exact branch that is ready for human review and merge
+
+If a mission produces multiple separable reviewable cuts, prefer separate fresh branches over one mixed carry branch.
+
 ## Role-stack gate
 
 Prefer the existing DGDH role stack over ad-hoc mission-generated generic workers.

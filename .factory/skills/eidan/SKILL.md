@@ -45,9 +45,15 @@ Not for:
 - Check API availability with health endpoint
 - Read feature preconditions explicitly
 - Verify workspace and git state when applicable
+- If Paperclip runtime truth matters, verify in this order:
+  1. `Invoke-RestMethod http://127.0.0.1:3100/api/health`
+  2. `Invoke-RestMethod http://127.0.0.1:3100/api/companies`
+  3. `Invoke-RestMethod http://127.0.0.1:3100/api/companies/<companyId>/agents/triad-preflight`
+  4. exact issue truth via `GET /api/issues/:id/company-run-chain`
+- Treat stale mission prose IDs as illustrative until live API truth confirms the canonical IDs
 
 ### 3. Execute Bounded Implementation
-- For CLI/API work: use `pnpm paperclipai` commands
+- For CLI/API work: prefer `pnpm paperclipai` commands over ad-hoc HTTP when the CLI already covers the operation
 - For API calls: Use `Invoke-RestMethod` with proper headers
 - For files: Use PowerShell-native commands (`Get-ChildItem`, `Remove-Item`, `Move-Item`)
 - For git: Use `git -C <repo> <command>`
@@ -59,14 +65,61 @@ Not for:
 - Make incremental commits with clear messages
 - Do NOT exceed bounded scope from packet
 
+### 3.1 Paperclip command discipline
+
+When the task touches Paperclip runtime / triad / issue execution:
+
+- Prefer these existing surfaces first:
+  - `pnpm paperclipai runtime status`
+  - `pnpm paperclipai triad start ...`
+  - `pnpm paperclipai triad status --issue-id <id>` or existing equivalent help surface
+  - `pnpm paperclipai triad rescue ...`
+  - `GET /api/issues/:id/company-run-chain`
+- Do not fall back to direct DB access.
+- Do not invent new helper scripts if one focused API read or Paperclip CLI command already answers the question.
+- Before using `pnpm paperclipai ...`, build the CLI when needed:
+  - `pnpm --filter paperclipai build`
+- If a CLI command exists but its exact flags are uncertain, check `--help` first and cite the command you actually ran.
+
+### 3.2 Test selection discipline
+
+Do not default to `pnpm test:run` for every small change.
+
+Pick the narrowest truthful test surface first:
+
+- CLI package change:
+  - `pnpm --filter paperclipai exec vitest run cli/src/__tests__/...` from repo root when exact file path is needed
+  - or `pnpm --filter paperclipai exec vitest run src/__tests__/...` inside CLI package conventions
+  - `pnpm --filter paperclipai typecheck`
+- UI change:
+  - `pnpm --filter @paperclipai/ui exec vitest run src/...`
+  - `pnpm --filter @paperclipai/ui typecheck`
+  - `pnpm --filter @paperclipai/ui build` when user-visible rendering changed
+- Server change:
+  - `pnpm --filter @paperclipai/server exec vitest run src/__tests__/...`
+  - `pnpm --filter @paperclipai/server typecheck`
+- Shared contract change:
+  - exact affected package tests
+  - then relevant consumers if the contract crosses boundaries
+
+Only run broad workspace validation when:
+- the feature changes production behavior across package boundaries
+- the mission explicitly requires repo-wide proof
+- or a narrower test already suggests wider fallout
+
 ### 4. Verify Results
 - After action, verify state changed as expected
 - Re-query API to confirm change persisted
 - List directory to confirm file operation
 - Run git status to confirm clean state
-- **Run typecheck**: `pnpm -r typecheck`
-- **Run tests**: `pnpm test:run` or package-specific tests
+- **Run package-specific typecheck and tests first**
+- **Escalate to `pnpm -r typecheck` and `pnpm test:run` only when the scope honestly requires it**
 - Report explicit verification with command outputs
+
+Verification must distinguish:
+- exact commands actually run
+- what those commands prove
+- what still remains unproven
 
 ### 5. No Fabrication
 - Never emit simulated or placeholder output
@@ -167,3 +220,4 @@ Do NOT exceed 3 retry attempts on any API call. Escalate instead.
 - Unix shell commands on Windows
 - Destructive deletion without explicit archive/reset attempt first
 - Simulated or invented verification output
+- Reporting broad validation you did not actually run

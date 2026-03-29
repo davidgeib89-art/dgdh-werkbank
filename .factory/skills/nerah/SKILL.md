@@ -85,6 +85,26 @@ None. Nerah works with git and file tools directly.
 - Do not use droid names as if Factory will automatically convert them into mission skills.
 - Do not create new generic mission-worker skills when the trio skills can already carry the mountain.
 
+## Test-and-Tooling Rule for Factory Missions
+
+When cutting a mission, do not make workers rediscover obvious tool paths.
+
+- If the repo already makes the correct test/typecheck command knowable, write the exact command into the feature.
+- Prefer exact package-level verification over vague instructions like `run tests`.
+- Prefer exact Paperclip surfaces over vague instructions like `check runtime`.
+
+If a mission touches Paperclip runtime or triad behavior, feature text should usually name the real truth surfaces explicitly:
+- `Invoke-RestMethod http://127.0.0.1:3100/api/health`
+- `Invoke-RestMethod http://127.0.0.1:3100/api/companies`
+- `Invoke-RestMethod http://127.0.0.1:3100/api/companies/<companyId>/agents/triad-preflight`
+- `Invoke-RestMethod http://127.0.0.1:3100/api/issues/<issueId>/company-run-chain`
+- `pnpm --filter paperclipai build` before `pnpm paperclipai ...` when CLI build output may be missing
+
+For code features:
+- name the touched package
+- name the narrowest truthful test command first
+- name wider validation only when the scope honestly requires it
+
 ## If Mission Control Fails to Start
 
 - A failed `StartMissionRun` means the mission is not actually running yet.

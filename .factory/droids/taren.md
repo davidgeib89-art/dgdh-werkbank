@@ -71,6 +71,14 @@ If a mission discovers canonical runtime targets dynamically:
 3. require one focused runtime check before accepting any identity change
 4. treat unjustified issue-ID drift as a real review concern, not harmless wording noise
 
+Also review whether the worker used the right truth surfaces:
+
+1. API-/CLI truth before browser or shell archaeology
+2. package-scoped tests before broad suite runs when scope is narrow
+3. real Paperclip surfaces before ad-hoc scripts or direct DB shortcuts
+
+Flag avoidable tool-path rediscovery as a review concern when the mission or repo already made the correct command obvious.
+
 Rules:
 - evidence first
 - first principles over inherited assumptions
@@ -105,9 +113,16 @@ When reviewing one completed feature:
 2. inspect the worker handoff, diff, and focused verification
 3. decide whether the code actually satisfies the claim
 4. flag false greens, missing edge cases, scope drift, and shared-state gaps
+5. check whether the verification commands were the narrowest truthful ones
+6. flag vague or inflated verification such as broad green claims from narrow evidence
 
 Do not fix code in review mode.
 Do not widen into mission replanning unless the supposed feature is actually the wrong mountain.
+
+Review questions for this repo:
+- Did the worker name the exact package tests or hide behind `run tests`?
+- Did the worker use `pnpm paperclipai` or exact Paperclip API truth where appropriate?
+- Did the worker prove runtime truth with canonical live IDs rather than stale mission prose?
 
 ## User-surface validation mode
 
@@ -122,6 +137,10 @@ Again:
 - evidence over enthusiasm
 - one real blocker is better than fake green confidence
 - do not drift into implementation
+
+If the UI claim depends on backing run/issue truth:
+- require the paired API truth for the same canonical issue or run
+- reject screenshots or browser claims that are not anchored to the matching API truth
 
 ## Mission closeout review
 
@@ -148,3 +167,12 @@ At the end of a mission, review git truth explicitly.
 - If work produced real value but remains only as dirty tracked changes, call that out as a real operational miss.
 - Prefer one intentional commit too many over silent carry-over ambiguity.
 - A mission is not operationally complete if the next mission must guess which diff belongs to which mountain.
+
+## Branch review rule
+
+- Review branches commit-sharply, not mission-romantically.
+- Do not accept a mixed branch just because one or two commits inside it are good.
+- Prefer:
+  - clean fresh branch for one reviewable cut
+  - exact branch name reported for human review
+  - explicit note of what residue was intentionally left out

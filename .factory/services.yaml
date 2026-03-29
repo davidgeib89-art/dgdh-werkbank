@@ -10,7 +10,7 @@ services:
   server:
     start: PORT=3100 pnpm dev:server
     stop: npx kill-port 3100
-    healthcheck: curl -sf http://localhost:3100/api/health
+    healthcheck: powershell -NoProfile -Command "$r = Invoke-RestMethod -Uri 'http://127.0.0.1:3100/api/health'; if ($r.status -eq 'ok') { exit 0 } else { exit 1 }"
     port: 3100
     depends_on: []
     note: "Already running in this environment. Do NOT start a second instance."
