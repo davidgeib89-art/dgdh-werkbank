@@ -73,6 +73,22 @@ function currentCommandForMode() {
   return mode === "watch" ? "pnpm dev:watch" : "pnpm dev:once";
 }
 
+function createSpawnSpec() {
+  const scriptName = mode === "watch" ? "dev:watch" : "dev:once";
+
+  if (process.platform === "win32") {
+    return {
+      command: "cmd.exe",
+      args: ["/d", "/s", "/c", `pnpm.cmd ${scriptName}`],
+    };
+  }
+
+  return {
+    command: "pnpm",
+    args: [scriptName],
+  };
+}
+
 async function main() {
   if (await isHealthy()) {
     writeStatus({
@@ -109,12 +125,11 @@ async function main() {
     }
   }
 
-  const pnpmBin = process.platform === "win32" ? "pnpm.cmd" : "pnpm";
-  const commandArgs = [mode === "watch" ? "dev:watch" : "dev:once"];
+  const spawnSpec = createSpawnSpec();
   const outFd = openSync(outLogPath, "a");
   const errFd = openSync(errLogPath, "a");
 
-  const child = spawn(pnpmBin, commandArgs, {
+  const child = spawn(spawnSpec.command, spawnSpec.args, {
     cwd: projectRoot,
     detached: true,
     stdio: ["ignore", outFd, errFd],
