@@ -39,6 +39,7 @@ tmp/
 .claude/settings.local.json
 .paperclip-local/
 .openclaw/
+.factory/runtime/
 
 # Doc maintenance cursor
 .doc-review-cursor
