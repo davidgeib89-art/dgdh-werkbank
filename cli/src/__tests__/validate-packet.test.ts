@@ -1,18 +1,19 @@
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { Command } from 'commander';
 import process from 'process';
 import { validatePacketCommand } from '../commands/client/validate-packet.js'; // Adjust path as necessary
 
 // Mock implementations for dependencies
 let mockPacketData: any = {};
-jest.mock('../commands/client/validate-packet.js', () => ({
-  ...(jest.requireActual('../commands/client/validate-packet.js') as any),
-  getPacketData: jest.fn(() => Promise.resolve(mockPacketData)),
-}));
 
-// Mock process.exitCode
-let mockExitCode: number | undefined = undefined;
-// Mocking process.exitCode setter
-const processExitCodeSpy = jest.spyOn(process, 'exitCode', 'set');
+// Mock the module to control getPacketData
+vi.mock('../commands/client/validate-packet.js', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../commands/client/validate-packet.js')>();
+  return {
+    ...actual,
+    getPacketData: vi.fn(() => Promise.resolve(mockPacketData)),
+  };
+});
 
 // Helper to run a command and capture output/exit code
 async function runCommand(args: string[], jsonOutput: boolean = false): Promise<{ stdout: string[]; stderr: string[]; exitCode: number | undefined }> {
@@ -39,9 +40,8 @@ async function runCommand(args: string[], jsonOutput: boolean = false): Promise<
   // Mock the setter for process.exitCode
   // Ensure the mock implementation's parameter type matches what process.exitCode setter expects.
   // The setter expects `number | undefined`.
-  processExitCodeSpy.mockImplementation((code: number | undefined) => {
-    // Explicitly check for null if it's possible Commander might pass it, though unlikely.
-    if (code !== null) {
+  processExitCodeSpy.mockImplementation((code: string | number | null | undefined) => {
+    if (typeof code === 'number') {
       capturedExitCode = code;
     }
   });
@@ -54,8 +54,8 @@ async function runCommand(args: string[], jsonOutput: boolean = false): Promise<
     // Ensure exit code is captured if set by the action
     // Note: process.exitCode is a mutable global. After parseAsync, its value should be finalized.
     // We read it directly from process to ensure we capture the final state.
-    if (process.exitCode !== undefined) {
-      capturedExitCode = process.exitCode;
+    if (process.exitCode !== undefined && process.exitCode !== null) {
+      capturedExitCode = typeof process.exitCode === 'number' ? process.exitCode : parseInt(process.exitCode, 10);
     }
 
   } catch (error: any) {
