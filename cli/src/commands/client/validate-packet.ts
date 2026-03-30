@@ -15,8 +15,20 @@ interface Packet {
   targetFolder?: string;
   artifactKind?: string;
   doneWhen?: string;
-  Annahmen?: string; // Assuming Annahmen is a string field
+  Annahmen?: string;
 }
+
+// Validation error codes for machine-readable output
+const VALIDATION_ERROR_CODES = {
+  MISSING_TITLE: "missing_title",
+  MISSING_PACKET_TYPE: "missing_packet_type",
+  MISSING_EXECUTION_INTENT: "missing_execution_intent",
+  MISSING_STATUS: "missing_status",
+  MISSING_DONE_WHEN: "missing_done_when",
+  NEEDS_INPUT: "needs_input",
+} as const;
+
+type ValidationErrorCode = (typeof VALIDATION_ERROR_CODES)[keyof typeof VALIDATION_ERROR_CODES];
 
 // Placeholder for parsing packet data from arguments or stdin
 // For now, we'll simulate receiving packet data.
@@ -45,58 +57,54 @@ async function getPacketData(): Promise<Packet> {
   };
 }
 
-async function validatePacket(options: { json?: boolean }): Promise<void> {
+async function validatePacket(
+  issueId: string,
+  options: { json?: boolean }
+): Promise<void> {
+  // For now, simulate getting packet data. In a real implementation,
+  // this would fetch from the API using the issueId.
   const packet = await getPacketData();
 
-  let isReady = true;
-  let validationMessages: string[] = [];
+  const reasonCodes: ValidationErrorCode[] = [];
 
   // Basic validation rules:
   if (!packet.title) {
-    isReady = false;
-    validationMessages.push("Packet is missing a title.");
+    reasonCodes.push(VALIDATION_ERROR_CODES.MISSING_TITLE);
   }
   if (!packet.packetType) {
-    isReady = false;
-    validationMessages.push("Packet is missing packetType.");
+    reasonCodes.push(VALIDATION_ERROR_CODES.MISSING_PACKET_TYPE);
   }
   if (!packet.executionIntent) {
-    isReady = false;
-    validationMessages.push("Packet is missing executionIntent.");
+    reasonCodes.push(VALIDATION_ERROR_CODES.MISSING_EXECUTION_INTENT);
   }
   if (!packet.status) {
-    isReady = false;
-    validationMessages.push("Packet is missing status.");
+    reasonCodes.push(VALIDATION_ERROR_CODES.MISSING_STATUS);
   }
   if (!packet.doneWhen) {
-    isReady = false;
-    validationMessages.push("Packet is missing doneWhen criteria.");
+    reasonCodes.push(VALIDATION_ERROR_CODES.MISSING_DONE_WHEN);
   }
   if (packet.Annahmen?.includes("[NEEDS INPUT]")) {
-    isReady = false;
-    validationMessages.push("Packet has '[NEEDS INPUT]' in assumptions, indicating it's not ready.");
+    reasonCodes.push(VALIDATION_ERROR_CODES.NEEDS_INPUT);
   }
-  // Add more validation rules as needed...
 
-  const result = {
-    isReady: isReady,
-    messages: validationMessages,
-    packet: packet, // Include packet details in JSON output for debugging
-  };
+  const isReady = reasonCodes.length === 0;
 
   if (options.json) {
-    // Commander.js actions don't automatically set process.exitCode.
-    // We need to explicitly set it.
-    process.exitCode = isReady ? 0 : 1;
-    console.log(JSON.stringify(result, null, 2));
+    // Machine-readable JSON output as specified by reviewer
+    const jsonOutput = isReady
+      ? { status: "ready" as const }
+      : { status: "not_ready" as const, reasonCodes };
+    console.log(JSON.stringify(jsonOutput));
+    process.exit(isReady ? 0 : 1);
   } else {
+    // Human-readable output
     if (isReady) {
-      console.log('Packet is ready for processing.');
-      process.exitCode = 0;
+      console.log("Packet is ready for processing.");
+      process.exit(0);
     } else {
-      console.error('Packet validation failed:');
-      validationMessages.forEach(msg => console.error(`- ${msg}`));
-      process.exitCode = 1;
+      console.error("Packet validation failed:");
+      reasonCodes.forEach((code) => console.error(`- ${code}`));
+      process.exit(1);
     }
   }
 }
@@ -104,5 +112,6 @@ async function validatePacket(options: { json?: boolean }): Promise<void> {
 export const validatePacketCommand = new Command()
   .name('validate-packet')
   .description('Validates a Paperclip packet for pre-launch readiness.')
+  .argument('<id>', 'Issue ID to validate')
   .option('--json', 'Output results in JSON format.')
   .action(validatePacket);

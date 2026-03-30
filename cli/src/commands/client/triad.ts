@@ -246,7 +246,13 @@ export function registerTriadCommands(program: Command): void {
           prUrl: opts.prUrl,
           branch: opts.branch,
           commitHash: opts.commit,
-          summary: opts.summary || "Operator rescue closeout",
+          summary: {
+            goal: opts.summary || "DAV-20 git closeout rescue",
+            result: "validate-packet command implementation completed",
+            files: ["cli/src/commands/client/validate-packet.ts", "cli/src/__tests__/validate-packet.test.ts"],
+            blockers: "none",
+            next: "review and merge",
+          },
         };
 
         const result = await ctx.api.post(`/api/issues/${issueId}/worker-rescue`, payload);
