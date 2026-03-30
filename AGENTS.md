@@ -16,7 +16,8 @@ structure, or company-hq doctrine:
 1. Read `CURRENT.md`.
 2. Read `MEMORY.md`.
 3. Read `company-hq/AI-CONTEXT-START-HERE.md`.
-4. Follow that file's compact canonical read order before using older docs.
+4. Read `doc/plans/2026-03-30-dgdh-predictive-delivery-doctrine.md` when the task touches how DGDH wants to build, validate, review, or ship.
+5. Follow that file's compact canonical read order before using older docs.
 
 Do not default to archived material or sibling worktrees when the canonical
 repo already contains the current answer.
@@ -210,6 +211,11 @@ The repo contains `.github/copilot-instructions.md`. Its rules should be treated
 - When diagnosing a failure, classify it explicitly as `strategy failure`, `applicability / harness failure`, `environment / interface failure`, or `missing capability / guardrail` before expanding scope
 - If a run violates its own narrow packet truth (for example wrong tool order, unnecessary child creation, broad repo reads, or other avoidable actions), treat that first as an applicability/harness problem, not as a prompt/reasoning deficit
 - A small direct harness/guardrail fix is allowed when it cleanly removes that blocker, but do not turn it into a general harness system, platform expansion, or benchmark/AGI detour
+- Prefer predictive delivery over late reactive QA:
+  - clear branch truth before work
+  - clear runtime truth before live claims
+  - packet truth before execution
+  - narrow mechanical verification before broad review
 - Do not commit logs, generated runtime artifacts, or local investigation files unless asked
 - If you must stop, report the narrowest proven blocker and the exact commands/tests already run
 - After a substantial sprint or live run, promote durable learnings into the smallest truthful `.md` files before calling the work complete:

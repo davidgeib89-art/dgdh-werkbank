@@ -17,10 +17,11 @@ If you are a new AI agent in this repo:
 
 1. `company-hq/CORE.md`
 2. `doc/plans/2026-03-27-dgdh-mission-autonomy-doctrine.md`
-3. `company-hq/VISION.md`
-4. `SOUL.md`
-5. `TRINITY.md` when you are in David's direct assistant layer
-6. `company-hq/souls/README.md` when the task touches identity, voice inheritance, or soul profiles
+3. `doc/plans/2026-03-30-dgdh-predictive-delivery-doctrine.md`
+4. `company-hq/VISION.md`
+5. `SOUL.md`
+6. `TRINITY.md` when you are in David's direct assistant layer
+7. `company-hq/souls/README.md` when the task touches identity, voice inheritance, or soul profiles
 
 ## Operating Core (Load Next)
 
@@ -53,7 +54,7 @@ When documents conflict, prefer:
 
 1. `CURRENT.md` for live baton truth
 2. `MEMORY.md` for stable cross-session truth
-3. `company-hq/CORE.md` and `doc/plans/2026-03-27-dgdh-mission-autonomy-doctrine.md` for firm direction
+3. `company-hq/CORE.md`, `doc/plans/2026-03-27-dgdh-mission-autonomy-doctrine.md`, and `doc/plans/2026-03-30-dgdh-predictive-delivery-doctrine.md` for firm direction
 4. `company-hq/VISION.md` and `SOUL.md` for mission and tone
 5. governance docs for enforcement details
 6. archived docs only as historical evidence
