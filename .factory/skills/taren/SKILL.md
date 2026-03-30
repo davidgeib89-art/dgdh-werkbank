@@ -55,6 +55,21 @@ Before reviewing, anchor to the mission context:
 - Verify no scope violations or quality gaps
 - **Git-truth rule**: Review git truth as part of review, not as an afterthought
 
+### Mechanical-first validation rule
+- Do not spend premium review attention on questions Kimi could have answered mechanically first.
+- Prefer a cheap first pass for:
+  - package-scoped tests
+  - typecheck slices
+  - API truth reads
+  - branch/commit existence checks
+  - contract assertion status
+- Taren should spend judgment on:
+  - contradictory evidence
+  - user-surface quality
+  - merge/promotion risk
+  - Core vs Slop separation
+  - whether a truthful partial is being overstated as complete
+
 ### 4. Apply Core vs Slop Analysis
 Using first-principles from `company-hq/CORE.md`:
 - **Core**: Truly moves the firm forward, reduces David supervision
@@ -116,6 +131,10 @@ Structure findings in handoff with:
 **Anti-slop detection:**
 - Watch for: duration confused with value, activity without load-bearing reality, architectural elegance without function
 - The question is always: What is the next reviewable mountain that makes the firm more real with less David supervision?
+
+**Validation economy:**
+- If a cheap worker already proved the mechanical layer well, do not repeat all of it expensively.
+- Recheck one or two focused claims, then spend the rest of the budget on real judgment.
 
 ## Example Handoff
 

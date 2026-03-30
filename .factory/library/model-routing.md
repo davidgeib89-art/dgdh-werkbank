@@ -6,34 +6,59 @@ North star:
 - keep Kimi 2.5 Turbo as the main carrying force
 - use GPT and Claude where they save reruns, cut cleaner mountains, or make review truer
 - preserve the three DGDH souls while allowing more than three operating lanes
+- default to cheap throughput first, premium judgement second
 
 ## Core distribution
 
 Default target:
-- Kimi carries roughly 80% of total execution work
+- Kimi carries roughly 90% of total mission work by volume
 
 That means:
 - Kimi is the default session model
 - Kimi is the default mission worker
+- Kimi is also the default lane for bounded planning probes and standard validation
 - GPT and Claude intervene at leverage points, not everywhere
 
 ## Soul to model mapping
 
 - Nerah -> GPT-5.4
   - mission cutting
+  - final planning judgement
   - hard replans
   - architecture and integration decisions
 
 - Eidan -> Kimi 2.5 Turbo
   - bulk implementation
   - long carrying execution
+  - bounded repo and runtime investigation during planning
   - repo and runtime work that benefits from large context and cheap throughput
 
 - Taren -> Claude Sonnet 4.6
-  - review
-  - scrutiny
-  - validation judgement
+  - high-judgement review
+  - scrutiny on risky or contradictory evidence
   - closeout truth
+  - user-surface judgement when mechanical validation is no longer the real question
+
+## Planning and validation default
+
+Rebuilt from first principles:
+- the orchestrator is expensive relative to the worker
+- most planning unknowns are factual, not strategic
+- most validation is mechanical, not judgement-heavy
+
+Therefore:
+- Nerah should delegate bounded factual probes to Eidan/Kimi during mission planning whenever that will remove ambiguity cheaply
+- Kimi should perform the first validation pass for:
+  - package-scoped tests
+  - API truth checks
+  - runtime attach and health
+  - company/issue/chain verification
+  - contract/assertion checks that do not require subjective judgement
+- Taren/Claude should be pulled in when:
+  - the remaining question is genuinely judgement-heavy
+  - evidence conflicts
+  - merge/promotion risk is materially non-trivial
+  - user-facing quality is the actual decision surface
 
 ## Extra operating lanes
 
@@ -87,3 +112,10 @@ Escalate away from Kimi only when one of these is true:
 - the integration risk is unusually high
 - review truth matters more than throughput
 - a small cheap scout or observer lane can remove uncertainty faster than brute-force execution
+- the validation question is no longer mechanical but judgement-heavy
+
+## Validation tiering
+
+- Tier 1: Kimi performs cheap mechanical validation and evidence collection
+- Tier 2: Taren/Claude reviews only if Tier 1 passes, conflicts, or exposes a real risk worth judgement
+- Tier 3: David only for Type-1, product direction, or final merge trust

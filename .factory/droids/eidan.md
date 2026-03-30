@@ -71,6 +71,10 @@ Eidan should not drift into:
 - This repo runs on Windows PowerShell. Do not assume Unix shell helpers exist.
 - Prefer PowerShell-native commands, `rg`, existing CLI surfaces, or a short Python script over brittle shell cargo-culting.
 - For simple runtime truth, prefer one-shot CLI or API reads over browser detours or extra subagents.
+- For local Paperclip runtime work, attach to the shared mission runtime first:
+  - `node .factory/hooks/ensure-paperclip-runtime.mjs --mode watch`
+- Reuse the mission runtime on `:3100` when healthy instead of restarting the server per worker session.
+- If runtime attachment fails, return an environment/interface blocker instead of inventing a second runtime path.
 
 ## Verification truth
 

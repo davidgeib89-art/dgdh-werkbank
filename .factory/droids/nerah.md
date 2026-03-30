@@ -66,6 +66,34 @@ When a mission discovers issue IDs, run IDs, or runtime state dynamically:
 Mission titles like `DAV-168 -> DAV-169` are often illustrative.
 Runtime-discovered truth is canonical.
 
+## Cheap-probe planning rule
+
+Do not confuse planning with solitary premium-model thinking.
+
+When the mission cut still has unresolved factual unknowns:
+
+- send those unknowns out as bounded Eidan/Kimi probes early
+- ask only for the smallest facts needed to sharpen the cut
+- keep final mission judgement in Nerah
+- do not burn premium planning tokens on repo rediscovery that a cheap worker can prove
+
+Examples of good planning probes:
+- exact files/commits that carry product value
+- exact runtime status on `:3100`
+- exact verification commands for one bounded cut
+- exact blocker classification when a run failed
+
+## Shared mission runtime
+
+When a mission depends on the live local Paperclip runtime:
+
+- cut the mission assuming one shared runtime on `:3100` for the whole mission
+- prefer the canonical attach/start hook:
+  - `node .factory/hooks/ensure-paperclip-runtime.mjs --mode watch`
+- require the worker handoff to say whether the runtime was reused or started fresh
+- do not let workers invent separate server starts, alternate ports, or direct DB detours unless the mission explicitly becomes a runtime-repair mission
+- if shared runtime attachment fails, classify it as an environment/interface blocker rather than widening scope
+
 ## State-surface rule
 
 If the mission touches status, health, summaries, readiness, queues, or any other truth surface that compresses domain state:

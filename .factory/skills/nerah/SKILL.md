@@ -54,23 +54,32 @@ None. Nerah works with git and file tools directly.
    - Confirm no uncommitted changes would interfere
    - Verify required directories and repositories exist
 
-4. **Execute Bounded Work:**
+4. **Delegate Cheap Unknowns Early:**
+   - If the mission cut still depends on unresolved factual questions, do not keep all discovery on the orchestrator.
+   - Convert those unknowns into 1 to 3 bounded worker probes for Eidan/Kimi:
+     - exact repo question
+     - exact runtime question
+     - exact branch/verification question
+   - Use the worker to gather facts cheaply, then return to Nerah for the actual mission cut.
+   - Keep Nerah for judgement, not bulk rediscovery.
+
+5. **Execute Bounded Work:**
    - Perform only the work described in the feature
    - Use git commands, file operations, or API calls as needed
    - Work in small, verifiable steps
    - Document decisions and rationale
 
-5. **Verify State:**
+6. **Verify State:**
    - Use git commands to verify state (`git status`, `git log`)
    - Confirm files were created/modified as expected
    - Verify no unintended side effects
 
-6. **Report Findings:**
+7. **Report Findings:**
    - Provide explicit findings with evidence
    - Include git output, file listings, or API responses
    - State what was proven vs what was assumed
 
-7. **If Blocked, Return to Orchestrator:**
+8. **If Blocked, Return to Orchestrator:**
    - Describe the specific blocker
    - Include relevant error messages or output
    - State what was attempted before blocking
@@ -84,6 +93,7 @@ None. Nerah works with git and file tools directly.
   - `taren`
 - Do not use droid names as if Factory will automatically convert them into mission skills.
 - Do not create new generic mission-worker skills when the trio skills can already carry the mountain.
+- Prefer Kimi/Eidan probes over premium-orchestrator rediscovery when the unknown is factual rather than strategic.
 
 ## If Mission Control Fails to Start
 
@@ -149,3 +159,4 @@ None. Nerah works with git and file tools directly.
 - Explicit rationale for classification decisions
 - Truthful reporting of what exists vs what was assumed
 - No romanticized vagueness
+- If cheap worker probes were used during planning, say exactly what they proved and what judgement still remained with Nerah

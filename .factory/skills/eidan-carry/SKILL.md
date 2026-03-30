@@ -25,11 +25,14 @@ Not for:
 
 ## Required Skills
 
-None. This skill operates via git, CLI, and API calls.
+- `paperclip-runtime` when the child issue depends on live local runtime truth
 
 ## Work Procedure
 
 ### 1. Verify Issue Assignment and Packet
+- If the packet depends on live Paperclip runtime behavior, attach to the shared mission runtime first:
+  - `node .factory/hooks/ensure-paperclip-runtime.mjs --mode watch`
+- Use one shared runtime for the mission, not one boot per worker attempt.
 - Re-anchor to `validation-state.json` first when the mission discovers runtime IDs dynamically.
 - If the worker handoff names a child issue but `validation-state.json` names a different canonical child, trust `validation-state.json` and re-verify against live API before proceeding.
 - Confirm issue assigned to Worker: `GET /api/issues/{id}`
@@ -51,6 +54,15 @@ None. This skill operates via git, CLI, and API calls.
 - Make incremental commits with clear messages
 - Do NOT exceed bounded scope from packet
 - If scope ambiguity arises, make reasonable bounded choice and document
+
+### Runtime verification rule
+- When the feature claims live runtime truth, verify against the shared `:3100` runtime rather than ad-hoc alternate ports or direct database access.
+- Prefer these surfaces in order:
+  - `Invoke-RestMethod http://127.0.0.1:3100/api/health`
+  - `Invoke-RestMethod http://127.0.0.1:3100/api/companies`
+  - `Invoke-RestMethod http://127.0.0.1:3100/api/companies/<companyId>/agents/triad-preflight`
+  - `Invoke-RestMethod http://127.0.0.1:3100/api/issues/{id}/company-run-chain`
+- If the shared runtime cannot be attached or started, return blocked instead of inventing a replacement runtime path mid-mission.
 
 ### 4. Handle Tool Capacity Gracefully
 - If `post_tool_capacity_exhausted` occurs:
@@ -114,6 +126,7 @@ None. This skill operates via git, CLI, and API calls.
 
 Return immediately if:
 - Issue not assigned to Worker
+- shared runtime attachment fails for a runtime-dependent child issue
 - targetFolder is outside allowed scope (security boundary)
 - Worker-pr or worker-done API calls fail with 4xx/5xx
 - Git state is unclean in a way that cannot be explained as the current bounded mission's work
