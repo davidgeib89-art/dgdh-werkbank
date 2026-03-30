@@ -21,6 +21,7 @@ interface TriadStartOptions extends BaseClientOptions {
 
 interface TriadRescueOptions extends BaseClientOptions {
   issueId: string;
+  apiUrl?: string;
   prUrl?: string;
   branch?: string;
   commit?: string;
@@ -31,7 +32,7 @@ interface TriadRescueOptions extends BaseClientOptions {
 const DEFAULT_API_URL = "http://127.0.0.1:3100";
 
 interface TriadStatusOptions extends BaseClientOptions {
-  apiBase?: string;
+  apiUrl?: string;
   companyId?: string;
 }
 
