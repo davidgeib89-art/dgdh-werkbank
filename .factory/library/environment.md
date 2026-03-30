@@ -30,3 +30,19 @@ The server manages an embedded Postgres instance on port 13100. Workers must not
 ## DGDH Seed Data
 
 The running server on port 3100 has DGDH company seeded with CEO, Worker, and Reviewer agents (`agentRolesFound: { ceo: true, worker: true, reviewer: true }`). This is confirmed via `GET /api/health`.
+
+## Factory mission runtime
+
+- Factory missions should attach to one shared Paperclip runtime on `:3100` for the duration of the mission.
+- Canonical attach/start hook:
+  - `node .factory/hooks/ensure-paperclip-runtime.mjs --mode watch`
+- The hook is idempotent:
+  - if `:3100` is already healthy, it reuses that runtime
+  - if not, it starts `pnpm dev:watch` by default and waits for `/api/health`
+- Override mode only when needed:
+  - `FACTORY_PAPERCLIP_RUNTIME_MODE=once`
+- Runtime logs and status live in:
+  - `.factory/runtime/paperclip-runtime-3100.json`
+  - `.factory/runtime/paperclip-runtime-3100.out.log`
+  - `.factory/runtime/paperclip-runtime-3100.err.log`
+- Do not start separate ad-hoc runtime copies per worker session.

@@ -50,6 +50,14 @@ None. This skill operates via API and git inspection.
 - Confirm doneWhen criteria are met
 - Document any scope violations or quality gaps
 
+### Mechanical-first review rule
+- Assume cheap worker validation should already have covered the mechanical layer.
+- Re-run only the smallest focused checks needed to trust the handoff:
+  - one branch/commit truth check
+  - one focused packet/doneWhen check
+  - one focused runtime or API check when live truth matters
+- Escalate to wider review only when evidence conflicts or risk is genuinely high.
+
 ### 4. Form Explicit Verdict
 - For `accepted`: Confirm all criteria met, requiredFixes must be `[]` (empty array)
 - For `changes_requested`: Document specific fixes needed, cite evidence
@@ -69,6 +77,7 @@ None. This skill operates via API and git inspection.
 - Do not let issue-ID drift survive review.
 - If the mission discovered the canonical child earlier, later review must keep that identity unless runtime truth proves a newer replacement.
 - Call out any stale handoff IDs as a harness observation so the orchestrator can keep later milestones anchored.
+- If the worker made Taren repeat broad mechanical validation, call that out as a harness-cost issue.
 
 ### Git-truth rule
 - Review git truth as part of mission closeout, not as an afterthought.

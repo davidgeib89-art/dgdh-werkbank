@@ -29,6 +29,7 @@ Not for:
 ## Required Skills
 
 - `cli-worker` - For CLI command execution and implementation work in the Paperclip CLI package
+- `paperclip-runtime` - When the mission depends on the live local Paperclip runtime on `:3100`
 
 ## Work Procedure
 
@@ -40,6 +41,9 @@ Not for:
 - If a child issue is named in the handoff, verify against `validation-state.json` and live API
 
 ### 2. Verify Preconditions
+- If the mission depends on live runtime truth, attach to the shared mission runtime first:
+  - `node .factory/hooks/ensure-paperclip-runtime.mjs --mode watch`
+- Reuse the existing runtime on `:3100` when healthy instead of restarting it per worker session.
 - Confirm required state exists before acting
 - Check file existence with `Test-Path`
 - Check API availability with health endpoint
@@ -112,8 +116,13 @@ Only run broad workspace validation when:
 - Re-query API to confirm change persisted
 - List directory to confirm file operation
 - Run git status to confirm clean state
-- **Run package-specific typecheck and tests first**
-- **Escalate to `pnpm -r typecheck` and `pnpm test:run` only when the scope honestly requires it**
+- **Run typecheck**: package-scoped first, widen to `pnpm -r typecheck` only when scope honestly requires it
+- **Run tests**: exact touched test files first, then package-level tests, then `pnpm test:run` only when the packet really needs workspace truth
+- For runtime-backed work, verify with the canonical Paperclip surfaces:
+  - `Invoke-RestMethod http://127.0.0.1:3100/api/health`
+  - `Invoke-RestMethod http://127.0.0.1:3100/api/companies`
+  - `Invoke-RestMethod http://127.0.0.1:3100/api/companies/<companyId>/agents/triad-preflight`
+  - `Invoke-RestMethod http://127.0.0.1:3100/api/issues/<issueId>/company-run-chain`
 - Report explicit verification with command outputs
 
 Verification must distinguish:
@@ -193,7 +202,7 @@ Verification must distinguish:
 
 Return immediately if:
 - API/CLI returns unexpected errors after retry
-- Required service (Paperclip server) unavailable
+- Required service (Paperclip server) unavailable after one focused runtime attach attempt
 - File operation fails (permissions, path issues)
 - Precondition not met and cannot be established
 - Same command fails twice with same error

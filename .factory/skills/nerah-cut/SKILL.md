@@ -23,11 +23,14 @@ Not for:
 
 ## Required Skills
 
-None. This skill operates at the strategic/API layer.
+- `paperclip-runtime` when the mission depends on a live local Paperclip runtime
 
 ## Work Procedure
 
 ### 1. Verify Precondition Truth
+- If the mission depends on the local runtime, start by attaching to one shared runtime for the whole mission:
+  - `node .factory/hooks/ensure-paperclip-runtime.mjs --mode watch`
+- Do not ask each worker session to start its own server copy.
 - Check runtime state via `paperclipai runtime status` or direct API calls
 - Confirm triad-preflight shows `triadReady: true` before creating issues
 - Verify CEO agent is idle before assigning to CEO
@@ -42,6 +45,13 @@ None. This skill operates at the strategic/API layer.
   4. mission prose examples such as `DAV-168 -> DAV-169`
 - If a later handoff names different issue IDs without proving them in runtime truth, treat that as stale handoff noise until verified.
 - After discovering a real parent or child, write or update that truth in `validation-state.json` so later milestones do not drift.
+
+### Runtime attachment rule
+- Prefer one shared Paperclip runtime on `:3100` for the full mission.
+- Default mode is `watch` so later features can reuse the same port and state.
+- Use `once` only when watch-mode churn is itself making verification less trustworthy.
+- Report whether the runtime was reused or started fresh.
+- If the runtime cannot be made healthy with the shared hook, stop and report an environment/interface blocker instead of inventing alternate boot paths.
 
 ### 2. Create Parent Issue (if needed)
 - Use `paperclipai triad start` CLI for bounded triad missions, OR
@@ -126,6 +136,7 @@ None. This skill operates at the strategic/API layer.
 ## When to Return to Orchestrator
 
 Return immediately if:
+- the shared runtime on `:3100` cannot be attached or started cleanly
 - triad-preflight shows `triadReady: false` (report blockers)
 - CEO agent is not idle and no foreign run context is clear
 - Issue creation fails with API error
