@@ -1,0 +1,6 @@
+uid=2_0 RootWebArea url="http://127.0.0.1:3100/api/companies/44850e08-61ce-44de-8ccd-b645c1f292be/agents/triad-preflight"
+  uid=2_1 StaticText "{"allRolesPresent":true,"allAgentsIdle":false,"triadReady":false,"roles":[{"roleTemplateId":"ceo","present":true,"agentId":"76d3b835-c9a2-4c7f-a84e-c43d22523bb0","agentName":"CEO Agent","status":"idle"},{"roleTemplateId":"worker","present":true,"agentId":"5061a67b-5c78-47a9-b59a-d71612cd6129","agentName":"Worker Agent","status":"running"},{"roleTemplateId":"reviewer","present":true,"agentId":"d13b840b-f252-4151-a739-ffe45c460503","agentName":"Reviewer Agent","status":"idle"}],"blockers":["Worker Agent (worker) is running"]}"
+  uid=2_2 StaticText "Quelltextformatierung"
+  uid=2_3 checkbox "Quelltextformatierung"
+  uid=2_2 StaticText "Quelltextformatierung"
+  uid=2_3 checkbox "Quelltextformatierung"
