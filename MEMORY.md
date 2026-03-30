@@ -14,6 +14,7 @@
 - `doc/DGDH-AI-OPERATOR-RUNBOOK.md` - stabile Operator-Bedienung
 - `doc/plans/2026-03-26-dgdh-roadmap-snapshot.md` - aktuelle Entwicklungslandkarte
 - `doc/plans/2026-03-27-dgdh-mission-autonomy-doctrine.md` - kanonische Missionsautonomie-Lesart
+- `doc/plans/2026-03-30-dgdh-predictive-delivery-doctrine.md` - kanonische Lesart fuer Build/Validate/Review/Ship
 
 ## DGDH Kern
 - DGDH = David Geib - Digitales Handwerk; David ist der einzige menschliche Operator.
@@ -35,6 +36,7 @@
 - `GET /api/health` zeigt `seedStatus`; `company-run-chain` ist die kanonische operator-facing Lauf-/Closeout-Wahrheit.
 - `reviewer-wake-retry` ist live: `in_review`-Stalls mit beschaeftigten Reviewern werden nach 5 Minuten automatisch retried; `closeoutBlocker` wird sichtbar.
 - Same-session resume nach `post_tool_capacity_exhausted` ist live bewiesen und operator-facing sichtbar.
+- Kimi-first Droid-Harness ist auf `main`: shared mission runtime hook, Kimi-first model routing, worker/validator mechanical-first guidance.
 - Der CEO-Standardpfad fuer einfachen Handoff nutzt native `paperclipai`-Primitive statt Shell-/HTTP-Bastelei.
 - Erste governed capability layer ist auf `main`: `ceo-native-issue-handoff-primitives`, `same-session-resume-after-post-tool-capacity`, `verify-all`, `skill contract list|use`, `verifiedSkill`-Bridge.
 - Der erste echte Triad-Live-Loop ist auf `main` bewiesen (`DAV-165` / `DAV-166`); die aktuelle Restfriktion ist boring closeout nach echter Worker-Arbeit, nicht mehr `can triad happen?`.
@@ -52,6 +54,7 @@
 - Fehler zuerst hart klassifizieren: `strategy failure`, `applicability / harness failure`, `environment / interface failure`, `missing capability / guardrail`.
 - Wenn ein Lauf gegen seine eigene enge Packet-Wahrheit verstoesst, primaer als `applicability / harness failure` lesen; kein generalisierender Plattformbau als Reflex.
 - Vor Live-Proofs nicht nur gruene Preflight-/Health-Surfaces lesen, sondern faktische Agent-Lebendigkeit pruefen.
+- Predictive delivery gilt fuer DGDH: branch truth vor Arbeit, runtime truth vor Live-Claims, packet truth vor Execution, enge mechanische Verifikation vor teurem Review.
 - Durable Learnings gehoeren in die kleinste wahre Datei; `MEMORY.md` ist fuer stabile Facts, nicht fuer datierten Missionsverlauf.
 - Lange Droid-/Copilot-Laeufe sind als Exoskelett-Modus erlaubt, aber muessen abends hart auf Produktwert, Betriebswert, Lernwert und Slop reduziert werden.
 
@@ -62,4 +65,4 @@
 - Copilot-/Editor-Interna wie AppData, workspaceStorage oder chat-session-resources sind kein legitimer Standard-Truth-Surface; nur fuer explizite Forensik-Missionen.
 
 last_updated_by: Taren
-updated_at: 2026-03-29
+updated_at: 2026-03-30

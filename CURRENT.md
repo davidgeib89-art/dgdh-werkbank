@@ -1,8 +1,8 @@
 # CURRENT - Live Baton
 
-focus: Nach zwei Droid-Missionen ist der naechste echte Hebel nicht noch mehr Missionsbewegung, sondern Reconsolidation: branch truth sauber schneiden, nur die reviewbar tragenden Resultate promoten, die 3100-Runtime wieder boringly lebendig machen und dann den zweiten Live-Triad-Beweis ehrlich rerunnen.
+focus: Die Reconsolidation ist abgeschlossen. `main` traegt jetzt den Kimi-first Droid-Harness, die predictive-delivery doctrine und den CLI triad status / `--api-url` Cut. Der naechste Core-Berg ist kein weiteres Harness-Polishing, sondern ein zweiter echter Live-Triad-Beweis auf dem neuen Harness: eine bounded Mission soll auf frischem Branch von `main` mit weniger David-Supervision durch `CEO -> Worker -> Reviewer -> promotion oder ehrlichen blocker` getragen werden.
 
-active_issue: `main` ist wieder sauber auf `origin/main` (`eb5394c6`). Zwei Droid-Spuren existieren daneben und sind noch nicht gelandet. UI-Recovery-Cut lebt auf `rescue/main-427d5a64-ui-recovery-20260329`: echter Produktkern ist `002b385e` + `42534977` (`reviewerWakeStatus`-Truth-Wiring plus `RecoveryGuidanceCard`), aber die Mission driftete in Demo-/Validation-/Scrutiny-Rauschen; die finale User-Testing-Wahrheit blockt an einer echten Issue-Detail-`Internal server error`-Beobachtung auf `DAV-22`. CLI-/Triad-Proof-Cut lebt auf `droid/triad-proof-20260329`: `d496e907` + `05f1fc5b` liefern realen CLI-Wert (`triad status` plus `--api-url`-Fix mit Regressionstests), aber der Live-Triad-Beweis blieb auf 3100 an Runtime-/Interface-Wahrheit haengen: CEO/Worker/Reviewer waren nicht wirklich laufend, und `DAV-18` hatte zusaetzlich `executionPacketTruth = not_ready` wegen `artifactKind: code_patch` bei reinem `targetFolder`.
+active_issue: `main` ist sauber auf `origin/main` bei `f017a38b`. Heute gelandet: `3421a6e7` bringt den Kimi-first Droid-Harness auf `main`, `1bee5bb5` bringt `triad status` plus `--api-url` Fix auf `main`, `f017a38b` codifiziert predictive delivery als kanonische Doctrine. Der neue Runtime-Hook wurde real verifiziert: `node .factory/hooks/ensure-paperclip-runtime.mjs --mode once` startet auf Windows erfolgreich, `GET /api/health` ist gruen, DGDH-Company ist sichtbar, `triad-preflight` ist gruen. Die alte Droid-Mission `0ebd1f41-ec29-4c69-aa11-a4b9852b1cbd` ist damit nicht mehr hart runtime-blockiert, aber auch nicht complete: `DAV-18` ist weiter `executionPacketTruth = not_ready` wegen `artifactKind: code_patch` bei reinem `targetFolder`. UI-Recovery bleibt `Later`: Produktkern wirkt brauchbar, aber die Missiontruth ist zu noisy fuer den naechsten Core-Berg.
 
 north_star_stack:
   - Overarching Goal: Mensch-AI-Symbiose der Welt beweisen und sie zu einem besseren Ort machen
@@ -13,36 +13,34 @@ north_star_stack:
 
 anti_slop_gate:
   - Hauptfilter: `Hilft das DGDH dabei, mit weniger David-Supervision pro nuetzlichem Lauf echte reviewbare Realitaet zu liefern - oder produziert es nur mehr AI-Aufsicht?`
-  - Wenn 2 oder mehr Antworten `nein` sind: parken, kleiner schneiden oder streichen
+  - Predictive Delivery gilt auf `main`: branch truth vor Arbeit, runtime truth vor Live-Claims, packet truth vor Execution, enge mechanische Verifikation vor breitem Review
   - `go with the flow / follow your highest excitement` bleibt erlaubt, aber nur als bounded reviewbare Bewegung statt Momentum-Theater
 
 next:
-  1) den CLI-Cut auf `droid/triad-proof-20260329` reviewen und wahrscheinlich als kleinen sauberen Produkthebel separat auf `main` promoten
-  2) den UI-Recovery-Cut nicht als ganze Droid-Mission lesen, sondern commit-scharf neu entscheiden: tragender Produktkern vs. Demo-/Validation-/factory-Rauschen
-  3) die 3100-Runtime wieder in echte Agent-Lebendigkeit bringen und erst dann den zweiten Live-Triad-Beweis wieder aufnehmen
-  4) bei Wiederaufnahme `DAV-18` zuerst auf packet truth reparieren (`artifactKind: multi_file_change` statt `code_patch` bei reinem `targetFolder`)
-  5) `MEMORY.md` kompakt und stabil halten; datierten Missionsverlauf nicht wieder in durable memory aufstauen
+  1) `CURRENT.md`, `MEMORY.md` und `ACTIVE-MISSION.md` auf diesem Stand halten; keine neue AI soll noch mit alter Reconsolidation-Wahrheit starten
+  2) die naechste Droid-Mission kurz und truth-dense schneiden: zweiter echter Live-Triad-Beweis auf aktuellem `main`, frischer Branch, ein aktiver Droid-Run, Orchestrator offen genug fuer eigene Schnitte
+  3) wenn der Orchestrator die alte Spur wiederaufnimmt, `DAV-18` zuerst auf packet truth reparieren (`artifactKind: multi_file_change` statt `code_patch` bei reinem `targetFolder`)
+  4) wenn `DAV-18` sich als schlechter Resume-Anker erweist, stattdessen einen neuen bounded parent issue auf derselben Beweisfrage schneiden statt Meta-Rettungsarbeit zu romantisieren
+  5) den Erfolg am Abend nicht an Aktivitaet messen, sondern an reviewbarem Branch, reviewer truth und weniger David-Spine als zuvor
 
 blockers:
-  - Zweiter Live-Triad-Beweis ist aktuell kein Code- sondern ein Runtime-Blocker: auf 3100 waren CEO/Worker/Reviewer nicht faktisch laufend, obwohl fruehere Readiness-Surfaces einmal gruen waren
-  - `DAV-18` ist fuer die Wiederaufnahme zusaetzlich packet-seitig nicht ready (`target_file_missing` durch falsches `artifactKind`)
-  - UI-Recovery-Mission hat keinen sauberen mergebaren Strong-Success-Beweis; Produktkern wirkt brauchbar, Live-Validation ist aber widerspruechlich und zu stark mit Mission-Infra vermischt
-  - Wiederholte Droid-Validator-/Scrutiny-Exit-0-Starts sind als Harness-/Applicability-Failure zu lesen, nicht als Grund fuer weitere Produktmission-Breite
+  - Die alte Droid-Mission ist nicht mehr primär runtime-blockiert; der verbleibende enge Blocker ist packet truth auf `DAV-18`
+  - `lastHeartbeatAt`-Felder allein reichen weiter nicht als Live-Beweis; faktische Runtime-/Run-Wahrheit muss ueber `api/health`, `triad-preflight`, Issue truth und `company-run-chain` gelesen werden
+  - UI-Recovery ist noch kein sauberer `main`-Kandidat als Gesamtstrang; den naechsten Core-Berg dort zu suchen waere Scope-Drift
+  - Breite Typecheck-/Plugin-SDK-Rauschen existiert weiter auf der Basis; fuer bounded CLI-/mission cuts weiter package-scharf und predictive validieren statt jede Mission daran aufzuhängen
 
 strategy_anchor:
   - `company-hq/CORE.md`
   - `doc/plans/2026-03-27-dgdh-mission-autonomy-doctrine.md`
+  - `doc/plans/2026-03-30-dgdh-predictive-delivery-doctrine.md`
   - `doc/plans/2026-03-26-dgdh-roadmap-snapshot.md`
-  - `doc/plans/2026-03-24-dgdh-first-principles-operating-doctrine.md`
-  - `doc/plans/2026-03-24-dgdh-memory-learning-self-improvement-first-principles.md`
-  - `doc/plans/2026-03-21-dgdh-north-star-roadmap.md`
-  - `doc/plans/2026-03-23-focus-freeze.md`
+  - `company-hq/ACTIVE-MISSION.md`
 
 notes:
-  - `2026-03-29`: Droid kann echten Produktwert tragen, aber die aktuelle Verlustklasse ist nicht nur Code-Drift, sondern Missions-Harness-Drift: wiederholte Validator-Bootstrap-Exits, unklare Commit-Truth am Feature-Ende und zu spaete harte Stopps trotz bereits sichtbarer Runtime-/Validation-Blocker
-  - `2026-03-29`: Der UI-Recovery-Cut ist als Produktidee plausibel und founder-lesbar, aber noch nicht als sauberer `main`-Kandidat bewiesen; die ehrliche Lesart ist `partial product success, messy proof`
-  - `2026-03-29`: Der CLI-`--api-url`-Fix ist als kleiner Produktcut deutlich sauberer: enger Scope, gruene Tests, klarer Nutzerwert; die Mission verlor ihren zweiten Teil erst an Runtime-/Packet-Wahrheit
-  - `2026-03-29`: `triadReady` oder fruehere gruenen Health-/Preflight-Surfaces reichen nicht als Beweis fuer echten Live-Rerun; vor einem Live-Proof muessen CEO/Worker/Reviewer auch faktisch heartbeaten bzw. laufen
+  - `2026-03-30`: Kimi-first Droid-Harness ist auf `main` und real auf Windows verifiziert; shared mission runtime auf `:3100` ist nicht mehr nur Theorie
+  - `2026-03-30`: Predictive delivery ist jetzt kanonische Firmenlesart fuer Build/Validate/Review/Ship und soll lange Droid-Missionen upstream stabiler machen
+  - `2026-03-30`: Der CLI triad status / `--api-url` Cut ist auf `main`; der alte Droid-Triad-Strang ist damit als Produktcut gelandet, aber der groessere Live-Beweis fehlt weiterhin
+  - `2026-03-30`: Der naechste Berg soll wieder groesser sein als ein Harness-Mini-Cut; Ziel ist ein abends reviewbarer echter Langlauf, nicht nur weiteres Substrat-Polishing
 
 last_updated_by: Taren
-updated_at: 2026-03-29
+updated_at: 2026-03-30

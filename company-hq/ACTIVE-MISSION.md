@@ -83,6 +83,7 @@ with less manual lane rescue than DAV-165 / DAV-166 still needed?`.
 - `GET /api/health` — seedStatus shows whether seeding ran and which roles are present
 - `paperclipai runtime status` — CLI summary of both
 - Operator runbook section 6.1 documents the full diagnostic path
+- `node .factory/hooks/ensure-paperclip-runtime.mjs --mode once|watch` â€” shared mission runtime attach/start path on current `main`; verified on Windows 2026-03-30
 
 **Rescue path and queue hygiene commands are now available (2026-03-28):**
 - `paperclipai triad rescue --issue-id <id> --pr-url <url> --branch <branch> --commit <hash>` — rescues stalled worker closeout in one command
@@ -92,6 +93,13 @@ with less manual lane rescue than DAV-165 / DAV-166 still needed?`.
 Next mountain: proving the second live triad proof actually completes without manual rescue.
 The code is ready. The diagnostic tools are ready. The rescue commands are ready.
 The remaining gap is executing a live runtime proof with the hardened path.
+
+New 2026-03-30 reading:
+
+- the Kimi-first Droid harness and predictive-delivery doctrine are now on `main`
+- the old hard runtime blocker on 3100 is removed as the primary truth
+- if the old blocked Droid trace is resumed, the first narrow blocker is now packet truth on `DAV-18`, not dead runtime
+- the next mission should therefore be a real long Droid carry on fresh `main`, not another small harness-only mountain
 
 The lane has now proved that one mission can be shared across
 direction, work, and judgment without collapsing back into David micro-steering.
