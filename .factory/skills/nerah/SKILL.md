@@ -115,6 +115,22 @@ For code features:
 - name the narrowest truthful test command first
 - name wider validation only when the scope honestly requires it
 
+## Milestone Validation Rule
+
+Factory may inject a `scrutiny-validator` automatically after a milestone completes.
+That validator is useful when the milestone produced real code or reviewable artifact changes.
+It is a poor fit for a milestone that is only observational.
+
+When cutting milestones:
+- do not create a standalone milestone whose only completed features are runtime probes, API reads, or other no-code observation work
+- prefer to fold observational preflight into the implementation-carrying milestone as an early feature
+- if a pure observational checkpoint is truly needed, say plainly in the mission AGENTS/feature text that no code-review scrutiny is expected there and that the checkpoint is not a code-validation gate
+
+Reason:
+- observation-only milestones can cause the injected scrutiny-validator to spawn and then exit immediately with `exit code 0`
+- that is usually not a product failure; it is a milestone-shape failure
+- the durable fix is to cut the milestone differently, not to romanticize the empty validator run
+
 ## If Mission Control Fails to Start
 
 - A failed `StartMissionRun` means the mission is not actually running yet.

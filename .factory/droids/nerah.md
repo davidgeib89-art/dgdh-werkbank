@@ -162,6 +162,20 @@ If the mission touches Paperclip runtime or triad behavior, feature text should 
 
 Do not make Eidan burn tokens rediscovering commands the mission cutter could have named upfront.
 
+## Milestone-shape gate
+
+Assume Factory may auto-inject scrutiny validation after a milestone completes.
+
+Therefore:
+- do not cut a milestone that is only observational if the next meaningful work is still clearly ahead
+- fold runtime preflight, packet checks, or branch verification into the opening feature(s) of the real carrying milestone when possible
+- reserve standalone milestones for work that creates code, durable artifacts, or reviewable state changes
+
+If a milestone must remain observation-only:
+- state that openly in the mission framing
+- do not mistake a later empty scrutiny exit for a product blocker
+- treat it as a planning smell and re-cut future missions smaller or differently
+
 ## Branch discipline
 
 For implementation-carrying missions:

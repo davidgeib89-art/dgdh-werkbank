@@ -1,4 +1,4 @@
-# Architecture — Triad Closeout Mission
+# Architecture — DGDH Paperclip Triad System
 
 ## The Triad Execution Loop
 
@@ -66,9 +66,43 @@ When an agent run hits `post_tool_capacity_exhausted`:
 
 Lives in `cli/src/commands/client/triad.ts`. Registered via `registerTriadCommands(program)`.
 
-Existing commands: `triad start`, `triad rescue`
+Existing commands: `triad start`, `triad rescue`, `triad status <issue-id>`
 
-New command added by this mission: `triad status <issue-id>`
+`triad status <issue-id>`:
 - Calls `GET /api/issues/:id/company-run-chain`
-- The response shape includes `children[].triad.reviewerWakeStatus` and `children[].triad.closeoutBlocker`
-- Command displays human-readable stall diagnosis and pre-filled rescue command when stall is detected
+- Response shape includes `children[].triad.reviewerWakeStatus` and `children[].triad.closeoutBlocker`
+- Displays human-readable stall diagnosis and pre-filled rescue command when stall is detected
+
+## CLI Issue Commands
+
+Lives in `cli/src/commands/client/issue.ts`. Registered via `registerIssueCommands(program)`.
+
+Existing commands: `issue list`, `issue get`, `issue create`, `issue update`, `issue assign`, `issue unassign`, `issue comment`, `issue checkout`, `issue release`, `issue archive-stale`
+
+**Pending — Second Triad Proof mission deliverable:**
+`issue validate-packet <id>`:
+- Calls server-side packet resolution logic (or reuses `executionPacketTruth` from `GET /api/issues/:id`)
+- Reports whether the packet is ready, what fields are missing, and what packetType was inferred
+- Exit 0 for ready packet; exit 1 for not-ready
+- Supports `--json` flag for machine-readable output: `{ status: "ready" | "not_ready", reasonCodes?: string[] }`
+- Files: `cli/src/commands/client/issue.ts` (new subcommand) + `cli/src/__tests__/issue-validate-packet.test.ts`
+- Pattern: follow existing `issue list` / `issue get` command structure
+
+## Packet Readiness
+
+The server exposes `executionPacketTruth` on `GET /api/issues/:id`.
+
+Key fields:
+- `executionPacketTruth.status`: `"ready"` | `"not_ready"` | `"not_applicable"`
+- `executionPacketTruth.artifactKind`: `"code_patch"` | `"multi_file_change"` | `"doc_update"` | etc.
+- `executionPacketTruth.targetFolder`: folder path when artifact is folder-scoped
+- `executionPacketTruth.targetFile`: file path when artifact is file-scoped
+- `executionPacketTruth.reasonCodes`: array of reason strings when `not_ready`
+
+**Critical convention:** When `targetFolder` is set and no specific file is named, use `artifactKind: multi_file_change`. Using `code_patch` with only a folder is invalid and results in `not_ready` packet truth.
+
+## Gap Status (as of 2026-03-30)
+
+- Gap 1 (reviewer wake never wired): **FIXED** — `scanAndRetryReviewerWakes()` is now wired in scheduler
+- Gap 2 (closeout brief drop on 3rd resume): **FIXED** — `forceFreshSession` fallback preserves closeout brief
+- Gap 3 (reviewer wake lacks context): Status unknown — may still require API call to reconstruct
