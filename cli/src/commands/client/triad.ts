@@ -21,6 +21,7 @@ interface TriadStartOptions extends BaseClientOptions {
 
 interface TriadRescueOptions extends BaseClientOptions {
   issueId: string;
+  apiUrl?: string;
   prUrl?: string;
   branch?: string;
   commit?: string;
@@ -30,8 +31,84 @@ interface TriadRescueOptions extends BaseClientOptions {
 
 const DEFAULT_API_URL = "http://127.0.0.1:3100";
 
+interface TriadStatusOptions extends BaseClientOptions {
+  apiUrl?: string;
+  companyId?: string;
+}
+
+// Types for company-run-chain response (forward declaration)
+interface CompanyRunChainChild {
+  issueId: string;
+  identifier: string | null;
+  title: string | null;
+  status: string;
+  assigneeAgentId: string | null;
+  assigneeAgentName: string | null;
+  triad: {
+    state: string;
+    reviewerWakeStatus: "running" | "completed" | "queued" | "stalled" | null;
+    closeoutBlocker: {
+      blockerClass?: string;
+      blockerState?: string;
+      summary?: string;
+      message?: string;
+      knownBlocker?: boolean;
+    } | null;
+  };
+}
+
+interface CompanyRunChainResponse {
+  parentIssueId: string;
+  parentIdentifier: string | null;
+  parentTitle: string | null;
+  parentStatus: string;
+  focusIssueId: string | null;
+  parentBlocker: unknown;
+  children: CompanyRunChainChild[];
+}
+
 export function registerTriadCommands(program: Command): void {
   const triad = program.command("triad").description("Triad mission loop operations");
+
+  // Status subcommand
+  triad
+    .command("status")
+    .description("Check triad status and diagnose stalls")
+    .argument("<issue-id>", "Parent or child issue ID to check")
+    .option("--api-url <url>", "API base URL")
+    .option("-C, --company-id <id>", "Company ID")
+    .action(async (issueId: string, opts: TriadStatusOptions) => {
+      try {
+        // Resolve API URL: flag > PAPERCLIP_API_URL env > default
+        const apiUrl = opts.apiUrl?.trim() ||
+          process.env.PAPERCLIP_API_URL?.trim() ||
+          DEFAULT_API_URL;
+
+        const ctx = resolveCommandContext({
+          ...opts,
+          apiBase: apiUrl,
+        }, { requireCompany: false });
+
+        if (!issueId) {
+          throw new Error("<issue-id> is required.");
+        }
+
+        // Call the company-run-chain endpoint
+        const response = await ctx.api.get<CompanyRunChainResponse>(
+          `/api/issues/${issueId}/company-run-chain`,
+        );
+
+        if (!response) {
+          throw new Error(`No data returned for issue ${issueId}`);
+        }
+
+        // Print status summary
+        printStatusOutput(response);
+        process.exit(0);
+      } catch (err) {
+        handleCommandError(err);
+      }
+    });
 
   addCommonClientOptions(
     triad
@@ -117,7 +194,7 @@ export function registerTriadCommands(program: Command): void {
     .action(async (opts: TriadRescueOptions) => {
       try {
         // Resolve API URL: flag > PAPERCLIP_API_URL env > default
-        const apiUrl = opts.apiBase?.trim() ||
+        const apiUrl = opts.apiUrl?.trim() ||
           process.env.PAPERCLIP_API_URL?.trim() ||
           DEFAULT_API_URL;
 
@@ -240,5 +317,76 @@ async function findIdleCeoAgentId(
     return idleCeoAgent?.id || null;
   } catch {
     return null;
+  }
+}
+
+function printStatusOutput(response: CompanyRunChainResponse): void {
+  const { children } = response;
+
+  if (children.length === 0) {
+    console.log("No child issues found in this chain.");
+    return;
+  }
+
+  // Check each child for stalls
+  let hasAnyStall = false;
+  const stalledChildren: Array<{
+    child: CompanyRunChainChild;
+    stallType: "reviewer_wake" | "closeout" | "both";
+  }> = [];
+
+  for (const child of children) {
+    const triad = child.triad;
+    const hasReviewerWakeStall = triad.reviewerWakeStatus === "stalled";
+    const hasCloseoutBlocker = triad.closeoutBlocker !== null;
+
+    if (hasReviewerWakeStall && hasCloseoutBlocker) {
+      hasAnyStall = true;
+      stalledChildren.push({ child, stallType: "both" });
+    } else if (hasReviewerWakeStall) {
+      hasAnyStall = true;
+      stalledChildren.push({ child, stallType: "reviewer_wake" });
+    } else if (hasCloseoutBlocker) {
+      hasAnyStall = true;
+      stalledChildren.push({ child, stallType: "closeout" });
+    }
+  }
+
+  // Print status for all children
+  for (const child of children) {
+    const triad = child.triad;
+    console.log(`\nIssue: ${child.identifier || child.issueId} (${child.status})`);
+    console.log(`  State: ${triad.state}`);
+    if (child.assigneeAgentName) {
+      console.log(`  Assignee: ${child.assigneeAgentName}`);
+    }
+    if (triad.reviewerWakeStatus) {
+      console.log(`  Reviewer Wake: ${triad.reviewerWakeStatus}`);
+    }
+    if (triad.closeoutBlocker) {
+      const blocker = triad.closeoutBlocker;
+      console.log(`  Closeout Blocker: ${blocker.summary || blocker.blockerClass || "Unknown blocker"}`);
+    }
+  }
+
+  // Print rescue guidance for stalled children
+  if (hasAnyStall) {
+    console.log("\n--- STALL DETECTED ---");
+    for (const { child, stallType } of stalledChildren) {
+      console.log(`\nIssue ${child.identifier || child.issueId}:`);
+
+      if (stallType === "reviewer_wake" || stallType === "both") {
+        console.log("  Reviewer wake is STALLED");
+        console.log(`  Rescue: paperclipai triad rescue --issue-id ${child.issueId} --reviewer-verdict accepted`);
+      }
+
+      if (stallType === "closeout" || stallType === "both") {
+        const blocker = child.triad.closeoutBlocker;
+        console.log(`  Closeout Blocker: ${blocker?.summary || blocker?.blockerClass || "Unknown blocker"}`);
+        console.log(`  Run rescue to address the blocker: paperclipai triad rescue --issue-id ${child.issueId} --reviewer-verdict accepted`);
+      }
+    }
+  } else {
+    console.log("\n✓ No stalls detected. Chain is healthy.");
   }
 }
