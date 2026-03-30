@@ -146,3 +146,16 @@ states what is fundamentally true, and says what changes when you act on that tr
 4. **Session continuity awareness** — `propose_mission` must precede `StartMissionRun` in new sessions. This is now documented but cost ~8 tool calls to re-discover.
 5. **Live proof pre-configuration** — runtime must be configured before the live proof feature runs. Add as a precondition, not a surprise.
 6. **Contract size calibration** — lighter contracts for tightly-scoped missions save planning overhead without losing quality signal.
+---
+
+## Mission: second-live-triad-proof-on-kimi-first-harness (2026-03-30)
+
+### Assumption 9: "Every completed milestone benefits from automatic scrutiny validation"
+
+**What was assumed:** A foundation milestone that only performs runtime preflight is still a good target for the injected scrutiny-validator.
+
+**What is provably true:** The foundation milestone in this mission completed one observational feature (`runtime-preflight`) that only did branch setup, runtime attach, API probes, and CLI smoke checks. Mission Control then auto-triggered `scrutiny-validator-foundation`, and the worker exited immediately three times with `exit code 0`. The mission itself was not blocked on product work; the validator had no meaningful code review surface.
+
+**What changes:** A standalone observation-only milestone is the wrong shape when the mission runner auto-injects milestone scrutiny. The fix is not "debug scrutiny harder" first. The fix is to cut the mission so observational preflight lives inside the first real carrying milestone, or to explicitly waive scrutiny for that checkpoint.
+
+**Durable rule:** Do not create a standalone milestone whose only completed features are no-code observation work if Factory will auto-inject scrutiny afterwards. Fold preflight into the next implementation-carrying milestone whenever possible. If an observation-only checkpoint is unavoidable, mark it as such in the mission guidance and treat any empty scrutiny exit as a planning/harness smell rather than a product failure.
