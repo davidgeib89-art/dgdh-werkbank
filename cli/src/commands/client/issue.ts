@@ -15,6 +15,7 @@ import {
   resolveCommandContext,
   type BaseClientOptions,
 } from "./common.js";
+import { validatePacketCommand } from "./validate-packet.js"; // Import the new command
 
 interface IssueBaseOptions extends BaseClientOptions {
   status?: string;
@@ -374,6 +375,9 @@ export function registerIssueCommands(program: Command): void {
       }),
     { includeCompany: false },
   );
+
+  // Register the new command here
+  issue.addCommand(validatePacketCommand);
 }
 
 function parseCsv(value: string | undefined): string[] {
@@ -402,7 +406,8 @@ function filterIssueRows(rows: Issue[], match: string | undefined): Issue[] {
   return rows.filter((row) => {
     const text = [row.identifier, row.title, row.description]
       .filter((part): part is string => Boolean(part))
-      .join("\n")
+      .join(`
+`) // Use template literal with escaped newline
       .toLowerCase();
     return text.includes(needle);
   });
