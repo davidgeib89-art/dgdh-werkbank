@@ -384,7 +384,15 @@ export function issueRoutes(db: Db, storage: StorageService) {
 
   function buildCompanyRunChainBlocker(
     runs: Awaited<ReturnType<typeof activitySvc.runsForIssue>>,
+    opts?: {
+      issueStatus?: string;
+      workerDoneAt?: Date | null;
+      reviewerVerdictAt?: Date | null;
+      reviewerRun?: { status?: string | null } | null;
+      activityAsc?: Array<{ action: string; details?: unknown; createdAt: Date | string }>;
+    },
   ) {
+    // Check for post-tool-capacity blocker first
     const orderedRuns = [...runs].sort(
       (left, right) => new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime(),
     );
@@ -395,70 +403,104 @@ export function issueRoutes(db: Db, storage: StorageService) {
         readNonEmptyString(resultJson?.type) === "post_tool_capacity_exhausted"
       );
     });
-    if (!blockedRun) return null;
 
-    const blockedResultJson = asDetailsRecord(blockedRun.resultJson);
-    const blockedSummary = summarizeHeartbeatRunResultJson(blockedResultJson);
-    const deferredState = asDetailsRecord(blockedResultJson?.deferredState);
-    const resume = asDetailsRecord(blockedResultJson?.resume);
-    const blockedCreatedAt = readStageDate(blockedRun.createdAt);
-    const blockedSessionId =
-      readNonEmptyString(resume?.sessionId) ?? readNonEmptyString(blockedRun.sessionIdAfter);
+    if (blockedRun) {
+      const blockedResultJson = asDetailsRecord(blockedRun.resultJson);
+      const blockedSummary = summarizeHeartbeatRunResultJson(blockedResultJson);
+      const deferredState = asDetailsRecord(blockedResultJson?.deferredState);
+      const resume = asDetailsRecord(blockedResultJson?.resume);
+      const blockedCreatedAt = readStageDate(blockedRun.createdAt);
+      const blockedSessionId =
+        readNonEmptyString(resume?.sessionId) ?? readNonEmptyString(blockedRun.sessionIdAfter);
 
-    const resumedRun = orderedRuns.find((run) => {
-      if (run.runId === blockedRun.runId) return false;
-      const resumedAt = readStageDate(run.startedAt ?? run.createdAt ?? null);
-      if (
-        blockedCreatedAt &&
-        resumedAt &&
-        resumedAt.getTime() <= blockedCreatedAt.getTime()
-      ) {
-        return false;
+      const resumedRun = orderedRuns.find((run) => {
+        if (run.runId === blockedRun.runId) return false;
+        const resumedAt = readStageDate(run.startedAt ?? run.createdAt ?? null);
+        if (
+          blockedCreatedAt &&
+          resumedAt &&
+          resumedAt.getTime() <= blockedCreatedAt.getTime()
+        ) {
+          return false;
+        }
+        if (!blockedSessionId) return false;
+        return readNonEmptyString(run.sessionIdBefore) === blockedSessionId;
+      });
+
+      return {
+        blockerClass:
+          readNonEmptyString(blockedSummary?.blockerClass) ??
+          readNonEmptyString(blockedRun.errorCode) ??
+          readNonEmptyString(blockedResultJson?.type),
+        blockerState:
+          readNonEmptyString(blockedSummary?.blockerState) ??
+          readNonEmptyString(deferredState?.state) ??
+          readNonEmptyString(blockedResultJson?.status),
+        summary:
+          readNonEmptyString(blockedSummary?.summary) ??
+          readNonEmptyString(blockedSummary?.message) ??
+          readNonEmptyString(blockedRun.status),
+        knownBlocker: blockedSummary?.knownBlocker === true,
+        nextResumePoint:
+          readNonEmptyString(blockedSummary?.nextResumePoint) ??
+          readNonEmptyString(deferredState?.nextResumePoint),
+        nextWakeStatus:
+          readNonEmptyString(blockedSummary?.nextWakeStatus) ??
+          readNonEmptyString(resume?.nextWakeStatus),
+        nextWakeNotBefore: readStageDate(
+          blockedSummary?.nextWakeNotBefore ?? resume?.nextWakeNotBefore ?? null,
+        ),
+        resumeStrategy: readNonEmptyString(resume?.strategy),
+        resumeSource: resumedRun
+          ? resumedRun.invocationSource === "automation"
+            ? "scheduler"
+            : resumedRun.invocationSource
+          : readNonEmptyString(resume?.nextWakeStatus)
+            ? "scheduler"
+            : null,
+        resumeRunId: resumedRun?.runId ?? null,
+        resumeRunStatus: resumedRun?.status ?? null,
+        resumeAt: readStageDate(resumedRun?.startedAt ?? resumedRun?.createdAt ?? null),
+        sameSessionPath: Boolean(
+          blockedSessionId &&
+            resumedRun &&
+            readNonEmptyString(resumedRun.sessionIdBefore) === blockedSessionId,
+        ),
+      };
+    }
+
+    // Check for reviewer-wait blocker
+    if (opts?.issueStatus === "in_review" && opts?.workerDoneAt && !opts?.reviewerVerdictAt) {
+      // Only show reviewer-wait if no reviewer run exists
+      const hasReviewerRun = opts?.reviewerRun != null;
+      
+      if (!hasReviewerRun) {
+        // Check for deferred wake activity to confirm this is a waiting state
+        const hasDeferredWake = opts?.activityAsc?.some(
+          (event) => event.action === "issue.reviewer_wake_deferred"
+        );
+        
+        if (hasDeferredWake) {
+          return {
+            blockerClass: "reviewer-wait",
+            blockerState: "waiting_for_reviewer",
+            summary: "Waiting for reviewer availability",
+            knownBlocker: true,
+            nextResumePoint: "reviewer_wake_or_verdict",
+            nextWakeStatus: "deferred_reviewer_wake",
+            nextWakeNotBefore: opts.workerDoneAt,
+            resumeStrategy: null,
+            resumeSource: "scheduler",
+            resumeRunId: null,
+            resumeRunStatus: null,
+            resumeAt: null,
+            sameSessionPath: false,
+          };
+        }
       }
-      if (!blockedSessionId) return false;
-      return readNonEmptyString(run.sessionIdBefore) === blockedSessionId;
-    });
+    }
 
-    return {
-      blockerClass:
-        readNonEmptyString(blockedSummary?.blockerClass) ??
-        readNonEmptyString(blockedRun.errorCode) ??
-        readNonEmptyString(blockedResultJson?.type),
-      blockerState:
-        readNonEmptyString(blockedSummary?.blockerState) ??
-        readNonEmptyString(deferredState?.state) ??
-        readNonEmptyString(blockedResultJson?.status),
-      summary:
-        readNonEmptyString(blockedSummary?.summary) ??
-        readNonEmptyString(blockedSummary?.message) ??
-        readNonEmptyString(blockedRun.status),
-      knownBlocker: blockedSummary?.knownBlocker === true,
-      nextResumePoint:
-        readNonEmptyString(blockedSummary?.nextResumePoint) ??
-        readNonEmptyString(deferredState?.nextResumePoint),
-      nextWakeStatus:
-        readNonEmptyString(blockedSummary?.nextWakeStatus) ??
-        readNonEmptyString(resume?.nextWakeStatus),
-      nextWakeNotBefore: readStageDate(
-        blockedSummary?.nextWakeNotBefore ?? resume?.nextWakeNotBefore ?? null,
-      ),
-      resumeStrategy: readNonEmptyString(resume?.strategy),
-      resumeSource: resumedRun
-        ? resumedRun.invocationSource === "automation"
-          ? "scheduler"
-          : resumedRun.invocationSource
-        : readNonEmptyString(resume?.nextWakeStatus)
-          ? "scheduler"
-          : null,
-      resumeRunId: resumedRun?.runId ?? null,
-      resumeRunStatus: resumedRun?.status ?? null,
-      resumeAt: readStageDate(resumedRun?.startedAt ?? resumedRun?.createdAt ?? null),
-      sameSessionPath: Boolean(
-        blockedSessionId &&
-          resumedRun &&
-          readNonEmptyString(resumedRun.sessionIdBefore) === blockedSessionId,
-      ),
-    };
+    return null;
   }
 
   function buildIssueContextSnapshot(
@@ -1078,7 +1120,6 @@ export function issueRoutes(db: Db, storage: StorageService) {
         const runsAsc = [...runs].sort(
           (left, right) => new Date(left.createdAt).getTime() - new Date(right.createdAt).getTime(),
         );
-        const closeoutBlocker = buildCompanyRunChainBlocker(runs);
 
         const latestWorkerDone = [...activityAsc]
           .reverse()
@@ -1125,6 +1166,15 @@ export function issueRoutes(db: Db, storage: StorageService) {
         const reviewerVerdictAt = readStageDate(
           latestReviewerVerdict?.createdAt ?? reviewerApproval?.updatedAt ?? reviewerApproval?.decidedAt ?? null,
         );
+
+        // Compute closeout blocker after all data is available
+        const closeoutBlocker = buildCompanyRunChainBlocker(runs, {
+          issueStatus: child.status,
+          workerDoneAt,
+          reviewerVerdictAt,
+          reviewerRun: reviewerRun ?? null,
+          activityAsc,
+        });
         const mergedIssueTimestamps = child as {
           completedAt?: Date | string | null;
           updatedAt?: Date | string | null;

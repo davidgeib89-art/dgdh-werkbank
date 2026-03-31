@@ -1111,4 +1111,285 @@ describe("issue company run chain route", () => {
     expect(res.status).toBe(200);
     expect(res.body.children[0].triad.reviewerWakeStatus).toBe("completed");
   });
+
+  it("closeoutBlocker shows reviewer-wait when in_review with worker_done but no reviewer run", async () => {
+    mockIssueService.getById.mockImplementation(async (id: string) => {
+      if (id === "parent-1") {
+        return {
+          id: "parent-1",
+          companyId: "company-1",
+          identifier: "DAV-600",
+          title: "Triad parent issue",
+          status: "in_progress",
+          completedAt: null,
+          parentId: null,
+          assigneeAgentId: "agent-ceo-1",
+        };
+      }
+      if (id === "child-1") {
+        return {
+          id: "child-1",
+          companyId: "company-1",
+          identifier: "DAV-601",
+          title: "Triad task waiting for reviewer",
+          description: [
+            "packetType: free_api",
+            "executionIntent: implement",
+            "reviewPolicy: required",
+            "needsReview: true",
+            "doneWhen: Implement the feature.",
+          ].join("\n"),
+          status: "in_review",
+          completedAt: null,
+          createdAt: new Date("2026-03-24T14:00:00.000Z").toISOString(),
+          updatedAt: new Date("2026-03-24T14:00:00.000Z").toISOString(),
+          parentId: "parent-1",
+          assigneeAgentId: "agent-worker-1",
+        };
+      }
+      return null;
+    });
+
+    mockCeoService.listChildrenByParentId.mockResolvedValue([
+      {
+        id: "child-1",
+        companyId: "company-1",
+        identifier: "DAV-601",
+        title: "Triad task waiting for reviewer",
+        description: "packetType: free_api\nexecutionIntent: implement\nreviewPolicy: required\nneedsReview: true",
+        status: "in_review",
+        createdAt: new Date("2026-03-24T14:00:00.000Z").toISOString(),
+        parentId: "parent-1",
+        assigneeAgentId: "agent-worker-1",
+      },
+    ]);
+
+    // Worker done was recorded but no reviewer wake was queued (no idle reviewer)
+    const workerDoneTime = new Date(Date.now() - 3 * 60 * 1000).toISOString(); // 3 min ago
+    mockActivityService.forIssue.mockResolvedValue([
+      {
+        id: "evt-done",
+        action: "issue.worker_done_recorded",
+        agentId: "agent-worker-1",
+        runId: "run-worker-1",
+        details: { reviewerAgentId: "agent-reviewer-1", branch: "dgdh/issue-dav-601" },
+        createdAt: workerDoneTime,
+      },
+      {
+        id: "evt-deferred",
+        action: "issue.reviewer_wake_deferred",
+        agentId: "agent-worker-1",
+        runId: "run-worker-1",
+        details: { issueId: "child-1", reason: "no_idle_reviewer_available" },
+        createdAt: workerDoneTime,
+      },
+    ]);
+
+    // No reviewer runs exist yet
+    mockActivityService.runsForIssue.mockResolvedValue([
+      {
+        runId: "run-worker-1",
+        agentId: "agent-worker-1",
+        startedAt: new Date("2026-03-24T14:05:00.000Z").toISOString(),
+        createdAt: new Date("2026-03-24T14:05:00.000Z").toISOString(),
+      },
+    ]);
+    mockIssueApprovalService.listApprovalsForIssue.mockResolvedValue([]);
+
+    const res = await request(createApp()).get("/api/issues/parent-1/company-run-chain");
+
+    expect(res.status).toBe(200);
+    expect(res.body.children[0].triad.closeoutBlocker).not.toBeNull();
+    expect(res.body.children[0].triad.closeoutBlocker.blockerClass).toBe("reviewer-wait");
+    expect(res.body.children[0].triad.closeoutBlocker.summary).toContain("reviewer");
+    expect(res.body.children[0].triad.closeoutBlocker.knownBlocker).toBe(true);
+  });
+
+  it("closeoutBlocker is null when reviewer run exists (no reviewer-wait)", async () => {
+    mockIssueService.getById.mockImplementation(async (id: string) => {
+      if (id === "parent-1") {
+        return {
+          id: "parent-1",
+          companyId: "company-1",
+          identifier: "DAV-700",
+          title: "Triad parent issue",
+          status: "in_progress",
+          completedAt: null,
+          parentId: null,
+          assigneeAgentId: "agent-ceo-1",
+        };
+      }
+      if (id === "child-1") {
+        return {
+          id: "child-1",
+          companyId: "company-1",
+          identifier: "DAV-701",
+          title: "Triad task with reviewer active",
+          description: [
+            "packetType: free_api",
+            "executionIntent: implement",
+            "reviewPolicy: required",
+            "needsReview: true",
+            "doneWhen: Implement the feature.",
+          ].join("\n"),
+          status: "in_review",
+          completedAt: null,
+          createdAt: new Date("2026-03-24T14:00:00.000Z").toISOString(),
+          updatedAt: new Date("2026-03-24T14:00:00.000Z").toISOString(),
+          parentId: "parent-1",
+          assigneeAgentId: "agent-worker-1",
+        };
+      }
+      return null;
+    });
+
+    mockCeoService.listChildrenByParentId.mockResolvedValue([
+      {
+        id: "child-1",
+        companyId: "company-1",
+        identifier: "DAV-701",
+        title: "Triad task with reviewer active",
+        description: "packetType: free_api\nexecutionIntent: implement\nreviewPolicy: required\nneedsReview: true",
+        status: "in_review",
+        createdAt: new Date("2026-03-24T14:00:00.000Z").toISOString(),
+        parentId: "parent-1",
+        assigneeAgentId: "agent-worker-1",
+      },
+    ]);
+
+    mockActivityService.forIssue.mockResolvedValue([
+      {
+        id: "evt-done",
+        action: "issue.worker_done_recorded",
+        agentId: "agent-worker-1",
+        runId: "run-worker-1",
+        details: { reviewerAgentId: "agent-reviewer-1", branch: "dgdh/issue-dav-701" },
+        createdAt: new Date("2026-03-24T14:20:00.000Z").toISOString(),
+      },
+    ]);
+
+    // Has active reviewer run - no reviewer-wait blocker
+    mockActivityService.runsForIssue.mockResolvedValue([
+      {
+        runId: "run-worker-1",
+        agentId: "agent-worker-1",
+        startedAt: new Date("2026-03-24T14:05:00.000Z").toISOString(),
+        createdAt: new Date("2026-03-24T14:05:00.000Z").toISOString(),
+      },
+      {
+        runId: "run-reviewer-1",
+        agentId: "agent-reviewer-1",
+        startedAt: new Date("2026-03-24T14:30:00.000Z").toISOString(),
+        createdAt: new Date("2026-03-24T14:30:00.000Z").toISOString(),
+        status: "running",
+      },
+    ]);
+    mockIssueApprovalService.listApprovalsForIssue.mockResolvedValue([]);
+
+    const res = await request(createApp()).get("/api/issues/parent-1/company-run-chain");
+
+    expect(res.status).toBe(200);
+    expect(res.body.children[0].triad.closeoutBlocker).toBeNull();
+  });
+
+  it("closeoutBlocker is null after reviewer-verdict recorded", async () => {
+    mockIssueService.getById.mockImplementation(async (id: string) => {
+      if (id === "parent-1") {
+        return {
+          id: "parent-1",
+          companyId: "company-1",
+          identifier: "DAV-800",
+          title: "Triad parent issue",
+          status: "in_progress",
+          completedAt: null,
+          parentId: null,
+          assigneeAgentId: "agent-ceo-1",
+        };
+      }
+      if (id === "child-1") {
+        return {
+          id: "child-1",
+          companyId: "company-1",
+          identifier: "DAV-801",
+          title: "Triad task with verdict",
+          description: [
+            "packetType: free_api",
+            "executionIntent: implement",
+            "reviewPolicy: required",
+            "needsReview: true",
+            "doneWhen: Implement the feature.",
+          ].join("\n"),
+          status: "reviewer_accepted",
+          completedAt: null,
+          createdAt: new Date("2026-03-24T14:00:00.000Z").toISOString(),
+          updatedAt: new Date("2026-03-24T14:45:00.000Z").toISOString(),
+          parentId: "parent-1",
+          assigneeAgentId: "agent-worker-1",
+        };
+      }
+      return null;
+    });
+
+    mockCeoService.listChildrenByParentId.mockResolvedValue([
+      {
+        id: "child-1",
+        companyId: "company-1",
+        identifier: "DAV-801",
+        title: "Triad task with verdict",
+        description: "packetType: free_api\nexecutionIntent: implement\nreviewPolicy: required\nneedsReview: true",
+        status: "reviewer_accepted",
+        createdAt: new Date("2026-03-24T14:00:00.000Z").toISOString(),
+        parentId: "parent-1",
+        assigneeAgentId: "agent-worker-1",
+      },
+    ]);
+
+    // Has reviewer verdict - no reviewer-wait blocker even without reviewer run
+    mockActivityService.forIssue.mockResolvedValue([
+      {
+        id: "evt-verdict",
+        action: "issue.reviewer_verdict_recorded",
+        agentId: "agent-reviewer-1",
+        runId: "run-reviewer-1",
+        details: { verdict: "accepted" },
+        createdAt: new Date("2026-03-24T14:40:00.000Z").toISOString(),
+      },
+      {
+        id: "evt-done",
+        action: "issue.worker_done_recorded",
+        agentId: "agent-worker-1",
+        runId: "run-worker-1",
+        details: { reviewerAgentId: "agent-reviewer-1", branch: "dgdh/issue-dav-801" },
+        createdAt: new Date("2026-03-24T14:20:00.000Z").toISOString(),
+      },
+    ]);
+    mockActivityService.runsForIssue.mockResolvedValue([
+      {
+        runId: "run-worker-1",
+        agentId: "agent-worker-1",
+        startedAt: new Date("2026-03-24T14:05:00.000Z").toISOString(),
+        createdAt: new Date("2026-03-24T14:05:00.000Z").toISOString(),
+      },
+    ]);
+
+    // Include a reviewer approval
+    mockIssueApprovalService.listApprovalsForIssue.mockResolvedValue([
+      {
+        id: "approval-1",
+        type: "reviewer_packet_verdict",
+        status: "approved",
+        payload: {
+          verdict: "accepted",
+        },
+        decidedAt: new Date("2026-03-24T14:40:00.000Z"),
+        updatedAt: new Date("2026-03-24T14:40:00.000Z"),
+      },
+    ]);
+
+    const res = await request(createApp()).get("/api/issues/parent-1/company-run-chain");
+
+    expect(res.status).toBe(200);
+    expect(res.body.children[0].triad.closeoutBlocker).toBeNull();
+    expect(res.body.children[0].triad.reviewerVerdict.verdict).toBe("accepted");
+  });
 });
