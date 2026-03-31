@@ -108,4 +108,151 @@ describe("resolveIssueExecutionPacketTruth", () => {
       "Verify the exact runbook note and keep scope inside doc/.",
     );
   });
+
+  // CLI-to-Server alignment tests: verify server correctly parses CLI-emitted artifactKind
+  it("correctly reads artifactKind: doc_update from CLI-emitted description", () => {
+    // CLI format as emitted by buildTriadDescription for --target-file doc/README.md
+    const cliEmittedDescription = [
+      "missionCell: triad-mission-loop-v1",
+      "",
+      "Objective: Update documentation",
+      "Scope: doc/README.md",
+      "targetFile: doc/README.md",
+      "artifactKind: doc_update",
+      "doneWhen: The README accurately describes the feature",
+      "",
+      "reviewerFocus: Verify all doneWhen criteria are met with concrete file or test evidence.",
+      "reviewerAcceptWhen: All doneWhen items satisfied with substance, not superficial paraphrase.",
+      "reviewerChangeWhen: Any doneWhen criterion missing, scope drift, out-of-scope file changes, or superficial/weak implementation.",
+      "",
+      "[NEEDS INPUT]: none",
+    ].join("\n");
+
+    const truth = resolveIssueExecutionPacketTruth({
+      title: "Update README documentation",
+      description: cliEmittedDescription,
+    });
+
+    expect(truth.artifactKind).toBe("doc_update");
+    expect(truth.targetFile).toBe("doc/README.md");
+    expect(truth.status).toBe("ready");
+    expect(truth.reasonCodes).toEqual([]);
+  });
+
+  it("correctly reads artifactKind: config_change from CLI-emitted description", () => {
+    // CLI format as emitted by buildTriadDescription for --target-file package.json
+    const cliEmittedDescription = [
+      "missionCell: triad-mission-loop-v1",
+      "",
+      "Objective: Update package dependencies",
+      "Scope: package.json",
+      "targetFile: package.json",
+      "artifactKind: config_change",
+      "doneWhen: All dependencies are updated and tests pass",
+      "",
+      "reviewerFocus: Verify all doneWhen criteria are met with concrete file or test evidence.",
+      "reviewerAcceptWhen: All doneWhen items satisfied with substance, not superficial paraphrase.",
+      "reviewerChangeWhen: Any doneWhen criterion missing, scope drift, out-of-scope file changes, or superficial/weak implementation.",
+      "",
+      "[NEEDS INPUT]: none",
+    ].join("\n");
+
+    const truth = resolveIssueExecutionPacketTruth({
+      title: "Update package.json dependencies",
+      description: cliEmittedDescription,
+    });
+
+    expect(truth.artifactKind).toBe("config_change");
+    expect(truth.targetFile).toBe("package.json");
+    expect(truth.status).toBe("ready");
+    expect(truth.reasonCodes).toEqual([]);
+  });
+
+  it("correctly reads artifactKind: multi_file_change from folder-only CLI description", () => {
+    // CLI format as emitted by buildTriadDescription for --target-folder server/src/services (no --target-file)
+    const cliEmittedDescription = [
+      "missionCell: triad-mission-loop-v1",
+      "",
+      "Objective: Refactor server services",
+      "Scope: server/src/services",
+      "targetFolder: server/src/services",
+      "artifactKind: multi_file_change",
+      "doneWhen: All services are refactored and tests pass",
+      "",
+      "reviewerFocus: Verify all doneWhen criteria are met with concrete file or test evidence.",
+      "reviewerAcceptWhen: All doneWhen items satisfied with substance, not superficial paraphrase.",
+      "reviewerChangeWhen: Any doneWhen criterion missing, scope drift, out-of-scope file changes, or superficial/weak implementation.",
+      "",
+      "[NEEDS INPUT]: none",
+    ].join("\n");
+
+    const truth = resolveIssueExecutionPacketTruth({
+      title: "Refactor server services",
+      description: cliEmittedDescription,
+    });
+
+    expect(truth.artifactKind).toBe("multi_file_change");
+    expect(truth.targetFolder).toBe("server/src/services");
+    expect(truth.targetFile).toBe(null);
+    expect(truth.status).toBe("ready");
+    expect(truth.reasonCodes).toEqual([]);
+  });
+
+  it("correctly reads artifactKind: code_patch from CLI-emitted description with code file", () => {
+    // CLI format as emitted by buildTriadDescription for --target-file src/auth.ts
+    const cliEmittedDescription = [
+      "missionCell: triad-mission-loop-v1",
+      "",
+      "Objective: Fix auth bug",
+      "Scope: src/auth.ts",
+      "targetFile: src/auth.ts",
+      "artifactKind: code_patch",
+      "doneWhen: Auth bug is fixed and tests pass",
+      "",
+      "reviewerFocus: Verify all doneWhen criteria are met with concrete file or test evidence.",
+      "reviewerAcceptWhen: All doneWhen items satisfied with substance, not superficial paraphrase.",
+      "reviewerChangeWhen: Any doneWhen criterion missing, scope drift, out-of-scope file changes, or superficial/weak implementation.",
+      "",
+      "[NEEDS INPUT]: none",
+    ].join("\n");
+
+    const truth = resolveIssueExecutionPacketTruth({
+      title: "Fix auth bug",
+      description: cliEmittedDescription,
+    });
+
+    expect(truth.artifactKind).toBe("code_patch");
+    expect(truth.targetFile).toBe("src/auth.ts");
+    expect(truth.status).toBe("ready");
+    expect(truth.reasonCodes).toEqual([]);
+  });
+
+  it("correctly reads artifactKind: test_update from CLI-emitted description with test file", () => {
+    // CLI format as emitted by buildTriadDescription for --target-file src/foo.test.ts
+    const cliEmittedDescription = [
+      "missionCell: triad-mission-loop-v1",
+      "",
+      "Objective: Add auth tests",
+      "Scope: src/auth.test.ts",
+      "targetFile: src/auth.test.ts",
+      "artifactKind: test_update",
+      "doneWhen: Auth tests cover all edge cases",
+      "",
+      "reviewerFocus: Verify all doneWhen criteria are met with concrete file or test evidence.",
+      "reviewerAcceptWhen: All doneWhen items satisfied with substance, not superficial paraphrase.",
+      "reviewerChangeWhen: Any doneWhen criterion missing, scope drift, out-of-scope file changes, or superficial/weak implementation.",
+      "",
+      "[NEEDS INPUT]: none",
+    ].join("\n");
+
+    const truth = resolveIssueExecutionPacketTruth({
+      title: "Add auth tests",
+      description: cliEmittedDescription,
+    });
+
+    expect(truth.artifactKind).toBe("test_update");
+    expect(truth.targetFile).toBe("src/auth.test.ts");
+    expect(truth.status).toBe("ready");
+    expect(truth.reasonCodes).toEqual([]);
+  });
 });
