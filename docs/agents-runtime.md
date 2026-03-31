@@ -1,7 +1,7 @@
 # Agent Runtime Guide
 
 Status: User-facing guide  
-Last updated: 2026-02-17  
+Last updated: 2026-03-31  
 Audience: Operators setting up and running agents in Paperclip
 
 ## 1. What this system does
@@ -11,7 +11,7 @@ They run in **heartbeats**: short execution windows triggered by a wakeup.
 
 Each heartbeat:
 
-1. Starts the configured agent adapter (for example, Claude CLI or Codex CLI)
+1. Starts the configured agent adapter (for example, Claude Code CLI, Codex CLI, Gemini CLI, OpenClaw Gateway, process, or HTTP)
 2. Gives it the current prompt/context
 3. Lets it work until it exits, times out, or is cancelled
 4. Stores results (status, token usage, errors, logs)
@@ -36,10 +36,13 @@ Common choices:
 
 - `claude_local`: runs your local `claude` CLI
 - `codex_local`: runs your local `codex` CLI
+- `gemini_local`: runs your local Gemini CLI
+- `opencode_local`, `cursor`, `pi_local`, `hermes_local`: local runtime-specific adapters
+- `openclaw_gateway`: connects Paperclip to OpenClaw through the gateway path
 - `process`: generic shell command adapter
 - `http`: calls an external HTTP endpoint
 
-For `claude_local` and `codex_local`, Paperclip assumes the CLI is already installed and authenticated on the host machine.
+For local CLI adapters, Paperclip assumes the runtime is already installed and authenticated on the host machine.
 
 ## 3.2 Runtime behavior
 
@@ -93,6 +96,14 @@ For each heartbeat run you get:
 - full logs (stored outside core run rows, optimized for large output)
 
 In local/dev setups, full logs are stored on disk under the configured run-log path.
+
+For operator truth beyond raw logs, current deployments also expose runtime/triad surfaces such as:
+
+- `paperclipai runtime status`
+- `GET /api/companies/{companyId}/agents/triad-preflight`
+- `GET /api/issues/{issueId}/active-run`
+- `GET /api/issues/{issueId}/live-runs`
+- `GET /api/issues/{issueId}/company-run-chain`
 
 ## 6. Live updates in the UI
 
@@ -166,7 +177,7 @@ Start with least privilege where possible, and avoid exposing secrets in broad r
 
 ## 10. Minimal setup checklist
 
-1. Choose adapter (`claude_local` or `codex_local`).
+1. Choose an adapter that matches the runtime you actually want to run (`claude_local`, `codex_local`, `gemini_local`, `openclaw_gateway`, `process`, `http`, and others).
 2. Set `cwd` to the target workspace.
 3. Add bootstrap + normal prompt templates.
 4. Configure heartbeat policy (timer and/or assignment wakeups).

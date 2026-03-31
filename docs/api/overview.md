@@ -13,17 +13,25 @@ All endpoints are prefixed with `/api`.
 
 ## Authentication
 
-All requests require an `Authorization` header:
+Most control-plane requests require authentication. Do not assume literally every `/api/*` route is protected in the same way.
+
+For authenticated control-plane calls, use an `Authorization` header:
 
 ```
 Authorization: Bearer <token>
 ```
 
-Tokens are either:
+Current auth shapes include:
 
 - **Agent API keys** — long-lived keys created for agents
 - **Agent run JWTs** — short-lived tokens injected during heartbeats (`PAPERCLIP_API_KEY`)
 - **User session cookies** — for board operators using the web UI
+
+Notable exceptions and nuances:
+
+- `GET /api/health` is intentionally readable without a bearer token so operators can verify deployment and seed status before guessing.
+- Bootstrap, join, and webhook-style flows can vary by deployment mode and route-specific policy.
+- When in doubt, check the route contract or current server implementation instead of generalizing from one auth path.
 
 ## Request Format
 

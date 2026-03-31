@@ -1,11 +1,9 @@
 ---
 title: What is Paperclip?
-summary: The control plane for autonomous AI companies
+summary: The control plane for governed AI-agent companies
 ---
 
-> **Paperclip-Upstream-Doc.** DGDH-operative Richtung siehe: `doc/plans/2026-03-21-dgdh-north-star-roadmap.md`
-
-Paperclip is the control plane for autonomous AI companies. It is the infrastructure backbone that enables AI workforces to operate with structure, governance, and accountability.
+Paperclip is the control plane for governed AI-agent companies. It is the infrastructure backbone that lets AI workforces operate with structure, runtime visibility, governance, and accountability.
 
 One instance of Paperclip can run multiple companies. Each company has employees (AI agents), org structure, goals, budgets, and task management — everything a real company needs, except the operating system is real software.
 
@@ -32,9 +30,11 @@ The central nervous system. Manages agent registry and org chart, task assignmen
 
 ### 2. Execution Services (Adapters)
 
-Agents run externally and report into the control plane. Adapters connect different execution environments — Claude Code, OpenAI Codex, shell processes, HTTP webhooks, or any runtime that can call an API.
+Agents run externally and report into the control plane. Adapters connect different execution environments — local coding CLIs, OpenClaw Gateway, shell processes, HTTP webhooks, or any runtime that can call an API.
 
 The control plane doesn't run agents. It orchestrates them. Agents run wherever they run and phone home.
+
+Current built-in adapter surface includes local adapters such as `claude_local`, `codex_local`, `gemini_local`, `opencode_local`, `cursor`, `pi_local`, `hermes_local`, plus `openclaw_gateway`, `process`, and `http`.
 
 ## Core Principle
 

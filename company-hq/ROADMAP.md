@@ -3,23 +3,24 @@
 > Zuletzt aktualisiert: 2026-03-21
 > Leitfrage: *Entlastet das David real oder verschoenert es nur die Maschine?*
 
-Status-Hinweis 2026-03-27:
+Status-Hinweis 2026-03-31:
 - dieses Dokument ist fuer den historischen Firmenaufbau weiter nuetzlich
 - der kuerzeste aktuelle Firmenkern steht in `company-hq/CORE.md`
-- die aktuelle kanonische Richtungsverschaerfung fuer Mission-Autonomie und bounded Selbstverbesserung steht in `doc/plans/2026-03-27-dgdh-mission-autonomy-doctrine.md` plus `doc/plans/2026-03-26-dgdh-roadmap-snapshot.md`
+- die aktuelle kanonische Richtungsverschaerfung fuer Mission-Autonomie und bounded Selbstverbesserung steht in `doc/plans/2026-03-27-dgdh-mission-autonomy-doctrine.md`, `doc/plans/2026-03-26-dgdh-roadmap-snapshot.md` und `doc/plans/2026-03-30-dgdh-predictive-delivery-doctrine.md`
+- dieses Dokument ist nicht mehr die kuerzeste operative Einstiegskante; lies fuer aktuelle Laufwahrheit zuerst `CURRENT.md` und `company-hq/ACTIVE-MISSION.md`
 
 ---
 
 ## Wo wir stehen
 
-Gemini ist die erste Arbeiterbiene. Die Infrastruktur steht:
+Die alte Gemini-zentrierte Aufbauphase ist nicht mehr die kuerzeste Wahrheit. Die aktuelle Firmenstufe ist:
 
-- **Live Quota** funktioniert — echte Google-Quota-Daten fliessen ins Routing
-- **Flash-Lite Router** entscheidet autonom: Modell, Bucket, Skills, Risk Level
-- **Issue Runs** starten sauber und liefern Ergebnisse
-- **Routing Engine** (Flash-Lite → Control Plane → Heartbeat) ist durchgaengig verkabelt
+- direkte Assistenten-Lanes sind sauberer nach Rolle geschnitten (`TRINITY.md`, `CODEX.md`, `COPILOT.md`, `CHATGPT.md`)
+- Mission-Autonomie ist als governter Firmenmodus aktiv
+- Runtime-Truth ist expliziter geworden: `runtime status`, `issue liveness`, `triad preflight`, `company-run-chain`, `active-run`
+- Live-Fokus liegt auf boring repeatability: gleiche Kette auf sauberem Baseline-Zustand erneut tragfaehig machen, nicht auf weiterer romantischer Expansion
 
-**Naechster Schritt:** Worker-Loop schaerfen, Reviewer-Matrix, dann CEO V1.
+**Naechster Schritt:** den Firmenlauf weiter auf predictability, saubere Runtime-Wahrheit und reviewbare Mission-Cells verengen, bevor neue Breite dazukommt.
 
 ---
 

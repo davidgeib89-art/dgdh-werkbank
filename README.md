@@ -25,11 +25,11 @@
 
 ## What is Paperclip?
 
-# Open-source orchestration for zero-human companies
+# Open-source control plane for AI-agent companies
 
-**If OpenClaw is an _employee_, Paperclip is the _company_**
+**If an agent runtime is an _employee_, Paperclip is the _company_**
 
-Paperclip is a Node.js server and React UI that orchestrates a team of AI agents to run a business. Bring your own agents, assign goals, and track your agents' work and costs from one dashboard.
+Paperclip is a Node.js control plane with a React UI and CLI for running AI agents inside governed companies. Bring your own agents, assign work, approve riskier steps, and inspect runtime state, costs, and issue history from one place.
 
 It looks like a task manager — but under the hood it has org charts, budgets, governance, goal alignment, and agent coordination.
 
@@ -51,11 +51,11 @@ It looks like a task manager — but under the hood it has org charts, budgets, 
 <table>
   <tr>
     <td align="center"><strong>Works<br/>with</strong></td>
-    <td align="center"><img src="doc/assets/logos/openclaw.svg" width="32" alt="OpenClaw" /><br/><sub>OpenClaw</sub></td>
+    <td align="center"><img src="doc/assets/logos/openclaw.svg" width="32" alt="OpenClaw Gateway" /><br/><sub>OpenClaw Gateway</sub></td>
     <td align="center"><img src="doc/assets/logos/claude.svg" width="32" alt="Claude" /><br/><sub>Claude Code</sub></td>
     <td align="center"><img src="doc/assets/logos/codex.svg" width="32" alt="Codex" /><br/><sub>Codex</sub></td>
     <td align="center"><img src="doc/assets/logos/cursor.svg" width="32" alt="Cursor" /><br/><sub>Cursor</sub></td>
-    <td align="center"><img src="doc/assets/logos/bash.svg" width="32" alt="Bash" /><br/><sub>Bash</sub></td>
+    <td align="center"><img src="doc/assets/logos/bash.svg" width="32" alt="OpenCode / Process" /><br/><sub>OpenCode / Process</sub></td>
     <td align="center"><img src="doc/assets/logos/http.svg" width="32" alt="HTTP" /><br/><sub>HTTP</sub></td>
   </tr>
 </table>
@@ -69,7 +69,7 @@ It looks like a task manager — but under the hood it has org charts, budgets, 
 ## Paperclip is right for you if
 
 - ✅ You want to build **autonomous AI companies**
-- ✅ You **coordinate many different agents** (OpenClaw, Codex, Claude, Cursor) toward a common goal
+- ✅ You **coordinate many different agents** (Claude Code, Codex, Gemini CLI, OpenCode, Cursor, OpenClaw Gateway, HTTP/process) toward a common goal
 - ✅ You have **20 simultaneous Claude Code terminals** open and lose track of what everyone is doing
 - ✅ You want agents running **autonomously 24/7**, but still want to audit work and chime in when needed
 - ✅ You want to **monitor costs** and enforce budgets
@@ -119,16 +119,16 @@ You're the board. Approve hires, override strategy, pause or terminate any agent
 Hierarchies, roles, reporting lines. Your agents have a boss, a title, and a job description.
 </td>
 <td align="center" width="33%">
-<h3>⚙️ Advanced Routing & Quota Control</h3>
-Enhanced Gemini Routing Engine with skill selection and quota management ensures efficient agent operation and budget adherence.
+<h3>⚙️ Runtime Adapters</h3>
+Built-in adapters cover local coding CLIs, process execution, HTTP/webhook agents, OpenClaw Gateway, and other repo-supported runtimes.
 </td>
 <td align="center" width="33%">
-<h3>✅ Streamlined Approvals & Health</h3>
-Introduces an 'awaiting_approval' gate for critical tasks and improved agent health monitoring, refining governance and oversight.
+<h3>✅ Approvals & Runtime Truth</h3>
+Approval gates, runtime diagnostics, triad preflight, and issue/run status surfaces reduce guesswork before and during live runs.
 </td>
 <td align="center" width="33%">
 <h3>💰 Cost Optimization</h3>
-Advanced quota management and budget enforcement prevent runaway costs and optimize resource allocation.
+Budget enforcement, quota-aware routing, and explicit run state help contain runaway spend and reduce operator archaeology.
 </td>
 </tr>
 </table>
@@ -194,7 +194,14 @@ pnpm install
 pnpm dev
 ```
 
-This starts the API server at `http://localhost:3100`. An embedded PostgreSQL database is created automatically — no setup required.
+This starts the API server at `http://localhost:3100`. In local default mode Paperclip provisions its embedded Postgres runtime automatically, so you can boot without wiring an external database first.
+
+To verify the instance rather than guessing, check runtime truth directly:
+
+```bash
+curl http://localhost:3100/api/health
+pnpm paperclipai runtime status --api-url http://localhost:3100
+```
 
 > **Requirements:** Node.js 20+, pnpm 9.15+
 
@@ -203,7 +210,7 @@ This starts the API server at `http://localhost:3100`. An embedded PostgreSQL da
 ## FAQ
 
 **What does a typical setup look like?**
-Locally, a single Node.js process manages an embedded Postgres and local file storage. For production, point it at your own Postgres and deploy however you like. Configure projects, agents, and goals — the agents take care of the rest.
+Locally, a single Node.js runtime manages Paperclip plus an embedded Postgres configuration by default. For production, point it at your own Postgres and deploy however you like. Configure companies, agents, and work — then use the API, CLI, and UI to inspect what is actually running.
 
 If you're a solo-entreprenuer you can use Tailscale to access Paperclip on the go. Then later you can deploy to e.g. Vercel when you need it.
 

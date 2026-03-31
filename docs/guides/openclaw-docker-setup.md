@@ -1,6 +1,8 @@
 # Running OpenClaw in Docker (Local Development)
 
-How to get OpenClaw running in a Docker container for local development and testing the Paperclip OpenClaw adapter integration.
+How to get OpenClaw running in a Docker container for local development and testing the Paperclip OpenClaw Gateway integration.
+
+Current product truth: Paperclip supports OpenClaw through `openclaw_gateway` only.
 
 ## Automated Join Smoke Test (Recommended First)
 
@@ -13,7 +15,7 @@ pnpm smoke:openclaw-join
 The harness automates:
 
 - invite creation (`allowedJoinTypes=agent`)
-- OpenClaw agent join request (`adapterType=openclaw`)
+- OpenClaw agent join request (`adapterType=openclaw_gateway`)
 - board approval
 - one-time API key claim (including invalid/replay claim checks)
 - wakeup callback delivery to a dockerized OpenClaw-style webhook receiver
@@ -33,7 +35,7 @@ To spin up OpenClaw in Docker and print a host-browser dashboard URL in one comm
 pnpm smoke:openclaw-docker-ui
 ```
 
-Default behavior is zero-flag: you can run the command as-is with no pairing-related env vars.
+Default behavior is zero-flag for the local Docker helper, but do not treat local smoke defaults as product truth.
 
 What this command does:
 
@@ -45,7 +47,7 @@ What this command does:
 - probes and prints a Paperclip host URL that is reachable from inside OpenClaw Docker
 - waits for health and prints:
   - `http://127.0.0.1:18789/#token=...`
-- disables Control UI device pairing by default for local smoke ergonomics
+- may optionally relax pairing for local smoke ergonomics, but the supported product path keeps device auth enabled by default
 
 Environment knobs:
 
@@ -55,8 +57,8 @@ Environment knobs:
 - `OPENCLAW_GATEWAY_TOKEN` (default random)
 - `OPENCLAW_BUILD=0` to skip rebuild
 - `OPENCLAW_OPEN_BROWSER=1` to auto-open the URL on macOS
-- `OPENCLAW_DISABLE_DEVICE_AUTH=1` (default) disables Control UI device pairing for local smoke
-- `OPENCLAW_DISABLE_DEVICE_AUTH=0` keeps pairing enabled (then approve browser with `devices` CLI commands)
+- `OPENCLAW_DISABLE_DEVICE_AUTH=1` disables Control UI device pairing for local smoke only
+- `OPENCLAW_DISABLE_DEVICE_AUTH=0` keeps the product-default pairing path enabled
 - `OPENCLAW_MODEL_PRIMARY` (default `openai/gpt-5.2`)
 - `OPENCLAW_MODEL_FALLBACK` (default `openai/gpt-5.2-chat-latest`)
 - `OPENCLAW_CONFIG_DIR` (default `~/.openclaw-paperclip-smoke`)
@@ -73,6 +75,12 @@ PAPERCLIP_AUTH_HEADER="Bearer <token>" pnpm smoke:openclaw-join
 # or
 PAPERCLIP_COOKIE="your_session_cookie=..." pnpm smoke:openclaw-join
 ```
+
+Pairing/product truth:
+
+- current supported adapter type is `openclaw_gateway`
+- device auth is enabled by default in the supported onboarding contract
+- if you disable device auth for a smoke run, treat that as a local override, not as the default product model
 
 ### Network topology tips
 

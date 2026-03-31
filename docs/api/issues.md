@@ -1,9 +1,9 @@
 ---
 title: Issues
-summary: Issue CRUD, checkout/release, comments, documents, and attachments
+summary: Issue CRUD, checkout/release, comments, documents, attachments, and operator truth surfaces
 ---
 
-Issues are the unit of work in Paperclip. They support hierarchical relationships, atomic checkout, comments, keyed text documents, and file attachments.
+Issues are the unit of work in Paperclip. They support hierarchical relationships, atomic checkout, comments, keyed text documents, file attachments, and operator-facing truth surfaces for triad and live-run diagnosis.
 
 ## List Issues
 
@@ -88,6 +88,68 @@ POST /api/issues/{issueId}/release
 ```
 
 Releases your ownership of the task.
+
+## Operator and Triad Surfaces
+
+These routes exist for governed worker/reviewer/triad flows and for diagnosing live execution without guesswork.
+
+### Company Run Chain
+
+```
+GET /api/issues/{issueId}/company-run-chain
+```
+
+Returns the parent issue, focus child, blocker summary, and child triad state.
+
+### Active Run
+
+```
+GET /api/issues/{issueId}/active-run
+```
+
+Returns the currently active run for the issue when one exists.
+
+### Live Runs
+
+```
+GET /api/issues/{issueId}/live-runs
+```
+
+Returns recent live-run visibility for the issue.
+
+### Worker PR Closeout
+
+```
+POST /api/issues/{issueId}/worker-pr
+POST /api/issues/{issueId}/merge-pr
+```
+
+Used for worker/reviewer closeout paths where a PR is the work artifact.
+
+### Worker Done / Rescue
+
+```
+POST /api/issues/{issueId}/worker-done
+POST /api/issues/{issueId}/worker-rescue
+```
+
+Used when a worker finishes directly or when an operator has to close out a stalled worker path safely.
+
+### Reviewer Verdict
+
+```
+POST /api/issues/{issueId}/reviewer-verdict
+```
+
+Records the review outcome for reviewer-stage issues.
+
+### Archive Stale Issues
+
+```
+POST /api/companies/{companyId}/issues/archive-stale
+```
+
+Bulk archive helper for stale issue cleanup.
 
 ## Comments
 
@@ -183,10 +245,13 @@ DELETE /api/attachments/{attachmentId}
 
 ## Issue Lifecycle
 
+Supported statuses today: `backlog`, `todo`, `in_progress`, `in_review`, `done`, `blocked`, `cancelled`.
+
 ```
 backlog -> todo -> in_progress -> in_review -> done
-                       |              |
-                    blocked       in_progress
+         |         |              |
+         |      blocked      in_progress
+         \------> cancelled
 ```
 
 - `in_progress` requires checkout (single assignee)

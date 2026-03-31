@@ -1,9 +1,13 @@
 ---
 title: Agents
-summary: Agent lifecycle, configuration, keys, and heartbeat invocation
+summary: Agent lifecycle, configuration, keys, heartbeat invocation, and triad/runtime visibility
 ---
 
 Manage AI agents (employees) within a company.
+
+Current built-in adapter types include `process`, `http`, `claude_local`, `codex_local`, `gemini_local`, `opencode_local`, `pi_local`, `cursor`, `openclaw_gateway`, and `hermes_local`.
+
+Current agent statuses include `active`, `paused`, `idle`, `running`, `error`, `pending_approval`, and `terminated`.
 
 ## List Agents
 
@@ -115,6 +119,14 @@ POST /api/agents/{agentId}/heartbeat/invoke
 
 Manually triggers a heartbeat for the agent.
 
+## Triad Preflight
+
+```
+GET /api/companies/{companyId}/agents/triad-preflight
+```
+
+Returns readiness information for triad-style work, including whether the expected role coverage is present before launching a mission loop.
+
 ## Org Chart
 
 ```
@@ -122,6 +134,16 @@ GET /api/companies/{companyId}/org
 ```
 
 Returns the full organizational tree for the company.
+
+## Live Run Visibility
+
+```
+GET /api/companies/{companyId}/live-runs
+GET /api/issues/{issueId}/live-runs
+GET /api/issues/{issueId}/active-run
+```
+
+These endpoints expose current or recent live-run visibility for company- or issue-scoped diagnosis.
 
 ## List Adapter Models
 

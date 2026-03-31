@@ -24,7 +24,7 @@ pnpm dev
 
 This starts the API server and UI at [http://localhost:3100](http://localhost:3100).
 
-No external database required — Paperclip uses an embedded PostgreSQL instance by default.
+No external database required — Paperclip uses embedded Postgres by default in local mode.
 
 ## One-Command Bootstrap
 
@@ -38,12 +38,13 @@ This auto-onboards if config is missing, runs health checks with auto-repair, an
 
 Once Paperclip is running:
 
-1. Create your first company in the web UI
-2. Define a company goal
-3. Create a CEO agent and configure its adapter
-4. Build out the org chart with more agents
-5. Set budgets and assign initial tasks
-6. Hit go — agents start their heartbeats and the company runs
+1. Verify the runtime directly with `curl http://localhost:3100/api/health` or `pnpm paperclipai runtime status --api-url http://localhost:3100`
+2. Create your first company in the web UI
+3. Define a company goal
+4. Create a CEO or worker agent and configure its adapter
+5. Build out the org chart with more agents
+6. Set budgets and assign initial tasks
+7. Use runtime or triad diagnostics before assuming a run is healthy
 
 <Card title="Core Concepts" href="/start/core-concepts">
   Learn the key concepts behind Paperclip

@@ -28,6 +28,12 @@ pnpm paperclipai issue checkout <issue-id> --agent-id <agent-id>
 
 # Release task
 pnpm paperclipai issue release <issue-id>
+
+# Diagnose issue liveness (packet truth, chain truth, active run)
+pnpm paperclipai issue liveness <issue-id-or-identifier>
+
+# Archive stale issues for a company
+pnpm paperclipai issue archive-stale --company-id <id> --older-than <days> [--dry-run]
 ```
 
 ## Company Commands
@@ -62,6 +68,17 @@ pnpm paperclipai company import \
 ```sh
 pnpm paperclipai agent list
 pnpm paperclipai agent get <agent-id>
+```
+
+## Runtime and Triad Commands
+
+These newer commands use `--api-url` instead of the older `--api-base` flag.
+
+```sh
+pnpm paperclipai runtime status [--api-url http://localhost:3100]
+pnpm paperclipai triad status <issue-id> [--api-url http://localhost:3100] [--company-id <id>]
+pnpm paperclipai triad start --company-id <id> --title "..." --objective "..." --done-when "..." --target-folder <path>
+pnpm paperclipai triad rescue --issue-id <id> [--pr-url <url> --branch <branch> --commit <hash>] [--reviewer-verdict accepted|changes_requested] [--api-url http://localhost:3100]
 ```
 
 ## Approval Commands

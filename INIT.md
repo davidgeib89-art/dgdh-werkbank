@@ -58,20 +58,25 @@ Lies diese Docs in dieser Reihenfolge:
 4. `doc/plans/2026-03-24-dgdh-memory-learning-self-improvement-first-principles.md` - wie Firmengedachtnis, Lernen, Self-Learning und Self-Improving fuer DGDH wirklich zu lesen sind
 5. `doc/plans/2026-03-24-dgdh-soul-layer-and-boardmeeting-direction.md` - warum `SOUL.md` eine gemeinsame Wesensschicht ist und wie sie sich zu Rollen, Memory und Boardmeeting-Vision verhaelt
 6. `doc/plans/2026-03-24-dgdh-ai-trinity-and-operator-stack.md` - aktueller AI-Stack: David, Codex, Copilot, ChatGPT und Gemini sauber nach Rolle statt nach Marketingnamen gelesen
-7. `doc/plans/2026-03-21-dgdh-north-star-roadmap.md` - aktueller North Star; IMMER lesen
-8. `company-hq/ROADMAP.md` - Wo wir stehen, wo wir hinwollen, warum
+7. `doc/plans/2026-03-30-dgdh-predictive-delivery-doctrine.md` - aktuelle Delivery-Disziplin: Runtime-Truth vor Claims, kleiner beweisbarer naechster Schritt, Promotion erst nach echter Verifikation
+8. `doc/plans/2026-03-26-dgdh-roadmap-snapshot.md` - kuerzer aktueller Roadmap-Snapshot fuer die laufende Firmenstufe
 9. `company-hq/DGDH-CEO-CONTEXT.md` - Davids Prioritaeten und Entscheidungsregeln
 10. `company-hq/VISION.md` - Mission, Werte, Organisationsstruktur
 11. `SOUL.md` - gemeinsamer Wesensvertrag der DGDH-Agentenwelt
 12. `company-hq/souls/README.md` - wenn du Identitaet, Stimmen oder spaetere vererbbare Seelenprofile verstehen musst
+13. `doc/plans/2026-03-21-dgdh-north-star-roadmap.md` - strategische Tiefe und aelterer Ausbaukontext; nicht mehr die kuerzeste operative Einstiegskante
+14. `company-hq/ROADMAP.md` - historischer Bruecken-Read fuer den Firmenaufbau, nachrangig hinter `CORE.md`, Roadmap-Snapshot und Missionsdoctrine
 
 Wenn Dokumente sich widersprechen, gilt fuer die aktuelle operative Richtung zuerst:
-- `doc/plans/2026-03-21-dgdh-north-star-roadmap.md`
+- `CURRENT.md`
+- `company-hq/ACTIVE-MISSION.md`
+- `company-hq/CORE.md`
+- `doc/plans/2026-03-27-dgdh-mission-autonomy-doctrine.md`
+- `doc/plans/2026-03-30-dgdh-predictive-delivery-doctrine.md`
 
 Nur bei Bedarf (wenn deine Aufgabe es erfordert):
 - `company-hq/AI-CONTEXT-START-HERE.md` - vollstaendiger Doc-Index
 - `company-hq/DGDH-GEMINI-ENGINE-V1-2026-03-19.md` - Gemini Engine Spec
-- `CLAUDE.md` - Claude-spezifische Architektur-Details und Workflow
 - `doc/DGDH-AI-OPERATOR-RUNBOOK.md` - praktische Bedienungsanleitung fuer lokale Firmenruns und kanonische Run-Control
 - `EXECUTOR.md` - kompakter Regelkern fuer Copilot und andere ausfuehrende Langlauf-Agenten: Runtime-Truth, Port-/Process-Checks, Real-Run-Protokoll, Anti-Drift und Anti-`task_complete`-Loop
 - `TRINITY.md` - shared Vertrag fuer Davids direkte Assistenten: Codex, ChatGPT und Copilot
@@ -90,7 +95,7 @@ Nur bei Bedarf (wenn deine Aufgabe es erfordert):
 - Firmengedachtnis ist keine Chat-History-Suppe, sondern gestufte Kompression: Betriebszustand -> episodisch -> semantisch -> prozedural -> strategisch.
 - Governte Selbstverbesserung heisst jetzt: Mission, Budget, Blast Radius, Type-1-Grenzen, Research/Change/Eval/Promotion und erst danach PR-/Main-Promotion.
 - Wertschoepfung ist Treibstoff fuer mehr Quotas, Hardware, Unabhaengigkeit und spaetere groessere Symbiose-Projekte, nicht der Gott der Firma.
-- Die aktuelle AI-Trinity ist aus First Principles geschnitten: Codex/GPT-5.4 fuer Reflexion und Zuschnitt, Copilot fuer lange Coding-Sprints, ChatGPT fuer externe Gegenreflexion, Gemini fuer Reviewer-/Researcher-Arbeit.
+- Die aktuelle AI-Trinity ist aus First Principles geschnitten: Codex/GPT-5.4 fuer Reflexion, Zuschnitt und bounded Reviews, Copilot fuer lange Coding-Sprints, ChatGPT fuer externe Gegenreflexion, Gemini fuer Reviewer-/Researcher-Arbeit.
 - Die direkte David-Trinity hat jetzt durable Docks: `TRINITY.md` als shared Vertrag, dazu `CODEX.md`, `CHATGPT.md` und `COPILOT.md` als rollenscharfe Wiedereinstiege.
 - `SOUL.md` ist die gemeinsame Wesens- und Beziehungsschicht der Firma: warm, wahr, resonant, bounded und David-nah, ohne Rollenlogik oder Governance zu ersetzen.
 

@@ -15,10 +15,13 @@ That autonomy serves mission-bounded useful work and mission-bounded self-improv
 Target operating system:
 
 - David Geib: Auftraggeber, Vision, oversight, final approvals
-- Claude: strategy and planning
-- Codex: builder and executor
-- Gemini: reviewer, research, QA
 - Paperclip: company OS (governance, routing, memory, budgets, controls)
+- Copilot: primary execution lane for long coding and runtime-near delivery work
+- Codex / GPT-5.4: planning, reflection, bounded review, and narrow corrective coding when needed
+- ChatGPT / GPT-5.4: external counter-reflection and second-pass reasoning when helpful
+- Gemini: reviewer and research lane when that fit is useful
+
+Role allocation is chosen by present fit and current mission truth, not by older vendor-first hierarchy.
 
 Mission reading:
 
@@ -28,9 +31,8 @@ Mission reading:
 
 Build-phase clarification:
 
-- ChatGPT and Copilot were architecture/implementation partners during build phase.
-- ChatGPT and Copilot are not intended to be permanent roles in the final autonomous firm model.
-- Build-phase decisions must be translated into system governance enforceable by Paperclip.
+- The current direct-assistant layer is defined by `TRINITY.md`, the lane docks, and the active mission stack.
+- Build-phase learnings must be translated into governance enforceable by Paperclip, not left as role folklore.
 
 ## 3. Human Authority
 
@@ -108,4 +110,4 @@ If documents conflict, precedence is:
 2. Budget policy
 3. Escalation matrix
 4. Task brief
-5. Role profiles
+5. Active mission contracts and current lane docks

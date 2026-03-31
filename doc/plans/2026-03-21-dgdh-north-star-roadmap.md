@@ -1,12 +1,12 @@
 # DGDH North Star Roadmap
 
 Date: 2026-03-21
-Status: Aktuelle Leitlinie / immer lesen
+Status: Strategische Tiefenreferenz; nicht mehr die kuerzeste operative Einstiegskante
 Audience: David + jede AI, die in diesem Repo arbeitet
 
 ## 1. Wozu dieses Dokument da ist
 
-Dieses Dokument ist der aktuelle North Star fuer DGDH.
+Dieses Dokument ist ein strategischer North-Star-Read fuer DGDH.
 
 Es beschreibt:
 
@@ -15,13 +15,14 @@ Es beschreibt:
 - welche Reihenfolge beim Ausbau gilt
 - welche Dinge explizit **noch nicht** gebaut werden sollen
 
-Wenn andere Dokumente aeltere Richtungen enthalten, gilt fuer die aktuelle Ausbaustufe:
+Wenn andere Dokumente aeltere Richtungen enthalten, gilt fuer die aktuelle operative Richtung zuerst:
 
-> Dieses Dokument gewinnt fuer die operative Richtung.
+> `CURRENT.md` -> `company-hq/ACTIVE-MISSION.md` -> `company-hq/CORE.md` -> Missions- und Delivery-Doctrines aus `doc/plans/2026-03-27...` und `doc/plans/2026-03-30...`
 
 Doctrine update 2026-03-27:
 - `company-hq/CORE.md` ist die kuerzeste Verdichtung des Firmenherzens
 - `doc/plans/2026-03-27-dgdh-mission-autonomy-doctrine.md` praezisiert die naechste Firmenstufe
+- `doc/plans/2026-03-30-dgdh-predictive-delivery-doctrine.md` praezisiert die aktuelle Delivery-Disziplin
 - der North Star bleibt derselbe, aber die Firma liest Selbstverbesserung nun explizit als mission-bounded Firmenmodus statt nur als spaeteres diffuses Add-on
 - naechste operative Korrektur: bevor weitere Live-Beweise, Dashboard-Sprints oder neue Missionen wieder auf demselben Runtime-Sumpf laufen, beginnt die naechste Firmenmission mit Company-Cleanup
 

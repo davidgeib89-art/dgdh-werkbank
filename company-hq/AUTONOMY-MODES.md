@@ -2,7 +2,7 @@
 
 Version: 1.1
 
-> **Aktueller Stand (2026-03-22):** Nur Mode 1 (Supervised Build) und Mode 2 (Bounded Autonomy) sind aktiv. Mode 3 (Mission Operations) ist definiert aber noch nicht aktiviert.
+> **Aktueller Stand (2026-03-31):** Mode 3 ist aktiv als governte Mission-Autonomie. Die Firma arbeitet nicht in freier Vollautonomie, sondern in mission-bounded Packets mit Budget-, Review-, und Escalation-Grenzen.
 
 ## Mode 1: Supervised Build
 
@@ -63,11 +63,11 @@ Approval model:
 - policy-based approval for standard packet types
 - human approval for scope expansion or elevated risk
 
-## Mode 3: Mission Operations
+## Mode 3: Mission Operations / Mission Autonomy
 
 Purpose:
 
-- Longer autonomous stretches for well-defined mission queues.
+- Longer autonomous stretches for well-defined mission queues and mission cells.
 
 Allowed:
 
@@ -92,11 +92,12 @@ Approval model:
 
 - mission-level pre-approval with strict packet rules
 - immediate escalation for non-standard operations
+- review/eval/promotion before broadening the blast radius
 
 ## Mode Switching Rules
 
 - Only David can switch global mode.
-- Claude can recommend mode changes with rationale.
+- Planning or review lanes can recommend mode changes with rationale.
 - Paperclip must record mode changes with timestamp and actor.
 
 ## Mode Safety Invariants

@@ -19,7 +19,8 @@ Paperclip is a monorepo with four main layers.
 │  Schema, migrations, embedded mode  │
 ├─────────────────────────────────────┤
 │  Adapters                           │
-│  Claude Local, Codex Local,         │
+│  Claude, Codex, Gemini, OpenCode,   │
+│  Cursor, PI, Hermes, OpenClaw,      │
 │  Process, HTTP                      │
 └─────────────────────────────────────┘
 ```
@@ -30,9 +31,9 @@ Paperclip is a monorepo with four main layers.
 |-------|-----------|
 | Frontend | React 19, Vite 6, React Router 7, Radix UI, Tailwind CSS 4, TanStack Query |
 | Backend | Node.js 20+, Express.js 5, TypeScript |
-| Database | PostgreSQL 17 (or embedded PGlite), Drizzle ORM |
+| Database | PostgreSQL 17 (embedded-postgres locally by default, or external Postgres), Drizzle ORM |
 | Auth | Better Auth (sessions + API keys) |
-| Adapters | Claude Code CLI, Codex CLI, shell process, HTTP webhook |
+| Adapters | Local coding CLIs, OpenClaw Gateway, shell process, HTTP webhook |
 | Package manager | pnpm 9 with workspaces |
 
 ## Repository Structure
@@ -57,7 +58,9 @@ paperclip/
 │   ├── adapter-utils/           # Adapter interfaces and helpers
 │   └── adapters/
 │       ├── claude-local/        # Claude Code adapter
-│       └── codex-local/         # OpenAI Codex adapter
+│       ├── codex-local/         # OpenAI Codex adapter
+│       ├── openclaw-gateway/    # OpenClaw gateway adapter
+│       └── ...                  # other runtime adapters
 │
 ├── skills/                      # Agent skills
 │   └── paperclip/               # Core Paperclip skill (heartbeat protocol)
@@ -65,7 +68,8 @@ paperclip/
 ├── cli/                         # CLI client
 │   └── src/                     # Setup and control-plane commands
 │
-└── doc/                         # Internal documentation
+├── docs/                        # Public product/reference docs
+└── doc/                         # DGDH/internal doctrine, runbooks, plans
 ```
 
 ## Request Flow
@@ -87,7 +91,7 @@ Adapters are the bridge between Paperclip and agent runtimes. Each adapter is a 
 - **UI module** — stdout parser for the run viewer, config form fields for agent creation
 - **CLI module** — terminal formatter for `paperclipai run --watch`
 
-Built-in adapters: `claude_local`, `codex_local`, `process`, `http`. You can create custom adapters for any runtime.
+Built-in adapters include `claude_local`, `codex_local`, `gemini_local`, `opencode_local`, `pi_local`, `cursor`, `openclaw_gateway`, `hermes_local`, `process`, and `http`. You can create custom adapters for any runtime.
 
 ## Key Design Decisions
 
@@ -95,4 +99,4 @@ Built-in adapters: `claude_local`, `codex_local`, `process`, `http`. You can cre
 - **Company-scoped** — all entities belong to exactly one company; strict data boundaries
 - **Single-assignee tasks** — atomic checkout prevents concurrent work on the same task
 - **Adapter-agnostic** — any runtime that can call an HTTP API works as an agent
-- **Embedded by default** — zero-config local mode with embedded PostgreSQL
+- **Embedded by default** — zero-config local mode with embedded Postgres

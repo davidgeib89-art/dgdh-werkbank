@@ -21,8 +21,11 @@ When a heartbeat fires, Paperclip:
 | [Claude Local](/adapters/claude-local) | `claude_local` | Runs Claude Code CLI locally |
 | [Codex Local](/adapters/codex-local) | `codex_local` | Runs OpenAI Codex CLI locally |
 | [Gemini Local](/adapters/gemini-local) | `gemini_local` | Runs Gemini CLI locally |
+| Cursor Local | `cursor` | Runs Cursor's local agent path |
 | OpenCode Local | `opencode_local` | Runs OpenCode CLI locally (multi-provider `provider/model`) |
-| OpenClaw | `openclaw` | Sends wake payloads to an OpenClaw webhook |
+| PI Local | `pi_local` | Runs the local PI adapter path |
+| OpenClaw Gateway | `openclaw_gateway` | Connects to OpenClaw through the gateway transport |
+| Hermes Local | `hermes_local` | Runs the local Hermes adapter path |
 | [Process](/adapters/process) | `process` | Executes arbitrary shell commands |
 | [HTTP](/adapters/http) | `http` | Sends webhooks to external agents |
 
@@ -55,7 +58,8 @@ Three registries consume these modules:
 
 ## Choosing an Adapter
 
-- **Need a coding agent?** Use `claude_local`, `codex_local`, `gemini_local`, or `opencode_local`
+- **Need a coding agent?** Use one of the local coding adapters such as `claude_local`, `codex_local`, `gemini_local`, `opencode_local`, `cursor`, `pi_local`, or `hermes_local`
 - **Need to run a script or command?** Use `process`
 - **Need to call an external service?** Use `http`
+- **Need OpenClaw?** Use `openclaw_gateway` — the legacy `openclaw` adapter path is no longer the supported product surface
 - **Need something custom?** [Create your own adapter](/adapters/creating-an-adapter)
