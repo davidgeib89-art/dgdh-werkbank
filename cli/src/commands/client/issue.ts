@@ -6,6 +6,11 @@ import {
   updateIssueSchema,
   type Issue,
   type IssueComment,
+  type IssueExecutionPacketTruth,
+  type CompanyRunChain,
+  type CompanyRunChainChild,
+  type CompanyRunChainParentBlocker,
+  type CompanyRunChainReviewerWakeStatus,
 } from "@paperclipai/shared";
 import {
   addCommonClientOptions,
@@ -15,6 +20,7 @@ import {
   resolveCommandContext,
   type BaseClientOptions,
 } from "./common.js";
+import pc from "picocolors";
 
 interface IssueBaseOptions extends BaseClientOptions {
   status?: string;
@@ -333,47 +339,351 @@ export function registerIssueCommands(program: Command): void {
 
   addCommonClientOptions(
     issue
-      .command("archive-stale")
-      .description("Archive stale issues (todo/blocked not updated in N days)")
-      .option("-C, --company-id <id>", "Company ID (or set PAPERCLIP_COMPANY_ID env var)")
-      .requiredOption("--older-than <days>", "Archive issues not updated for more than N days")
-      .option("--dry-run", "Print what would be archived without archiving")
-      .action(async (opts: IssueArchiveStaleOptions) => {
+      .command("liveness")
+      .description("Show liveness diagnosis for an issue (packet truth, chain truth, active run)")
+      .argument("<issueId>", "Issue ID or identifier (e.g., PC-12)")
+      .action(async (issueId: string, opts: BaseClientOptions) => {
         try {
-          const ctx = resolveCommandContext(opts, { requireCompany: true });
-          const daysOld = Number.parseInt(opts.olderThan, 10);
-          if (!Number.isFinite(daysOld) || daysOld <= 0) {
-            throw new Error(`Invalid --older-than value: ${opts.olderThan}. Must be a positive integer.`);
+          const ctx = resolveCommandContext(opts);
+
+          // Fetch all three truth surfaces in parallel
+          const [issueData, chainData, activeRunData] = await Promise.all([
+            ctx.api.get<Issue>(`/api/issues/${issueId}`),
+            ctx.api.get<CompanyRunChain>(`/api/issues/${issueId}/company-run-chain`),
+            ctx.api.get<ActiveRunResponse | null>(`/api/issues/${issueId}/active-run`),
+          ]);
+
+          if (!issueData) {
+            throw new Error(`Issue not found: ${issueId}`);
           }
 
-          const payload = {
-            daysOld,
-            dryRun: Boolean(opts.dryRun),
-          };
+          const output = buildLivenessOutput(issueData, chainData, activeRunData);
 
-          const result = await ctx.api.post<{ archived: number; issueIds: string[] }>(
-            `/api/companies/${ctx.companyId}/issues/archive-stale`,
-            payload,
-          );
-
-          if (result == null) {
-            throw new Error("Archive-stale API returned null response");
+          if (ctx.json) {
+            printOutput(output, { json: true });
+            return;
           }
 
-          if (opts.dryRun) {
-            console.log(`Would archive ${result.issueIds.length} issues:`);
-            for (const issueId of result.issueIds) {
-              console.log(issueId);
-            }
-          } else {
-            console.log(`Archived ${result.archived} issues`);
-          }
+          printLivenessHumanReadable(output, issueId);
         } catch (err) {
           handleCommandError(err);
         }
       }),
-    { includeCompany: false },
   );
+}
+
+// Types for active-run response
+interface ActiveRunResponse {
+  id: string;
+  status: string;
+  startedAt: string | null;
+  finishedAt: string | null;
+  agentId: string | null;
+  agentName: string | null;
+}
+
+// Output structure for liveness command
+interface LivenessOutput {
+  issueId: string;
+  issueIdentifier: string | null;
+  issueTitle: string;
+  issueStatus: string;
+  packetTruth: {
+    status: string;
+    ready: boolean;
+    artifactKind: string | null;
+    targetFile: string | null;
+    targetFolder: string | null;
+    reasonCodes: string[];
+    triad: {
+      ceoCutStatus: string;
+      workerPacket: {
+        source: string;
+        goal: string | null;
+        scope: string | null;
+        doneWhen: string | null;
+      };
+      reviewerPacket: {
+        source: string;
+        focus: string | null;
+        acceptWhen: string | null;
+        changeWhen: string | null;
+      };
+    } | null;
+  } | null;
+  chainTruth: {
+    parentIssueId: string;
+    parentIdentifier: string | null;
+    parentTitle: string;
+    parentStatus: string;
+    focusIssueId: string | null;
+    parentBlocker: CompanyRunChainParentBlocker | null;
+    children: ChainChildOutput[];
+    classification: "not-started" | "running" | "stalled" | "completed";
+  } | null;
+  activeRun: {
+    status: "running" | "not-active";
+    runId: string | null;
+    startedAt: string | null;
+    agentId: string | null;
+    agentName: string | null;
+  } | null;
+}
+
+interface ChainChildOutput {
+  issueId: string;
+  identifier: string | null;
+  title: string;
+  status: string;
+  assigneeAgentId: string | null;
+  assigneeAgentName: string | null;
+  triadState: string;
+  reviewerWakeStatus: CompanyRunChainReviewerWakeStatus;
+  isStalled: boolean;
+  stallType: "reviewer-stalled" | "closeout-blocked" | null;
+  closeoutBlocker: CompanyRunChainParentBlocker | null;
+  rescueCommand: string | null;
+}
+
+function buildLivenessOutput(
+  issue: Issue,
+  chain: CompanyRunChain | null,
+  activeRun: ActiveRunResponse | null,
+): LivenessOutput {
+  // Build packet truth section
+  const packetTruth = issue.executionPacketTruth
+    ? {
+        status: issue.executionPacketTruth.status,
+        ready: issue.executionPacketTruth.ready,
+        artifactKind: issue.executionPacketTruth.artifactKind,
+        targetFile: issue.executionPacketTruth.targetFile,
+        targetFolder: issue.executionPacketTruth.targetFolder,
+        reasonCodes: issue.executionPacketTruth.reasonCodes,
+        triad: issue.executionPacketTruth.triad
+          ? {
+              ceoCutStatus: issue.executionPacketTruth.triad.ceoCutStatus,
+              workerPacket: {
+                source: issue.executionPacketTruth.triad.workerPacket.source,
+                goal: issue.executionPacketTruth.triad.workerPacket.goal,
+                scope: issue.executionPacketTruth.triad.workerPacket.scope,
+                doneWhen: issue.executionPacketTruth.triad.workerPacket.doneWhen,
+              },
+              reviewerPacket: {
+                source: issue.executionPacketTruth.triad.reviewerPacket.source,
+                focus: issue.executionPacketTruth.triad.reviewerPacket.focus,
+                acceptWhen: issue.executionPacketTruth.triad.reviewerPacket.acceptWhen,
+                changeWhen: issue.executionPacketTruth.triad.reviewerPacket.changeWhen,
+              },
+            }
+          : null,
+      }
+    : null;
+
+  // Build chain truth section
+  let chainTruth: LivenessOutput["chainTruth"] = null;
+  if (chain) {
+    const children: ChainChildOutput[] = chain.children.map((child) => {
+      const isStalled =
+        child.triad.reviewerWakeStatus === "stalled" || child.triad.closeoutBlocker !== null;
+      let stallType: ChainChildOutput["stallType"] = null;
+      if (isStalled) {
+        if (child.triad.reviewerWakeStatus === "stalled") {
+          stallType = "reviewer-stalled";
+        } else if (child.triad.closeoutBlocker !== null) {
+          stallType = "closeout-blocked";
+        }
+      }
+
+      return {
+        issueId: child.issueId,
+        identifier: child.identifier,
+        title: child.title,
+        status: child.status,
+        assigneeAgentId: child.assigneeAgentId,
+        assigneeAgentName: child.assigneeAgentName,
+        triadState: child.triad.state,
+        reviewerWakeStatus: child.triad.reviewerWakeStatus,
+        isStalled,
+        stallType,
+        closeoutBlocker: child.triad.closeoutBlocker,
+        rescueCommand: isStalled
+          ? `paperclipai triad rescue ${child.issueId}`
+          : null,
+      };
+    });
+
+    // Classify the overall chain state
+    let classification: LivenessOutput["chainTruth"]["classification"] = "not-started";
+    if (children.length === 0) {
+      classification = activeRun ? "running" : "not-started";
+    } else {
+      const hasStalled = children.some((c) => c.isStalled);
+      const hasRunning = children.some((c) => c.triadState === "in_execution");
+      const allCompleted = children.every(
+        (c) => c.triadState === "ready_to_promote" || c.triadState === "merged",
+      );
+
+      if (hasStalled) {
+        classification = "stalled";
+      } else if (allCompleted) {
+        classification = "completed";
+      } else if (hasRunning || activeRun) {
+        classification = "running";
+      }
+    }
+
+    chainTruth = {
+      parentIssueId: chain.parentIssueId,
+      parentIdentifier: chain.parentIdentifier,
+      parentTitle: chain.parentTitle,
+      parentStatus: chain.parentStatus,
+      focusIssueId: chain.focusIssueId,
+      parentBlocker: chain.parentBlocker,
+      children,
+      classification,
+    };
+  }
+
+  // Build active-run section
+  const activeRunOutput: LivenessOutput["activeRun"] = activeRun
+    ? {
+        status: activeRun.status === "running" ? "running" : "not-active",
+        runId: activeRun.id,
+        startedAt: activeRun.startedAt,
+        agentId: activeRun.agentId,
+        agentName: activeRun.agentName,
+      }
+    : { status: "not-active", runId: null, startedAt: null, agentId: null, agentName: null };
+
+  return {
+    issueId: issue.id,
+    issueIdentifier: issue.identifier,
+    issueTitle: issue.title,
+    issueStatus: issue.status,
+    packetTruth,
+    chainTruth,
+    activeRun: activeRunOutput,
+  };
+}
+
+function printLivenessHumanReadable(output: LivenessOutput, issueIdOrRef: string): void {
+  console.log(pc.bold(`Liveness: ${output.issueIdentifier ?? output.issueId} - ${output.issueTitle}`));
+  console.log(`Status: ${output.issueStatus}`);
+  console.log("");
+
+  // Packet Truth Section
+  console.log(pc.bold("═ PACKET TRUTH ════════════════════════════════════════════════════════════════"));
+  if (output.packetTruth) {
+    console.log(`Status: ${output.packetTruth.ready ? pc.green("ready") : pc.yellow(output.packetTruth.status)}`);
+    console.log(`Artifact Kind: ${output.packetTruth.artifactKind ?? "-"}`);
+    console.log(`Target File: ${output.packetTruth.targetFile ?? "-"}`);
+    console.log(`Target Folder: ${output.packetTruth.targetFolder ?? "-"}`);
+
+    // Always show reasonCodes (never suppress diagnostic state)
+    if (output.packetTruth.reasonCodes.length > 0) {
+      console.log(`Reason Codes: ${output.packetTruth.reasonCodes.join(", ")}`);
+    }
+
+    if (output.packetTruth.triad) {
+      console.log("");
+      console.log(pc.dim("Triad:"));
+      console.log(`  CEO Cut: ${output.packetTruth.triad.ceoCutStatus}`);
+      console.log(`  Worker Packet:`);
+      console.log(`    Source: ${output.packetTruth.triad.workerPacket.source}`);
+      console.log(`    Goal: ${output.packetTruth.triad.workerPacket.goal ?? "-"}`);
+      console.log(`    Scope: ${output.packetTruth.triad.workerPacket.scope ?? "-"}`);
+      console.log(`    Done When: ${output.packetTruth.triad.workerPacket.doneWhen ?? "-"}`);
+      console.log(`  Reviewer Packet:`);
+      console.log(`    Source: ${output.packetTruth.triad.reviewerPacket.source}`);
+      console.log(`    Focus: ${output.packetTruth.triad.reviewerPacket.focus ?? "-"}`);
+      console.log(`    Accept When: ${output.packetTruth.triad.reviewerPacket.acceptWhen ?? "-"}`);
+      console.log(`    Change When: ${output.packetTruth.triad.reviewerPacket.changeWhen ?? "-"}`);
+    }
+  } else {
+    console.log(pc.dim("(no packet truth available)"));
+  }
+  console.log("");
+
+  // Chain Truth Section
+  console.log(pc.bold("═ CHAIN TRUTH ═══════════════════════════════════════════════════════════════"));
+  if (output.chainTruth) {
+    console.log(`Parent: ${output.chainTruth.parentIdentifier ?? output.chainTruth.parentIssueId}`);
+    console.log(`Classification: ${formatClassification(output.chainTruth.classification)}`);
+
+    if (output.chainTruth.parentBlocker) {
+      console.log(pc.yellow("⚠ Parent Blocker Present"));
+      console.log(`  Class: ${output.chainTruth.parentBlocker.blockerClass ?? "-"}`);
+      console.log(`  State: ${output.chainTruth.parentBlocker.blockerState ?? "-"}`);
+      console.log(`  Summary: ${output.chainTruth.parentBlocker.summary ?? "-"}`);
+    }
+
+    if (output.chainTruth.children.length === 0) {
+      console.log(pc.dim("(no children - not-started)"));
+    } else {
+      console.log("");
+      console.log(pc.dim(`Children (${output.chainTruth.children.length}):`));
+      for (const child of output.chainTruth.children) {
+        const stallIndicator = child.isStalled ? pc.red(" [STALLED]") : "";
+        console.log(`  ${child.identifier ?? child.issueId}: ${child.title}${stallIndicator}`);
+        console.log(`    Status: ${child.status}, Triad: ${child.triadState}`);
+        console.log(`    Assignee: ${child.assigneeAgentName ?? child.assigneeAgentId ?? "-"}`);
+
+        // Never suppress reviewerWakeStatus (diagnostic state)
+        if (child.reviewerWakeStatus) {
+          console.log(`    Reviewer Wake: ${child.reviewerWakeStatus}`);
+        }
+
+        if (child.isStalled) {
+          console.log(pc.red(`    Stall Type: ${child.stallType}`));
+          if (child.closeoutBlocker) {
+            console.log(pc.red(`    Closeout Blocker:`));
+            console.log(pc.red(`      Class: ${child.closeoutBlocker.blockerClass ?? "-"}`));
+            console.log(pc.red(`      State: ${child.closeoutBlocker.blockerState ?? "-"}`));
+            console.log(pc.red(`      Summary: ${child.closeoutBlocker.summary ?? "-"}`));
+          }
+          if (child.rescueCommand) {
+            console.log(pc.cyan(`    → Rescue: ${child.rescueCommand}`));
+          }
+        }
+        console.log("");
+      }
+    }
+  } else {
+    console.log(pc.dim("(no chain data available)"));
+  }
+  console.log("");
+
+  // Active Run Section
+  console.log(pc.bold("═ ACTIVE RUN ════════════════════════════════════════════════════════════════"));
+  if (output.activeRun) {
+    if (output.activeRun.status === "running") {
+      console.log(`Status: ${pc.green("running")}`);
+      console.log(`Run ID: ${output.activeRun.runId ?? "-"}`);
+      console.log(`Started: ${output.activeRun.startedAt ?? "-"}`);
+      console.log(`Agent: ${output.activeRun.agentName ?? output.activeRun.agentId ?? "-"}`);
+    } else {
+      console.log(`Status: ${pc.dim("not-active")}`);
+    }
+  } else {
+    console.log(pc.dim("(no active run)"));
+  }
+}
+
+function formatClassification(
+  classification: LivenessOutput["chainTruth"]["classification"],
+): string {
+  switch (classification) {
+    case "not-started":
+      return pc.dim("not-started");
+    case "running":
+      return pc.blue("running");
+    case "stalled":
+      return pc.red("STALLED");
+    case "completed":
+      return pc.green("completed");
+    default:
+      return classification;
+  }
 }
 
 function parseCsv(value: string | undefined): string[] {

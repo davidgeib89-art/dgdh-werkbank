@@ -1,0 +1,7 @@
+{
+  "featureId": "cli-liveness-live-verify",
+  "status": "pass",
+  "issues": [],
+  "sharedStateObservations": [],
+  "summary": "Feature successfully verified liveness command against live Paperclip runtime. Runtime started on :3100, health check passed, triad issue created with packet truth populated, and liveness command correctly displayed 'not-started' state for fresh unassigned issue. All 20 liveness unit tests passed and CLI build succeeded."
+}

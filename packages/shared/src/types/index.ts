@@ -66,6 +66,7 @@ export type {
   IssueTriadWorkerPacketTruth,
   CompanyRunChain,
   CompanyRunChainChild,
+  CompanyRunChainReviewerWakeStatus,
   CompanyRunChainReviewerVerdictTruth,
   CompanyRunChainStage,
   CompanyRunChainStageKey,

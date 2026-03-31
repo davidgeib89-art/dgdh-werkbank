@@ -91,3 +91,4 @@ None. This worker handles CLI implementation directly.
 - Typecheck or build fails with errors outside your changes
 - Test infrastructure issues (missing mocks, etc.)
 - The feature description says "show status" or similar but does not specify which domain states must be preserved
+- Runtime on :3100 cannot be started and the feature requires a live server

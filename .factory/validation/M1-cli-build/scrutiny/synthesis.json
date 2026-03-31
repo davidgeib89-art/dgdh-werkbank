@@ -1,0 +1,37 @@
+{
+  "milestone": "M1-cli-build",
+  "round": 1,
+  "status": "pass",
+  "validatorsRun": {
+    "test": {
+      "passed": true,
+      "command": "pnpm test:run",
+      "exitCode": 0,
+      "details": "All 906 tests passed (cli/src/__tests__/issue-liveness.test.ts: 20 tests, cli/src/__tests__/issue-archive-stale-command.test.ts: 6 tests)"
+    },
+    "typecheck": {
+      "passed": true,
+      "command": "pnpm -r typecheck",
+      "exitCode": 0,
+      "details": "TypeScript typecheck passed across all packages"
+    },
+    "build": {
+      "passed": true,
+      "command": "pnpm build",
+      "exitCode": 0,
+      "details": "Build completed successfully for all packages"
+    }
+  },
+  "reviewsSummary": {
+    "total": 1,
+    "passed": 1,
+    "failed": 0,
+    "failedFeatures": []
+  },
+  "blockingIssues": [],
+  "appliedUpdates": [],
+  "suggestedGuidanceUpdates": [],
+  "rejectedObservations": [],
+  "previousRound": null,
+  "summary": "Scrutiny validation for M1-cli-build milestone completed successfully. All validators passed (test, typecheck, build). The cli-liveness-command feature was reviewed and passed all validation contract assertions (VAL-CLI-001 through VAL-CLI-014 and VAL-CROSS-001). The implementation correctly combines three truth surfaces (packet truth, chain truth, active run) into one operator-facing view with distinct sections and proper state classification. No blocking issues were found."
+}

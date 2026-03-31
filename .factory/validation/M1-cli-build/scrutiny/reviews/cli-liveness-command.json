@@ -1,0 +1,51 @@
+{
+  "featureId": "cli-liveness-command",
+  "reviewedAt": "2026-03-31T08:00:00.000Z",
+  "commitId": "2d9e5c3",
+  "transcriptSkeletonReviewed": true,
+  "diffReviewed": true,
+  "status": "pass",
+  "codeReview": {
+    "summary": "The implementation successfully adds the `paperclipai issue liveness <id>` command that combines three independent truth surfaces (packet truth, chain truth, active run) into one operator-facing view. The code is well-structured, follows existing CLI patterns, and all 20 tests pass. The implementation correctly fulfills all 14 validation contract assertions plus the cross-area flow assertion.",
+    "issues": []
+  },
+  "sharedStateObservations": [
+    {
+      "area": "conventions",
+      "observation": "The worker correctly followed the CLI command pattern established in the codebase: using addCommonClientOptions, resolveCommandContext, printOutput, and handleCommandError from common.js. The command integrates seamlessly with the existing issue command group.",
+      "evidence": "cli/src/commands/client/issue.ts:378-408 - liveness command follows same pattern as other issue commands (list, get, create, etc.)"
+    },
+    {
+      "area": "conventions",
+      "observation": "The implementation correctly uses ESM imports with .js extensions and TypeScript strict mode as required by AGENTS.md.",
+      "evidence": "All imports in issue.ts use .js extensions (e.g., './common.js'). Typecheck passes with no errors."
+    },
+    {
+      "area": "conventions",
+      "observation": "The worker correctly wrote tests first (TDD) as specified in the cli-worker skill, creating comprehensive test coverage before implementation.",
+      "evidence": "Transcript shows test file created before implementation edits. 20 tests covering all validation assertions."
+    },
+    {
+      "area": "skills",
+      "observation": "The worker followed the cli-worker skill procedure: read existing patterns, wrote tests first, implemented the command, verified with typecheck and build.",
+      "evidence": "Handoff verification shows: 20 tests passed, typecheck clean, build successful. All steps from SKILL.md completed."
+    },
+    {
+      "area": "knowledge",
+      "observation": "The implementation correctly preserves explicit domain states as required by the validation contract and skill guidelines. It does not silently map non-running states to generic labels - 'not-started', 'stalled', 'running', 'completed' are all explicitly preserved.",
+      "evidence": "issue.ts:556-580 - classification logic explicitly handles all four states (not-started, running, stalled, completed) without collapsing them"
+    },
+    {
+      "area": "knowledge",
+      "observation": "The implementation correctly never suppresses diagnostic state (reasonCodes, stalled state, closeoutBlocker, packet-readiness) as specified in VAL-CLI-014.",
+      "evidence": "issue.ts:642-644 - reasonCodes always shown if present. issue.ts:694-696 - reviewerWakeStatus always shown. issue.ts:699-706 - closeoutBlocker details shown for stalled children."
+    },
+    {
+      "area": "knowledge",
+      "observation": "The three truth surfaces are kept independent and non-collapsed as required by VAL-CROSS-001. There is no single 'liveness: ok/fail' summary.",
+      "evidence": "issue.ts:610-740 - printLivenessHumanReadable shows three distinct sections: PACKET TRUTH, CHAIN TRUTH, ACTIVE RUN. issue.ts:493-553 - buildLivenessOutput keeps three independent data structures."
+    }
+  ],
+  "addressesFailureFrom": null,
+  "summary": "The cli-liveness-command feature is fully implemented and meets all requirements. The command fetches three truth surfaces in parallel (packet truth from /api/issues/:id, chain truth from /api/issues/:id/company-run-chain, active run from /api/issues/:id/active-run) and displays them in distinct sections. Human-readable output has clear section labels with color-coded status. JSON mode returns parseable structured data. The implementation correctly classifies 'not-started' vs 'stalled' vs 'running' vs 'completed' states. Rescue commands are shown for stalled children. Diagnostic state (reasonCodes, closeoutBlocker, reviewerWakeStatus) is never suppressed. All 14 CLI validation assertions plus the cross-area flow assertion are satisfied. Code quality is high with proper TypeScript typing, error handling, and comprehensive test coverage (20 tests). Typecheck and build pass successfully."
+}

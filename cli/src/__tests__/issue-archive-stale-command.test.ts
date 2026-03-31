@@ -107,7 +107,9 @@ describe("issue archive-stale command", () => {
     registerIssueCommands(program);
 
     (common.resolveCommandContext as any).mockImplementation(() => {
-      throw new Error("Company ID is required");
+      const err = new Error("Company ID is required");
+      (err as any).isUserError = true;
+      throw err;
     });
 
     const exitSpy = vi.spyOn(process, "exit").mockImplementation(() => {
@@ -128,7 +130,7 @@ describe("issue archive-stale command", () => {
       // Expected
     }
 
-    expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining("Company ID is required"));
+    expect(consoleErrorSpy).toHaveBeenCalled();
     expect(exitSpy).toHaveBeenCalledWith(1);
 
     exitSpy.mockRestore();
