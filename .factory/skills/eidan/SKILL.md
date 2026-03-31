@@ -69,6 +69,21 @@ Not for:
 - Make incremental commits with clear messages
 - Do NOT exceed bounded scope from packet
 
+### 3.3 Local read-loop breaker
+
+Do not get trapped rereading the same narrow code slice.
+
+- If you read the same file slice more than twice with the same or near-identical offset/limit, stop repeating the read.
+- First write a one- or two-sentence summary of what that slice already proved.
+- Then choose a different action:
+  - read an adjacent slice
+  - grep for the exact symbol you still need
+  - inspect the related test or caller
+  - make the smallest edit or run the next bounded verification
+- If you still cannot move after that, return to the orchestrator with the exact file, region, and unresolved uncertainty.
+
+Treat repeated same-slice reads as an `applicability / harness failure` warning, not as useful progress.
+
 ### 3.1 Paperclip command discipline
 
 When the task touches Paperclip runtime / triad / issue execution:
@@ -211,6 +226,7 @@ Return immediately if:
 - canonical child ID in `validation-state.json` cannot be reconciled with live API truth
 - canonical review target cannot be reconciled between handoff and live API
 - Any step fails with unclear resolution path
+- you hit a local read-loop and cannot break it with one summary plus one different action
 
 Do NOT exceed 3 retry attempts on any API call. Escalate instead.
 

@@ -177,3 +177,17 @@ states what is fundamentally true, and says what changes when you act on that tr
 **What changes:** Mission setup needs its own completion rule. After proposal approval and artifact creation, the orchestrator should either finish the last setup check and call `StartMissionRun` in the same turn, or stop with one exact blocker. Verification prep text is not progress.
 
 **Durable rule:** Treat `mission dir exists` + core artifacts present + no `state.json` as an incomplete setup error state. Do not pause there. Finish setup immediately or report the exact blocker.
+
+---
+
+## Mission: triad-packet-and-closeout-boringness-v1 worker read-loop wobble (2026-03-31)
+
+### Assumption 11: "Rereading the same code slice is harmless thinking time"
+
+**What was assumed:** If a worker is still reading, it is still making progress, even if the reads are nearly identical.
+
+**What is provably true:** A worker can get stuck rereading the same narrow file slice after a truncation or local context wobble. In this mission, the worker repeatedly read the same region of `server/src/routes/issues.ts` before recovering. It did not hard-fail, but it burned time and tokens without adding new evidence.
+
+**What changes:** This should not be treated as a reason to abort the worker immediately. It needs a soft loop breaker: after two same-slice reads, summarize what is already known, force one different action, and only escalate if the loop still persists.
+
+**Durable rule:** Same-slice read repetition is a small `applicability / harness failure` signal. Workers should break it with one summary plus one different move before returning blocked.

@@ -42,6 +42,21 @@ For every new behavior, write the test before the implementation:
 3. Add TypeScript types for all new parameters and return values
 4. Run `pnpm vitest run server/src/__tests__/<file>.test.ts` again and confirm tests PASS
 
+### Step 2.1: Break local read loops softly
+
+Repeatedly rereading the same code slice is not progress.
+
+- Do not read the same file slice more than twice with the same or near-identical offset/limit.
+- After the second same-slice read:
+  1. summarize in one or two sentences what that slice already proved
+  2. take one different action:
+     - read the adjacent region
+     - grep for the exact symbol
+     - inspect the test that exercises it
+     - inspect the caller or helper
+     - make the smallest candidate edit
+- If one alternate move still does not unblock you, return to the orchestrator instead of spending more time in a read loop.
+
 ### Step 3: Validate touched files and typecheck
 1. Run only the directly touched test files: `pnpm vitest run server/src/__tests__/<touched-file>.test.ts` — must pass
 2. `pnpm -r typecheck` — must exit 0 with no errors
@@ -124,5 +139,6 @@ Return when:
 - Scope requires touching files outside the approved list in AGENTS.md
 - A discovered issue is blocking and requires a different approach than specified
 - `git log --oneline -1` does not show your commit after `git commit` (HEAD drift — do not guess)
+- the same file slice keeps being reread after one forced alternate move (local read-loop)
 
 **Pausing rule**: If you must pause before completing a feature, write the exact reason in `whatWasLeftUndone` before pausing. "Pausing to think" is not a reason. State what was done, what the next concrete step is, and what specific uncertainty caused the pause.

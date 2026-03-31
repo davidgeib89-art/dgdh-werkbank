@@ -55,6 +55,20 @@ Not for:
 - Do NOT exceed bounded scope from packet
 - If scope ambiguity arises, make reasonable bounded choice and document
 
+### Local read-loop breaker
+
+When local code navigation starts wobbling:
+
+- do not read the same file slice more than twice with the same or nearly the same offset/limit
+- after the second same-slice read, summarize what that region already proved
+- then force one different move:
+  - different slice
+  - symbol grep
+  - related test
+  - related caller
+  - first bounded edit
+- if that still does not resolve the uncertainty, return blocked with the exact file region and open question instead of spending more minutes in a read loop
+
 ### Runtime verification rule
 - When the feature claims live runtime truth, verify against the shared `:3100` runtime rather than ad-hoc alternate ports or direct database access.
 - Prefer these surfaces in order:
@@ -133,5 +147,6 @@ Return immediately if:
 - post_tool_capacity_exhausted occurs without deferredState set
 - canonical child ID in `validation-state.json` cannot be reconciled with live API truth in one or two probes
 - Any step fails with unclear resolution path
+- local code exploration is stuck in a repeated same-slice read loop after one forced alternate move
 
 Do NOT exceed 3 retry attempts on any API call. Escalate instead.
