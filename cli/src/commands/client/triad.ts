@@ -1,5 +1,6 @@
 import { Command } from "commander";
-import { createIssueSchema, type Issue, type Agent } from "@paperclipai/shared";
+import path from "node:path";
+import { createIssueSchema, type Issue, type Agent, type IssueExecutionPacketArtifactKind } from "@paperclipai/shared";
 import {
   addCommonClientOptions,
   handleCommandError,
@@ -270,7 +271,88 @@ interface TriadDescriptionParams {
   targetFile?: string;
 }
 
+// Extension sets for artifactKind inference (mirrors server-side logic)
+const DOC_EXTENSIONS = new Set([".md", ".mdx", ".txt", ".rst", ".adoc"]);
+const CONFIG_EXTENSIONS = new Set([
+  ".json",
+  ".yaml",
+  ".yml",
+  ".toml",
+  ".ini",
+  ".env",
+  ".conf",
+]);
+const CODE_EXTENSIONS = new Set([
+  ".ts",
+  ".tsx",
+  ".js",
+  ".jsx",
+  ".mjs",
+  ".cjs",
+  ".py",
+  ".go",
+  ".rs",
+  ".java",
+  ".kt",
+  ".swift",
+  ".rb",
+  ".php",
+  ".cs",
+  ".cpp",
+  ".c",
+  ".h",
+  ".css",
+  ".scss",
+  ".html",
+  ".sql",
+]);
+
+/**
+ * Infer artifactKind from targetFile extension or targetFolder-only signal.
+ * Mirrors server-side logic in server/src/services/issue-execution-packet.ts
+ */
+function inferArtifactKindFromTarget(
+  targetFile: string | undefined,
+  targetFolder: string | undefined,
+): IssueExecutionPacketArtifactKind {
+  // Folder-only (no targetFile) -> multi_file_change
+  if (!targetFile) {
+    return "multi_file_change";
+  }
+
+  const lowerPath = targetFile.toLowerCase();
+  const ext = path.posix.extname(lowerPath);
+
+  // Test files: *.test.*, *.spec.*, or paths containing __tests__/
+  if (
+    /(?:^|\/).+\.(?:test|spec)\.[a-z0-9]+$/.test(lowerPath) ||
+    /(?:^|\/)(?:__tests__|tests?)\//.test(lowerPath)
+  ) {
+    return "test_update";
+  }
+
+  // Documentation files
+  if (DOC_EXTENSIONS.has(ext) || /(readme|runbook|plan|spec)\./.test(lowerPath)) {
+    return "doc_update";
+  }
+
+  // Config files
+  if (CONFIG_EXTENSIONS.has(ext) || /(config|settings|policy)\./.test(lowerPath)) {
+    return "config_change";
+  }
+
+  // Code files
+  if (CODE_EXTENSIONS.has(ext)) {
+    return "code_patch";
+  }
+
+  // Default fallback for unknown extensions
+  return "code_patch";
+}
+
 function buildTriadDescription(params: TriadDescriptionParams): string {
+  const artifactKind = inferArtifactKindFromTarget(params.targetFile, params.targetFolder);
+
   const lines: string[] = [
     "missionCell: triad-mission-loop-v1",
     "",
@@ -286,7 +368,7 @@ function buildTriadDescription(params: TriadDescriptionParams): string {
     lines.push(`targetFile: ${params.targetFile}`);
   }
 
-  lines.push("artifactKind: code_patch");
+  lines.push(`artifactKind: ${artifactKind}`);
   lines.push(`doneWhen: ${params.doneWhen}`);
   lines.push("");
   lines.push("reviewerFocus: Verify all doneWhen criteria are met with concrete file or test evidence.");

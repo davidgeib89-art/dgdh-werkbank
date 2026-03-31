@@ -77,12 +77,228 @@ describe("triad start command", () => {
     expect(callArgs.description).toContain("missionCell: triad-mission-loop-v1");
     expect(callArgs.description).toContain("Objective: Implement the triad start CLI command");
     expect(callArgs.description).toContain("targetFolder: cli/src/commands/client");
-    expect(callArgs.description).toContain("artifactKind: code_patch");
+    expect(callArgs.description).toContain("artifactKind: multi_file_change");
     expect(callArgs.description).toContain("doneWhen: All tests pass and CLI command works");
     expect(callArgs.description).toContain("reviewerFocus: Verify all doneWhen criteria are met with concrete file or test evidence.");
     expect(callArgs.description).toContain("reviewerAcceptWhen: All doneWhen items satisfied with substance, not superficial paraphrase.");
     expect(callArgs.description).toContain("reviewerChangeWhen: Any doneWhen criterion missing, scope drift, out-of-scope file changes, or superficial/weak implementation.");
     expect(callArgs.description).toContain("[NEEDS INPUT]: none");
+  });
+
+  it("infers artifactKind: code_patch from .ts targetFile", async () => {
+    const program = new Command();
+    registerTriadCommands(program);
+
+    const createdIssue = {
+      id: "issue-124",
+      identifier: "DGDH-43",
+      title: "Auth Implementation",
+      status: "todo",
+    };
+
+    mockApi.post.mockResolvedValue(createdIssue);
+
+    await program.parseAsync([
+      "node",
+      "test",
+      "triad",
+      "start",
+      "--company-id",
+      "test-company",
+      "--title",
+      "Auth Implementation",
+      "--objective",
+      "Implement authentication middleware",
+      "--done-when",
+      "Auth middleware passes all tests",
+      "--target-file",
+      "src/auth.ts",
+    ]);
+
+    expect(mockApi.post).toHaveBeenCalledWith(
+      "/api/companies/test-company/issues",
+      expect.objectContaining({
+        title: "Auth Implementation",
+        description: expect.stringContaining("artifactKind: code_patch"),
+      }),
+    );
+
+    const callArgs = mockApi.post.mock.calls[0][1];
+    expect(callArgs.description).toContain("artifactKind: code_patch");
+    expect(callArgs.description).toContain("targetFile: src/auth.ts");
+  });
+
+  it("infers artifactKind: doc_update from .md targetFile", async () => {
+    const program = new Command();
+    registerTriadCommands(program);
+
+    const createdIssue = {
+      id: "issue-125",
+      identifier: "DGDH-44",
+      title: "Update README",
+      status: "todo",
+    };
+
+    mockApi.post.mockResolvedValue(createdIssue);
+
+    await program.parseAsync([
+      "node",
+      "test",
+      "triad",
+      "start",
+      "--company-id",
+      "test-company",
+      "--title",
+      "Update README",
+      "--objective",
+      "Add installation instructions",
+      "--done-when",
+      "README has clear setup steps",
+      "--target-file",
+      "doc/README.md",
+    ]);
+
+    expect(mockApi.post).toHaveBeenCalledWith(
+      "/api/companies/test-company/issues",
+      expect.objectContaining({
+        title: "Update README",
+        description: expect.stringContaining("artifactKind: doc_update"),
+      }),
+    );
+
+    const callArgs = mockApi.post.mock.calls[0][1];
+    expect(callArgs.description).toContain("artifactKind: doc_update");
+    expect(callArgs.description).toContain("targetFile: doc/README.md");
+  });
+
+  it("infers artifactKind: config_change from .json targetFile", async () => {
+    const program = new Command();
+    registerTriadCommands(program);
+
+    const createdIssue = {
+      id: "issue-126",
+      identifier: "DGDH-45",
+      title: "Update Dependencies",
+      status: "todo",
+    };
+
+    mockApi.post.mockResolvedValue(createdIssue);
+
+    await program.parseAsync([
+      "node",
+      "test",
+      "triad",
+      "start",
+      "--company-id",
+      "test-company",
+      "--title",
+      "Update Dependencies",
+      "--objective",
+      "Add new package dependency",
+      "--done-when",
+      "Package installs correctly",
+      "--target-file",
+      "package.json",
+    ]);
+
+    expect(mockApi.post).toHaveBeenCalledWith(
+      "/api/companies/test-company/issues",
+      expect.objectContaining({
+        title: "Update Dependencies",
+        description: expect.stringContaining("artifactKind: config_change"),
+      }),
+    );
+
+    const callArgs = mockApi.post.mock.calls[0][1];
+    expect(callArgs.description).toContain("artifactKind: config_change");
+    expect(callArgs.description).toContain("targetFile: package.json");
+  });
+
+  it("infers artifactKind: test_update from .test.ts targetFile", async () => {
+    const program = new Command();
+    registerTriadCommands(program);
+
+    const createdIssue = {
+      id: "issue-127",
+      identifier: "DGDH-46",
+      title: "Add Auth Tests",
+      status: "todo",
+    };
+
+    mockApi.post.mockResolvedValue(createdIssue);
+
+    await program.parseAsync([
+      "node",
+      "test",
+      "triad",
+      "start",
+      "--company-id",
+      "test-company",
+      "--title",
+      "Add Auth Tests",
+      "--objective",
+      "Write unit tests for auth module",
+      "--done-when",
+      "All auth tests pass",
+      "--target-file",
+      "src/foo.test.ts",
+    ]);
+
+    expect(mockApi.post).toHaveBeenCalledWith(
+      "/api/companies/test-company/issues",
+      expect.objectContaining({
+        title: "Add Auth Tests",
+        description: expect.stringContaining("artifactKind: test_update"),
+      }),
+    );
+
+    const callArgs = mockApi.post.mock.calls[0][1];
+    expect(callArgs.description).toContain("artifactKind: test_update");
+    expect(callArgs.description).toContain("targetFile: src/foo.test.ts");
+  });
+
+  it("infers artifactKind: multi_file_change for folder-only (no targetFile)", async () => {
+    const program = new Command();
+    registerTriadCommands(program);
+
+    const createdIssue = {
+      id: "issue-128",
+      identifier: "DGDH-47",
+      title: "Refactor Services",
+      status: "todo",
+    };
+
+    mockApi.post.mockResolvedValue(createdIssue);
+
+    await program.parseAsync([
+      "node",
+      "test",
+      "triad",
+      "start",
+      "--company-id",
+      "test-company",
+      "--title",
+      "Refactor Services",
+      "--objective",
+      "Refactor the services folder structure",
+      "--done-when",
+      "Services are properly organized",
+      "--target-folder",
+      "server/src/services",
+    ]);
+
+    expect(mockApi.post).toHaveBeenCalledWith(
+      "/api/companies/test-company/issues",
+      expect.objectContaining({
+        title: "Refactor Services",
+        description: expect.stringContaining("artifactKind: multi_file_change"),
+      }),
+    );
+
+    const callArgs = mockApi.post.mock.calls[0][1];
+    expect(callArgs.description).toContain("artifactKind: multi_file_change");
+    expect(callArgs.description).toContain("targetFolder: server/src/services");
+    expect(callArgs.description).not.toContain("targetFile:");
   });
 
   it("exits non-zero with error when required flag --title is missing", async () => {
