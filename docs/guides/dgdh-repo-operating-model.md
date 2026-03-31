@@ -39,6 +39,9 @@ Dormant means:
 ## 3. Upstream and Identity
 
 - `upstream` remains `paperclipai/paperclip` for technical ancestry.
+- `fork` is the writable day-to-day remote for `dgdh-werkbank`.
+- Local `main` should track `fork/main` for normal DGDH promotion truth.
+- `origin`/`upstream` should be treated as ancestry or upstream-PR targets unless a task explicitly says to promote there.
 - Product/platform identity is DGDH platform.
 - Future rename of local/repo paths to `dgdh-platform` is planned as a separate manual step.
 

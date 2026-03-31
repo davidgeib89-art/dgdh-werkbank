@@ -134,6 +134,11 @@ At mission end, always classify git truth:
 - local dirty and intentionally parked
 - blocked / not promotable
 
+Repo-specific remote truth matters:
+- in `dgdh-werkbank`, normal writable branch truth is usually `fork/main`
+- `origin` / `upstream` are not automatically the right push targets just because they contain `main`
+- if upstream promotion is desired, cut that as an explicit PR/promotion step instead of assuming direct push rights
+
 ## Handoff truth gate
 
 If the mission runner halts because a worker returned `discoveredIssues` or `whatWasLeftUndone`:

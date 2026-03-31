@@ -124,7 +124,7 @@ The repo contains `.github/copilot-instructions.md`. Its rules should be treated
 - For live diagnosis, use one to three focused probes, not repo-wide scans
 - Read the smallest useful log slice
 - Do not inspect editor/Copilot session internals unless explicitly asked
-- State git truth precisely: local edits vs local commits vs pushed branch vs `origin/main`
+- State git truth precisely: local edits vs local commits vs pushed branch vs writable branch truth. In this repo, default writable branch truth is normally `fork/main`; `origin`/`upstream` are technical ancestry and PR targets unless explicitly stated otherwise.
 
 ## Import conventions
 

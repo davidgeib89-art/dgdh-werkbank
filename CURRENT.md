@@ -2,7 +2,7 @@
 
 focus: Die Reconsolidation ist abgeschlossen. `main` traegt jetzt den Kimi-first Droid-Harness, die predictive-delivery doctrine und den CLI triad status / `--api-url` Cut. Der naechste Core-Berg ist kein weiteres Harness-Polishing, sondern ein zweiter echter Live-Triad-Beweis auf dem neuen Harness: eine bounded Mission soll auf frischem Branch von `main` mit weniger David-Supervision durch `CEO -> Worker -> Reviewer -> promotion oder ehrlichen blocker` getragen werden. # triad-mission-loop-v1
 
-active_issue: `main` ist sauber auf `origin/main` bei `f017a38b`. Heute gelandet: `3421a6e7` bringt den Kimi-first Droid-Harness auf `main`, `1bee5bb5` bringt `triad status` plus `--api-url` Fix auf `main`, `f017a38b` codifiziert predictive delivery als kanonische Doctrine. Der neue Runtime-Hook wurde real verifiziert: `node .factory/hooks/ensure-paperclip-runtime.mjs --mode once` startet auf Windows erfolgreich, `GET /api/health` ist gruen, DGDH-Company ist sichtbar, `triad-preflight` ist gruen. Die alte Droid-Mission `0ebd1f41-ec29-4c69-aa11-a4b9852b1cbd` ist damit nicht mehr hart runtime-blockiert, aber auch nicht complete: `DAV-18` ist weiter `executionPacketTruth = not_ready` wegen `artifactKind: code_patch` bei reinem `targetFolder`. UI-Recovery bleibt `Later`: Produktkern wirkt brauchbar, aber die Missiontruth ist zu noisy fuer den naechsten Core-Berg.
+active_issue: `main` ist die kanonische lokale Branch-Wahrheit, aber die schreibbare Remote-Wahrheit liegt in diesem Repo auf `fork/main`, nicht auf `origin/main`. Heute auf `main` zusaetzlich gelandet: `de8bb628` verhindert Mission-Setup-Turn-Dropouts in der Nerah-Harness. Der neue Runtime-Hook wurde real verifiziert: `node .factory/hooks/ensure-paperclip-runtime.mjs --mode once` startet auf Windows erfolgreich, `GET /api/health` ist gruen, DGDH-Company ist sichtbar, `triad-preflight` ist gruen. Die alte Droid-Mission `0ebd1f41-ec29-4c69-aa11-a4b9852b1cbd` ist damit nicht mehr hart runtime-blockiert, aber auch nicht complete: `DAV-18` ist weiter `executionPacketTruth = not_ready` wegen `artifactKind: code_patch` bei reinem `targetFolder`. UI-Recovery bleibt `Later`: Produktkern wirkt brauchbar, aber die Missiontruth ist zu noisy fuer den naechsten Core-Berg.
 
 north_star_stack:
   - Overarching Goal: Mensch-AI-Symbiose der Welt beweisen und sie zu einem besseren Ort machen
@@ -41,6 +41,7 @@ notes:
   - `2026-03-30`: Predictive delivery ist jetzt kanonische Firmenlesart fuer Build/Validate/Review/Ship und soll lange Droid-Missionen upstream stabiler machen
   - `2026-03-30`: Der CLI triad status / `--api-url` Cut ist auf `main`; der alte Droid-Triad-Strang ist damit als Produktcut gelandet, aber der groessere Live-Beweis fehlt weiterhin
   - `2026-03-30`: Der naechste Berg soll wieder groesser sein als ein Harness-Mini-Cut; Ziel ist ein abends reviewbarer echter Langlauf, nicht nur weiteres Substrat-Polishing
+  - `2026-03-31`: Fuer `dgdh-werkbank` ist `fork/main` die schreibbare Promotion-Wahrheit; `origin`/`upstream` bleiben technische Herkunft bzw. PR-Ziel und sollen von Droid nicht mehr als Default-Push-Remote angenommen werden
 
 last_updated_by: Taren
 updated_at: 2026-03-30

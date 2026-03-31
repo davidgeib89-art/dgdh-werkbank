@@ -104,6 +104,7 @@ Desired pattern:
 - Human workspace stays on the normal main worktree
 - firm execution happens in issue-scoped isolated git worktrees
 - issue worktrees live under `.paperclip/worktrees/...` unless configured otherwise
+- for this repo, plain `git push` from the human main worktree should resolve to `fork/main`; `origin`/`upstream` are not the default writable push target
 
 Do not casually use the human main checkout as the issue execution branch checkout.
 
@@ -792,6 +793,11 @@ A useful report includes:
 - what was fixed on the fly
 - what remains open
 - commit hash and push target
+
+Git truth reminder for this repo:
+- default writable remote: `fork`
+- normal writable baseline: `fork/main`
+- `origin` / `upstream`: technical ancestry or upstream PR target, not default direct-push destination
 
 If stable operating facts changed, update `MEMORY.md`.
 If only the live handoff changed, update `CURRENT.md`.

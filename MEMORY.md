@@ -49,7 +49,7 @@
 
 ## Stabile Arbeitsregeln
 - `main` ist die einzige kanonische operative Branch-Wahrheit.
-- Branch-Truth strikt unterscheiden: `local edit`, `local commit`, `pushed branch`, `current origin/main`.
+- Branch-Truth strikt unterscheiden: `local edit`, `local commit`, `pushed branch`, `current fork/main`. `origin`/`upstream` sind in diesem Repo primaer technische Herkunft und Upstream-PR-Ziel, nicht der Default-Push-Remote fuer laufende DGDH-Arbeit.
 - Fuer Firmenlauf-Diagnose gilt: API-/Chain-Truth zuerst, breite Repo-Lektuere spaeter.
 - Fehler zuerst hart klassifizieren: `strategy failure`, `applicability / harness failure`, `environment / interface failure`, `missing capability / guardrail`.
 - Wenn ein Lauf gegen seine eigene enge Packet-Wahrheit verstoesst, primaer als `applicability / harness failure` lesen; kein generalisierender Plattformbau als Reflex.

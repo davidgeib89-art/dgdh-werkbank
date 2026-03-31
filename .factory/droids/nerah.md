@@ -139,6 +139,11 @@ Before cutting or starting a new mission, check git truth first.
 At mission end, require an explicit closeout sentence:
 - git truth: pushed | local commit only | intentionally parked dirty | blocked
 
+For this repo:
+- default writable remote truth is normally `fork/main`
+- `origin` / `upstream` point at `paperclipai/paperclip` and should be treated as ancestry or PR targets unless the mission explicitly says to promote there
+- do not assume `origin/main` is writable just because the branch name is `main`
+
 ## Mission tooling gate
 
 When cutting a mission:
