@@ -15,6 +15,7 @@ import {
   resolveCommandContext,
   type BaseClientOptions,
 } from "./common.js";
+import { validatePacketCommand } from "./validate-packet.js"; // Import the new command
 
 interface IssueBaseOptions extends BaseClientOptions {
   status?: string;
@@ -374,6 +375,8 @@ export function registerIssueCommands(program: Command): void {
       }),
     { includeCompany: false },
   );
+
+  issue.addCommand(validatePacketCommand);
 }
 
 function parseCsv(value: string | undefined): string[] {
