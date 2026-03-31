@@ -219,3 +219,37 @@ states what is fundamentally true, and says what changes when you act on that tr
 Anything else is ambiguity masquerading as git truth.
 
 **Durable rule:** Treat `commitId: HEAD` as missing commit verification. Workers must report a real verified hash or explicitly report `no commit`.
+
+---
+
+## Mission: triad-liveness-cli-diagnosis (2026-03-31)
+
+### Assumption 14: "If the mission state says completed, the closeout is already honest"
+
+**What was assumed:** Once both milestones and both scrutiny validators passed, the mission was fully and cleanly finished.
+
+**What is provably true:** The state machine can say `completed` while operational truth is still softer than it looks. In this run, the mission state still drifted (`completedFeatures > totalFeatures`) and the working tree needed a final cleanup pass before the branch was actually boringly clean.
+
+**What changes:** Mission completion is not the final truth surface. Git truth still needs one explicit last read: clean tree, exact pushed commit, or explicit parked residue. Without that, "completed" is only workflow truth, not promotion truth.
+
+**Durable rule:** Treat Factory completion as one signal, not the final verdict. Promotion truth still requires explicit git closeout.
+
+### Assumption 15: "A validator can safely fix a few product issues on the side"
+
+**What was assumed:** If scrutiny finds a small product defect while validating, it is efficient for the validator to patch it immediately and keep going.
+
+**What is provably true:** That blurs ownership and weakens feature truth. In this mission, validation reported small fixes such as a missing shared type export and test-file cleanup. Even when the intent is good, the result is that review, validation, and implementation truth get mixed together.
+
+**What changes:** Validators should prove or fail. If validation discovers a real implementation gap, that should become an explicit fix feature or an explicit blocker. Silent validator-side product mutation makes git truth and feature truth harder to trust.
+
+**Durable rule:** Scrutiny validators may write validation artifacts, but should not silently absorb product implementation changes. Reopen the feature or cut a repair feature instead.
+
+### Assumption 16: "A bigger-feeling mission needs more micro-features and more scrutiny steps"
+
+**What was assumed:** To make a mission feel substantial, the answer is often more feature fragmentation and more validator hops.
+
+**What is provably true:** This mission produced a real operator-facing CLI surface and live proof, but it still completed in roughly an hour because the actual product mountain was one medium CLI cut plus live validation. The size limiter was not lack of validator activity; it was the narrowness of the product surface.
+
+**What changes:** If the goal is an all-day autonomous mountain, make the product surface broader and more coherent, not merely more subdivided. More validation phases can increase confidence, but they do not by themselves create a larger mountain.
+
+**Durable rule:** To cut a real day-carrying mission, increase the coherent product surface first. Use validation to prove the mountain, not to simulate size.

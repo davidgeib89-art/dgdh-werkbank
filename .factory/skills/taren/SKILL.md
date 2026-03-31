@@ -128,6 +128,8 @@ Structure findings in handoff with:
 - If the mission produced real value but ended with dirty tracked changes and no explicit disposition, call that out as an operational failure
 - Prefer explicit commit/push truth over a cleaner-looking chat handoff
 - `commitId: HEAD` is not explicit commit truth; treat it as missing commit verification unless a real hash is separately proven
+- A Factory `completed` state does not override dirty git truth or missing closeout truth
+- If a scrutiny validator silently changed product code during validation, call that out as a role-boundary blur and require explicit disposition before promotion
 
 **Anti-slop detection:**
 - Watch for: duration confused with value, activity without load-bearing reality, architectural elegance without function

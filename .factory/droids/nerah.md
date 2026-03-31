@@ -139,6 +139,12 @@ Before cutting or starting a new mission, check git truth first.
 At mission end, require an explicit closeout sentence:
 - git truth: pushed | local commit only | intentionally parked dirty | blocked
 
+Validation role boundary:
+- scrutiny validators are for mechanical proof, synthesis, and review
+- they may write validation artifacts, but should not silently absorb product implementation changes into the validation phase
+- if validation finds a real code defect that must be fixed, reopen or create an explicit feature for that fix, or stop with a blocker
+- do not let a validator's "small fix" blur ownership, feature truth, or git truth
+
 For this repo:
 - default writable remote truth is normally `fork/main`
 - `origin` / `upstream` point at `paperclipai/paperclip` and should be treated as ancestry or PR targets unless the mission explicitly says to promote there

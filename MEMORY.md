@@ -33,6 +33,7 @@
 ## Bewiesener Produkt-/Systemstand auf `main`
 - `Mission -> CEO -> Child-Issue -> Worker -> Reviewer -> done` ist reproduzierbar bewiesen.
 - `paperclipai triad start`, `paperclipai triad status`, `paperclipai triad rescue`, `paperclipai runtime status` und `GET /api/companies/:id/agents/triad-preflight` sind die aktuelle operator-facing boring path surfaces.
+- `paperclipai issue liveness <id>` ist auf `main`: es zeigt packet truth, company-run-chain truth und active-run truth als getrennte Diagnoseflaechen statt eines kollabierten Health-Summaries.
 - `GET /api/health` zeigt `seedStatus`; `company-run-chain` ist die kanonische operator-facing Lauf-/Closeout-Wahrheit.
 - `reviewer-wake-retry` ist live: `in_review`-Stalls mit beschaeftigten Reviewern werden nach 5 Minuten automatisch retried; `closeoutBlocker` wird sichtbar.
 - Same-session resume nach `post_tool_capacity_exhausted` ist live bewiesen und operator-facing sichtbar.
@@ -55,6 +56,8 @@
 - Wenn ein Lauf gegen seine eigene enge Packet-Wahrheit verstoesst, primaer als `applicability / harness failure` lesen; kein generalisierender Plattformbau als Reflex.
 - Vor Live-Proofs nicht nur gruene Preflight-/Health-Surfaces lesen, sondern faktische Agent-Lebendigkeit pruefen.
 - Predictive delivery gilt fuer DGDH: branch truth vor Arbeit, runtime truth vor Live-Claims, packet truth vor Execution, enge mechanische Verifikation vor teurem Review.
+- `mission completed` in Factory-State ist nicht automatisch saubere Promotion-Wahrheit; Git-Truth braucht expliziten Closeout (`clean`, `pushed`, `parked`, oder echter blocker`).
+- Scrutiny-Validatoren sollen mechanische Wahrheit pruefen und synthetisieren, nicht still Produktcode mitschreiben; wenn Validation eine echte Implementierungsluecke findet, braucht es einen expliziten Fix-Feature-Cut oder blocker truth.
 - Durable Learnings gehoeren in die kleinste wahre Datei; `MEMORY.md` ist fuer stabile Facts, nicht fuer datierten Missionsverlauf.
 - Lange Droid-/Copilot-Laeufe sind als Exoskelett-Modus erlaubt, aber muessen abends hart auf Produktwert, Betriebswert, Lernwert und Slop reduziert werden.
 
