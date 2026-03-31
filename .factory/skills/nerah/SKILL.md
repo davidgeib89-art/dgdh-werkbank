@@ -115,6 +115,30 @@ For code features:
 - name the narrowest truthful test command first
 - name wider validation only when the scope honestly requires it
 
+## Read-Only Investigation Gate
+
+If a mission is framed as investigation, inventory, audit, or synthesis:
+
+- default it to read-only
+- do not let workers mutate shared Factory substrate just to make the mission easier to run
+- explicitly forbid edits to shared runtime or harness files unless the mission itself is a bounded harness-repair cut
+
+Default forbidden surfaces for read-only missions:
+- `.factory/init.sh`
+- `.factory/services.yaml`
+- `.factory/library/*`
+- shared runtime hooks
+
+If a reusable helper seems useful:
+- prefer a reviewable doc artifact first
+- only create a new skill or harness helper when it is clearly durable beyond the single mission
+- and say that intent explicitly in the mission cut
+
+At closeout for read-only missions:
+- require `git status --short`
+- if out-of-scope residue remains, do not report `clean working tree`
+- classify the result as residue-bearing or truthful partial until the substrate is restored
+
 ## If Mission Control Fails to Start
 
 - A failed `StartMissionRun` means the mission is not actually running yet.
