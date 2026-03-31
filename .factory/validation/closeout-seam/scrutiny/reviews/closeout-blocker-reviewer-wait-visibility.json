@@ -1,0 +1,27 @@
+{
+  "featureId": "closeout-blocker-reviewer-wait-visibility",
+  "milestone": "closeout-seam",
+  "status": "pass",
+  "summary": "Implementation is correct, complete, and properly tested. All validation contract assertions pass.",
+  "codeReview": {
+    "issues": []
+  },
+  "validationContractCheck": {
+    "VAL-CLOSEOUT-001": { "passed": true, "notes": "Reviewer-wait blocker correctly recorded when worker_done completes with no idle reviewer" },
+    "VAL-CLOSEOUT-002": { "passed": true, "notes": "closeoutBlocker shows reviewer-wait when in_review with worker_done but no reviewer run" },
+    "VAL-CLOSEOUT-003": { "passed": true, "notes": "closeoutBlocker is null when reviewer run exists (blocker clears on successful reviewer wake)" },
+    "VAL-CLOSEOUT-004": { "passed": true, "notes": "closeoutBlocker is null after reviewer-verdict recorded" }
+  },
+  "sharedStateObservations": [
+    {
+      "observation": "The company-run-chain blocker pattern uses activity events (reviewer_wake_deferred) combined with run state to derive blockers without additional DB storage",
+      "suggestedLocation": "library",
+      "rationale": "This derived truth pattern for closeout blockers should be documented for future feature work"
+    },
+    {
+      "observation": "server/src/routes/issues.ts contains buildCompanyRunChainBlocker() which is the central location for computing all closeout blockers",
+      "suggestedLocation": "library",
+      "rationale": "New blockers should extend this function following the established pattern"
+    }
+  ]
+}

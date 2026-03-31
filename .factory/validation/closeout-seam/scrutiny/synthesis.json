@@ -1,0 +1,28 @@
+{
+  "milestone": "closeout-seam",
+  "round": 1,
+  "status": "pass",
+  "validatorsRun": {
+    "test": { "passed": true, "command": "pnpm test:run", "exitCode": 0 },
+    "typecheck": { "passed": true, "command": "pnpm -r typecheck", "exitCode": 0 },
+    "lint": { "passed": true, "command": "N/A - no lint configured", "exitCode": 0 }
+  },
+  "reviewsSummary": {
+    "total": 1,
+    "passed": 1,
+    "failed": 0,
+    "failedFeatures": []
+  },
+  "blockingIssues": [],
+  "appliedUpdates": [],
+  "suggestedGuidanceUpdates": [
+    {
+      "target": "library",
+      "suggestion": "Document the company-run-chain blocker derivation pattern in library/",
+      "evidence": "Feature closeout-blocker-reviewer-wait-visibility uses a derived truth pattern where blockers are computed from activity events (reviewer_wake_deferred) combined with run state, without additional DB storage. This pattern is implemented in server/src/routes/issues.ts buildCompanyRunChainBlocker().",
+      "isSystemic": false
+    }
+  ],
+  "rejectedObservations": [],
+  "previousRound": null
+}
