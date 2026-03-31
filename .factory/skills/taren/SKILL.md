@@ -127,6 +127,7 @@ Structure findings in handoff with:
 **Git-truth rule:**
 - If the mission produced real value but ended with dirty tracked changes and no explicit disposition, call that out as an operational failure
 - Prefer explicit commit/push truth over a cleaner-looking chat handoff
+- `commitId: HEAD` is not explicit commit truth; treat it as missing commit verification unless a real hash is separately proven
 
 **Anti-slop detection:**
 - Watch for: duration confused with value, activity without load-bearing reality, architectural elegance without function

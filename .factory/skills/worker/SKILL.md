@@ -72,6 +72,7 @@ Before handoff:
 3. Stage and commit: `git add <files>; git commit -m "<scope>: <what changed>"`
 4. **Verify the commit actually landed**: run `git log --oneline -1` and confirm the hash matches what you will report. If `git log` does not show your commit, do NOT report a commit hash — report `no commit` and explain why.
 5. Do not report fabricated or assumed commit hashes. The orchestrator verifies them.
+6. `HEAD` is not a valid commitId. If you only know that HEAD moved but do not have the exact verified hash from `git log --oneline -1` or `git rev-parse HEAD`, report `no commit` and explain why.
 
 ### Step 5: Handoff
 Report the commit hash from `git log --oneline -1`, not from memory.
@@ -139,6 +140,7 @@ Return when:
 - Scope requires touching files outside the approved list in AGENTS.md
 - A discovered issue is blocking and requires a different approach than specified
 - `git log --oneline -1` does not show your commit after `git commit` (HEAD drift — do not guess)
+- you only have `HEAD` instead of a verified commit hash
 - the same file slice keeps being reread after one forced alternate move (local read-loop)
 
 **Pausing rule**: If you must pause before completing a feature, write the exact reason in `whatWasLeftUndone` before pausing. "Pausing to think" is not a reason. State what was done, what the next concrete step is, and what specific uncertainty caused the pause.

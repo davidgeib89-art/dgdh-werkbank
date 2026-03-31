@@ -191,3 +191,31 @@ states what is fundamentally true, and says what changes when you act on that tr
 **What changes:** This should not be treated as a reason to abort the worker immediately. It needs a soft loop breaker: after two same-slice reads, summarize what is already known, force one different action, and only escalate if the loop still persists.
 
 **Durable rule:** Same-slice read repetition is a small `applicability / harness failure` signal. Workers should break it with one summary plus one different move before returning blocked.
+
+---
+
+## Mission: triad-packet-and-closeout-boringness-v1 closeout dropout and HEAD commit truth (2026-03-31)
+
+### Assumption 12: "If the feature graph finished, the mission is cleanly closed"
+
+**What was assumed:** Once the last implementation feature and the last scrutiny validator succeeded, the mission was effectively done even if the orchestrator's final closeout turn was missing.
+
+**What is provably true:** The feature graph can finish while the mission still lacks a real closeout sentence, explicit git truth, and a clean accounting summary. In this run, Mission Control marked the mission as completed, but the orchestrator never fully closed the loop and the mission counters drifted (`completedFeatures > totalFeatures`).
+
+**What changes:** The final validator return is not the end by itself. The orchestrator still owes one explicit closeout turn: result classification, git truth, and any residue or blocker truth.
+
+**Durable rule:** After the final feature or validator returns, close out in the same turn or emit one exact blocker. Do not rely on state-machine completion alone as proof of an honest mission finish.
+
+### Assumption 13: "`commitId: HEAD` is close enough to a real commit hash"
+
+**What was assumed:** Reporting `HEAD` still communicates that a commit happened.
+
+**What is provably true:** `HEAD` is not a commit identity. It hides whether the worker actually verified the hash, and it lets validation or later commits absorb feature work without a clean feature-level git truth.
+
+**What changes:** Commit truth must be either:
+- a real verified hash
+- or explicit `no commit`
+
+Anything else is ambiguity masquerading as git truth.
+
+**Durable rule:** Treat `commitId: HEAD` as missing commit verification. Workers must report a real verified hash or explicitly report `no commit`.

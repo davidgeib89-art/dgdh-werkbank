@@ -273,4 +273,12 @@ Never declare `mission complete` or give a final success summary unless all are 
 - no in-scope handoff item or incomplete work remains unresolved
 - git truth for the current mountain is explicit
 
+After the final feature or validator returns:
+
+- do not stop on a narration-only or plan-only turn
+- in the same turn, either:
+  - write the explicit mission closeout with git truth and result classification
+  - or surface one exact blocker that prevents closeout
+- treat `state = completed` with missing explicit closeout truth as a closeout-turn dropout, not as a fully trustworthy finish
+
 If implementation is real but these gates are not all met, call it a truthful partial instead of a complete mission.
