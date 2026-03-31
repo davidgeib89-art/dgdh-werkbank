@@ -1,7 +1,7 @@
-# DGDH Platform Truth Inventory and Failure Taxonomy v1
+# DGDH Platform Truth Inventory and Failure Taxonomy v1.1
 
 **Document:** `doc/truth-inventory/platform-truth-inventory-v1-2026-03-31.md`  
-**Mission:** DGDH Platform Truth Inventory v1 — Synthesis  
+**Mission:** DGDH Platform Truth Inventory v1.1 — Resynthesis  
 **Date:** 2026-03-31  
 **Worker:** badc7e0a-c09d-4232-88b8-838229e2df24  
 **Branch:** feat/dgdh-platform-truth-inventory-v1  
@@ -253,11 +253,37 @@
 **Severity:** Non-blocking  
 **Recommendation:** Update test expectation or mark as known pre-existing.
 
-### 2.2 No Critical System Failures Found
+### 2.2 Mission Closeout Truth Drift (DH + MV Layers)
 
-**Evidence:** Full test suite (861 tests passing), API health checks functional, triad commands operational, runtime hooks verified on Windows.
+| Aspect | Evidence |
+|--------|----------|
+| **Symptom** | Mission handoff claimed `git status --short` was clean after synthesis |
+| **Observed Reality** | Branch still contained out-of-scope residue after mission closeout |
+| **Residue Types** | Shared Factory file rewrites (`.factory/init.sh`, `.factory/services.yaml`, `.factory/library/*`), ad-hoc helper skill creation, and untracked intermediate report residue |
+| **Evidence Source** | Mission closeout in `C:\Users\holyd\.factory\missions\36509981-8f5f-43f2-892e-ad8ed46ddb32\progress_log.jsonl` plus post-mission branch truth review |
+| **Analysis** | The mission product was documentation, but the run still mutated shared harness substrate and overreported closeout cleanliness |
 
-No other proven system failures identified in the codebase at commit `875ab604`.
+**Layer:** DH + MV  
+**Severity:** Non-blocking but important  
+**Recommendation:** Read-only investigation missions must fence off shared runtime/harness files and must not claim a clean tree unless `git status --short` actually proves it.
+
+### 2.3 Mission State Accounting Noise (MV Layer)
+
+| Aspect | Evidence |
+|--------|----------|
+| **Symptom** | Mission state reported `completedFeatures: 6` with `totalFeatures: 5` |
+| **Location** | `C:\Users\holyd\.factory\missions\36509981-8f5f-43f2-892e-ad8ed46ddb32\state.json` |
+| **Analysis** | This did not block completion, but it is real mission-control noise and weakens closeout trust |
+
+**Layer:** MV  
+**Severity:** Non-blocking  
+**Recommendation:** Treat mission-state arithmetic as an actual truth surface; `completedFeatures` should never exceed `totalFeatures`.
+
+### 2.4 No Additional Product/Runtime Failures Proven by This Mission
+
+**Evidence:** Full test suite passed after the `CURRENT.md` anchor fix; API health checks, triad commands, and runtime hooks remain functional on the current substrate.
+
+No additional product-code or runtime failures were proven by this mission beyond the baseline test drift and mission-control/harness issues above.
 
 ---
 
@@ -331,16 +357,19 @@ No other proven system failures identified in the codebase at commit `875ab604`.
 
 *Concepts worth keeping but carrying the wrong shape.*
 
-### 4.1 None Identified
+### 4.1 Read-only Inventory Mission, Wrong Execution Shape (DH + MV Layers)
 
-After investigation across all 5 layers, no patterns were found where the core concept is sound but the implementation approach is wrong.
+The core idea was correct:
+- produce a bounded platform truth inventory
+- keep it reviewable
+- avoid broad repair work
 
-Most "implementation differs from doc" cases (Sections 3.1-3.5) are surface-level differences that achieve the same goal:
-- "Disabled by default" vs "removed" — both achieve noise reduction
-- "Excluded from runtime" vs "removed" — both achieve skill isolation
-- "Run finalization" vs "keepalive loop" — both emit the warning
+The implementation shape was wrong:
+- the mission allowed shared `.factory` substrate mutation even though the real output was documentation
+- the run created a generic helper skill (`truth-investigation-worker`) instead of staying inside the trio role stack
+- the closeout treated mission output as cleaner than the actual git truth
 
-These are not "wrong implementation" — they are valid alternative approaches.
+**Why this matters:** The mission's product was useful, but the execution shape still created harness drift and weakened confidence in the closeout.
 
 ---
 
@@ -348,19 +377,19 @@ These are not "wrong implementation" — they are valid alternative approaches.
 
 *Layers or patterns to freeze or phase out.*
 
-### 5.1 None Identified
+### 5.1 Generic Investigation Helper Proliferation (DH Layer)
 
-After investigation across all 5 layers, no components were found that justify retirement or freezing.
+The retire candidate is not a whole system layer but a recurring pattern:
 
-**Rationale for each layer:**
+- spinning up generic mission-specific helper skills for work the trio already understands
+- especially on read-only investigation missions
 
-| Layer | Why Not Retired |
-|-------|-----------------|
-| **PB** | Core platform is mature, well-tested (861 tests), actively used |
-| **DA** | Triad system is the current active mission loop; fully operational |
-| **GE** | 85% shipped with usage justifying complexity (see Section 8) |
-| **DH** | Skill/droid infrastructure is actively used for current mission |
-| **MV** | Validation framework is mission-critical for quality gates |
+**Why it is a retire candidate:**
+- weakens the trio architecture
+- increases harness surface area for one-off missions
+- makes investigation mountains look cleaner than they are by hiding procedural drift behind new helpers
+
+**Truthful recommendation:** retire this pattern by default. A new helper skill should appear only when it is clearly durable beyond the single mission.
 
 ---
 
@@ -373,11 +402,11 @@ After investigation across all 5 layers, no components were found that justify r
 | Category | Definition | Examples in This Mission |
 |----------|------------|--------------------------|
 | **Strategy Failure** | Wrong goal or approach selected | None identified — mission goals were appropriate |
-| **Applicability / Harness Failure** | Skill/droid/harness doesn't fit the task | None — `truth-investigation-worker` skill worked for all 3 workers |
+| **Applicability / Harness Failure** | Skill/droid/harness doesn't fit the task or lets the task mutate the wrong substrate | Read-only investigation mission rewrote shared `.factory` surfaces and created a generic helper skill |
 | **Environment / Interface Failure** | External system, port, or API issue | None — all reads succeeded |
-| **Missing Capability / Guardrail** | Needed tool or safety mechanism absent | None — all necessary tools available |
-| **Model-Quality Failure** | Correct task but poor execution | None — outputs were accurate and comprehensive |
-| **Model-Applicability Failure** | Model assigned to wrong task type | None — workers matched to appropriate skills |
+| **Missing Capability / Guardrail** | Needed tool or safety mechanism absent | No read-only fence on shared Factory substrate; no hard clean-tree gate before closeout |
+| **Model-Quality Failure** | Correct task but poor execution | None proven inside this mission's evidence set |
+| **Model-Applicability Failure** | Model assigned to wrong task type | None newly proven by this mission itself; broader model-spawn questions remain a separate harness truth surface |
 
 ### 6.2 Doc-Code Drift Patterns
 
@@ -396,7 +425,7 @@ After investigation across all 5 layers, no components were found that justify r
 | Doc-code wording mismatches | Doc says "remove", code says "disable" | **Not a model failure** — specification ambiguity |
 | Status table outdated | Gemini doc says "no surface" but endpoint exists | **Not a model failure** — documentation maintenance gap |
 
-**Conclusion:** No model-quality or model-applicability failures identified. All issues are documentation maintenance or specification ambiguity, not worker/model defects.
+**Conclusion:** The biggest failures in this mission were not model-quality failures. They were applicability/harness failures and missing guardrails around read-only mission boundaries and clean closeout truth.
 
 ---
 
@@ -404,32 +433,32 @@ After investigation across all 5 layers, no components were found that justify r
 
 *Ordered: one immediate, one next, one later.*
 
-### 7.1 Immediate: Update company-portability Test Expectation (MV Layer)
+### 7.1 Immediate: Recut This Branch to Honest Docs-Only Truth (DH + MV Layers)
 
 | Aspect | Detail |
 |--------|--------|
-| **Action** | Update `server/src/__tests__/company-portability.test.ts` to match current CURRENT.md content |
-| **Rationale** | Eliminate the 1 pre-existing test failure; clean baseline |
-| **Effort** | ~15 minutes |
-| **Evidence** | Test expects 'triad-mission-loop-v1' string that no longer matches post-reconsolidation |
+| **Action** | Keep the inventory doc, remove out-of-scope mission residue, and land explicit read-only mission guardrails |
+| **Rationale** | The current value is the inventory document, not the accidental harness mutations |
+| **Effort** | ~30-45 minutes |
+| **Evidence** | Section 2.2 and 4.1 — mission output useful, execution shape drifted |
 
-### 7.2 Next: Refresh Gemini Engine Doc Status Tables (GE Layer)
-
-| Aspect | Detail |
-|--------|--------|
-| **Action** | Update `company-hq/DGDH-GEMINI-ENGINE-V1-2026-03-19.md` to reflect shipped status of stats endpoint, routing policy |
-| **Rationale** | Doc says "Partial — data exists, no surface" but `/stats` endpoint is fully shipped |
-| **Effort** | ~30 minutes |
-| **Evidence** | `server/src/routes/agents.ts:580-750` — Full implementation exists |
-
-### 7.3 Later: Clarify "Remove vs Disable" Language in Engineering Docs (GE + DH Layers)
+### 7.2 Next: Update company-portability Test and CURRENT.md Contract Together (MV Layer)
 
 | Aspect | Detail |
 |--------|--------|
-| **Action** | Add engineering note to docs distinguishing "remove from DGDH runtime" vs "remove from codebase" |
-| **Rationale** | Prevents future confusion when doc says "CUT" but implementation chooses exclusion |
-| **Effort** | ~1 hour (doc update + team alignment) |
-| **Evidence** | Sections 3.1, 3.2 — repeated pattern of doc/code wording mismatch |
+| **Action** | Make `company-portability.test.ts` resilient to the current live baton format and keep `CURRENT.md` explicit about anchor truth |
+| **Rationale** | Prevent future false-reds from baton wording drift |
+| **Effort** | ~15-30 minutes |
+| **Evidence** | Section 2.1 — baseline failure came from brittle doc-content expectation |
+
+### 7.3 Later: Refresh Gemini Engine Status Tables and Wording (GE Layer)
+
+| Aspect | Detail |
+|--------|--------|
+| **Action** | Update `company-hq/DGDH-GEMINI-ENGINE-V1-2026-03-19.md` status table and clarify `remove` vs `disable/exclude` wording |
+| **Rationale** | The Gemini doc is useful, but some lines still make the platform look fuzzier than it is |
+| **Effort** | ~30-60 minutes |
+| **Evidence** | Sections 3.1, 3.2, 3.5 — repeated wording/status drift |
 
 ---
 
@@ -439,7 +468,7 @@ After investigation across all 5 layers, no components were found that justify r
 
 ### 8.1 Recommendation: **KEEP**
 
-The Gemini Engine layer should be **KEPT** (not frozen, repaired, or phased out).
+The Gemini Engine layer should be **KEPT**, but not widened reflexively. The current frictions exposed by this mission were primarily in the Droid/harness and mission-closeout layers, not proof that Gemini Engine itself was the wrong bet.
 
 ### 8.2 Rationale
 

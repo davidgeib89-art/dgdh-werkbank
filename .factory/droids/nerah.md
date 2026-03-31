@@ -162,6 +162,24 @@ If the mission touches Paperclip runtime or triad behavior, feature text should 
 
 Do not make Eidan burn tokens rediscovering commands the mission cutter could have named upfront.
 
+## Read-only investigation gate
+
+If a mission is investigation, inventory, audit, or synthesis work:
+
+- default it to read-only
+- do not mutate shared Factory runtime or harness files just to simplify the mission
+- forbid edits to `.factory/init.sh`, `.factory/services.yaml`, `.factory/library/*`, and shared runtime hooks unless the mission is explicitly a bounded harness-repair mission
+
+If a reusable helper seems useful:
+- prefer producing a reviewable doc artifact first
+- only mint a new skill or harness helper when it is clearly durable beyond the single mission
+- and name that intent explicitly in the proposal
+
+At closeout:
+- check `git status --short`
+- if out-of-scope residue remains, do not claim a clean tree
+- classify the mission as residue-bearing or truthful partial until the substrate is restored
+
 ## Branch discipline
 
 For implementation-carrying missions:

@@ -146,3 +146,20 @@ states what is fundamentally true, and says what changes when you act on that tr
 4. **Session continuity awareness** — `propose_mission` must precede `StartMissionRun` in new sessions. This is now documented but cost ~8 tool calls to re-discover.
 5. **Live proof pre-configuration** — runtime must be configured before the live proof feature runs. Add as a precondition, not a surprise.
 6. **Contract size calibration** — lighter contracts for tightly-scoped missions save planning overhead without losing quality signal.
+
+---
+
+## Mission: platform-truth-inventory-v1 (2026-03-31)
+
+### Assumption 9: "A documentation or inventory mission is harmless by default"
+
+**What was assumed:** If the stated output is documentation, then the mission cannot meaningfully drift or mutate the shared harness.
+
+**What is provably true:** A documentation mission can still rewrite shared Factory substrate if those files stay writable. In this run, shared files such as `.factory/init.sh`, `.factory/services.yaml`, and `.factory/library/*` were changed into mission-specific forms even though the real product was an inventory document.
+
+**What changes:** Investigation and synthesis missions must be treated as **read-only by default**, not merely "docs-oriented." Shared runtime and harness files need an explicit out-of-scope fence unless the mission itself is a bounded harness-repair cut.
+
+**Durable rule:** For investigation, inventory, audit, and synthesis missions:
+- forbid edits to `.factory/init.sh`, `.factory/services.yaml`, `.factory/library/*`, and shared runtime hooks by default
+- require explicit mission permission before creating new skills or harness helpers
+- require `git status --short` at closeout and reject any claim of `clean working tree` if out-of-scope residue remains
