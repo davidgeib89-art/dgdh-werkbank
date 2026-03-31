@@ -163,3 +163,17 @@ states what is fundamentally true, and says what changes when you act on that tr
 - forbid edits to `.factory/init.sh`, `.factory/services.yaml`, `.factory/library/*`, and shared runtime hooks by default
 - require explicit mission permission before creating new skills or harness helpers
 - require `git status --short` at closeout and reject any claim of `clean working tree` if out-of-scope residue remains
+
+---
+
+## Mission: triad-packet-and-closeout-boringness-v1 setup dropout (2026-03-31)
+
+### Assumption 10: "Narrating the next setup step is close enough to doing it"
+
+**What was assumed:** Once the proposal was approved and the mission artifacts existed, a sentence like "Let me verify the assertion coverage before proceeding" was an acceptable temporary stopping point.
+
+**What is provably true:** That narration can become a silent setup dropout. The mission directory exists, validation artifacts exist, but there is still no `state.json` because `StartMissionRun` was never called. The mission is neither running nor explicitly blocked; it is stranded in proposal-approved limbo.
+
+**What changes:** Mission setup needs its own completion rule. After proposal approval and artifact creation, the orchestrator should either finish the last setup check and call `StartMissionRun` in the same turn, or stop with one exact blocker. Verification prep text is not progress.
+
+**Durable rule:** Treat `mission dir exists` + core artifacts present + no `state.json` as an incomplete setup error state. Do not pause there. Finish setup immediately or report the exact blocker.

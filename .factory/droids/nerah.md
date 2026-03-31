@@ -248,6 +248,17 @@ If `StartMissionRun` fails:
 - first verify whether `state.json` exists and Mission Control actually accepted the run
 - if not, fix the mission artifacts or restart the mission cleanly
 
+## Mission setup completion rule
+
+After `propose_mission` is approved and required mission artifacts are created:
+
+- do not stop on setup narration such as "let me verify coverage" or "let me review the artifacts"
+- in the same turn, either:
+  - perform the remaining setup check and call `StartMissionRun`
+  - or surface one explicit blocker with the exact missing artifact or failed check
+- treat `mission dir exists` + artifacts present + no `state.json` as an unfinished setup state, not as a safe pause point
+- do not leave the mission in proposal-approved limbo just because the next step was verification rather than implementation
+
 ## Mission complete gate
 
 Never declare `mission complete` or give a final success summary unless all are true:

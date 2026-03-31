@@ -146,6 +146,15 @@ At closeout for read-only missions:
 - First verify mission artifacts and whether `state.json` exists.
 - If start failed, either repair the artifacts or restart the mission cleanly.
 
+## If Mission Setup Is Half-Finished
+
+- If `propose_mission` succeeded and the mission directory plus core artifacts exist, do not stop on a narration-only turn.
+- Finish the setup sequence in the same turn:
+  - run the remaining coverage or artifact check
+  - then call `StartMissionRun`
+- If the check fails, report the exact blocker and stop there.
+- `mission dir exists` without `state.json` means the mission is not running yet and setup is still incomplete.
+
 ## Example Handoff
 
 ```json
