@@ -1,6 +1,6 @@
 # CURRENT - Live Baton
 
-focus: Die Reconsolidation ist abgeschlossen. `main` traegt jetzt den Kimi-first Droid-Harness, die predictive-delivery doctrine und den CLI triad status / `--api-url` Cut. Der naechste Core-Berg ist kein weiteres Harness-Polishing, sondern ein zweiter echter Live-Triad-Beweis auf dem neuen Harness: eine bounded Mission soll auf frischem Branch von `main` mit weniger David-Supervision durch `CEO -> Worker -> Reviewer -> promotion oder ehrlichen blocker` getragen werden.
+focus: Die Reconsolidation ist abgeschlossen. `main` traegt jetzt den Kimi-first Droid-Harness, die predictive-delivery doctrine und den CLI triad status / `--api-url` Cut. Der naechste Core-Berg ist kein weiteres Harness-Polishing, sondern ein zweiter echter Live-Triad-Beweis auf dem neuen Harness: eine bounded Mission soll auf frischem Branch von `main` mit weniger David-Supervision durch `CEO -> Worker -> Reviewer -> promotion oder ehrlichen blocker` getragen werden. # triad-mission-loop-v1
 
 active_issue: `main` ist sauber auf `origin/main` bei `f017a38b`. Heute gelandet: `3421a6e7` bringt den Kimi-first Droid-Harness auf `main`, `1bee5bb5` bringt `triad status` plus `--api-url` Fix auf `main`, `f017a38b` codifiziert predictive delivery als kanonische Doctrine. Der neue Runtime-Hook wurde real verifiziert: `node .factory/hooks/ensure-paperclip-runtime.mjs --mode once` startet auf Windows erfolgreich, `GET /api/health` ist gruen, DGDH-Company ist sichtbar, `triad-preflight` ist gruen. Die alte Droid-Mission `0ebd1f41-ec29-4c69-aa11-a4b9852b1cbd` ist damit nicht mehr hart runtime-blockiert, aber auch nicht complete: `DAV-18` ist weiter `executionPacketTruth = not_ready` wegen `artifactKind: code_patch` bei reinem `targetFolder`. UI-Recovery bleibt `Later`: Produktkern wirkt brauchbar, aber die Missiontruth ist zu noisy fuer den naechsten Core-Berg.
 
@@ -44,3 +44,20 @@ notes:
 
 last_updated_by: Taren
 updated_at: 2026-03-30
+
+## DAV-20 Narrow Cut (2026-03-31)
+
+**Branch:** `feat/cli-validate-packet` (pushed to `fork/feat/cli-validate-packet`)
+**Commit:** `e2a431c4` — clean 3-file CLI product cut, zero mission residue
+
+**What was done:**
+- Stripped all `.factory/` mission residue from the old `dgdh/issue-20-validate-packet-command` branch
+- Created clean branch from `main` with only 3 CLI files (283 insertions):
+  - `cli/src/commands/client/validate-packet.ts` — implementation
+  - `cli/src/__tests__/validate-packet.test.ts` — 6 TDD tests
+  - `cli/src/commands/client/issue.ts` — command registration
+- Pushed to fork; PR to upstream blocked on cross-fork PR setup (needs manual creation or repo permission)
+
+**PR status:** Branch lives at `https://github.com/davidgeib89-art/dgdh-werkbank/tree/feat/cli-validate-packet`. Target PR: `paperclipai/paperclip:main` ← `davidgeib89-art/dgdh-werkbank:feat/cli-validate-packet`. Needs manual PR creation or gh CLI with correct fork reference.
+
+**Previous mission result:** TRUTHFUL PARTIAL → now has a clean promotion path. Reclassify to STRONG SUCCESS once PR merges.
