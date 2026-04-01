@@ -1,4 +1,5 @@
 import { spawnSync } from "node:child_process";
+import path from "node:path";
 
 const WINDOWS_EMBEDDED_POSTGRES_ELEVATED_MESSAGE =
   "Embedded PostgreSQL cannot start from an elevated Windows shell. Start Paperclip from a non-elevated terminal or set DATABASE_URL for external PostgreSQL.";
@@ -21,6 +22,21 @@ export function parseRuntimeHookArgs(args, env = process.env) {
 
 export function currentCommandForMode(mode) {
   return mode === "watch" ? "pnpm dev:watch" : "pnpm dev:once";
+}
+
+export function createRuntimeSpawnSpec(mode, projectRoot) {
+  if (process.platform === "win32") {
+    const runnerMode = mode === "watch" ? "watch" : "dev";
+    return {
+      command: process.execPath,
+      args: [path.join(projectRoot, "scripts", "dev-runner.mjs"), runnerMode],
+    };
+  }
+
+  return {
+    command: "pnpm",
+    args: [mode === "watch" ? "dev:watch" : "dev:once"],
+  };
 }
 
 export function tailText(text, maxLines = 20) {

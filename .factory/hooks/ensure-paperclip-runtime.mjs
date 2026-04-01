@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 import { spawn } from "node:child_process";
 
 import {
+  createRuntimeSpawnSpec,
   currentCommandForMode,
   detectKnownRuntimeBlocker,
   detectWindowsElevation,
@@ -77,19 +78,7 @@ function isProcessAlive(pid) {
 }
 
 function createSpawnSpec(targetMode = mode) {
-  const scriptName = targetMode === "watch" ? "dev:watch" : "dev:once";
-
-  if (process.platform === "win32") {
-    return {
-      command: "cmd.exe",
-      args: ["/d", "/s", "/c", `pnpm.cmd ${scriptName}`],
-    };
-  }
-
-  return {
-    command: "pnpm",
-    args: [scriptName],
-  };
+  return createRuntimeSpawnSpec(targetMode, projectRoot);
 }
 
 function resetLogs() {

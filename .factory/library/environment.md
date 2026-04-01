@@ -38,7 +38,8 @@ The running server on port 3100 has DGDH company seeded with CEO, Worker, and Re
   - `node .factory/hooks/ensure-paperclip-runtime.mjs --mode watch`
 - The hook is idempotent:
   - if `:3100` is already healthy, it reuses that runtime
-  - if not, it starts `pnpm dev:watch` by default and waits for `/api/health`
+  - if not, it starts the shared runtime carrier and waits for `/api/health`
+  - on Windows, the carrier uses `node scripts/dev-runner.mjs` directly instead of a fragile `cmd.exe /c pnpm.cmd ...` wrapper
   - if a tracked runtime stays unhealthy, it can restart that tracked process once
   - if startup truth stays thin, it runs one direct `pnpm dev:once` diagnostic and reports the real blocker
 - Force a fresh tracked restart when needed:
