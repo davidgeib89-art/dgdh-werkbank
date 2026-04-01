@@ -38,6 +38,7 @@
 - `reviewer-wake-retry` ist live: `in_review`-Stalls mit beschaeftigten Reviewern werden nach 5 Minuten automatisch retried; `closeoutBlocker` wird sichtbar.
 - Same-session resume nach `post_tool_capacity_exhausted` ist live bewiesen und operator-facing sichtbar.
 - Kimi-first Droid-Harness ist auf `main`: shared mission runtime hook, Kimi-first model routing, worker/validator mechanical-first guidance.
+- Der shared Runtime-Hook `node .factory/hooks/ensure-paperclip-runtime.mjs` kann jetzt einen tracked Runtime-Prozess restarten (`--restart`), faellt bei duennem Start-Truth auf einen direkten `pnpm dev:once`-Diagnosepfad zurueck und failt auf Windows mit embedded PostgreSQL sofort ehrlich in elevated Shells statt weich zu timeouten.
 - Der CEO-Standardpfad fuer einfachen Handoff nutzt native `paperclipai`-Primitive statt Shell-/HTTP-Bastelei.
 - Erste governed capability layer ist auf `main`: `ceo-native-issue-handoff-primitives`, `same-session-resume-after-post-tool-capacity`, `verify-all`, `skill contract list|use`, `verifiedSkill`-Bridge.
 - Der erste echte Triad-Live-Loop ist auf `main` bewiesen (`DAV-165` / `DAV-166`); die aktuelle Restfriktion ist boring closeout nach echter Worker-Arbeit, nicht mehr `can triad happen?`.

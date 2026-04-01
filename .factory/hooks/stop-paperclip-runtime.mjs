@@ -4,6 +4,8 @@ import { existsSync, readFileSync, unlinkSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { stopRuntimePid } from "./paperclip-runtime-support.mjs";
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const projectRoot = path.resolve(__dirname, "..", "..");
@@ -18,18 +20,8 @@ function readStatus() {
   }
 }
 
-function stopPid(pid) {
-  if (!pid || typeof pid !== "number") return false;
-  try {
-    process.kill(pid, "SIGTERM");
-    return true;
-  } catch {
-    return false;
-  }
-}
-
 const status = readStatus();
-const stopped = stopPid(status?.pid);
+const stopped = stopRuntimePid(status?.pid);
 
 if (existsSync(statusPath)) {
   unlinkSync(statusPath);

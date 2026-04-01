@@ -39,8 +39,15 @@ The running server on port 3100 has DGDH company seeded with CEO, Worker, and Re
 - The hook is idempotent:
   - if `:3100` is already healthy, it reuses that runtime
   - if not, it starts `pnpm dev:watch` by default and waits for `/api/health`
+  - if a tracked runtime stays unhealthy, it can restart that tracked process once
+  - if startup truth stays thin, it runs one direct `pnpm dev:once` diagnostic and reports the real blocker
+- Force a fresh tracked restart when needed:
+  - `node .factory/hooks/ensure-paperclip-runtime.mjs --mode watch --restart`
 - Override mode only when needed:
   - `FACTORY_PAPERCLIP_RUNTIME_MODE=once`
+- Windows note:
+  - embedded PostgreSQL cannot start from an elevated Windows shell
+  - in that case the hook should fail fast with explicit blocker truth; do not widen into scheduler/user/privilege workaround work inside the mission
 - Runtime logs and status live in:
   - `.factory/runtime/paperclip-runtime-3100.json`
   - `.factory/runtime/paperclip-runtime-3100.out.log`

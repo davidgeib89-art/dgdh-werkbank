@@ -11,6 +11,7 @@ Purpose:
 - start or attach to one shared runtime on `:3100`
 - avoid duplicate server starts across worker sessions
 - give later mission features one canonical API base
+- restart one tracked runtime cleanly when the current mission needs a fresh boot
 
 ## Rules
 
@@ -18,6 +19,8 @@ Purpose:
 - Default startup mode is `watch`
 - Use `once` only when watch-mode churn would make verification less trustworthy
 - Do not use direct DB checks as runtime proof
+- On Windows with embedded PostgreSQL, do not keep improvising privilege workarounds inside the mission.
+  If the hook reports an elevated-shell blocker, rerun from a non-elevated terminal or provide `DATABASE_URL`.
 
 ## Procedure
 
@@ -25,6 +28,12 @@ Purpose:
 
 ```powershell
 node .factory/hooks/ensure-paperclip-runtime.mjs --mode watch
+```
+
+Force a fresh tracked restart only when the mission actually needs it:
+
+```powershell
+node .factory/hooks/ensure-paperclip-runtime.mjs --mode watch --restart
 ```
 
 2. Verify runtime truth:
@@ -44,10 +53,16 @@ Invoke-RestMethod http://127.0.0.1:3100/api/companies/<companyId>/agents/triad-p
 - `.factory/runtime/paperclip-runtime-3100.out.log`
 - `.factory/runtime/paperclip-runtime-3100.err.log`
 
+The hook now also:
+- fails fast when a tracked runtime stays unhealthy and needs one restart
+- runs one direct `pnpm dev:once` diagnostic when startup truth is thin
+- reports the Windows elevated-shell / embedded-PostgreSQL blocker explicitly instead of timing out softly
+
 ## Output requirements
 
 Always report:
 - startup mode used (`watch` or `once`)
+- whether `--restart` was used
 - whether runtime was reused or started fresh
 - exact verification commands run
 - whether the runtime is healthy enough for the rest of the mission
