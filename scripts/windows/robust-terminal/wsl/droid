@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+resolve_windows_droid_cmd() {
+  local base="/mnt/c/Users/$USER/AppData/Roaming/npm/node_modules/droid/node_modules/@factory"
+  local regular="$base/cli-win32-x64/bin/droid.exe"
+  local baseline="$base/cli-win32-x64-baseline/bin/droid.exe"
+
+  if [[ -f "$regular" ]]; then
+    printf '%s\n' "$regular"
+    return
+  fi
+
+  if [[ -f "$baseline" ]]; then
+    printf '%s\n' "$baseline"
+    return
+  fi
+
+  echo "missing DROID Windows binary under AppData npm; reinstall the Windows DROID CLI" >&2
+  exit 1
+}
+
+main() {
+  local windows_droid_binary
+  windows_droid_binary="$(resolve_windows_droid_cmd)"
+  exec "$windows_droid_binary" "$@"
+}
+
+main "$@"

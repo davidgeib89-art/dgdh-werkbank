@@ -45,6 +45,8 @@ droid ops
 droid list
 ```
 
+Inside the WSL tmux sessions, `droid` is also available and proxies to the Windows-installed DROID executable under your AppData npm install. This keeps the interactive agent available from the WSL/tmux shell without requiring a separate Linux-global DROID install.
+
 The default named sessions are:
 
 - `droid-main`

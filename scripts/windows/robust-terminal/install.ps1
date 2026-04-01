@@ -75,6 +75,8 @@ function Install-WslAssets {
     "set -eu",
     'if ! command -v tmux >/dev/null 2>&1 || ! command -v git >/dev/null 2>&1; then apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y tmux git; fi',
     "repo_root='$RepoRootWsl'",
+    'install -D -m 0755 "$repo_root/scripts/windows/robust-terminal/wsl/droid" /usr/local/bin/droid',
+    'sed -i ''s/\r$//'' /usr/local/bin/droid',
     'install -D -m 0755 "$repo_root/scripts/windows/robust-terminal/wsl/droid-tmux" /usr/local/bin/droid-tmux',
     'sed -i ''s/\r$//'' /usr/local/bin/droid-tmux'
   ) -join "; "
