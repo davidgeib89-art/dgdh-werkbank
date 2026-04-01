@@ -146,13 +146,15 @@ If the UI claim depends on backing run/issue truth:
 
 Before accepting a mission as complete:
 
-1. compare mission state against reality:
+1. check validation-state.json first: if any validator is still pending, or the file is missing entirely, the mission is NOT complete — regardless of feature status or chat narration
+2. check features.json: every required feature must be complete or cancelled; any pending feature means the mission is still open
+3. compare mission state against reality:
    - completed features
    - pending validation
    - unresolved handoff items
-2. flag any in-scope issue that was dismissed as "later" without real feature coverage
-3. rerun at least one focused claimed verification command when the summary leans on green tests
-4. distinguish clearly between:
+4. flag any in-scope issue that was dismissed as "later" without real feature coverage
+5. rerun at least one focused claimed verification command when the summary leans on green tests
+6. distinguish clearly between:
    - working prototype
    - validated mission complete
 

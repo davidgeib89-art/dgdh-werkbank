@@ -3,6 +3,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import {
+  getCloseoutProcedureForRole,
   listRoleTemplateSummaries,
   resolveAssignedRoleTemplate,
 } from "../services/role-templates.ts";
@@ -317,5 +318,66 @@ describe("resolveAssignedRoleTemplate", () => {
 
     expect(result.assigned).toBeNull();
     expect(result.error).toContain('Role template "does-not-exist" was not found');
+  });
+});
+
+describe("getCloseoutProcedureForRole", () => {
+  it("returns closeout procedure for worker role with trigger, description, and steps", () => {
+    const result = getCloseoutProcedureForRole("worker");
+
+    expect(result).not.toBeNull();
+    expect(result?.trigger).toBe("resume_existing_session_worker_closeout");
+    expect(result?.description).toContain("worker");
+    expect(result?.description).toContain("closeout");
+    expect(result?.steps).toBeInstanceOf(Array);
+    expect(result?.steps.length).toBeGreaterThan(0);
+  });
+
+  it("returns closeout procedure for reviewer role with trigger, description, and steps", () => {
+    const result = getCloseoutProcedureForRole("reviewer");
+
+    expect(result).not.toBeNull();
+    expect(result?.trigger).toBe("resume_existing_session_reviewer_verdict");
+    expect(result?.description).toContain("reviewer closeout seam");
+    expect(result?.steps).toBeInstanceOf(Array);
+    expect(result?.steps.length).toBeGreaterThan(0);
+  });
+
+  it("returns null for ceo role (no closeout procedure)", () => {
+    const result = getCloseoutProcedureForRole("ceo");
+
+    expect(result).toBeNull();
+  });
+
+  it("returns null for assistant role (no closeout procedure)", () => {
+    const result = getCloseoutProcedureForRole("assistant");
+
+    expect(result).toBeNull();
+  });
+
+  it("returns null for unknown role template id", () => {
+    const result = getCloseoutProcedureForRole("does-not-exist");
+
+    expect(result).toBeNull();
+  });
+
+  it("normalizes role template id to lowercase before lookup", () => {
+    const result = getCloseoutProcedureForRole("WORKER");
+
+    expect(result).not.toBeNull();
+    expect(result?.trigger).toBe("resume_existing_session_worker_closeout");
+  });
+
+  it("worker procedure steps include worker-pr and worker-done references", () => {
+    const result = getCloseoutProcedureForRole("worker");
+
+    expect(result?.steps.some((step: string) => step.includes("worker-pr"))).toBe(true);
+    expect(result?.steps.some((step: string) => step.includes("worker-done"))).toBe(true);
+  });
+
+  it("reviewer procedure steps include reviewer-verdict references", () => {
+    const result = getCloseoutProcedureForRole("reviewer");
+
+    expect(result?.steps.some((step: string) => step.includes("reviewer-verdict"))).toBe(true);
   });
 });

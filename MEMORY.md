@@ -45,6 +45,7 @@
 ## Aktive Firmenlesart
 - Der Firmenkern bleibt `CEO -> Worker -> Reviewer -> CEO`; Skills, Truth-Layer und Primitives stuetzen ihn, ersetzen ihn nicht.
 - DGDH ist eine governte David-Aufmerksamkeits-Kompressionsmaschine.
+- DROID ist aktuell ein nuetzliches Exoskelett fuer Missionstragen, aber nicht die finale Firmenform; die Zielrichtung bleibt, dass Werkbank / Paperclip spaeter selbst bessere Missionsausfuehrung traegt als DROID.
 - `Highest excitement` ist legitimer Navigationsinput, wenn er in bounded reviewbare Bewegung uebersetzt wird.
 - Anti-Slop-Gate gilt fuer jede relevante Aenderung: spart es David Minuten, erhoeht es echte Firmenfaehigkeit, bleibt es ohne Blindvertrauen pruefbar, traegt es ohne AI-Prosa, und ist es jetzt wirklich dran?
 
@@ -58,6 +59,7 @@
 - Predictive delivery gilt fuer DGDH: branch truth vor Arbeit, runtime truth vor Live-Claims, packet truth vor Execution, enge mechanische Verifikation vor teurem Review.
 - `mission completed` in Factory-State ist nicht automatisch saubere Promotion-Wahrheit; Git-Truth braucht expliziten Closeout (`clean`, `pushed`, `parked`, oder echter blocker`).
 - Scrutiny-Validatoren sollen mechanische Wahrheit pruefen und synthetisieren, nicht still Produktcode mitschreiben; wenn Validation eine echte Implementierungsluecke findet, braucht es einen expliziten Fix-Feature-Cut oder blocker truth.
+- Standardarbeitsfolge fuer DROID-Laeufe: erst echten DGDH-/Werkbank-Berg tragen lassen, danach aus dem Run die kleinste durable Harness-Lehre ziehen. DROID-Selbstverbesserung nicht als Dauerprogramm behandeln.
 - Durable Learnings gehoeren in die kleinste wahre Datei; `MEMORY.md` ist fuer stabile Facts, nicht fuer datierten Missionsverlauf.
 - Lange Droid-/Copilot-Laeufe sind als Exoskelett-Modus erlaubt, aber muessen abends hart auf Produktwert, Betriebswert, Lernwert und Slop reduziert werden.
 

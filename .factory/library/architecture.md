@@ -72,3 +72,21 @@ New command added by this mission: `triad status <issue-id>`
 - Calls `GET /api/issues/:id/company-run-chain`
 - The response shape includes `children[].triad.reviewerWakeStatus` and `children[].triad.closeoutBlocker`
 - Command displays human-readable stall diagnosis and pre-filled rescue command when stall is detected
+
+## Post-Tool-Capacity Closeout Policy (Boundary Extraction)
+
+The heartbeat service has a `resolvePostToolCapacityCloseoutTruth` function that decides what
+an agent should do when it resumes after hitting model capacity limits.
+
+**Before extraction**: Hardcoded `if (roleTemplateId === "worker")` / `if (roleTemplateId === "reviewer")`
+switch in `heartbeat.ts`. The worker case already has its procedure in `worker.json`
+(`closeoutResumeProcedure` field) but TypeScript ignores it.
+
+**After extraction**:
+- `reviewer.json` gets a structured `closeoutResumeProcedure` field (like worker.json)
+- `role-templates.ts` exports `getCloseoutProcedureForRole(roleTemplateId)` that reads from the template JSON
+- `heartbeat.ts resolvePostToolCapacityCloseoutTruth` calls the template service instead of its own hardcoded switch
+- Roles without a closeoutResumeProcedure get the generic active-session default (e.g., CEO)
+
+This makes closeout behavior template-driven for the roles that participate in the closeout path,
+without changing behavior or adding new roles.

@@ -39,7 +39,10 @@ Before reviewing, anchor to the mission context:
 - Read `SOUL.md` - firm soul and DGDH identity
 - Read `company-hq/CORE.md` - core principles and first-principles methodology
 - Read the assigned feature description carefully from features.json
-- Review any `validation-state.json` for canonical child issue mapping
+- Read `validation-state.json` for:
+  - canonical child issue mapping
+  - validator status: if any validator is still pending OR if the file is missing, the mission is NOT validated
+  - if this is a mission closeout review, ALL validators must show "passed" before accepting "complete"
 
 ### 2. Review Previous Work
 - Examine all work done in previous features of this mission
@@ -54,6 +57,7 @@ Before reviewing, anchor to the mission context:
 - Check files changed are within targetFolder scope from packet
 - Verify no scope violations or quality gaps
 - **Git-truth rule**: Review git truth as part of review, not as an afterthought
+- **Validation-state check**: Before accepting a mission closeout as "complete", check `validation-state.json` — if any validator shows "pending" or the file has not been updated since milestone_validation_triggered, this is NOT a validated completion
 
 ### Mechanical-first validation rule
 - Do not spend premium review attention on questions Kimi could have answered mechanically first.

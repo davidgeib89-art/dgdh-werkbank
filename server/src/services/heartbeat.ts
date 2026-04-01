@@ -59,7 +59,10 @@ import {
 } from "../log-redaction.js";
 import { refreshGeminiRuntimeQuotaSnapshot } from "./gemini-quota-producer.js";
 import { fetchLiveGeminiQuota } from "./gemini-quota-api.js";
-import { resolveAssignedRoleTemplate } from "./role-templates.js";
+import {
+  getCloseoutProcedureForRole,
+  resolveAssignedRoleTemplate,
+} from "./role-templates.js";
 import { logActivity } from "./activity-log.js";
 import { prepareHeartbeatGeminiRouting } from "./heartbeat-gemini-routing.js";
 import {
@@ -1169,31 +1172,22 @@ function buildPostToolCapacityResultJson(input: {
   };
 }
 
-function resolvePostToolCapacityCloseoutTruth(input: {
+export function resolvePostToolCapacityCloseoutTruth(input: {
   contextSnapshot: Record<string, unknown> | null | undefined;
 }): PostToolCapacityCloseoutTruth {
   const roleTemplateId = readAssignedRoleTemplateId(input.contextSnapshot);
 
-  if (roleTemplateId === "worker") {
-    return {
-      roleTemplateId,
-      childIssueCreated: true,
-      parentDelegationPath: "closeout",
-      nextResumePoint: "resume_existing_session_worker_closeout",
-      guidance:
-        "Resume on the canonical worker closeout seam. Inspect whether worker-pr and worker-done are still missing, then finish that handoff before reopening broad implementation.",
-    };
-  }
-
-  if (roleTemplateId === "reviewer") {
-    return {
-      roleTemplateId,
-      childIssueCreated: true,
-      parentDelegationPath: "closeout",
-      nextResumePoint: "resume_existing_session_reviewer_verdict",
-      guidance:
-        "Resume on the reviewer closeout seam. Re-check the worker handoff, then persist reviewer-verdict explicitly so the verdict remains path-changing.",
-    };
+  if (roleTemplateId) {
+    const procedure = getCloseoutProcedureForRole(roleTemplateId);
+    if (procedure) {
+      return {
+        roleTemplateId,
+        childIssueCreated: true,
+        parentDelegationPath: "closeout",
+        nextResumePoint: procedure.trigger,
+        guidance: procedure.description,
+      };
+    }
   }
 
   return {

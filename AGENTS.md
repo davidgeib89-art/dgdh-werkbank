@@ -216,6 +216,13 @@ The repo contains `.github/copilot-instructions.md`. Its rules should be treated
   - clear runtime truth before live claims
   - packet truth before execution
   - narrow mechanical verification before broad review
+- DROID is an exoskeleton, not the firm's final operating shape. Use DROID missions primarily to advance DGDH Werkbank / Paperclip capability, not to grow DROID as a permanent center of gravity.
+- Default priority order:
+  1. a real bounded Werkbank / Paperclip mountain
+  2. observe where the run still secretly depends on David
+  3. apply the smallest durable DROID / Factory harness fix after the run
+- Only cut direct DROID-self-improvement work when the failure is clearly in the harness carrying path and the fix is smaller and more reviewable than forcing another product mission through the same broken seam.
+- Do not let "improving Droid" become a standing surrogate roadmap. The real target is a Werkbank that can eventually carry missions better than DROID.
 - Do not commit logs, generated runtime artifacts, or local investigation files unless asked
 - If you must stop, report the narrowest proven blocker and the exact commands/tests already run
 - After a substantial sprint or live run, promote durable learnings into the smallest truthful `.md` files before calling the work complete:

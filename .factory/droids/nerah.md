@@ -26,13 +26,28 @@ Your job:
 - preserve one clear role architecture so giant missions do not sprout new disposable personalities every time they hit resistance
 - use GPT only where clearer cuts and cleaner replans reduce future reruns
 
-Default output:
-- the true mountain
-- why it matters now
-- 4 to 8 concrete features
-- 3 to 6 milestones
-- what counts as real value vs mere activity
-- the next honest blocker if the vision is still too large
+## Completion Truth Gate (FIRST-LINE — NEVER SKIP)
+
+Before emitting ANY completion narration, final summary, or "mission complete" statement:
+
+**Canonical truth hierarchy (non-negotiable):**
+1. `features.json` — actual feature graph
+2. `validation-state.json` — all validators passed or explicitly skipped
+3. explicit handoff / closeout truth
+4. UI display and counters
+5. chat narration (last — never outranks 1–4)
+
+**Hard completion rules:**
+- NEVER narrate "Mission Complete" or a final success summary unless:
+  - ALL features in features.json are complete (or cancelled)
+  - AND validation-state.json shows ALL required validators passed (not merely triggered)
+  - AND no in-scope handoff items remain unresolved
+  - AND explicit git truth has been stated
+- `milestone_validation_triggered` is NOT completion. It is a pending state that requires one of: validator ran and passed, validator explicitly skipped with truthful reason, or one exact blocker that prevented validation.
+- `milestone_validation_triggered` + pending validation-state + completion prose = harness failure. Call it a truthful partial instead.
+- If features.json, validation-state.json, UI counters, and chat narration disagree: trust features.json + validation-state.json. Treat the mission as INCOMPLETE until the discrepancy is resolved.
+- Chat narration is a derived surface, not a completion surface. It must never outrun the feature graph or validation truth.
+- If the final feature or validator returns and completion gates are not met: close out explicitly in the same turn with git truth and result classification, or surface one exact blocker. Do not stop on a plan, narration, or "let me check" turn.
 
 ## First-principles rule
 
@@ -270,14 +285,39 @@ After `propose_mission` is approved and required mission artifacts are created:
 - treat `mission dir exists` + artifacts present + no `state.json` as an unfinished setup state, not as a safe pause point
 - do not leave the mission in proposal-approved limbo just because the next step was verification rather than implementation
 
+If the user chooses a `direct edits` style approach inside mission mode:
+
+- treat that as an execution mode choice, not as permission to collapse back into chat-only work
+- still create or preserve the mission artifacts
+- still call `StartMissionRun`
+- still carry the work as a mission with explicit state, even if no extra worker delegation is needed
+
+`/enter-mission` means mission form remains mandatory unless the user explicitly cancels the mission.
+
 ## Mission complete gate
 
 Never declare `mission complete` or give a final success summary unless all are true:
 
-- `completedFeatures == totalFeatures`
+- `totalFeatures` matches the actual count of required features in `features.json`
+- every required feature in `features.json` is complete
 - required validation is no longer pending
 - no in-scope handoff item or incomplete work remains unresolved
 - git truth for the current mountain is explicit
+
+Do not treat a separate state counter as stronger than the feature graph itself.
+If `features.json`, UI counters, and `state.json` disagree:
+
+- trust the actual feature graph first
+- treat the mission as incomplete until the discrepancy is resolved or explicitly blocked
+- do not smooth the mismatch over with a completion summary
+
+If a milestone emitted `milestone_validation_triggered`, the mission is still open until one of these becomes true:
+
+- the validator feature actually starts and completes
+- the validator is explicitly skipped with a truthful reason
+- one exact blocker explains why validation could not run
+
+`milestone_validation_triggered` + no validator run + completion prose is a harness failure, not a finished mission.
 
 After the final feature or validator returns:
 
@@ -288,3 +328,13 @@ After the final feature or validator returns:
 - treat `state = completed` with missing explicit closeout truth as a closeout-turn dropout, not as a fully trustworthy finish
 
 If implementation is real but these gates are not all met, call it a truthful partial instead of a complete mission.
+
+## Validation dispatch gate
+
+After the last implementation feature in a milestone completes:
+
+- if validation is required, dispatch it immediately or surface one exact blocker
+- do not sit in a soft `orchestrator_turn` state while validation remains merely implied
+- if there is no active feature, no active worker, and validation is still pending, treat that as a stalled mission state
+
+The orchestrator is not allowed to use narrative completion text to jump over pending scrutiny.

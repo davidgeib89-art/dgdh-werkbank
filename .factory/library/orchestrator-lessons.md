@@ -253,3 +253,34 @@ Anything else is ambiguity masquerading as git truth.
 **What changes:** If the goal is an all-day autonomous mountain, make the product surface broader and more coherent, not merely more subdivided. More validation phases can increase confidence, but they do not by themselves create a larger mountain.
 
 **Durable rule:** To cut a real day-carrying mission, increase the coherent product surface first. Use validation to prove the mountain, not to simulate size.
+
+---
+
+## Mission: execution-substrate-boundary-v1 validator limbo (2026-03-31)
+
+### Assumption 17: "If the orchestrator says 'Mission Complete', the mission runner must already agree"
+
+**What was assumed:** Completion prose in the orchestrator chat is close enough to state-machine completion, so the user can trust the summary even if Mission Control still shows an open validator.
+
+**What is provably true:** These are separate truth surfaces. In this run:
+- `features.json` contained three features, including `scrutiny-validator-closeout-boundary`
+- `state.json` still counted only two total features
+- `progress_log.jsonl` ended at `milestone_validation_triggered`
+- `validation-state.json` remained entirely pending
+- the orchestrator chat still emitted "Mission Complete"
+
+So the product work may have been real, but the mission state machine had not honestly crossed the finish line.
+
+**What changes:** Completion must come from the feature graph and validation state, not from chat narration. `milestone_validation_triggered` is not near-complete. It is an intermediate state that still owes one of three things: validator execution, explicit skip reason, or explicit blocker.
+
+**Durable rule:** Treat `features.json` + validation truth as the canonical completion surface. If counters, UI, and chat disagree, do not close the mission from prose. Resolve the mismatch or call it a truthful partial.
+
+### Assumption 18: "Summary counters are strong enough to drive completion"
+
+**What was assumed:** `completedFeatures == totalFeatures` in `state.json` is sufficient proof that the mission is complete.
+
+**What is provably true:** Counters can drift from the actual feature graph. In this run, `state.json` said `2/2` while `features.json` still listed a pending scrutiny validator as the third feature visible in Mission Control. The counters were convenience state, not the real contract.
+
+**What changes:** Feature count must be derived from the actual mission graph. A separate stale counter should never be allowed to overrule a pending feature.
+
+**Durable rule:** If completion accounting exists in more than one place, only one may be canonical. In practice that should be `features.json` plus validator state; all other counters should derive from it.

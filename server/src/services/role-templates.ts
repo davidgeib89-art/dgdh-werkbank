@@ -12,6 +12,11 @@ export interface CanonicalRoleTemplate {
   defaultExecutionIntent?: string;
   defaultNeedsReview?: boolean;
   constraints?: string[];
+  closeoutResumeProcedure?: {
+    trigger: string;
+    description: string;
+    steps: string[];
+  };
 }
 
 export interface ResolvedAssignedRoleTemplate {
@@ -72,6 +77,17 @@ function normalizeRoleTemplateId(value: unknown): string | null {
   return /^[a-z0-9][a-z0-9-]*$/.test(normalized) ? normalized : null;
 }
 
+function asCloseoutResumeProcedure(value: unknown): { trigger: string; description: string; steps: string[] } | null {
+  const parsed = asObject(value);
+  const trigger = asString(parsed.trigger);
+  const description = asString(parsed.description);
+  const steps = asStringArray(parsed.steps);
+  if (!trigger || !description || steps.length === 0) {
+    return null;
+  }
+  return { trigger, description, steps };
+}
+
 function roleTemplatesDir(): string {
   const serviceDir = path.dirname(fileURLToPath(import.meta.url));
   return path.resolve(serviceDir, "../../config/role-templates");
@@ -108,6 +124,9 @@ function validateTemplate(
       : {}),
     ...(asStringArray(parsed.constraints).length > 0
       ? { constraints: asStringArray(parsed.constraints) }
+      : {}),
+    ...(asCloseoutResumeProcedure(parsed.closeoutResumeProcedure)
+      ? { closeoutResumeProcedure: asCloseoutResumeProcedure(parsed.closeoutResumeProcedure)! }
       : {}),
   };
 }
@@ -227,4 +246,16 @@ export function resolveAssignedRoleTemplate(
     },
     error: null,
   };
+}
+
+export function getCloseoutProcedureForRole(
+  roleTemplateId: string,
+): { trigger: string; description: string; steps: string[] } | null {
+  const normalized = normalizeRoleTemplateId(roleTemplateId);
+  if (!normalized) return null;
+
+  const loaded = loadRoleTemplateById(normalized);
+  if (!loaded.template) return null;
+
+  return loaded.template.closeoutResumeProcedure ?? null;
 }

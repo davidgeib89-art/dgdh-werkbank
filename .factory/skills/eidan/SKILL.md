@@ -159,6 +159,12 @@ Verification must distinguish:
   - blocked
 - Do not let a finished mission dissolve into leftover tracked changes for the next run to inherit silently.
 
+**Closeout validation check:**
+- Before emitting a completion handoff, verify:
+  - If this is the final feature or final validator in the milestone, check `validation-state.json` — if any validator is still pending, do not narrate "complete"; return to orchestrator with the exact pending validator named
+  - If `milestone_validation_triggered` was emitted, confirm validation-state shows the validator actually ran or was explicitly skipped
+  - If features.json shows any pending features (besides this one), this is not mission completion — return honestly without claiming it
+
 ## Example Handoff
 
 ```json

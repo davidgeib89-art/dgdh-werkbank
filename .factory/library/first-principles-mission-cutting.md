@@ -96,6 +96,14 @@ If those conditions are not met:
 - do not substitute ad-hoc task delegation for a running mission
 - either repair the mission artifacts or stop and restart cleanly
 
+If the user explicitly prefers `direct edits` for a bounded seam:
+- keep the mission shell
+- keep the mission artifacts
+- keep stateful execution
+- only skip unnecessary subdelegation
+
+Direct execution is an execution style, not a waiver of mission form.
+
 ## Continuation truth
 
 These gates are not there to create fear or force tiny work.
@@ -153,10 +161,28 @@ Never jump from unresolved in-scope handoff truth to `mission complete`.
 
 A mission is not honestly complete unless all are true:
 
-1. all required features are complete
+1. all required features in `features.json` are complete
 2. required validation is no longer pending
 3. no in-scope handoff item remains unresolved
 4. git truth is explicit
+
+If the mission surface shows conflicting counts such as:
+- UI says `2/3`
+- `state.json` says `completedFeatures: 2, totalFeatures: 2`
+- `features.json` still contains a pending validator
+
+then the mission is not complete.
+
+Trust the feature graph over summary counters.
+Summary counters are convenience; `features.json` plus validation truth are the real completion surface.
+
+If a milestone has been marked with `milestone_validation_triggered`, require one of:
+
+- validator started and completed
+- validator explicitly skipped with reason
+- exact blocker
+
+Never let `milestone_validation_triggered` become a silent limbo state that the orchestrator narrates past.
 
 If the product movement is real but these gates are not closed, call it a truthful partial and keep going or stop honestly.
 

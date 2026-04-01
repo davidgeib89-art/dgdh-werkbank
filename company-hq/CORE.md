@@ -82,6 +82,17 @@ The unit of self-improvement is the Mission Cell:
 - escalation reasons
 - promotion rule
 
+Temporary carriers such as DROID may help the firm carry missions while the substrate is still immature.
+They are scaffolding, not destiny.
+
+The operating preference is:
+
+- use the temporary carrier to move real DGDH / Werkbank work
+- study where that run still depends on David
+- then harden the smallest real seam
+
+Never let the temporary carrier quietly become the firm's final identity.
+
 ## 6. Energy logic
 
 `Highest excitement` is a legitimate routing signal in DGDH.

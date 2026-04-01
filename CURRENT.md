@@ -15,6 +15,12 @@ anti_slop_gate:
   - Hauptfilter: `Hilft das DGDH dabei, mit weniger David-Supervision pro nuetzlichem Lauf echte reviewbare Realitaet zu liefern - oder produziert es nur mehr AI-Aufsicht?`
   - Predictive Delivery gilt auf `main`: branch truth vor Arbeit, runtime truth vor Live-Claims, packet truth vor Execution, enge mechanische Verifikation vor breitem Review
   - `go with the flow / follow your highest excitement` bleibt erlaubt, aber nur als bounded reviewbare Bewegung statt Momentum-Theater
+  - DROID ist Exoskelett, nicht Endzustand: Primaer mit Droid an DGDH Werkbank / Paperclip bauen; erst danach aus realen Lauf-Schmerzen die kleinste durable Harness-Anpassung ziehen
+
+operating_bias:
+  - Standardreihenfolge: erst echter offener Werkbank-Berg, dann Reflection, dann kleinster Droid-/Factory-Harness-Fix
+  - Reine Droid-Selbstverbesserung ist nur dann `Core`, wenn ein konkreter Carrying-Path-Fehler gerade echte Werkbank-Missionen unnoetig teuer oder unzuverlaessig macht
+  - Zielbild bleibt: Werkbank soll spaeter Missionen besser tragen als DROID; DROID ist Hilfstraeger auf dem Weg, nicht die bleibende Firmenmitte
 
 next:
   1) `CURRENT.md`, `MEMORY.md` und `ACTIVE-MISSION.md` auf diesem Stand halten; keine neue AI soll noch mit alter Reconsolidation-Wahrheit starten
