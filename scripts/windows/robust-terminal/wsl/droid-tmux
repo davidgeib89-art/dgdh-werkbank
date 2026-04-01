@@ -1,0 +1,121 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+DEFAULT_WORKDIR="${DROID_WORKDIR:-/mnt/c/Users/holyd/DGDH/worktrees/dgdh-werkbank}"
+if [[ ! -d "$DEFAULT_WORKDIR" ]]; then
+  DEFAULT_WORKDIR="$HOME"
+fi
+
+readonly DEFAULT_WORKDIR
+readonly SESSION_NAMES=("droid-main" "droid-review" "droid-runbook" "droid-ops")
+
+ensure_tpm() {
+  mkdir -p "$HOME/.tmux/plugins"
+  if [[ ! -d "$HOME/.tmux/plugins/tpm/.git" ]]; then
+    git clone https://github.com/tmux-plugins/tpm "$HOME/.tmux/plugins/tpm"
+  fi
+}
+
+ensure_tmux_conf() {
+  if [[ ! -f "$HOME/.tmux.conf" ]]; then
+    echo "missing ~/.tmux.conf; run the Windows installer script first" >&2
+    exit 1
+  fi
+}
+
+ensure_session() {
+  local session_name="$1"
+  if ! tmux has-session -t "$session_name" 2>/dev/null; then
+    tmux new-session -d -s "$session_name" -c "$DEFAULT_WORKDIR"
+    tmux rename-window -t "$session_name:1" main
+  fi
+}
+
+ensure_all() {
+  ensure_tmux_conf
+  ensure_tpm
+  for session_name in "${SESSION_NAMES[@]}"; do
+    ensure_session "$session_name"
+  done
+}
+
+normalize_target() {
+  case "${1:-main}" in
+    main|droid-main)
+      printf '%s\n' 'droid-main'
+      ;;
+    review|droid-review)
+      printf '%s\n' 'droid-review'
+      ;;
+    runbook|droid-runbook)
+      printf '%s\n' 'droid-runbook'
+      ;;
+    ops|droid-ops)
+      printf '%s\n' 'droid-ops'
+      ;;
+    *)
+      printf '%s\n' "$1"
+      ;;
+  esac
+}
+
+attach_session() {
+  local target
+  target="$(normalize_target "${1:-main}")"
+  ensure_all
+  if [[ -n "${TMUX:-}" ]]; then
+    exec tmux switch-client -t "$target"
+  fi
+  exec tmux attach-session -t "$target"
+}
+
+print_usage() {
+  cat <<'EOF'
+Usage:
+  droid-tmux ensure
+  droid-tmux list
+  droid-tmux attach [main|review|runbook|ops|session-name]
+  droid-tmux save
+  droid-tmux restore
+  droid-tmux bootstrap
+
+No argument defaults to: attach main
+EOF
+}
+
+command_name="${1:-attach}"
+case "$command_name" in
+  ensure)
+    ensure_all
+    ;;
+  list)
+    ensure_all
+    tmux list-sessions
+    ;;
+  attach)
+    shift || true
+    attach_session "${1:-main}"
+    ;;
+  save)
+    ensure_all
+    exec tmux run-shell "$HOME/.tmux/plugins/tmux-resurrect/scripts/save.sh"
+    ;;
+  restore)
+    ensure_all
+    exec tmux run-shell "$HOME/.tmux/plugins/tmux-resurrect/scripts/restore.sh"
+    ;;
+  bootstrap)
+    ensure_all
+    tmux run-shell "$HOME/.tmux/plugins/tmux-resurrect/scripts/save.sh" || true
+    ;;
+  main|review|runbook|ops|droid-main|droid-review|droid-runbook|droid-ops)
+    attach_session "$command_name"
+    ;;
+  help|-h|--help)
+    print_usage
+    ;;
+  *)
+    print_usage >&2
+    exit 1
+    ;;
+esac
