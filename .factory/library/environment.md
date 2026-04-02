@@ -7,54 +7,34 @@ Environment variables, external dependencies, and setup notes.
 
 ---
 
-## Required Environment Variables
+## Runtime
 
-From `.env.example`:
-```
-DATABASE_URL=postgres://paperclip:paperclip@localhost:5432/paperclip
-PORT=3100
-SERVE_UI=false
-```
+- Platform: Windows (win32), PowerShell is the shell
+- Node: >=20 (pnpm workspace)
+- Package manager: pnpm@9.15.4
+- TypeScript strict mode
 
-No `.env` file exists in the repo — the server reads from `.env.example` defaults or process environment.
+## Test runner
 
-## Platform Notes
+- Vitest
+- Command: `pnpm test:run` (all tests once, no watch mode)
+- Single file: `pnpm vitest run server/src/__tests__/<file>.test.ts`
+- Baseline: 143 test files, 729 tests, 9 skipped (expected)
 
-- **Windows:** `fs.mkdtemp` requires the parent directory to exist. The `.tmp/` directory in the repo root is NOT committed. Tests that use `.tmp/` as a parent must create it in `beforeAll` with `{ recursive: true }`.
-- **Node path:** `process.cwd()` in tests resolves to the repo root (where `pnpm test:run` is invoked).
+## No external services needed for tests
 
-## Embedded Postgres
+All tests use mocked dependencies via `vi.mock`. No database or server instance is required for running unit tests.
 
-The server manages an embedded Postgres instance on port 13100. Workers must not interact with it directly.
+## Typecheck
 
-## DGDH Seed Data
+- Command: `pnpm -r typecheck`
+- Must pass with zero errors before any commit
 
-The running server on port 3100 has DGDH company seeded with CEO, Worker, and Reviewer agents (`agentRolesFound: { ceo: true, worker: true, reviewer: true }`). This is confirmed via `GET /api/health`.
+## Key file locations
 
-## Factory mission runtime
-
-- Factory missions should attach to one shared Paperclip runtime on `:3100` for the duration of the mission.
-- Default behavior in `.factory/init.sh` is runtime-on.
-- For pure refactor / static code missions that do not need live API truth, allow runtime-off explicitly:
-  - `FACTORY_REQUIRE_PAPERCLIP_RUNTIME=false`
-- Canonical attach/start hook:
-  - `node .factory/hooks/ensure-paperclip-runtime.mjs --mode watch`
-- The hook is idempotent:
-  - if `:3100` is already healthy, it reuses that runtime
-  - if not, it starts the shared runtime carrier and waits for `/api/health`
-  - on Windows, the carrier uses `node scripts/dev-runner.mjs` directly instead of a fragile `cmd.exe /c pnpm.cmd ...` wrapper
-  - if a tracked runtime stays unhealthy, it can restart that tracked process once
-  - if startup truth stays thin, it runs one direct `pnpm dev:once` diagnostic and reports the real blocker
-- Force a fresh tracked restart when needed:
-  - `node .factory/hooks/ensure-paperclip-runtime.mjs --mode watch --restart`
-- Override mode only when needed:
-  - `FACTORY_PAPERCLIP_RUNTIME_MODE=once`
-- Do not disable runtime for missions that depend on live API, triad, issue, or runtime truth.
-- Windows note:
-  - embedded PostgreSQL cannot start from an elevated Windows shell
-  - in that case the hook should fail fast with explicit blocker truth; do not widen into scheduler/user/privilege workaround work inside the mission
-- Runtime logs and status live in:
-  - `.factory/runtime/paperclip-runtime-3100.json`
-  - `.factory/runtime/paperclip-runtime-3100.out.log`
-  - `.factory/runtime/paperclip-runtime-3100.err.log`
-- Do not start separate ad-hoc runtime copies per worker session.
+- Server source: `server/src/`
+- Server tests: `server/src/__tests__/`
+- Role templates: `server/config/role-templates/`
+- Shared types: `packages/shared/src/types/`
+- Heartbeat service: `server/src/services/heartbeat.ts` (5382 lines, monolithic)
+- Issues route: `server/src/routes/issues.ts`

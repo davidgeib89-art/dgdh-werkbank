@@ -1,17 +1,10 @@
-#!/bin/sh
-# init.sh - idempotent environment setup for Factory missions in DGDH.
-# Runs at the start of each worker session.
+#!/usr/bin/env bash
+# init.sh — idempotent environment setup for mission workers
+# Run from repo root: C:\Users\holyd\DGDH\worktrees\dgdh-werkbank
 
 set -e
 
-pnpm install --frozen-lockfile
+echo "[init] Installing dependencies..."
+pnpm install --frozen-lockfile 2>/dev/null || pnpm install
 
-case "${FACTORY_REQUIRE_PAPERCLIP_RUNTIME:-true}" in
-  false|FALSE|0|no|NO)
-    ;;
-  *)
-    # Ensure one shared Paperclip runtime for the whole mission.
-    # The script is idempotent: if 3100 is already healthy, it exits quickly.
-    node .factory/hooks/ensure-paperclip-runtime.mjs --mode "${FACTORY_PAPERCLIP_RUNTIME_MODE:-watch}"
-    ;;
-esac
+echo "[init] Done."

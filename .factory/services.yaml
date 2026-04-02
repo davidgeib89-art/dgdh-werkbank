@@ -3,14 +3,6 @@ commands:
   typecheck: pnpm -r typecheck
   build: pnpm build
   test: pnpm test:run
-  test_watch: pnpm test
-  test_single: pnpm vitest run
+  lint: "echo 'no root lint script'"
 
-services:
-  server:
-    start: node .factory/hooks/ensure-paperclip-runtime.mjs --mode watch
-    stop: node .factory/hooks/stop-paperclip-runtime.mjs
-    healthcheck: powershell -NoProfile -Command "$r = Invoke-RestMethod -Uri 'http://127.0.0.1:3100/api/health'; if ($r.status -eq 'ok') { exit 0 } else { exit 1 }"
-    port: 3100
-    depends_on: []
-    note: "Factory should ensure exactly one shared Paperclip runtime on 3100 for the mission. Default mode is watch; override with FACTORY_PAPERCLIP_RUNTIME_MODE=once when a more stable one-shot runtime is preferred."
+services: {}

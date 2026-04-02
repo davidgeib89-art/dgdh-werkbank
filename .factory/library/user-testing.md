@@ -2,77 +2,31 @@
 
 ## Validation Surface
 
-When validating DGDH/Paperclip work, prefer the narrowest real surface first and state exactly what it proves.
+This mission's validation surface is exclusively **API-level unit and integration tests** using Vitest with mocked dependencies.
 
-Primary surfaces in this repo:
+No browser automation (agent-browser) needed.
+No server startup needed.
+No database seeding needed.
 
-1. **Package-scoped tests**
-   - UI: `pnpm --filter @paperclipai/ui exec vitest run <exact-file>`
-   - Server: `pnpm --filter @paperclipai/server exec vitest run <exact-file>`
-   - CLI: `pnpm --filter paperclipai exec vitest run <exact-file>`
-   - Use this first for bounded code changes.
+All assertions are verified via:
+1. `pnpm test:run` — full suite baseline (143+ files)
+2. `pnpm vitest run server/src/__tests__/<specific-file>.test.ts` — targeted file tests
+3. `pnpm -r typecheck` — TypeScript type correctness
 
-2. **Package-scoped typecheck**
-   - UI: `pnpm --filter @paperclipai/ui typecheck`
-   - Server: `pnpm --filter @paperclipai/server typecheck`
-   - CLI: `pnpm --filter paperclipai typecheck`
-   - Use this before broad workspace validation unless the feature crosses package boundaries.
+## Validation Concurrency
 
-3. **Paperclip runtime truth**
-   - `Invoke-RestMethod http://127.0.0.1:3100/api/health`
-   - `Invoke-RestMethod http://127.0.0.1:3100/api/companies`
-   - `Invoke-RestMethod http://127.0.0.1:3100/api/companies/<companyId>/agents/triad-preflight`
-   - `Invoke-RestMethod http://127.0.0.1:3100/api/issues/<issueId>/company-run-chain`
-   - Use these for live state, readiness, issue truth, and triad progress.
+Single-threaded test run. No concurrency concerns. The Vitest runner handles parallelism internally.
 
-4. **Paperclip CLI smoke test**
-   - Build first when needed: `pnpm --filter paperclipai build`
-   - Then run exact CLI surfaces such as:
-     - `pnpm paperclipai runtime status`
-     - `pnpm paperclipai triad start --help`
-     - `pnpm paperclipai triad status --help`
-     - `pnpm paperclipai triad rescue --help`
-   - Prefer CLI truth over ad-hoc curl if the CLI is the real operator surface under test.
+Max concurrent validators: 1 (all via `pnpm test:run`).
 
-5. **Browser / operator UI**
-   - Use only when the feature is genuinely user-visible or operator-visible in the UI.
-   - Always pair UI observations with the backing API truth for the same canonical issue or run.
+## Test files relevant to this mission
 
-## Validation Order
+- `server/src/__tests__/issue-worker-done-route.test.ts` (extend)
+- `server/src/__tests__/heartbeat-reviewer-wake-retry.test.ts` (new)
+- `server/src/__tests__/issue-company-run-chain-route.test.ts` (extend)
 
-Use this order by default:
+## Known test quirks
 
-1. exact package tests
-2. exact package typecheck
-3. live API truth if runtime behavior matters
-4. CLI smoke path if the CLI is part of the feature
-5. browser validation only for real visible UI claims
-6. broad workspace validation only if scope honestly requires it
-
-Do not jump straight to `pnpm test:run` or browser work for a small bounded change.
-
-## Windows / PowerShell Rule
-
-- Prefer `Invoke-RestMethod` over `curl -sf`
-- Prefer PowerShell-native commands over Unix shell snippets
-- Use `http://127.0.0.1:3100` consistently for local trusted runtime checks
-
-## Paperclip Runtime Rule
-
-When validating a live triad or issue flow:
-
-- Treat mission prose IDs as illustrative until live API truth confirms the canonical ID
-- Re-anchor to the current canonical issue ID before each validation step
-- `triad-preflight` alone is not enough for a live-proof claim; if the proof depends on active agents, verify real heartbeats / actual execution truth too
-- If runtime truth contradicts the mission assumptions, stop and report that contradiction rather than continuing with stale IDs
-
-## Honest Reporting Rule
-
-Every validation result must clearly say:
-- which exact command was run
-- what it proved
-- what remains unproven
-- whether the outcome is `passed`, `failed`, `blocked`, or `not_testable`
-
-Never report broad green confidence from narrow commands.
-Never mark user-surface behavior as proven if only tests passed but the live UI or runtime path was not exercised.
+- `gemini-local-execute.test.ts` has 9 intentionally skipped tests — not a failure
+- Total baseline: 143 files, 729 passed, 9 skipped
+- After this mission: expect 144+ files (1 new test file)
