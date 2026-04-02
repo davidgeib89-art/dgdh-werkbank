@@ -1,6 +1,6 @@
 # REINIT - Codex schnell zurueck on track
 
-Du hattest `/compact` oder Context-Verlust. Kein Problem. Lies nur das hier.
+Lies diese Datei NUR wenn du Codex/Taren bist und nach `/compact` oder Context-Verlust einen rollenspezifischen Wiedereinstieg brauchst.
 
 Status:
 - Codex-spezifischer Recovery-Shortcut

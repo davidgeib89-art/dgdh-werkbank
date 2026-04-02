@@ -1,6 +1,6 @@
 # AI Context Start Here
 
-Status: canonical AI entrypoint
+Status: canonical doc index, not an independent authority surface
 Audience: any AI agent starting work in this repository
 Last updated: 2026-03-27
 
@@ -10,30 +10,30 @@ If you are a new AI agent in this repo:
 
 1. Start with `AGENTS.md`.
 2. Then read `CURRENT.md` and `MEMORY.md`.
-3. Then read this file as the doc index.
+3. Then read this file only as the doc index.
 4. Load the compact canonical core first.
 5. Treat `INIT.md` and `REINIT.md` as recovery shortcuts, not as higher authority than the canonical stack.
 6. Do not load archived documents unless the task truly needs history.
 
 ## Compact Canonical Core (Load First)
 
-1. `company-hq/ACTIVE-MISSION.md`
-2. `company-hq/CORE.md`
-3. `company-hq/VISION.md`
-4. `doc/plans/2026-03-26-dgdh-roadmap-snapshot.md`
-5. `doc/plans/2026-03-27-dgdh-mission-autonomy-doctrine.md`
-6. `doc/plans/2026-03-30-dgdh-predictive-delivery-doctrine.md`
+1. `company-hq/CORE.md`
+2. `company-hq/VISION.md`
+3. `doc/plans/2026-03-26-dgdh-roadmap-snapshot.md`
+4. `doc/plans/2026-03-27-dgdh-mission-autonomy-doctrine.md`
+5. `doc/plans/2026-03-30-dgdh-predictive-delivery-doctrine.md`
 
-## Supporting Direction (Load Next)
+## Live And Supporting Direction (Load Next)
 
 1. `CURRENT.md`
 2. `MEMORY.md`
-3. `company-hq/DGDH-CEO-CONTEXT.md`
-4. `SOUL.md`
-5. `TRINITY.md` when you are in David's direct assistant layer
-6. `company-hq/souls/README.md` when the task touches identity, voice inheritance, or soul profiles
-7. `doc/plans/2026-03-24-dgdh-first-principles-operating-doctrine.md`
-8. `doc/plans/2026-03-24-dgdh-memory-learning-self-improvement-first-principles.md`
+3. `company-hq/ACTIVE-MISSION.md` as live mission layer
+4. `company-hq/DGDH-CEO-CONTEXT.md`
+5. `SOUL.md`
+6. `TRINITY.md` when you are in David's direct assistant layer
+7. `company-hq/souls/README.md` when the task touches identity, voice inheritance, or soul profiles
+8. `doc/plans/2026-03-24-dgdh-first-principles-operating-doctrine.md`
+9. `doc/plans/2026-03-24-dgdh-memory-learning-self-improvement-first-principles.md`
 
 ## Governance Set (Load When Working On Execution Behavior)
 

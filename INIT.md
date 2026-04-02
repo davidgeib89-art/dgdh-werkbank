@@ -1,5 +1,6 @@
 # INIT - Universal AI Onboarding
 
+> Lies diese Datei NUR wenn du frisch im Repo landest und keine engere Recovery-/Lane-Datei hast.
 > Status: recovery-friendly entrypoint, nicht hoehere Autoritaet als der kleine kanonische Stack.
 > Nutze diese Datei wenn du frisch in das Repo kommst und noch keine rollenscharfere Abkuerzung hast.
 > Wenn `AGENTS.md`, `CURRENT.md`, `MEMORY.md` und `company-hq/AI-CONTEXT-START-HERE.md` reichen, nimm zuerst diese kleinere Kante.
@@ -20,8 +21,8 @@ Danach gilt:
 
 - `CURRENT.md` = Live-Baton
 - `MEMORY.md` = stabile cross-session Facts
-- `company-hq/ACTIVE-MISSION.md` = kompakter Missionsanker
 - `company-hq/CORE.md`, `company-hq/VISION.md` und die kanonischen Doctrine-/Roadmap-Docs = Richtungswahrheit
+- `company-hq/ACTIVE-MISSION.md` = live mission layer, nicht stabiler Kanon
 
 Wenn du nur einen schnellen, vernuenftigen Start brauchst, geh jetzt in die von `AI-CONTEXT-START-HERE.md` geordnete Lesereihenfolge.
 

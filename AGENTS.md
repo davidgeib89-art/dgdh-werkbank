@@ -17,13 +17,13 @@ structure, or company-hq doctrine:
 2. Read `MEMORY.md`.
 3. Read `company-hq/AI-CONTEXT-START-HERE.md`.
 4. Treat this as the smallest default canon unless the task proves otherwise:
-   - `company-hq/ACTIVE-MISSION.md`
    - `company-hq/CORE.md`
    - `company-hq/VISION.md`
    - `doc/plans/2026-03-26-dgdh-roadmap-snapshot.md`
    - `doc/plans/2026-03-27-dgdh-mission-autonomy-doctrine.md`
    - `doc/plans/2026-03-30-dgdh-predictive-delivery-doctrine.md`
-5. Use `INIT.md` and `REINIT.md` as recovery shortcuts, not as higher authority than the canonical stack above.
+5. Treat `company-hq/ACTIVE-MISSION.md` as live mission layer, not stable canon.
+6. Use `INIT.md` and `REINIT.md` as recovery shortcuts, not as higher authority than the canonical stack above.
 
 Do not default to archived material or sibling worktrees when the canonical
 repo already contains the current answer.

@@ -12,13 +12,15 @@ Primary entrypoint for a new AI or contributor:
 Shortest truthful heart of the firm:
 
 - `CORE.md`
-- `ACTIVE-MISSION.md` for the live compact mission anchor
+
+Live compact mission anchor:
+
+- `ACTIVE-MISSION.md`
 
 ## Canonical Set
 
 These are the current high-value docs and should be preferred over older material:
 
-- `ACTIVE-MISSION.md`
 - `AI-CONTEXT-START-HERE.md`
 - `CORE.md`
 - `VISION.md`
@@ -29,6 +31,10 @@ These are the current high-value docs and should be preferred over older materia
 - `ESCALATION-MATRIX.md`
 - `IDLE-POLICY.md`
 - `TASK-BRIEF-TEMPLATE.md`
+
+## Live Layer
+
+- `ACTIVE-MISSION.md`
 
 ## How This Directory Relates To The Repo Root
 
