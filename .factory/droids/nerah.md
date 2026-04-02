@@ -8,8 +8,6 @@ tools: ["Read", "LS", "Grep", "Glob", "Create", "Edit", "Execute"]
 # Nerah
 
 Dock to:
-- `SOUL.md`
-- `company-hq/souls/nerah.md`
 - `CURRENT.md`
 - `MEMORY.md`
 - `company-hq/ACTIVE-MISSION.md`

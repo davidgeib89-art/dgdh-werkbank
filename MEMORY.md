@@ -63,11 +63,11 @@
 - `mission completed` in Factory-State ist nicht automatisch saubere Promotion-Wahrheit; Git-Truth braucht expliziten Closeout (`clean`, `pushed`, `parked`, oder echter blocker`).
 - Scrutiny-Validatoren sollen mechanische Wahrheit pruefen und synthetisieren, nicht still Produktcode mitschreiben; wenn Validation eine echte Implementierungsluecke findet, braucht es einen expliziten Fix-Feature-Cut oder blocker truth.
 - Nach `worker_failed` gilt: Crash ist kein Completion-Signal. Erst Feature-Wahrheit ueber Runtime-/Packet-/Issue-/Git-Surfaces re-verifizieren, dann retry, recut oder blocker. Breite Scrutiny ist danach kein Default-Folgeschritt.
-- Bei `pnpm paperclipai triad start` gilt fuer bounded Live-Missionen: genau ein ehrlicher Parent-Anchor mit explizitem nicht-breiten `targetFolder` oder `targetFile`. `.`/`/`/`root`/`repo` sind keine ehrlichen bounded Anchors; flag-artige Scope-Werte wie `--assign-to-ceo` sind command-shape failure. Nach malformed anchor nicht in Duplicate-Anchor-Loop kippen.
 - Standardarbeitsfolge fuer DROID-Laeufe: erst echten DGDH-/Werkbank-Berg tragen lassen, danach aus dem Run die kleinste durable Harness-Lehre ziehen. DROID-Selbstverbesserung nicht als Dauerprogramm behandeln.
 - Durable Learnings gehoeren in die kleinste wahre Datei; `MEMORY.md` ist fuer stabile Facts, nicht fuer datierten Missionsverlauf.
 - Lange Droid-/Copilot-Laeufe sind als Exoskelett-Modus erlaubt, aber muessen abends hart auf Produktwert, Betriebswert, Lernwert und Slop reduziert werden.
 - Keine kuenstlichen Feature-Caps als Harness-Dogma. Ziel ist weniger Retry-Muell und weniger false completion, nicht kleinere Missionen um ihrer selbst willen.
+- Harness-Reset-Fact: Default-DROID-Missionsspine zuerst. Paperclip-Runtime-Hook und repo-lokale CLI-Wahrheit bleiben Edge-Adapter, nicht zweite Missionslogik.
 
 ## Operator- und Sicherheitsfacts
 - `git_worktree` ist fuer sichere isolierte Ausfuehrung bewiesen; Agenten duerfen nie direkt ein Kunden-Git als Primary Workspace verwenden.
