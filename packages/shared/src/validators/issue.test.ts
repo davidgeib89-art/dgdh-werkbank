@@ -4,6 +4,9 @@ import {
   type IssueStatusTransition,
   validateIssuePriority,
   type IssuePriorityValidation,
+  validateIssueAssignee,
+  type IssueAssigneeValidation,
+  type IssueAssigneeValidationResult,
 } from "./issue.js";
 import type { IssueStatus, IssuePriority } from "../constants.js";
 
@@ -174,5 +177,98 @@ describe("validateIssuePriority", () => {
     const result = validateIssuePriority({ priority: "High" as IssuePriority });
     expect(result.valid).toBe(false);
     expect(result.reason).toContain("High");
+  });
+});
+
+describe("validateIssueAssignee", () => {
+  // Valid UUIDs
+  it("allows valid UUID format (v4)", () => {
+    const result = validateIssueAssignee({ assigneeAgentId: "550e8400-e29b-41d4-a716-446655440000" });
+    expect(result.valid).toBe(true);
+    expect(result.reason).toBeUndefined();
+  });
+
+  it("allows valid UUID format (v1)", () => {
+    const result = validateIssueAssignee({ assigneeAgentId: "6ba7b810-9dad-11d1-80b4-00c04fd430c8" });
+    expect(result.valid).toBe(true);
+    expect(result.reason).toBeUndefined();
+  });
+
+  it("allows valid UUID with uppercase letters (normalized to lowercase)", () => {
+    const result = validateIssueAssignee({ assigneeAgentId: "550E8400-E29B-41D4-A716-446655440000" });
+    expect(result.valid).toBe(true);
+    expect(result.reason).toBeUndefined();
+  });
+
+  // Empty string
+  it("rejects empty string with descriptive reason", () => {
+    const result = validateIssueAssignee({ assigneeAgentId: "" });
+    expect(result.valid).toBe(false);
+    expect(result.reason).toContain("empty");
+  });
+
+  // Malformed UUIDs
+  it("rejects malformed UUID 'not-a-uuid'", () => {
+    const result = validateIssueAssignee({ assigneeAgentId: "not-a-uuid" });
+    expect(result.valid).toBe(false);
+    expect(result.reason).toBeDefined();
+    expect(result.reason).toMatch(/uuid|format/i);
+  });
+
+  it("rejects malformed UUID '123'", () => {
+    const result = validateIssueAssignee({ assigneeAgentId: "123" });
+    expect(result.valid).toBe(false);
+    expect(result.reason).toBeDefined();
+  });
+
+  it("rejects malformed UUID partial '550e8400'", () => {
+    const result = validateIssueAssignee({ assigneeAgentId: "550e8400" });
+    expect(result.valid).toBe(false);
+    expect(result.reason).toBeDefined();
+  });
+
+  // Wrong patterns
+  it("rejects UUID with missing digit in last group", () => {
+    const result = validateIssueAssignee({ assigneeAgentId: "550e8400-e29b-41d4-a716-44665544000" });
+    expect(result.valid).toBe(false);
+    expect(result.reason).toBeDefined();
+  });
+
+  it("rejects UUID with extra digit in last group", () => {
+    const result = validateIssueAssignee({ assigneeAgentId: "550e8400-e29b-41d4-a716-4466554400000" });
+    expect(result.valid).toBe(false);
+    expect(result.reason).toBeDefined();
+  });
+
+  it("rejects UUID with wrong separator", () => {
+    const result = validateIssueAssignee({ assigneeAgentId: "550e8400_e29b_41d4_a716_446655440000" });
+    expect(result.valid).toBe(false);
+    expect(result.reason).toBeDefined();
+  });
+
+  it("rejects UUID without separators", () => {
+    const result = validateIssueAssignee({ assigneeAgentId: "550e8400e29b41d4a716446655440000" });
+    expect(result.valid).toBe(false);
+    expect(result.reason).toBeDefined();
+  });
+
+  it("rejects UUID with special characters", () => {
+    const result = validateIssueAssignee({ assigneeAgentId: "550e8400-e29b-41d4-a716-44665544000g" });
+    expect(result.valid).toBe(false);
+    expect(result.reason).toBeDefined();
+  });
+
+  // Type exports verification
+  it("returns correct type shape for valid result", () => {
+    const result: IssueAssigneeValidationResult = validateIssueAssignee({ assigneeAgentId: "550e8400-e29b-41d4-a716-446655440000" });
+    expect(result.valid).toBe(true);
+    expect(result.reason).toBeUndefined();
+  });
+
+  it("returns correct type shape for invalid result", () => {
+    const result: IssueAssigneeValidationResult = validateIssueAssignee({ assigneeAgentId: "invalid" });
+    expect(result.valid).toBe(false);
+    expect(result.reason).toBeDefined();
+    expect(typeof result.reason).toBe("string");
   });
 });

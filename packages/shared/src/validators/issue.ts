@@ -345,3 +345,54 @@ export function validateIssuePriority(
 
   return { valid: true };
 }
+
+/**
+ * Input type for validateIssueAssignee.
+ */
+export interface IssueAssigneeValidation {
+  assigneeAgentId: string;
+}
+
+/**
+ * Result type for validateIssueAssignee.
+ */
+export interface IssueAssigneeValidationResult {
+  valid: boolean;
+  reason?: string;
+}
+
+// UUID format: 8-4-4-4-12 hex pattern (e.g., "550e8400-e29b-41d4-a716-446655440000")
+const UUID_REGEX = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+
+/**
+ * Validates whether an assignee agent ID is a properly formatted UUID string.
+ *
+ * UUID format: 8-4-4-4-12 hexadecimal pattern (case-insensitive)
+ * Example: "550e8400-e29b-41d4-a716-446655440000"
+ *
+ * @param validation - Object containing { assigneeAgentId } string value
+ * @returns { valid: boolean, reason?: string } - Validation result with optional error reason
+ */
+export function validateIssueAssignee(
+  validation: IssueAssigneeValidation
+): IssueAssigneeValidationResult {
+  const { assigneeAgentId } = validation;
+
+  // Check for empty string
+  if (assigneeAgentId.trim() === "") {
+    return {
+      valid: false,
+      reason: "Invalid assignee agent ID: value is empty.",
+    };
+  }
+
+  // Validate UUID format
+  if (!UUID_REGEX.test(assigneeAgentId)) {
+    return {
+      valid: false,
+      reason: `Invalid assignee agent ID: "${assigneeAgentId}" is not a valid UUID. Expected format: 8-4-4-4-12 hexadecimal pattern (e.g., "550e8400-e29b-41d4-a716-446655440000").`,
+    };
+  }
+
+  return { valid: true };
+}
