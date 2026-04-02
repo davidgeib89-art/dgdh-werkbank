@@ -33,7 +33,7 @@
 
 ## Bewiesener Produkt-/Systemstand auf `main`
 - `Mission -> CEO -> Child-Issue -> Worker -> Reviewer -> done` ist reproduzierbar bewiesen.
-- `paperclipai triad start`, `paperclipai triad status`, `paperclipai triad rescue`, `paperclipai runtime status` und `GET /api/companies/:id/agents/triad-preflight` sind die aktuelle operator-facing boring path surfaces.
+- `pnpm paperclipai triad start`, `pnpm paperclipai triad status`, `pnpm paperclipai triad rescue`, `pnpm paperclipai runtime status` und `GET /api/companies/:id/agents/triad-preflight` sind die aktuelle operator-facing boring path surfaces.
 - `paperclipai issue liveness <id>` ist auf `main`: es zeigt packet truth, company-run-chain truth und active-run truth als getrennte Diagnoseflaechen statt eines kollabierten Health-Summaries.
 - `GET /api/health` zeigt `seedStatus`; `company-run-chain` ist die kanonische operator-facing Lauf-/Closeout-Wahrheit.
 - `reviewer-wake-retry` ist live: `in_review`-Stalls mit beschaeftigten Reviewern werden nach 5 Minuten automatisch retried; `closeoutBlocker` wird sichtbar.
@@ -62,9 +62,11 @@
 - Predictive delivery gilt fuer DGDH: branch truth vor Arbeit, runtime truth vor Live-Claims, packet truth vor Execution, enge mechanische Verifikation vor teurem Review.
 - `mission completed` in Factory-State ist nicht automatisch saubere Promotion-Wahrheit; Git-Truth braucht expliziten Closeout (`clean`, `pushed`, `parked`, oder echter blocker`).
 - Scrutiny-Validatoren sollen mechanische Wahrheit pruefen und synthetisieren, nicht still Produktcode mitschreiben; wenn Validation eine echte Implementierungsluecke findet, braucht es einen expliziten Fix-Feature-Cut oder blocker truth.
+- Nach `worker_failed` gilt: Crash ist kein Completion-Signal. Erst Feature-Wahrheit ueber Runtime-/Packet-/Issue-/Git-Surfaces re-verifizieren, dann retry, recut oder blocker. Breite Scrutiny ist danach kein Default-Folgeschritt.
 - Standardarbeitsfolge fuer DROID-Laeufe: erst echten DGDH-/Werkbank-Berg tragen lassen, danach aus dem Run die kleinste durable Harness-Lehre ziehen. DROID-Selbstverbesserung nicht als Dauerprogramm behandeln.
 - Durable Learnings gehoeren in die kleinste wahre Datei; `MEMORY.md` ist fuer stabile Facts, nicht fuer datierten Missionsverlauf.
 - Lange Droid-/Copilot-Laeufe sind als Exoskelett-Modus erlaubt, aber muessen abends hart auf Produktwert, Betriebswert, Lernwert und Slop reduziert werden.
+- Keine kuenstlichen Feature-Caps als Harness-Dogma. Ziel ist weniger Retry-Muell und weniger false completion, nicht kleinere Missionen um ihrer selbst willen.
 
 ## Operator- und Sicherheitsfacts
 - `git_worktree` ist fuer sichere isolierte Ausfuehrung bewiesen; Agenten duerfen nie direkt ein Kunden-Git als Primary Workspace verwenden.

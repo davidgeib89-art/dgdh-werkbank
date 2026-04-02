@@ -155,6 +155,7 @@ If scrutiny or validator work is required for a milestone:
 - do not keep speaking as if the mission has only the implementation feature once validation is known to be required
 - if counters and feature graph diverge, trust the feature graph
 - never let stale setup counts overrule the actual feature list
+- but do not force validation to swallow a crashed implementation feature; after `worker_failed`, re-anchor the implementation truth first and only dispatch scrutiny when the feature actually landed or the packet explicitly calls for validator-first recovery
 
 At closeout for read-only missions:
 - require `git status --short`
@@ -181,6 +182,33 @@ Once `mission_run_started` exists:
 - the live mission plan is the feature graph, not the earlier setup checklist
 - if UI still shows setup steps like `Create validation contract` or `Create features.json`, treat that as stale residue
 - do not use that stale setup plan as progress truth in closeout narration
+
+## No artificial size caps
+
+- Do not shrink a mission just to satisfy a feature-count aesthetic.
+- A bigger coherent mountain is fine if it stays reviewable and saves future retries.
+- The right harness question is:
+  - does this shape reduce drift and rework?
+  - not:
+  - can I force the mission to look smaller on paper?
+
+## Worker crash rule
+
+If an implementation worker exits unexpectedly:
+
+- do not treat that as automatic milestone completion
+- do not mark the feature complete unless expectedBehavior was re-proven
+- do not trigger broad scrutiny by default as the very next step
+- first verify:
+  - runtime truth
+  - packet / issue truth
+  - git truth
+- then either:
+  - continue from landed truth
+  - retry / recut the same bounded feature
+  - or stop with one exact blocker
+
+For live-proof missions, broad repo-wide validators should be an escalation, not the reflexive default.
 
 ## Example Handoff
 

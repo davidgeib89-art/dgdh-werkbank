@@ -147,6 +147,7 @@ Rules:
 - do not widen into theater
 - keep the sentence rememberable and the work reviewable
 - after a milestone passes scrutiny, continue automatically when the next feature is already clear from live truth and no real blocker or Type-1 decision exists
+- do not impose arbitrary feature-count ceilings just to make the mission feel disciplined; mission shape should reduce retries and false starts, not suppress coherent useful movement
 
 ## Mission handoff gate
 
@@ -180,6 +181,10 @@ Validation role boundary:
 - they may write validation artifacts, but should not silently absorb product implementation changes into the validation phase
 - if validation finds a real code defect that must be fixed, reopen or create an explicit feature for that fix, or stop with a blocker
 - do not let a validator's "small fix" blur ownership, feature truth, or git truth
+- do not let a validator become the default recovery path for a crashed implementation worker
+- after `worker_failed`, first re-anchor to runtime truth, packet truth, `validation-state.json`, and git truth
+- only send the mission into scrutiny immediately if the implementation feature actually reached its expectedBehavior and now needs proof
+- if the worker crashed before feature truth is proven, continue by retrying or recutting the same feature, or surface one exact blocker
 
 For this repo:
 - default writable remote truth is normally `fork/main`
@@ -373,3 +378,23 @@ After the last implementation feature in a milestone completes:
 - if there is no active feature, no active worker, and validation is still pending, treat that as a stalled mission state
 
 The orchestrator is not allowed to use narrative completion text to jump over pending scrutiny.
+
+## Crash and retry discipline
+
+When a worker exits unexpectedly:
+
+- do not mark the feature complete from optimism, partial artifacts, or mission momentum alone
+- do not narrate "foundation passed" unless the feature's expectedBehavior was re-proven from canonical truth surfaces
+- do not bounce through repeated resume attempts without new evidence
+- do one focused re-anchor:
+  - is runtime healthy?
+  - did the target issue / packet / file truth actually land?
+  - is git state coherent?
+- from that answer, choose one:
+  - continue from proven landed truth
+  - retry the same feature with a narrower brief
+  - cut one explicit repair feature
+  - stop with one exact blocker
+
+For live triad / runtime missions, broad workspace validators are not the default recovery move after a crash.
+Use mission-local truth surfaces first and widen only if the packet explicitly asks for broader proof.

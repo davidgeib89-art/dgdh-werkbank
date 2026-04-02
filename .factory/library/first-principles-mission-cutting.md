@@ -174,6 +174,14 @@ The right move is usually:
 - recut
 - keep carrying
 
+Do not turn this into an artificial mission-size limiter.
+
+- Do not enforce arbitrary feature ceilings just to make the mission look tidy.
+- A larger living mission is fine when it stays coherent, reviewable, and actually saves David retries.
+- Useful in-scope momentum is allowed, including the occasional lucky drift that produces real value.
+- The harness goal is not "small at all costs." The harness goal is less retry waste, less false completion, and less validation theater.
+- If a mission grows, let it grow because the real mountain widened, not because accounting or validators spawned a second bureaucratic mission on top of the first.
+
 ## Git truth gate
 
 Mission truth must land somewhere harder than chat.
@@ -233,6 +241,50 @@ If a milestone has been marked with `milestone_validation_triggered`, require on
 - exact blocker
 
 Never let `milestone_validation_triggered` become a silent limbo state that the orchestrator narrates past.
+
+## Worker crash truth
+
+If a worker exits unexpectedly:
+
+- do not treat partial side effects as automatic feature completion
+- do not mark the feature complete unless the expectedBehavior was re-verified from canonical truth surfaces
+- do not trigger broad scrutiny by default as the next step
+- first classify the failure:
+  - worker-process / session seam
+  - runtime / interface seam
+  - packet truth seam
+  - git truth seam
+- then re-anchor to:
+  - `validation-state.json`
+  - live API / runtime truth
+  - explicit git truth
+
+Default next move after a crash:
+
+1. verify whether the bounded feature actually landed despite the crash
+2. if yes, continue from that proven truth
+3. if no, retry or recut the same bounded feature
+4. if still unclear, surface one exact blocker
+
+Do not let `worker_failed -> feature completed -> scrutiny-validator` become the automatic mission shape.
+That is harness drift unless the packet explicitly asked for validator-first recovery.
+
+## Validation scope truth for live-proof missions
+
+For live-proof, runtime, packet-truth, or triad-carry missions:
+
+- default validation to the mission's real truth surfaces first:
+  - runtime health
+  - triad preflight
+  - issue / packet / chain truth
+  - git truth
+- prefer exact package or command checks second
+- widen to workspace-wide install / typecheck / test / build only when:
+  - the packet explicitly requires repo-wide proof
+  - promotion truth actually depends on that wider baseline
+  - or a narrower check already proved wider fallout
+
+Do not let unrelated broad-baseline failures hijack a bounded live mission before the mission's own truth surfaces were carried as far as they honestly can go.
 
 If Mission Control or chat still shows a stale setup checklist or stale progress plan after `mission_run_started`:
 

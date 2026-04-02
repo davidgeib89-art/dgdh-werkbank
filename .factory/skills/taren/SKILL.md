@@ -74,6 +74,16 @@ Before reviewing, anchor to the mission context:
   - Core vs Slop separation
   - whether a truthful partial is being overstated as complete
 
+### Repo-local CLI truth
+
+When review or verdict submission depends on the repo-local Paperclip CLI:
+
+- build first when needed:
+  - `pnpm --filter paperclipai build`
+- then use:
+  - `pnpm paperclipai ...`
+- do not assume raw `paperclipai ...` exists on PATH inside worker shells
+
 ### 4. Apply Core vs Slop Analysis
 Using first-principles from `company-hq/CORE.md`:
 - **Core**: Truly moves the firm forward, reduces David supervision
@@ -156,7 +166,8 @@ Structure findings in handoff with:
       {"command": "GET /api/issues/F-003/company-run-chain", "exitCode": 200, "observation": "workerState: done, prUrl: https://github.com/.../pull/42, branch: dgdh/issue-F-003, commits: 4"},
       {"command": "git fetch origin dgdh/issue-F-003", "exitCode": 0, "observation": "Fetched branch with 4 commits"},
       {"command": "git diff --stat HEAD..origin/dgdh/issue-F-003", "exitCode": 0, "observation": "All changes within targetFolder scope, no protected paths touched"},
-      {"command": "paperclipai issue reviewer-verdict --issue-id F-003 --verdict accepted --reasoning 'All doneWhen criteria met. PR contains clean commits within targetFolder scope. Core changes verified. No scope violations detected.'", "exitCode": 0, "observation": "verdict accepted recorded, status updated"},
+      {"command": "pnpm --filter paperclipai build", "exitCode": 0, "observation": "CLI build available for repo-local verdict submission"},
+      {"command": "pnpm paperclipai issue reviewer-verdict --issue-id F-003 --verdict accepted --reasoning 'All doneWhen criteria met. PR contains clean commits within targetFolder scope. Core changes verified. No scope violations detected.'", "exitCode": 0, "observation": "verdict accepted recorded, status updated"},
       {"command": "GET /api/issues/F-003/company-run-chain", "exitCode": 200, "observation": "triad.state: ready_to_promote, reviewerState: reviewed, reviewerVerdict.verdict: accepted"}
     ],
     "interactiveChecks": []

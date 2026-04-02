@@ -31,7 +31,9 @@ Not for:
 - If the mission depends on the local runtime, start by attaching to one shared runtime for the whole mission:
   - `node .factory/hooks/ensure-paperclip-runtime.mjs --mode watch`
 - Do not ask each worker session to start its own server copy.
-- Check runtime state via `paperclipai runtime status` or direct API calls
+- Before relying on the repo-local CLI, build it when needed:
+  - `pnpm --filter paperclipai build`
+- Check runtime state via `pnpm paperclipai runtime status` or direct API calls
 - Confirm triad-preflight shows `triadReady: true` before creating issues
 - Verify CEO agent is idle before assigning to CEO
 - If preconditions fail, return to orchestrator with specific blocker
@@ -54,7 +56,7 @@ Not for:
 - If the runtime cannot be made healthy with the shared hook, stop and report an environment/interface blocker instead of inventing alternate boot paths.
 
 ### 2. Create Parent Issue (if needed)
-- Use `paperclipai triad start` CLI for bounded triad missions, OR
+- Use `pnpm paperclipai triad start` CLI for bounded triad missions, OR
 - Use direct API `POST /api/issues` with explicit packet structure:
   - `missionCell` reference
   - Explicit `doneWhen` with `reviewerAcceptWhen`/`reviewerChangeWhen`
@@ -100,9 +102,27 @@ Not for:
   - no blocker needs David interpretation
 - Only return to orchestrator for guidance when:
   - runtime truth is contradictory
-  - a real blocker was proven
-  - the next mountain is no longer the same mission family
-  - a true Type-1 decision is reached
+- a real blocker was proven
+- the next mountain is no longer the same mission family
+- a true Type-1 decision is reached
+
+### Worker crash and scrutiny rule
+
+If a worker in this mission family exits unexpectedly:
+
+- do not treat the feature as complete unless the expectedBehavior was re-proven from live truth
+- do not trigger broad scrutiny by default just because a milestone exists
+- first re-anchor to:
+  - `validation-state.json`
+  - live runtime / issue truth
+  - git truth
+- then choose the next honest move:
+  - continue from proven landed work
+  - retry the same bounded feature
+  - cut one exact repair feature
+  - or surface one exact blocker
+
+Broad validator sweeps are for proof after feature truth, not for replacing feature truth after a crash.
 
 ### 8. Git truth gate before the next mission
 - Before starting a new mission or new mountain family, check whether tracked changes from the prior mission are still present.
@@ -121,8 +141,9 @@ Not for:
   "whatWasLeftUndone": "",
   "verification": {
     "commandsRun": [
-      {"command": "paperclipai runtime status", "exitCode": 0, "observation": "triadReady: true, allRolesPresent: true, CEO: idle"},
-      {"command": "paperclipai triad start --title 'Bounded triad proof' --done-when 'Hardened closeout complete' --assign-to-ceo", "exitCode": 0, "observation": "Issue DAV-168 created"},
+      {"command": "pnpm --filter paperclipai build", "exitCode": 0, "observation": "CLI build available for repo-local commands"},
+      {"command": "pnpm paperclipai runtime status", "exitCode": 0, "observation": "triadReady: true, allRolesPresent: true, CEO: idle"},
+      {"command": "pnpm paperclipai triad start --title 'Bounded triad proof' --done-when 'Hardened closeout complete' --assign-to-ceo", "exitCode": 0, "observation": "Issue DAV-168 created"},
       {"command": "GET /api/issues/DAV-168", "exitCode": 200, "observation": "status: in_progress, missionCell: triad-closeout-boring-after-post-tool-capacity-v1, executionPacket contains triad.ceoCutStatus"},
       {"command": "GET /api/issues?parentId=DAV-168", "exitCode": 200, "observation": "DAV-169 exists, assigned_to: Worker"},
       {"command": "GET /api/issues/DAV-168/company-run-chain", "exitCode": 200, "observation": "triad.state: in_execution, workerPacket created"}
@@ -144,5 +165,6 @@ Return immediately if:
 - Execution packet is missing triad-critical fields
 - runtime truth and validation-state disagree and the conflict cannot be resolved in one or two focused probes
 - Any step fails with unclear resolution path
+- repo-local CLI truth cannot be executed after `pnpm --filter paperclipai build` and one retry
 
 Do NOT retry loops more than 3 times. Escalate instead.

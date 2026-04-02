@@ -294,3 +294,50 @@ So the product work may have been real, but the mission state machine had not ho
 **What changes:** After `mission_run_started`, the feature graph becomes the canonical plan. Any stale setup checklist is UI residue, not mission truth. The orchestrator must say that explicitly if the operator could be misled.
 
 **Durable rule:** Never close or judge a running/completed mission from a stale setup plan. After mission start, trust `features.json`, validation truth, `progress_log.jsonl`, and explicit git truth. If the UI still shows the old setup plan, call it stale residue and continue/close out from the canonical surfaces.
+
+---
+
+## Mission: triad-chain-proof-on-fresh-main worker-crash and validator drift (2026-04-02)
+
+### Raw timeline facts
+
+| Event | Note |
+|---|---|
+| Mission started | `mission_run_started` on fresh main |
+| Foundation worker started | `triad-foundation-setup` |
+| Worker failed | `Droid process exited unexpectedly (exit code 0)` |
+| Foundation assertions partly landed | parent issue `DAV-27` created, triad preflight green, packet truth partially visible |
+| Feature graph drift | `triad-foundation-setup` marked `completed` despite worker failure |
+| Validator triggered | `scrutiny-validator-foundation` started immediately after crash |
+| Broad scrutiny failed | workspace-wide typecheck/test/build surfaced unrelated baseline failures |
+| Mission paused | no CEO cut, no worker execution, no reviewer verdict |
+
+### Assumption 20: "If enough evidence landed before a crash, the feature can be treated as complete"
+
+**What was assumed:** Partial durable side effects plus a crash are close enough to completion for milestone accounting.
+
+**What is provably true:** A crashed worker leaves ambiguous truth. Some expectedBehavior may have landed, but completion is not honest until the feature's expectedBehavior is re-proven from canonical truth surfaces. In this run, the parent issue existed and some assertions were completed, but the worker still crashed and the feature was marked complete anyway.
+
+**What changes:** A crash is not completion. After `worker_failed`, the orchestrator must re-anchor to runtime truth, packet truth, issue truth, and git truth before changing feature status.
+
+**Durable rule:** `worker_failed` must never silently imply `feature completed`. Re-prove the feature, retry/recut it, or stop with one exact blocker.
+
+### Assumption 21: "If a milestone exists, scrutiny is the right default move after a worker failure"
+
+**What was assumed:** The safest recovery after a crash is to let the validator take over.
+
+**What is provably true:** That can turn one bounded mission seam into broad validation theater. In this run, scrutiny escalated immediately into workspace-wide install/typecheck/test/build and reported unrelated baseline failures before the actual triad carry had even reached CEO cut.
+
+**What changes:** Scrutiny is for proof after feature truth, not for replacing feature truth after a crash. The first recovery move should be re-anchoring the crashed feature itself.
+
+**Durable rule:** Do not trigger broad scrutiny by default after `worker_failed`. First recover or classify the implementation feature. Only widen into validators when the packet explicitly asks for broader proof or the feature actually landed and now needs validation.
+
+### Assumption 22: "Repo-local CLI truth can be invoked as `paperclipai ...` inside worker shells"
+
+**What was assumed:** The CLI is available on PATH in mission workers.
+
+**What is provably true:** In this repo on Windows/PowerShell, repo-local CLI truth is dependable as `pnpm paperclipai ...` after `pnpm --filter paperclipai build`, not as raw `paperclipai ...`. In this run, raw `paperclipai runtime status` failed as a command lookup.
+
+**What changes:** Mission skills and examples should stop teaching raw CLI invocation for repo-local truth.
+
+**Durable rule:** In repo-local missions, default to `pnpm paperclipai ...`; build the CLI first when needed. Treat raw `paperclipai ...` as non-canonical unless the environment explicitly proves it is installed globally.
