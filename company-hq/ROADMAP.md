@@ -1,5 +1,10 @@
 # DGDH Roadmap
 
+Status note 2026-04-02:
+- historical bridge roadmap, not default active entrypoint
+- keep for firm-build provenance and older bridge logic
+- for current direction, prefer `company-hq/CORE.md`, `company-hq/ACTIVE-MISSION.md`, `doc/plans/2026-03-26-dgdh-roadmap-snapshot.md`, `doc/plans/2026-03-27-dgdh-mission-autonomy-doctrine.md`, and `doc/plans/2026-03-30-dgdh-predictive-delivery-doctrine.md`
+
 > Zuletzt aktualisiert: 2026-03-21
 > Leitfrage: *Entlastet das David real oder verschoenert es nur die Maschine?*
 

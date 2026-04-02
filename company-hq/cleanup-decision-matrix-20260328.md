@@ -1,5 +1,10 @@
 # DGDH Runtime Cleanup Decision Matrix
 
+Status note 2026-04-02:
+- historical prior-art audit, not current canonical operating truth
+- still useful as evidence for conservative cleanup method and what was load-bearing on 2026-03-28
+- for current doc/truth-layer classification, start with `company-hq/commit-reports/audit-doku-layer-2026-04-02.md`
+
 **Version:** 1.0.0  
 **Milestone:** m1-company-truth  
 **Feature:** m1-produce-cleanup-matrix  

@@ -1,5 +1,10 @@
 # Model Roadmap
 
+Status note 2026-04-02:
+- historical model-strategy bridge from the Gemini-first phase
+- not default current operating truth
+- keep as reference for why dormant-lane and routing assumptions were shaped the way they were
+
 Date: 2026-03-19
 Status: Phase shift — benchmark work is now guardrail only; main focus is Gemini engine + DGDH architecture
 

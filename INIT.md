@@ -3,6 +3,7 @@
 > Status: recovery-friendly entrypoint, nicht hoehere Autoritaet als der kleine kanonische Stack.
 > Nutze diese Datei wenn du frisch in das Repo kommst und noch keine rollenscharfere Abkuerzung hast.
 > Wenn `AGENTS.md`, `CURRENT.md`, `MEMORY.md` und `company-hq/AI-CONTEXT-START-HERE.md` reichen, nimm zuerst diese kleinere Kante.
+> Wenn du bereits eine lane-spezifische Recovery-Datei hast, nimm diese statt `INIT.md`.
 
 ---
 
@@ -35,6 +36,11 @@ Wenn du die DGDH-/Paperclip-Firma selbst aktiv bedienen, Runs starten, beobachte
 - `SOUL.md`
 
 `INIT.md` ist jetzt ein breiter Recovery-Shortcut ueber dem kleineren Kern. Es soll nicht mehr so tun, als waere es die einzige legitime erste Wahrheit.
+Wenn du rollenspezifisch schon weisst, wer du bist, nimm lieber:
+
+- `REINIT.md` fuer Codex/Taren
+- `CODEX.md`, `CHATGPT.md`, `COPILOT.md` fuer lane-spezifische Wiedereinstiege
+- `EXECUTOR.md` fuer Langlauf-/Runtime-Execution
 
 ## Schritt 3: MEMORY und CURRENT richtig lesen
 

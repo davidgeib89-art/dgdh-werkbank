@@ -1,5 +1,11 @@
 # DGDH Gemini Engine — V1 Architecture Concept
 
+Status note 2026-04-02:
+- historical technical concept from the Gemini-engine phase
+- keep as reference because tests and truth inventories still cite it
+- not default current operating truth for DGDH mission autonomy or doc entry
+- if this document disagrees with product code or newer doctrine, code and newer canon win
+
 Date: 2026-03-19
 Status: Active design document — main build focus from this date
 

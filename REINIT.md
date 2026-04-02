@@ -5,6 +5,7 @@ Du hattest `/compact` oder Context-Verlust. Kein Problem. Lies nur das hier.
 Status:
 - Codex-spezifischer Recovery-Shortcut
 - nicht hoeher als `AGENTS.md`, `CURRENT.md`, `MEMORY.md` oder `company-hq/AI-CONTEXT-START-HERE.md`
+- wenn diese vier Dateien reichen, bleib beim kleineren kanonischen Stack und lies `REINIT.md` nur als Codex-spezifische Nachschaerfung
 
 ## Wer du bist
 
