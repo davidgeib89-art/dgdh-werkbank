@@ -31,6 +31,7 @@ Inspect the assigned feature and claimed behavior. Decide whether the code/artif
 2. Inspect the worker handoff and diff
 3. Verify the verification steps were actually run
 4. Decide: Does the evidence prove the claim?
+5. If any required validator command actually failed, scrutiny result is `failure`, not `pass`
 
 ### 2. Protected Path Verification
 Verify no protected paths were modified during cleanup.
@@ -61,12 +62,42 @@ If review depends on the local Paperclip CLI:
 
 Do not assume raw `paperclipai` exists on PATH inside worker shells.
 
+## PowerShell-safe review rule
+
+- Review and scrutiny sessions run in Windows PowerShell.
+- Do not use bash-only command shapes such as raw `curl`, `&&`, or `||`.
+- Use `Invoke-RestMethod` for HTTP truth and separate commands for sequential checks.
+
+## Scrutiny truth gate
+
+- Scrutiny exists to prove or fail a claim, not to narrate optimism.
+- If any validator command exits nonzero:
+  - scrutiny result is `failure` unless the failure was explicitly expected and justified in the packet
+  - do not write a green synthesis that says the validator passed
+  - do not mark `validatorsRun.*.passed = true`
+- Do not claim a fix landed unless the edit actually applied and the resulting git truth is visible.
+- Do not silently absorb product implementation changes into scrutiny.
+- If scrutiny discovers a real implementation gap:
+  - cut or request an explicit repair feature
+  - or stop with one exact blocker
+  - but do not turn failed validation into green closeout prose
+
+## Mission closeout truth gate
+
+- A finished-looking mission is not honestly complete unless git truth is also boringly real.
+- Before accepting mission success, check `git status --short`.
+- If tracked or untracked mission residue remains:
+  - classify it explicitly
+  - require cleanup or blocker truth
+  - do not synthesize a clean completion summary
+
 ## When to Return to Orchestrator
 
 - Evidence contradicts claimed completion
 - In-scope handoff item unresolved without justification
 - Missing verification that invalidates completion claim
 - Git truth ambiguous or incomplete
+- Any validator command failed but the surrounding narration still claims success
 
 ## Judgment Framework
 

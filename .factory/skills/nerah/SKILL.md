@@ -84,6 +84,16 @@ Do not invent alternate runtime boot paths unless the mission itself becomes a b
 - If that did not happen, report that the mission was not created or not started.
 - Do not keep improvising in chat mode as if the mission already exists.
 
+## Mission Closeout Truth
+
+- Do not call a mission complete from chat narration alone.
+- Before accepting mission success, verify:
+  - the real feature graph is complete
+  - any required validation is no longer pending
+  - `git status --short` is empty, or the remaining residue is explicitly classified as parked/blocking truth
+- If a repair feature is inserted mid-run, treat `features.json` as canonical immediately and keep summary counters aligned with it.
+- If counters and the real feature graph disagree, the mission is not honestly complete yet.
+
 ## Example Handoff
 
 ```json

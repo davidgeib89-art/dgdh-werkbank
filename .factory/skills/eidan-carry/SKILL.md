@@ -55,6 +55,19 @@ Not for:
 - Do NOT exceed bounded scope from packet
 - If scope ambiguity arises, make reasonable bounded choice and document
 
+### PowerShell-safe command discipline
+
+- Worker sessions run in Windows PowerShell.
+- Do not use bash-only command shapes:
+  - raw `curl`
+  - `&&`
+  - `||`
+- Prefer:
+  - `Invoke-RestMethod`
+  - separate explicit command steps
+  - repo-local CLI commands via `pnpm paperclipai ...`
+- If a command-form problem is the real failure, fix the command form first instead of treating it as runtime or packet failure.
+
 ### Local read-loop breaker
 
 When local code navigation starts wobbling:
@@ -109,6 +122,8 @@ When local code navigation starts wobbling:
   - intentionally parked dirty with explanation
   - blocked
 - Do not let a finished mission dissolve into leftover tracked changes for the next run to inherit silently.
+- If `git status --short` is not empty, do not claim a clean finish.
+- Clean the tree, classify the residue explicitly, or return blocked.
 
 ### Truth discipline
 - Mission proposal example IDs are illustrative, not canonical.

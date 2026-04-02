@@ -132,8 +132,28 @@ A mission is not honestly complete unless all are true:
 2. required validation is no longer pending
 3. no in-scope handoff item remains unresolved
 4. git truth is explicit
+5. the working tree is actually clean, or the remaining residue is explicitly classified as parked/blocking truth
 
 If the product movement is real but these gates are not closed, call it a truthful partial and keep going or stop honestly.
+
+## Repair-feature accounting gate
+
+If a mission adds a repair or recovery feature mid-run:
+
+- `features.json` becomes the canonical graph immediately
+- any summary counters must be updated to match it
+- do not narrate completion while `completedFeatures`, `totalFeatures`, and the real feature graph disagree
+
+Recovery movement is real value, but only if the accounting remains truthful.
+
+## Scrutiny truth gate
+
+Validators are not allowed to turn failed checks into green narration.
+
+- if a validator command returns nonzero, scrutiny is red unless the failure was explicitly expected by the packet
+- if scrutiny discovers an implementation defect, reopen the feature or cut a repair feature
+- do not hide a failed check behind synthesis prose
+- do not treat validator-side product mutation as the default recovery path
 
 ## Anti-illusion guard
 

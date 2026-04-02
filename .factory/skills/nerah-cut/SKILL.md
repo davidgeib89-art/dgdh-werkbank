@@ -73,8 +73,19 @@ None. This skill operates at the strategic/API layer.
 
 ### 5. Verify Child Creation
 - Confirm child exists: `GET /api/issues?parentId={parentId}`
-- Verify child assigned to Worker (not idle/CEO)
-- Document child issue ID in handoff
+- Read the child itself via `GET /api/issues/{childId}` before reporting success
+- Verify all of these from live API truth:
+  - child exists in runtime
+  - `child.parentId` matches the parent
+  - `child.assigneeAgentId` is set
+  - child is no longer only a claimed handoff artifact
+- A CEO cut is not successful because a run claimed child creation.
+- A CEO cut is successful only when the child is directly visible and linked in runtime truth.
+- If any of the checks above fail:
+  - do not report success
+  - do not advance from inferred child truth
+  - return a blocker or repair feature request anchored to the missing live child evidence
+- Document child issue ID in handoff only after the verification above passes
 
 ### 5a. Re-anchor before every new milestone
 - Before starting a new milestone, re-read `validation-state.json` and the relevant live API surface.
@@ -104,6 +115,17 @@ None. This skill operates at the strategic/API layer.
   - intentionally parked with explanation
   - intentionally discarded
 - Do not silently start the next mission on ambiguous git carry-over.
+
+## PowerShell-safe command rule
+
+- This repo runs mission workers in Windows PowerShell.
+- Do not use bash-only command shapes such as:
+  - raw `curl ... | python ...`
+  - `&&`
+  - `||`
+- For API truth use `Invoke-RestMethod` or `Invoke-WebRequest`.
+- Run commands as separate explicit steps rather than shell chaining.
+- Treat command-shape drift as a harness problem, not as proof that runtime truth is missing.
 
 ## Example Handoff
 

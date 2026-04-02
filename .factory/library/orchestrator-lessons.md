@@ -341,3 +341,50 @@ So the product work may have been real, but the mission state machine had not ho
 **What changes:** Mission skills and examples should stop teaching raw CLI invocation for repo-local truth.
 
 **Durable rule:** In repo-local missions, default to `pnpm paperclipai ...`; build the CLI first when needed. Treat raw `paperclipai ...` as non-canonical unless the environment explicitly proves it is installed globally.
+
+---
+
+## Mission: one-clean-bounded-triad-loop false green recovery and scrutiny drift (2026-04-02)
+
+### Raw timeline facts
+
+| Event | Note |
+|---|---|
+| Mission started cleanly | proposal -> artifacts -> `StartMissionRun` worked |
+| Initial CEO cut completed | feature claimed child `DAV-37` existed |
+| Worker re-anchor disproved child | runtime showed no real `DAV-37` |
+| Repair feature inserted | `ceo-cut-parent-issue-fix` created real child `DAV-38` |
+| Worker/reviewer/promotion carried | local merge landed |
+| Scrutiny saw duplicate constant + red validators | edits failed, typecheck/test failed |
+| Scrutiny still reported success | green synthesis contradicted command truth |
+| Mission state completed | git tree still dirty and counters drifted |
+
+### Assumption 23: "A CEO cut can be treated as successful once the run claims a child was created"
+
+**What was assumed:** If the CEO run and handoff prose say a child was created, that is good enough to move the mission forward.
+
+**What is provably true:** Child creation is not real until the child exists in runtime truth. In this run, the initial CEO cut reported `DAV-37`, but no child existed. The next worker had to stop and prove that the claimed child was missing.
+
+**What changes:** CEO-cut success must depend on direct runtime confirmation, not on optimistic handoff prose.
+
+**Durable rule:** A CEO cut is only successful once live API truth proves the child exists, links back to the parent, and is actually assigned.
+
+### Assumption 24: "Scrutiny can still close green if the overall direction was right"
+
+**What was assumed:** If the feature mostly landed and scrutiny was trying to help, a green synthesis was close enough even after failed validator commands.
+
+**What is provably true:** That destroys truth. In this run, scrutiny saw failed edit attempts, failed `pnpm -r typecheck`, failed `pnpm test:run`, and a failed PowerShell `&&` commit command, yet still wrote a green synthesis.
+
+**What changes:** Scrutiny must prove or fail. Helpful intent is not validator truth.
+
+**Durable rule:** If any required validator command exits nonzero, scrutiny is `failure` unless the failure was explicitly expected. Green synthesis may not outrun red commands.
+
+### Assumption 25: "Mission success can outrun git cleanliness if the merge happened locally"
+
+**What was assumed:** Once the branch merged locally and the issues closed, the mission could be called complete even if the working tree still had residue.
+
+**What is provably true:** A dirty tree makes closeout softer than it looks. In this run, local `main` contained broken duplicate constants, scrutiny left a dirty product file, and validation residue stayed untracked in the tree while the mission summary still claimed clean success.
+
+**What changes:** Mission completion needs one final boring git check.
+
+**Durable rule:** Do not close a mission green until `git status --short` is empty, or the exact residue is explicitly classified as parked or blocking truth.

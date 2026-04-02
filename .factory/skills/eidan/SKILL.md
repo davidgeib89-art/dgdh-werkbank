@@ -69,6 +69,23 @@ Not for:
 - Make incremental commits with clear messages
 - Do NOT exceed bounded scope from packet
 
+### 3.4 PowerShell-safe command discipline
+
+- Workers run in Windows PowerShell. Do not write or trust bash-shaped one-liners.
+- Do not use:
+  - raw `curl` as if it were Unix curl
+  - `&&`
+  - `||`
+  - pipelines that depend on Unix shell semantics
+- For HTTP truth:
+  - prefer `Invoke-RestMethod`
+  - use explicit variable assignment when one response feeds the next step
+- For multi-step verification:
+  - run one command per step
+  - inspect the result
+  - then run the next command
+- If a command fails because of shell shape rather than product truth, classify that as applicability drift and correct the command form before escalating the mission.
+
 ### 3.3 Local read-loop breaker
 
 Do not get trapped rereading the same narrow code slice.
@@ -150,6 +167,7 @@ Verification must distinguish:
 - If a command fails twice, stop and return blocked
 - If a report doesn't exist, create it or return blocked
 - Missing artifacts are missing truth
+- Never mark validation or runtime proof as passed from inferred state, hoped-for state, or stale handoff prose.
 
 ### 6. Closeout Requires Explicit Git Truth
 - Before leaving a finished mission behind, make git truth explicit:
@@ -158,6 +176,11 @@ Verification must distinguish:
   - intentionally parked dirty with explanation
   - blocked
 - Do not let a finished mission dissolve into leftover tracked changes for the next run to inherit silently.
+- If `git status --short` is non-empty at closeout, do not narrate a clean finish.
+- Either:
+  - clean it
+  - classify the exact residue truth
+  - or return blocked
 
 **Closeout validation check:**
 - Before emitting a completion handoff, verify:
