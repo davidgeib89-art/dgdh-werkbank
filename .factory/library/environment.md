@@ -34,6 +34,9 @@ The running server on port 3100 has DGDH company seeded with CEO, Worker, and Re
 ## Factory mission runtime
 
 - Factory missions should attach to one shared Paperclip runtime on `:3100` for the duration of the mission.
+- Default behavior in `.factory/init.sh` is runtime-on.
+- For pure refactor / static code missions that do not need live API truth, allow runtime-off explicitly:
+  - `FACTORY_REQUIRE_PAPERCLIP_RUNTIME=false`
 - Canonical attach/start hook:
   - `node .factory/hooks/ensure-paperclip-runtime.mjs --mode watch`
 - The hook is idempotent:
@@ -46,6 +49,7 @@ The running server on port 3100 has DGDH company seeded with CEO, Worker, and Re
   - `node .factory/hooks/ensure-paperclip-runtime.mjs --mode watch --restart`
 - Override mode only when needed:
   - `FACTORY_PAPERCLIP_RUNTIME_MODE=once`
+- Do not disable runtime for missions that depend on live API, triad, issue, or runtime truth.
 - Windows note:
   - embedded PostgreSQL cannot start from an elevated Windows shell
   - in that case the hook should fail fast with explicit blocker truth; do not widen into scheduler/user/privilege workaround work inside the mission
