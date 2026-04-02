@@ -6,20 +6,22 @@ This directory is the canonical in-repo home for DGDH firm doctrine, governance,
 
 Primary entrypoint for a new AI or contributor:
 
+- `../AGENTS.md`
 - `AI-CONTEXT-START-HERE.md`
 
 Shortest truthful heart of the firm:
 
 - `CORE.md`
+- `ACTIVE-MISSION.md` for the live compact mission anchor
 
 ## Canonical Set
 
 These are the current high-value docs and should be preferred over older material:
 
+- `ACTIVE-MISSION.md`
+- `AI-CONTEXT-START-HERE.md`
 - `CORE.md`
-- `souls/README.md`
 - `VISION.md`
-- `ROADMAP.md`
 - `DGDH-CEO-CONTEXT.md`
 - `AGENT-CONSTITUTION.md`
 - `AUTONOMY-MODES.md`
@@ -39,6 +41,8 @@ The full firm operating truth is split across:
 Use `company-hq` for:
 
 - compact firm heart and vision
+- compact mission anchor
+- company-level doc index
 - governance rules
 - company-specific operating policies
 - stable capability and research context
@@ -56,6 +60,7 @@ Older and superseded company docs live under:
 
 - `archive/2026-03-18-legacy/`
 - `archive/2026-03-21-pre-live-quota/`
+- `archive/2026-04-02-doc-truth-reconsolidation/`
 
 Treat archived material as history, not default truth.
 

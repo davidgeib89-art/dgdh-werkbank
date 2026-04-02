@@ -1,15 +1,44 @@
 # INIT - Universal AI Onboarding
 
-> Du bist ein AI-Agent der in diesem Repository arbeitet.
-> Lies diese Datei ZUERST. Sie macht dich zum Experten.
-> Funktioniert mit jeder AI CLI: Claude, Gemini, ChatGPT, Codex, OpenCode, etc.
-> Nutze diese Datei auch nach /compact oder Context-Verlust um dich neu zu orientieren.
+> Status: recovery-friendly entrypoint, nicht hoehere Autoritaet als der kleine kanonische Stack.
+> Nutze diese Datei wenn du frisch in das Repo kommst und noch keine rollenscharfere Abkuerzung hast.
+> Wenn `AGENTS.md`, `CURRENT.md`, `MEMORY.md` und `company-hq/AI-CONTEXT-START-HERE.md` reichen, nimm zuerst diese kleinere Kante.
 
 ---
 
-## Schritt 1: MEMORY lesen
+## Schritt 1: Kleinsten kanonischen Stack laden
 
-Lies **sofort** `MEMORY.md` im Repo-Root. Das ist der geteilte stabile Zustand aller AIs die hier arbeiten. Dort steht:
+Lies zuerst in genau dieser Reihenfolge:
+
+1. `AGENTS.md`
+2. `CURRENT.md`
+3. `MEMORY.md`
+4. `company-hq/AI-CONTEXT-START-HERE.md`
+
+Danach gilt:
+
+- `CURRENT.md` = Live-Baton
+- `MEMORY.md` = stabile cross-session Facts
+- `company-hq/ACTIVE-MISSION.md` = kompakter Missionsanker
+- `company-hq/CORE.md`, `company-hq/VISION.md` und die kanonischen Doctrine-/Roadmap-Docs = Richtungswahrheit
+
+Wenn du nur einen schnellen, vernuenftigen Start brauchst, geh jetzt in die von `AI-CONTEXT-START-HERE.md` geordnete Lesereihenfolge.
+
+## Schritt 2: Recovery- und Rollenpfade nur bei Bedarf
+
+Wenn du die DGDH-/Paperclip-Firma selbst aktiv bedienen, Runs starten, beobachten oder lokale Instanz-/Worktree-Fragen klaeren musst, lies danach auch:
+
+- `doc/DGDH-AI-OPERATOR-RUNBOOK.md`
+- `EXECUTOR.md` wenn du der ausfuehrende Langlauf-Agent bist
+- `TRINITY.md` wenn du eine der drei direkten David-Assistentenrollen bist
+- `CODEX.md` / `CHATGPT.md` / `COPILOT.md` je nach zugewiesener Identitaet
+- `SOUL.md`
+
+`INIT.md` ist jetzt ein breiter Recovery-Shortcut ueber dem kleineren Kern. Es soll nicht mehr so tun, als waere es die einzige legitime erste Wahrheit.
+
+## Schritt 3: MEMORY und CURRENT richtig lesen
+
+Lies `MEMORY.md` im Repo-Root als geteilten stabilen Zustand aller AIs die hier arbeiten. Dort steht:
 - Was bewiesen funktioniert
 - Welche Architektur-Entscheidungen gelten
 - Welche Dokumente den Detailstand enthalten
@@ -18,19 +47,12 @@ Lies **sofort** `MEMORY.md` im Repo-Root. Das ist der geteilte stabile Zustand a
 **MEMORY.md ist deine Pflicht.** Wenn du stabile Facts, Architektur oder proven state aenderst: update MEMORY.md BEVOR du die Session beendest. Die naechste AI (oder du selbst nach /compact) ist darauf angewiesen.
 Halte `MEMORY.md` dabei als verdichtete Stable-Facts-Karte: Zielgroesse unter 80 Zeilen, keine datierte Sprint-Historie, kein Live-Baton.
 
-Lies **direkt danach** `CURRENT.md`, wenn die Datei existiert. Das ist der Live Baton zwischen den CLIs: aktueller Fokus, aktives Issue, naechster Schritt, Blocker, letzte schreibende AI.
+Lies direkt danach `CURRENT.md`, wenn die Datei existiert. Das ist der Live Baton zwischen den CLIs: aktueller Fokus, aktives Issue, naechster Schritt, Blocker, letzte schreibende AI.
 Wenn du aeltere Sprint-/Run-Historie brauchst, lies `doc/archive/sprint-log.md` statt `MEMORY.md` aufzublaehen.
-
-Wenn du die DGDH-/Paperclip-Firma selbst aktiv bedienen, Runs starten, beobachten oder lokale Instanz-/Worktree-Fragen klaeren musst, lies danach auch:
-- `doc/DGDH-AI-OPERATOR-RUNBOOK.md`
-- `EXECUTOR.md` wenn du der ausfuehrende Langlauf-Agent bist
-- `TRINITY.md` wenn du eine der drei direkten David-Assistentenrollen bist
-- `CODEX.md` / `CHATGPT.md` / `COPILOT.md` je nach zugewiesener Identitaet
-- `SOUL.md`
 
 ---
 
-## Schritt 2: Aktive Arbeitsdokumente lesen
+## Schritt 4: Aktive Arbeitsdokumente lesen
 
 MEMORY.md kann veraltet sein (eine andere AI hat vielleicht vergessen es zu updaten). Darum:
 
@@ -46,7 +68,7 @@ Die neuesten Dateien in `doc/plans/` nach Datum sortiert zeigen dir was zuletzt 
 
 ---
 
-## Schritt 3: Projekt verstehen
+## Schritt 5: Projekt verstehen
 
 **DGDH (David Geib - Digitales Handwerk)** ist eine Mensch-AI-Symbiose-Firma. David ist der einzige menschliche Operator. AI-Agents erledigen echte Arbeit: Kundenprojekte, Tools, Recherche. Paperclip ist das technische Substrat (Control Plane fuer AI-Agents).
 
@@ -65,7 +87,7 @@ Lies diese Docs in dieser Reihenfolge:
 11. `SOUL.md` - gemeinsamer Wesensvertrag der DGDH-Agentenwelt
 12. `company-hq/souls/README.md` - wenn du Identitaet, Stimmen oder spaetere vererbbare Seelenprofile verstehen musst
 13. `doc/plans/2026-03-21-dgdh-north-star-roadmap.md` - strategische Tiefe und aelterer Ausbaukontext; nicht mehr die kuerzeste operative Einstiegskante
-14. `company-hq/ROADMAP.md` - historischer Bruecken-Read fuer den Firmenaufbau, nachrangig hinter `CORE.md`, Roadmap-Snapshot und Missionsdoctrine
+14. `company-hq/ROADMAP.md` nur wenn du historischen Firmenaufbau rekonstruieren musst; nicht als erste aktuelle Richtungsquelle
 
 Wenn Dokumente sich widersprechen, gilt fuer die aktuelle operative Richtung zuerst:
 - `CURRENT.md`
@@ -76,7 +98,7 @@ Wenn Dokumente sich widersprechen, gilt fuer die aktuelle operative Richtung zue
 
 Nur bei Bedarf (wenn deine Aufgabe es erfordert):
 - `company-hq/AI-CONTEXT-START-HERE.md` - vollstaendiger Doc-Index
-- `company-hq/DGDH-GEMINI-ENGINE-V1-2026-03-19.md` - Gemini Engine Spec
+- datierte Engine-/Roadmap-/Bridge-Dokumente nur als historische Evidenz, nicht als Standard-Einstieg
 - `doc/DGDH-AI-OPERATOR-RUNBOOK.md` - praktische Bedienungsanleitung fuer lokale Firmenruns und kanonische Run-Control
 - `EXECUTOR.md` - kompakter Regelkern fuer Copilot und andere ausfuehrende Langlauf-Agenten: Runtime-Truth, Port-/Process-Checks, Real-Run-Protokoll, Anti-Drift und Anti-`task_complete`-Loop
 - `TRINITY.md` - shared Vertrag fuer Davids direkte Assistenten: Codex, ChatGPT und Copilot

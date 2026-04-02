@@ -5,6 +5,8 @@ This folder stores historical company-hq documents that are not part of the defa
 Current snapshot archive:
 
 - `2026-03-18-legacy/`
+- `2026-03-21-pre-live-quota/`
+- `2026-04-02-doc-truth-reconsolidation/`
 
 Usage rule:
 

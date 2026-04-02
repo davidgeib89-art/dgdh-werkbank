@@ -1,6 +1,7 @@
 # DROID-MISSION.md
 
-Status: draft v0.1
+Status: historical archived brief
+Archive note: moved out of repo root during Phase-2 doc truth reconsolidation; not default mission authority
 Autor: Planer (Perplexity MCP)
 Authority: David (CEO)
 Erstellt: 2026-03-25

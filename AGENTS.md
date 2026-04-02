@@ -16,8 +16,14 @@ structure, or company-hq doctrine:
 1. Read `CURRENT.md`.
 2. Read `MEMORY.md`.
 3. Read `company-hq/AI-CONTEXT-START-HERE.md`.
-4. Read `doc/plans/2026-03-30-dgdh-predictive-delivery-doctrine.md` when the task touches how DGDH wants to build, validate, review, or ship.
-5. Follow that file's compact canonical read order before using older docs.
+4. Treat this as the smallest default canon unless the task proves otherwise:
+   - `company-hq/ACTIVE-MISSION.md`
+   - `company-hq/CORE.md`
+   - `company-hq/VISION.md`
+   - `doc/plans/2026-03-26-dgdh-roadmap-snapshot.md`
+   - `doc/plans/2026-03-27-dgdh-mission-autonomy-doctrine.md`
+   - `doc/plans/2026-03-30-dgdh-predictive-delivery-doctrine.md`
+5. Use `INIT.md` and `REINIT.md` as recovery shortcuts, not as higher authority than the canonical stack above.
 
 Do not default to archived material or sibling worktrees when the canonical
 repo already contains the current answer.

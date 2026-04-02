@@ -248,7 +248,7 @@ Halte dich an SOUL.md: bounded, reviewbar, kein Theater.
 ```
 SOUL.md          -> Firmenseele, Pflicht-Kontext jeder Mission
 CURRENT.md       -> Aktuelle Prioritaeten
-DROID-MISSION.md -> Detaillierte Mission-Typen
+doc/archive/2026-04-02-droid-mission-brief.md -> Historischer frueher Droid-Missionsbrief
 MEMORY.md        -> Nach jeder Mission updaten
 INIT.md          -> Onboarding neuer Planer-Instanzen
 ```
