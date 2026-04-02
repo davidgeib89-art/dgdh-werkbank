@@ -19,9 +19,9 @@ Use for:
 - Worker closeout via worker-pr and worker-done
 
 Not for:
-- Creating parent issues (use `nerah-cut`)
+- Creating parent issues (route to `nerah`; `nerah-cut` is procedure, not a standalone subagent)
 - Review and verdict (use `taren-review`)
-- Strategic cuts (use `nerah-cut`)
+- Strategic cuts (route to `nerah`)
 
 ## Required Skills
 

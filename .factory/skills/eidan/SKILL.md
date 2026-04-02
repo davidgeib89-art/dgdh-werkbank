@@ -24,7 +24,7 @@ Use for:
 Not for:
 - Strategic mission cutting (use `nerah`)
 - Review and verdict (use `taren`)
-- Creating parent issues (use `nerah-cut`)
+- Creating parent issues (route to `nerah`; `nerah-cut` is procedure, not a standalone subagent)
 
 ## Required Skills
 

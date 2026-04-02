@@ -282,6 +282,16 @@ For Factory Missions:
   - `eidan`
   - `taren`
 
+For Task/subagent delegation:
+
+- only use real available droid identities
+- in the default DGDH stack that means:
+  - `nerah`
+  - `eidan`
+  - `taren`
+- helper skills like `nerah-cut`, `eidan-carry`, and `taren-review` are procedure layers, not guaranteed subagent types
+- do not emit `subagent_type` values that are only skill names unless a matching droid configuration truly exists
+
 Do not cut features with `skillName` pointing at a missing skill and then patch around it by creating generic mission workers mid-run.
 
 If a specialized helper skill is truly needed:

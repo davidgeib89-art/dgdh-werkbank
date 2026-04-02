@@ -19,8 +19,8 @@ Use for:
 
 Not for:
 - Implementation work (use `eidan-carry`)
-- Strategic cuts (use `nerah-cut`)
-- Merge/promotion (use `nerah-cut` for CEO promotion)
+- Strategic cuts (route to `nerah`)
+- Merge/promotion (route to `nerah` for CEO promotion; `nerah-cut` is procedure, not a standalone subagent)
 
 ## Required Skills
 

@@ -84,6 +84,17 @@ Do not invent alternate runtime boot paths unless the mission itself becomes a b
 - If that did not happen, report that the mission was not created or not started.
 - Do not keep improvising in chat mode as if the mission already exists.
 
+## Subagent routing truth
+
+- Only route delegated mission tasks to real available DROID identities.
+- In the default DGDH stack that means:
+  - `nerah`
+  - `eidan`
+  - `taren`
+- Treat helper skills such as `nerah-cut`, `eidan-carry`, and `taren-review` as procedure layers inside those lanes, not as standalone subagent types, unless a matching droid configuration truly exists.
+- If a proposed delegation target is not a real available subagent, do not try it and then fall back in chat.
+- Re-route immediately to the owning lane identity instead.
+
 ## Mission Closeout Truth
 
 - Do not call a mission complete from chat narration alone.
