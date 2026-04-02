@@ -28,3 +28,13 @@ Validators are tested indirectly through server/CLI tests.
 - `validateIssueStatusTransition()` helper for business rule validation
 - Direct test coverage for issue validators
 - Vitest configuration for the shared package
+
+## Mission Closeout Truth
+
+Mission completion must be mechanically verified, not inferred from one green step.
+
+- Do not claim mission completion while `state.json.state` is not `completed`
+- Do not claim mission completion while any feature in `features.json` is still `pending` or `in_progress`
+- Do not claim `all assertions fulfilled` when `validation-state.json` still shows assertions as `pending` or inconsistent
+- Do not claim `user-testing passed` unless a corresponding user-testing feature exists and is actually completed
+- A generic system message such as `mission is done` does not override feature-graph truth, validation-state truth, or git truth

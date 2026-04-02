@@ -116,3 +116,12 @@ git commit -m "<scope>: <what changed>"
 - Any test failure that cannot be resolved within 2 attempts
 - scope requires touching files outside the approved list in AGENTS.md
 - A discovered issue is blocking and requires a different approach than specified
+
+## Closeout Truth Gate
+
+Workers and orchestrators must keep feature truth separate from mission truth.
+
+- A completed implementation feature is not the same as a completed mission
+- Do not summarize the mission as complete while validation features are still `pending`
+- Do not claim `all assertions fulfilled` when `validation-state.json` still shows `pending`
+- Do not infer `user-testing passed` unless a real user-testing feature exists and has completed

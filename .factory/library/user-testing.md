@@ -24,3 +24,11 @@
 - Shared package not currently in vitest workspace
 - Need to create `vitest.config.ts` for the package
 - Tests will use Vitest's default configuration
+
+## Closeout Rule
+
+This file describes the user-testing surface only when a mission actually includes user-testing work.
+
+- If no explicit user-testing feature exists in `features.json`, user testing is **unverified**, not implicitly passed
+- A completed implementation feature or scrutiny pass does not automatically mean user-testing passed
+- If `validation-state.json` remains `pending`, the mission must not claim that all validation assertions are fulfilled
