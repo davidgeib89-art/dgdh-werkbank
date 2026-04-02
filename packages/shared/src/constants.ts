@@ -130,36 +130,8 @@ export const ISSUE_STATUS_TRANSITIONS: Record<IssueStatus, readonly IssueStatus[
   in_progress: ["backlog", "todo", "in_review", "blocked", "cancelled", "done"],
   in_review: ["in_progress", "blocked", "cancelled", "done"],
   blocked: ["backlog", "todo", "in_progress", "cancelled"],
-  done: [], // terminal state
-  cancelled: [], // terminal state
-} as const;
-
-/**
- * Valid status transitions for issue workflow.
- * Maps from current status to array of allowed next statuses.
- */
-export const ISSUE_STATUS_TRANSITIONS: Record<IssueStatus, readonly IssueStatus[]> = {
-  backlog: ["todo", "in_progress", "cancelled"],
-  todo: ["backlog", "in_progress", "cancelled"],
-  in_progress: ["backlog", "todo", "in_review", "blocked", "cancelled", "done"],
-  in_review: ["in_progress", "blocked", "cancelled", "done"],
-  blocked: ["backlog", "todo", "in_progress", "cancelled"],
-  done: [], // terminal state
-  cancelled: [], // terminal state
-} as const;
-
-/**
- * Valid status transitions for issue workflow.
- * Maps from current status to array of allowed next statuses.
- */
-export const ISSUE_STATUS_TRANSITIONS: Record<IssueStatus, readonly IssueStatus[]> = {
-  backlog: ["todo", "in_progress", "cancelled"],
-  todo: ["backlog", "in_progress", "cancelled"],
-  in_progress: ["backlog", "todo", "in_review", "blocked", "cancelled", "done"],
-  in_review: ["in_progress", "blocked", "cancelled", "done"],
-  blocked: ["backlog", "todo", "in_progress", "cancelled"],
-  done: [], // terminal state
-  cancelled: [], // terminal state
+  done: [],
+  cancelled: [],
 } as const;
 
 export const ISSUE_PRIORITIES = ["critical", "high", "medium", "low"] as const;
