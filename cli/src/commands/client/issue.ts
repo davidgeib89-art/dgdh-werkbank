@@ -342,7 +342,6 @@ export function registerIssueCommands(program: Command): void {
       .command("liveness")
       .description("Show liveness diagnosis for an issue (packet truth, chain truth, active run)")
       .argument("<issueId>", "Issue ID or identifier (e.g., PC-12)")
-      .option("-j, --json", "Output as JSON")
       .action(async (issueId: string, opts: BaseClientOptions) => {
         try {
           const ctx = resolveCommandContext(opts);
