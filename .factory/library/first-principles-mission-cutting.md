@@ -154,6 +154,44 @@ If the user explicitly prefers `direct edits` for a bounded seam:
 
 Direct execution is an execution style, not a waiver of mission form.
 
+## Triad anchor truth
+
+When a live mission needs a Paperclip triad parent issue:
+
+- create exactly one bounded parent anchor, not a family of speculative replacements
+- the parent anchor must use one explicit execution target:
+  - a real non-broad `targetFolder`, or
+  - an explicit `targetFile`
+- broad folder anchors such as `.`, `/`, `root`, or `repo` are not honest bounded anchors
+- malformed values that look like flags, such as `--assign-to-ceo`, are command-shape failure, not valid scope
+
+Verification rule:
+
+- after `pnpm paperclipai triad start ...`, immediately re-read the created issue or liveness truth
+- verify that:
+  - the created identifier is canonical
+  - `targetFolder` / `targetFile` match the intended bounded scope
+  - packet truth is not relying on a malformed or broad execution target
+
+If that verification fails:
+
+- do not create a second or third replacement parent issue by reflex
+- classify the failure first:
+  - command-shape / applicability seam
+  - packet-truth seam
+  - runtime / interface seam
+- either repair the command shape once and create one fresh valid anchor
+- or stop with one exact blocker
+
+Do not let a running mission confuse:
+
+- "the DROID mission already exists"
+with
+- "therefore I should keep creating new Paperclip parent issues until one feels right"
+
+Parent-anchor retries are expensive state drift.
+The goal is one honest anchor, not setup thrash.
+
 ## Continuation truth
 
 These gates are not there to create fear or force tiny work.

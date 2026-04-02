@@ -64,6 +64,14 @@ Not for:
   - `targetFolder` for execution isolation
 - Verify issue created with correct DAV ID
 
+Parent-issue scope rules:
+- pass a real bounded `--target-folder` or explicit `--target-file`
+- do not use broad folder values such as `.`, `/`, `root`, or `repo`
+- do not accept values that look like flags as scope, such as `--assign-to-ceo`
+- if the CLI rejects the scope, treat that as useful guardrail truth, not as a cue to keep improvising variants
+- if one malformed anchor was created, classify it as invalid before cutting a replacement
+- do not create duplicate replacement anchors without first proving why the prior anchor is unusable
+
 ### 3. Verify Packet Truth
 - Read created issue via API: `GET /api/issues/{id}`
 - Verify execution packet contains:
@@ -71,6 +79,11 @@ Not for:
   - triad expectations (workerPacket, reviewerPacket)
   - explicit closeout resume procedure reference
 - Document any packet gaps in handoff
+
+Anchor-shape verification is mandatory:
+- verify `targetFolder` / `targetFile` on the created issue match the intended bounded scope
+- if packet truth is `not_ready` because scope is broad or malformed, stop and classify that exact blocker
+- do not continue to CEO cut from an invalid anchor
 
 ### 4. Wait for CEO Execution (for parent issues assigned to CEO)
 - Poll `GET /api/issues/{id}/active-run` with 30-second intervals
@@ -168,3 +181,8 @@ Return immediately if:
 - repo-local CLI truth cannot be executed after `pnpm --filter paperclipai build` and one retry
 
 Do NOT retry loops more than 3 times. Escalate instead.
+
+For parent-anchor creation specifically:
+- default to zero blind retries
+- allow one focused corrected retry only after command-shape or packet-truth failure is understood
+- if the corrected retry is not clearly valid, stop the loop

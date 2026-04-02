@@ -301,6 +301,80 @@ describe("triad start command", () => {
     expect(callArgs.description).not.toContain("targetFile:");
   });
 
+  it("exits non-zero when target-folder is broad root scope", async () => {
+    const program = new Command();
+    registerTriadCommands(program);
+
+    const exitSpy = vi.spyOn(process, "exit").mockImplementation(() => {
+      throw new Error("Process exit called");
+    });
+    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    try {
+      await program.parseAsync([
+        "node",
+        "test",
+        "triad",
+        "start",
+        "--company-id",
+        "test-company",
+        "--title",
+        "Broad Scope Issue",
+        "--objective",
+        "Try root scope",
+        "--done-when",
+        "Should fail before issue creation",
+        "--target-folder",
+        ".",
+      ]);
+    } catch {
+      // expected
+    }
+
+    expect(exitSpy).toHaveBeenCalledWith(1);
+    expect(mockApi.post).not.toHaveBeenCalled();
+
+    exitSpy.mockRestore();
+    consoleErrorSpy.mockRestore();
+  });
+
+  it("exits non-zero when target-folder accidentally consumes another flag", async () => {
+    const program = new Command();
+    registerTriadCommands(program);
+
+    const exitSpy = vi.spyOn(process, "exit").mockImplementation(() => {
+      throw new Error("Process exit called");
+    });
+    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    try {
+      await program.parseAsync([
+        "node",
+        "test",
+        "triad",
+        "start",
+        "--company-id",
+        "test-company",
+        "--title",
+        "Malformed Scope Issue",
+        "--objective",
+        "Try malformed target-folder",
+        "--done-when",
+        "Should fail before issue creation",
+        "--target-folder",
+        "--assign-to-ceo",
+      ]);
+    } catch {
+      // expected
+    }
+
+    expect(exitSpy).toHaveBeenCalledWith(1);
+    expect(mockApi.post).not.toHaveBeenCalled();
+
+    exitSpy.mockRestore();
+    consoleErrorSpy.mockRestore();
+  });
+
   it("exits non-zero with error when required flag --title is missing", async () => {
     const program = new Command();
     registerTriadCommands(program);

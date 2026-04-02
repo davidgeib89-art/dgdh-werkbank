@@ -110,6 +110,12 @@ If a mission touches Paperclip runtime or triad behavior, feature text should us
 - `Invoke-RestMethod http://127.0.0.1:3100/api/issues/<issueId>/company-run-chain`
 - `pnpm --filter paperclipai build` before `pnpm paperclipai ...` when CLI build output may be missing
 
+For live triad-proof missions, the cut must also name the bounded execution target honestly:
+- require a real `--target-folder` or `--target-file`
+- do not use broad root-scope anchors like `.`, `/`, `root`, or `repo`
+- do not let placeholder scope remain implicit
+- if parent-anchor creation fails or produces malformed packet truth, stop anchor creation thrash and return one exact blocker or one exact corrected retry
+
 For code features:
 - name the touched package
 - name the narrowest truthful test command first
@@ -209,6 +215,25 @@ If an implementation worker exits unexpectedly:
   - or stop with one exact blocker
 
 For live-proof missions, broad repo-wide validators should be an escalation, not the reflexive default.
+
+## Parent-anchor anti-thrash rule
+
+When the mission family needs a Paperclip parent issue:
+
+- the DROID mission itself is already the mission shell
+- Paperclip parent creation inside it is only one anchor-creation step
+- do not confuse "mission is running" with "I should keep starting new parent issues"
+
+After a failed or malformed `triad start`:
+
+- verify runtime truth
+- verify the created issue shape if one was created
+- if the anchor is invalid, classify it explicitly as invalid
+- then either:
+  - cut one fresh bounded replacement anchor, or
+  - stop with one exact blocker
+
+Do not create duplicate anchors in sequence without first naming why the prior one is invalid.
 
 ## Example Handoff
 

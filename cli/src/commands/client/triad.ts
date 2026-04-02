@@ -126,10 +126,7 @@ export function registerTriadCommands(program: Command): void {
       .option("--assign-to-ceo", "Auto-assign to first idle CEO agent", false)
       .action(async (opts: TriadStartOptions) => {
         try {
-          // Validate that at least one of target-folder or target-file is provided
-          if (!opts.targetFolder && !opts.targetFile) {
-            throw new Error("Either --target-folder or --target-file must be provided.");
-          }
+          validateTriadTargetScope(opts);
 
           const ctx = resolveCommandContext(opts, { requireCompany: true });
           const companyId = ctx.companyId;
@@ -269,6 +266,44 @@ interface TriadDescriptionParams {
   doneWhen: string;
   targetFolder?: string;
   targetFile?: string;
+}
+
+function isBroadTargetFolder(targetFolder: string | undefined): boolean {
+  if (!targetFolder) return true;
+  const normalized = targetFolder.trim().toLowerCase();
+  return normalized === "." || normalized === "/" || normalized === "root" || normalized === "repo";
+}
+
+function looksLikeFlagValue(value: string | undefined): boolean {
+  if (!value) return false;
+  return value.trim().startsWith("-");
+}
+
+function validateTriadTargetScope(opts: TriadStartOptions): void {
+  if (!opts.targetFolder && !opts.targetFile) {
+    throw new Error("Either --target-folder or --target-file must be provided.");
+  }
+
+  if (looksLikeFlagValue(opts.targetFolder)) {
+    throw new Error(
+      `Invalid --target-folder value "${opts.targetFolder}". ` +
+      "It looks like another flag. Pass a real bounded folder path such as packages/shared or use --target-file.",
+    );
+  }
+
+  if (looksLikeFlagValue(opts.targetFile)) {
+    throw new Error(
+      `Invalid --target-file value "${opts.targetFile}". ` +
+      "It looks like another flag. Pass a real file path or use --target-folder.",
+    );
+  }
+
+  if (!opts.targetFile && isBroadTargetFolder(opts.targetFolder)) {
+    throw new Error(
+      `Broad --target-folder "${opts.targetFolder ?? ""}" is not allowed for triad start. ` +
+      "Pass a real bounded folder path or an explicit --target-file.",
+    );
+  }
 }
 
 // Extension sets for artifactKind inference (mirrors server-side logic)
