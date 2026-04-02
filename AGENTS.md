@@ -222,6 +222,10 @@ The repo contains `.github/copilot-instructions.md`. Its rules should be treated
   - clear runtime truth before live claims
   - packet truth before execution
   - narrow mechanical verification before broad review
+- Mission closeout truth must stay mechanically grounded:
+  - do not claim `user-testing passed` unless a corresponding feature exists in `features.json` and is actually completed
+  - do not claim `all assertions fulfilled` when `validation-state.json` still shows assertions as `pending` or otherwise incomplete
+  - a generic system message like `mission is done` does not override feature graph truth, validation-state truth, or git truth
 - DROID is an exoskeleton, not the firm's final operating shape. Use DROID missions primarily to advance DGDH Werkbank / Paperclip capability, not to grow DROID as a permanent center of gravity.
 - Default priority order:
   1. a real bounded Werkbank / Paperclip mountain
@@ -230,6 +234,7 @@ The repo contains `.github/copilot-instructions.md`. Its rules should be treated
 - Only cut direct DROID-self-improvement work when the failure is clearly in the harness carrying path and the fix is smaller and more reviewable than forcing another product mission through the same broken seam.
 - Do not let "improving Droid" become a standing surrogate roadmap. The real target is a Werkbank that can eventually carry missions better than DROID.
 - Do not commit logs, generated runtime artifacts, or local investigation files unless asked
+- If a run leaves repo-root `.factory` scaffolding or other off-limits harness files dirty, do not silently call the mission green; record cleanup truth or blocker truth explicitly.
 - If you must stop, report the narrowest proven blocker and the exact commands/tests already run
 - After a substantial sprint or live run, promote durable learnings into the smallest truthful `.md` files before calling the work complete:
   - `AGENTS.md` for repo-wide execution rules

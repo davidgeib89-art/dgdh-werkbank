@@ -61,7 +61,9 @@
 - Vor Live-Proofs nicht nur gruene Preflight-/Health-Surfaces lesen, sondern faktische Agent-Lebendigkeit pruefen.
 - Predictive delivery gilt fuer DGDH: branch truth vor Arbeit, runtime truth vor Live-Claims, packet truth vor Execution, enge mechanische Verifikation vor teurem Review.
 - `mission completed` in Factory-State ist nicht automatisch saubere Promotion-Wahrheit; Git-Truth braucht expliziten Closeout (`clean`, `pushed`, `parked`, oder echter blocker`).
+- Mission-Closeout darf keine Validation-Wahrheit halluzinieren: kein `user-testing passed` ohne echtes, im Feature-Graph vorhandenes und abgeschlossenes User-Testing-Feature; keine `all assertions fulfilled`-Behauptung gegen ein noch `pending`es oder uneinheitliches `validation-state.json`; ein generisches `mission is done` ersetzt keine dieser Wahrheitsflaechen.
 - Scrutiny-Validatoren sollen mechanische Wahrheit pruefen und synthetisieren, nicht still Produktcode mitschreiben; wenn Validation eine echte Implementierungsluecke findet, braucht es einen expliziten Fix-Feature-Cut oder blocker truth.
+- Repo-root-`.factory`-Dirt aus einem Run ist keine harmlose Nebenspur; solange Harness-/Scaffolding-Dateien dort dirty bleiben, ist Closeout-Wahrheit unvollstaendig und braucht explizites cleanup oder blocker truth.
 - Nach `worker_failed` gilt: Crash ist kein Completion-Signal. Erst Feature-Wahrheit ueber Runtime-/Packet-/Issue-/Git-Surfaces re-verifizieren, dann retry, recut oder blocker. Breite Scrutiny ist danach kein Default-Folgeschritt.
 - Standardarbeitsfolge fuer DROID-Laeufe: erst echten DGDH-/Werkbank-Berg tragen lassen, danach aus dem Run die kleinste durable Harness-Lehre ziehen. DROID-Selbstverbesserung nicht als Dauerprogramm behandeln.
 - Durable Learnings gehoeren in die kleinste wahre Datei; `MEMORY.md` ist fuer stabile Facts, nicht fuer datierten Missionsverlauf.
