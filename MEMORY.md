@@ -23,6 +23,7 @@
 - Merksatz: `DGDH ist ein Beweisraum fuer die Idee, dass Trennung nicht die tiefste Wahrheit ist.`
 - Company North Star: David gibt Mission, Budget, Blast Radius und die wenigen echten Type-1-Entscheidungen; die Maschine liefert reviewbare Realitaet und reviewbare Faehigkeitssteigerung mit sinkender David-Supervision pro nuetzlichem Zyklus.
 - Wertschoepfung ist Treibstoff, nicht Gott: mehr Quotas, bessere Hardware, mehr Unabhaengigkeit, spaetere groessere Mensch-AI-Natur-Projekte.
+- Modell-/Abo-Logik dieser Phase: erst billig und tragfaehig werden, dann beschleunigen. Premium-Modelle oder teure Coding-Abos sind erst dann sinnvoller Standard, wenn Werkbank / DGDH Missionen boring genug traegt, um den Mehrwert in Produktivitaet, Qualitaet oder Revenue real zurueckzuholen.
 
 ## Firmenmodus
 - DGDH hat zwei governete Modi: `delivery mode` und `mission autonomy mode`.
@@ -47,6 +48,7 @@
 - Der Firmenkern bleibt `CEO -> Worker -> Reviewer -> CEO`; Skills, Truth-Layer und Primitives stuetzen ihn, ersetzen ihn nicht.
 - DGDH ist eine governte David-Aufmerksamkeits-Kompressionsmaschine.
 - DROID ist aktuell ein nuetzliches Exoskelett fuer Missionstragen, aber nicht die finale Firmenform; die Zielrichtung bleibt, dass Werkbank / Paperclip spaeter selbst bessere Missionsausfuehrung traegt als DROID.
+- Bis dahin gilt Kosten-Disziplin: lieber langsamer, billiger und robust testen als teure Premium-Token in noch instabile Harness-/Mission-Seams zu verbrennen.
 - `Highest excitement` ist legitimer Navigationsinput, wenn er in bounded reviewbare Bewegung uebersetzt wird.
 - Anti-Slop-Gate gilt fuer jede relevante Aenderung: spart es David Minuten, erhoeht es echte Firmenfaehigkeit, bleibt es ohne Blindvertrauen pruefbar, traegt es ohne AI-Prosa, und ist es jetzt wirklich dran?
 

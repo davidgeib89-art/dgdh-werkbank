@@ -21,6 +21,7 @@ operating_bias:
   - Standardreihenfolge: erst echter offener Werkbank-Berg, dann Reflection, dann kleinster Droid-/Factory-Harness-Fix
   - Reine Droid-Selbstverbesserung ist nur dann `Core`, wenn ein konkreter Carrying-Path-Fehler gerade echte Werkbank-Missionen unnoetig teuer oder unzuverlaessig macht
   - Zielbild bleibt: Werkbank soll spaeter Missionen besser tragen als DROID; DROID ist Hilfstraeger auf dem Weg, nicht die bleibende Firmenmitte
+  - Modell-/Abo-Oekonomie: in dieser Testphase Qualitaet, Robustheit und Billigkeit vor Geschwindigkeit. Guenstige oder freie Modelle sind bevorzugt, solange sie echte Missionen tragfaehig machen; teure Premium-Abos werden erst dann Standard, wenn Werkbank / DGDH den Mehrwert real in bessere Lieferung oder Revenue zurueckholt
 
 next:
   1) `CURRENT.md`, `MEMORY.md` und `ACTIVE-MISSION.md` auf diesem Stand halten; keine neue AI soll noch mit alter Reconsolidation-Wahrheit starten
@@ -49,6 +50,7 @@ notes:
   - `2026-03-30`: Der naechste Berg soll wieder groesser sein als ein Harness-Mini-Cut; Ziel ist ein abends reviewbarer echter Langlauf, nicht nur weiteres Substrat-Polishing
   - `2026-03-31`: CLI `paperclipai issue liveness <id>` ist auf `main` - kombiniert drei Operator-Wahrheitsflaechen (packet truth, chain truth, active-run truth) in einem Diagnose-Kommando; beide Milestones durch Scrutiny-Validator getragen (906 + 895 Tests, typecheck, build), keine discoveredIssues. Mission a0e80648: STRONG SUCCESS
   - `2026-03-31`: Fuer `dgdh-werkbank` ist `fork/main` die schreibbare Promotion-Wahrheit; `origin`/`upstream` bleiben technische Herkunft bzw. PR-Ziel und sollen von Droid nicht mehr als Default-Push-Remote angenommen werden
+  - `2026-04-02`: Modellstrategie dieser Phase bleibt bewusst billig-first: lieber langsamer und robust mit guenstigen/free Orchestrator-/Worker-Kombinationen testen, bis die Werkbank selbst genug Wert traegt, um spaeter starke Premium-Abos sinnvoll zu amortisieren
 
 last_updated_by: Droid-Orchestrator
 updated_at: 2026-03-30
