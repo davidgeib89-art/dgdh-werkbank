@@ -150,6 +150,12 @@ If a reusable helper seems useful:
 - only create a new skill or harness helper when it is clearly durable beyond the single mission
 - and say that intent explicitly in the mission cut
 
+If scrutiny or validator work is required for a milestone:
+- treat it as part of the real mission family, not invisible postscript work
+- do not keep speaking as if the mission has only the implementation feature once validation is known to be required
+- if counters and feature graph diverge, trust the feature graph
+- never let stale setup counts overrule the actual feature list
+
 At closeout for read-only missions:
 - require `git status --short`
 - if out-of-scope residue remains, do not report `clean working tree`
@@ -170,6 +176,11 @@ At closeout for read-only missions:
   - then call `StartMissionRun`
 - If the check fails, report the exact blocker and stop there.
 - `mission dir exists` without `state.json` means the mission is not running yet and setup is still incomplete.
+
+Once `mission_run_started` exists:
+- the live mission plan is the feature graph, not the earlier setup checklist
+- if UI still shows setup steps like `Create validation contract` or `Create features.json`, treat that as stale residue
+- do not use that stale setup plan as progress truth in closeout narration
 
 ## Example Handoff
 
@@ -220,6 +231,13 @@ At closeout for read-only missions:
 - Required files or directories do not exist
 - Feature description is ambiguous or incomplete
 - Precondition verification fails after reasonable attempts
+
+## Closeout Truth
+
+At mission end:
+- do not treat `state = completed` by itself as enough
+- confirm feature graph complete, validation complete, and git truth explicit
+- if the UI still shows an older setup plan or stale progress count, name it as stale UI residue and close out from the canonical surfaces instead
 
 ## Output Requirements
 

@@ -286,6 +286,13 @@ If a specialized helper skill is truly needed:
 - keep the trio as the role architecture
 - do not replace the role architecture with a pile of helper identities
 
+If a milestone requires scrutiny:
+
+- include that reality in the mission accounting from the start whenever possible
+- do not narrate a "single-feature mission" if the real mission family includes a validator feature
+- if Factory later appends a validator feature anyway, trust the actual feature graph over the earlier setup count
+- never let stale summary counters drive completion truth
+
 ## Mission start failure rule
 
 If `StartMissionRun` fails:
@@ -332,6 +339,12 @@ If `features.json`, UI counters, and `state.json` disagree:
 - treat the mission as incomplete until the discrepancy is resolved or explicitly blocked
 - do not smooth the mismatch over with a completion summary
 
+If `mission_run_started` already happened and Mission Control still shows a stale setup checklist or setup-only plan:
+
+- treat that plan as stale UI residue, not active mission truth
+- do not narrate from it
+- continue from the actual feature graph and explicitly call the setup plan stale if the operator could be misled
+
 If a milestone emitted `milestone_validation_triggered`, the mission is still open until one of these becomes true:
 
 - the validator feature actually starts and completes
@@ -347,6 +360,7 @@ After the final feature or validator returns:
   - write the explicit mission closeout with git truth and result classification
   - or surface one exact blocker that prevents closeout
 - treat `state = completed` with missing explicit closeout truth as a closeout-turn dropout, not as a fully trustworthy finish
+- if the mission runner says `completed` but the UI still shows stale setup progress, say plainly that completion truth comes from `features.json` + validation + git, not the stale plan
 
 If implementation is real but these gates are not all met, call it a truthful partial instead of a complete mission.
 

@@ -284,3 +284,13 @@ So the product work may have been real, but the mission state machine had not ho
 **What changes:** Feature count must be derived from the actual mission graph. A separate stale counter should never be allowed to overrule a pending feature.
 
 **Durable rule:** If completion accounting exists in more than one place, only one may be canonical. In practice that should be `features.json` plus validator state; all other counters should derive from it.
+
+### Assumption 19: "After `mission_run_started`, the visible Plan pane is still safe to read as current mission truth"
+
+**What was assumed:** Once a mission starts, any plan list still visible in chat or Mission Control remains a reliable description of what is actually open.
+
+**What is provably true:** The old setup checklist can survive past mission start and keep showing steps like `Create validation contract`, `Create features.json`, or `Create worker skill` even after the mission has already created those artifacts, started the worker, completed the implementation feature, and completed scrutiny. In the same run, `state.json` can say `completed`, `features.json` can show all features complete, and the visible plan pane can still sit at `2/7`.
+
+**What changes:** After `mission_run_started`, the feature graph becomes the canonical plan. Any stale setup checklist is UI residue, not mission truth. The orchestrator must say that explicitly if the operator could be misled.
+
+**Durable rule:** Never close or judge a running/completed mission from a stale setup plan. After mission start, trust `features.json`, validation truth, `progress_log.jsonl`, and explicit git truth. If the UI still shows the old setup plan, call it stale residue and continue/close out from the canonical surfaces.
