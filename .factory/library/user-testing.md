@@ -32,3 +32,4 @@ This file describes the user-testing surface only when a mission actually includ
 - If no explicit user-testing feature exists in `features.json`, user testing is **unverified**, not implicitly passed
 - A completed implementation feature or scrutiny pass does not automatically mean user-testing passed
 - If `validation-state.json` remains `pending`, the mission must not claim that all validation assertions are fulfilled
+- `validation-state.json` may not be rewritten to `passed` from narrative confidence alone; it must reflect actual validator execution truth

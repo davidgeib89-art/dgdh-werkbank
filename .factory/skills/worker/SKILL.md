@@ -125,3 +125,6 @@ Workers and orchestrators must keep feature truth separate from mission truth.
 - Do not summarize the mission as complete while validation features are still `pending`
 - Do not claim `all assertions fulfilled` when `validation-state.json` still shows `pending`
 - Do not infer `user-testing passed` unless a real user-testing feature exists and has completed
+- Do not mark assertions `passed` unless the validator command actually ran and exited 0 for the relevant checks
+- If a validation command failed because of shell form, missing tool, or nonzero exit code, report that blocker honestly instead of editing `validation-state.json`
+- Keep mission counters mechanically truthful: `totalFeatures` must equal the feature count, and `completedFeatures` must never exceed it
