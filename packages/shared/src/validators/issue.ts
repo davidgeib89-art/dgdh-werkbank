@@ -4,6 +4,7 @@ import {
   ISSUE_STATUSES,
   ISSUE_STATUS_TRANSITIONS,
   type IssueStatus,
+  type IssuePriority,
 } from "../constants.js";
 
 const executionWorkspaceStrategySchema = z
@@ -302,4 +303,45 @@ export function validateIssueStatusTransition(
     valid: false,
     reason: `Cannot transition from "${from}" to "${to}". Allowed transitions from "${from}" are: "${allowedList}".`,
   };
+}
+
+/**
+ * Input type for validateIssuePriority.
+ */
+export interface IssuePriorityValidation {
+  priority: IssuePriority;
+}
+
+/**
+ * Result type for validateIssuePriority.
+ */
+export interface IssuePriorityValidationResult {
+  valid: boolean;
+  reason?: string;
+}
+
+/**
+ * Validates whether a priority value is valid based on ISSUE_PRIORITIES constant.
+ *
+ * Valid priorities: "critical", "high", "medium", "low"
+ *
+ * @param validation - Object containing { priority } IssuePriority value
+ * @returns { valid: boolean, reason?: string } - Validation result with optional error reason
+ */
+export function validateIssuePriority(
+  validation: IssuePriorityValidation
+): IssuePriorityValidationResult {
+  const { priority } = validation;
+
+  // Validate that the priority is a valid IssuePriority value
+  const validPriorities = ISSUE_PRIORITIES as readonly string[];
+
+  if (!validPriorities.includes(priority)) {
+    return {
+      valid: false,
+      reason: `Invalid priority: "${priority}" is not a valid issue priority. Valid priorities are: "${validPriorities.join('", "')}".`,
+    };
+  }
+
+  return { valid: true };
 }

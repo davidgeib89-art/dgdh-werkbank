@@ -2,8 +2,10 @@ import { describe, it, expect } from "vitest";
 import {
   validateIssueStatusTransition,
   type IssueStatusTransition,
+  validateIssuePriority,
+  type IssuePriorityValidation,
 } from "./issue.js";
-import type { IssueStatus } from "../constants.js";
+import type { IssueStatus, IssuePriority } from "../constants.js";
 
 describe("validateIssueStatusTransition", () => {
   // Allowed transitions
@@ -124,5 +126,53 @@ describe("validateIssueStatusTransition", () => {
   it("blocks blocked -> done directly", () => {
     const result = validateIssueStatusTransition({ from: "blocked", to: "done" });
     expect(result.valid).toBe(false);
+  });
+});
+
+describe("validateIssuePriority", () => {
+  // Valid priorities
+  it("allows critical priority", () => {
+    const result = validateIssuePriority({ priority: "critical" });
+    expect(result.valid).toBe(true);
+    expect(result.reason).toBeUndefined();
+  });
+
+  it("allows high priority", () => {
+    const result = validateIssuePriority({ priority: "high" });
+    expect(result.valid).toBe(true);
+    expect(result.reason).toBeUndefined();
+  });
+
+  it("allows medium priority", () => {
+    const result = validateIssuePriority({ priority: "medium" });
+    expect(result.valid).toBe(true);
+    expect(result.reason).toBeUndefined();
+  });
+
+  it("allows low priority", () => {
+    const result = validateIssuePriority({ priority: "low" });
+    expect(result.valid).toBe(true);
+    expect(result.reason).toBeUndefined();
+  });
+
+  // Invalid priorities
+  it("rejects invalid priority 'urgent'", () => {
+    const result = validateIssuePriority({ priority: "urgent" as IssuePriority });
+    expect(result.valid).toBe(false);
+    expect(result.reason).toContain("urgent");
+    expect(result.reason).toContain("valid");
+  });
+
+  it("rejects empty string priority", () => {
+    const result = validateIssuePriority({ priority: "" as IssuePriority });
+    expect(result.valid).toBe(false);
+    expect(result.reason).toBeDefined();
+  });
+
+  // Case sensitivity edge case
+  it("rejects case-sensitive priority 'High' (uppercase)", () => {
+    const result = validateIssuePriority({ priority: "High" as IssuePriority });
+    expect(result.valid).toBe(false);
+    expect(result.reason).toContain("High");
   });
 });
