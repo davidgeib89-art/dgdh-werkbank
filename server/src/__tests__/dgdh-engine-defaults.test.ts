@@ -5,7 +5,8 @@ import path from "node:path";
 /**
  * Validates that DGDH Engine V1 defaults are correctly wired into the codebase.
  * These are contract tests - they read source files and verify the defaults match
- * the Engine V1 spec (company-hq/DGDH-GEMINI-ENGINE-V1-2026-03-19.md).
+ * the archived Engine V1 spec
+ * (company-hq/archive/2026-04-02-doc-truth-reconsolidation/DGDH-GEMINI-ENGINE-V1-2026-03-19.md).
  */
 
 const serverRoot = path.resolve(__dirname, "../../..");
