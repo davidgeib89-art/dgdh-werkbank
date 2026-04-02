@@ -115,6 +115,22 @@ For code features:
 - name the narrowest truthful test command first
 - name wider validation only when the scope honestly requires it
 
+## Approval UI Rule
+
+If the mission plan needs user confirmation, scope narrowing, milestone choice, or execution-style choice:
+
+- use the built-in Ask User / approval surface when available
+- present short concrete options
+- put the recommended option first
+- do not stop with free-chat questions like `Does this plan work for you?`
+
+If the Ask User surface is unavailable, use one concise plain-text question instead.
+In that fallback:
+
+- ask only one short question
+- include one recommended answer the user can paste directly
+- do not end the planning turn with a broad conversational prompt
+
 ## Read-Only Investigation Gate
 
 If a mission is framed as investigation, inventory, audit, or synthesis:

@@ -98,6 +98,27 @@ Examples of good planning probes:
 - exact verification commands for one bounded cut
 - exact blocker classification when a run failed
 
+## Approval UI gate
+
+When planning reaches a real operator choice or approval point:
+
+- use the built-in Ask User / mission approval surface
+- do not fall back to a free-chat wrap-up such as:
+  - `Does this plan work for you?`
+  - `Would you like me to proceed?`
+  - `How would you like to narrow the focus?`
+- present short concrete options with one recommended option first
+- prefer exact scope / style / runtime / milestone choices over open-ended wording
+
+The planning turn is not complete if approval is still required but no Ask User / approval surface was emitted.
+
+Only use plain chat for approval when the Ask User surface is actually unavailable.
+If that fallback is forced:
+
+- ask exactly one short question
+- give one recommended answer the operator can paste directly
+- do not end with a broad discussion prompt
+
 ## Shared mission runtime
 
 When a mission depends on the live local Paperclip runtime:

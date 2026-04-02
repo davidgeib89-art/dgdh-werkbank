@@ -82,6 +82,31 @@ Default DGDH mission skill stack:
 Use helper skills only when they truly add bounded procedure.
 Do not replace the mission engine by stuffing droid names into `skillName` and hoping Factory infers the rest.
 
+## Approval surface gate
+
+When mission planning reaches a point that requires operator approval, scope choice, milestone choice, or strategy confirmation:
+
+- use the mission runner's built-in Ask User / approval surface
+- present 2 to 4 concrete options
+- put the recommended option first
+- keep the question short and operational
+- do not end the turn with a free-chat question like:
+  - `Does this plan work for you?`
+  - `How would you like to proceed?`
+  - `What do you think?`
+
+If approval is required, the planning turn is not complete until one of these is true:
+
+1. the Ask User / approval surface was emitted
+2. the proposal was already accepted
+3. one exact blocker prevented the approval surface from being used
+
+Fallback rule:
+
+- only ask in plain chat if the Ask User surface is genuinely unavailable
+- in that case ask one concise question, not an open-ended paragraph
+- include one recommended answer the operator can paste directly
+
 ## Mission start gate
 
 If `StartMissionRun` fails, the mission is not running.
