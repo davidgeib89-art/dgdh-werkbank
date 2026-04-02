@@ -1,8 +1,9 @@
 commands:
   install: pnpm install
   typecheck: pnpm -r typecheck
-  build: pnpm build
+  build: pnpm -r build
   test: pnpm test:run
-  lint: "echo 'no root lint script'"
+  test-shared: pnpm vitest run packages/shared
 
-services: {}
+services:
+  # No external services needed for this mission

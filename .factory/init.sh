@@ -1,10 +1,21 @@
-#!/usr/bin/env bash
-# init.sh — idempotent environment setup for mission workers
-# Run from repo root: C:\Users\holyd\DGDH\worktrees\dgdh-werkbank
+#!/bin/bash
+# init.sh - Environment setup for shared package work
+# This script is idempotent - safe to run multiple times
 
 set -e
 
-echo "[init] Installing dependencies..."
-pnpm install --frozen-lockfile 2>/dev/null || pnpm install
+# Check Node version
+echo "Checking Node version..."
+node --version
 
-echo "[init] Done."
+# Check pnpm
+echo "Checking pnpm..."
+pnpm --version
+
+# Install dependencies if node_modules is missing or outdated
+if [ ! -d "node_modules" ] || [ "package.json" -nt "node_modules/.package-lock.json" ]; then
+    echo "Installing dependencies..."
+    pnpm install
+fi
+
+echo "Environment ready."
