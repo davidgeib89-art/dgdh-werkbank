@@ -1,5 +1,10 @@
 import { z } from "zod";
-import { ISSUE_PRIORITIES, ISSUE_STATUSES } from "../constants.js";
+import {
+  ISSUE_PRIORITIES,
+  ISSUE_STATUSES,
+  ISSUE_STATUS_TRANSITIONS,
+  type IssueStatus,
+} from "../constants.js";
 
 const executionWorkspaceStrategySchema = z
   .object({
@@ -214,3 +219,87 @@ export const upsertIssueDocumentSchema = z.object({
 
 export type IssueDocumentFormat = z.infer<typeof issueDocumentFormatSchema>;
 export type UpsertIssueDocument = z.infer<typeof upsertIssueDocumentSchema>;
+
+/**
+ * Input type for validateIssueStatusTransition.
+ */
+export interface IssueStatusTransition {
+  from: IssueStatus;
+  to: IssueStatus;
+}
+
+/**
+ * Result type for validateIssueStatusTransition.
+ */
+export interface IssueStatusTransitionResult {
+  valid: boolean;
+  reason?: string;
+}
+
+/**
+ * Validates whether an issue status transition is allowed based on business rules.
+ *
+ * Business rules:
+ * - done and cancelled are terminal states (no outgoing transitions)
+ * - Same status transitions are always valid (no-op)
+ * - Invalid/unknown statuses are rejected
+ *
+ * @param transition - Object containing { from, to } IssueStatus values
+ * @returns { valid: boolean, reason?: string } - Validation result with optional error reason
+ */
+export function validateIssueStatusTransition(
+  transition: IssueStatusTransition
+): IssueStatusTransitionResult {
+  const { from, to } = transition;
+
+  // Validate that both statuses are valid IssueStatus values
+  const validStatuses = ISSUE_STATUSES as readonly string[];
+
+  if (!validStatuses.includes(from)) {
+    return {
+      valid: false,
+      reason: `Invalid 'from' status: "${from}" is not a valid issue status`,
+    };
+  }
+
+  if (!validStatuses.includes(to)) {
+    return {
+      valid: false,
+      reason: `Invalid 'to' status: "${to}" is not a valid issue status`,
+    };
+  }
+
+  // Same status is always valid (no-op transition)
+  if (from === to) {
+    return { valid: true };
+  }
+
+  // Check if transition is allowed based on ISSUE_STATUS_TRANSITIONS
+  const allowedTransitions = ISSUE_STATUS_TRANSITIONS[from as IssueStatus];
+
+  if (allowedTransitions.includes(to as IssueStatus)) {
+    return { valid: true };
+  }
+
+  // Terminal states have special messaging
+  if (from === "done") {
+    return {
+      valid: false,
+      reason: `Cannot transition from "done" to "${to}". "done" is a terminal state with no outgoing transitions.`,
+    };
+  }
+
+  if (from === "cancelled") {
+    return {
+      valid: false,
+      reason: `Cannot transition from "cancelled" to "${to}". "cancelled" is a terminal state with no outgoing transitions.`,
+    };
+  }
+
+  // General disallowed transition message
+  const allowedList = allowedTransitions.join('", "');
+  return {
+    valid: false,
+    reason: `Cannot transition from "${from}" to "${to}". Allowed transitions from "${from}" are: "${allowedList}".`,
+  };
+}
