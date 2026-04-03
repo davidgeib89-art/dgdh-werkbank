@@ -1,9 +1,0 @@
-commands:
-  install: pnpm install
-  typecheck: pnpm -r typecheck
-  build: pnpm -r build
-  test: pnpm test:run
-  test-shared: pnpm vitest run packages/shared
-
-services:
-  # No external services needed for this mission
