@@ -1,0 +1,85 @@
+{
+  "milestone": "m1-templates-doc",
+  "round": 1,
+  "status": "pass",
+  "assertionsSummary": {
+    "total": 11,
+    "passed": 11,
+    "failed": 0,
+    "blocked": 0
+  },
+  "passedAssertions": [
+    "VAL-GITHUB-001",
+    "VAL-GITHUB-002",
+    "VAL-GITHUB-003",
+    "VAL-GITHUB-004",
+    "VAL-LABEL-001",
+    "VAL-LABEL-002",
+    "VAL-DOC-001",
+    "VAL-DOC-002",
+    "VAL-DOC-003",
+    "VAL-DOC-004",
+    "VAL-DOC-005"
+  ],
+  "failedAssertions": [],
+  "blockedAssertions": [],
+  "appliedUpdates": [],
+  "previousRound": null,
+  "validationDetails": {
+    "VAL-GITHUB-001": {
+      "assertion": "Issue templates directory exists",
+      "evidence": "Found .github/ISSUE_TEMPLATE/bug_report.md, feature_request.md, and chore.md",
+      "status": "passed"
+    },
+    "VAL-GITHUB-002": {
+      "assertion": "Issue templates are valid markdown",
+      "evidence": "All three templates have valid YAML front matter with name, description, and labels fields",
+      "status": "passed"
+    },
+    "VAL-GITHUB-003": {
+      "assertion": "PR template exists",
+      "evidence": "File exists at .github/PULL_REQUEST_TEMPLATE.md with non-empty content",
+      "status": "passed"
+    },
+    "VAL-GITHUB-004": {
+      "assertion": "PR template includes required sections",
+      "evidence": "Template contains '## Description' and '## Related Issues' sections plus Testing Done, Checklist",
+      "status": "passed"
+    },
+    "VAL-LABEL-001": {
+      "assertion": "Labels documented",
+      "evidence": "doc/TASK-DISCOVERY.md contains '## Label Taxonomy' section with all 6 labels defined",
+      "status": "passed"
+    },
+    "VAL-LABEL-002": {
+      "assertion": "Labels fit DGDH reality",
+      "evidence": "Exactly 6 labels: kind:feature, kind:bug, kind:chore, status:ready, status:blocked, status:active - no enterprise additions",
+      "status": "passed"
+    },
+    "VAL-DOC-001": {
+      "assertion": "Task-discovery doc exists",
+      "evidence": "File exists at doc/TASK-DISCOVERY.md with proper content",
+      "status": "passed"
+    },
+    "VAL-DOC-002": {
+      "assertion": "Doc explains work entry",
+      "evidence": "'## Where Work Enters' section explains GitHub issues created via templates, graduate to company issues",
+      "status": "passed"
+    },
+    "VAL-DOC-003": {
+      "assertion": "Doc explains classification",
+      "evidence": "'## Label Taxonomy' section explains classification with kind: and status: labels plus rules",
+      "status": "passed"
+    },
+    "VAL-DOC-004": {
+      "assertion": "Doc explains bounded mountains",
+      "evidence": "'## How Bounded Mountains Are Cut' section explains CLI discovery and 5 criteria for ready mountains",
+      "status": "passed"
+    },
+    "VAL-DOC-005": {
+      "assertion": "Doc references existing canon",
+      "evidence": "Multiple references: AGENTS.md, CURRENT.md, company-hq/AI-CONTEXT-START-HERE.md, plus full References section",
+      "status": "passed"
+    }
+  }
+}
