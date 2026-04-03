@@ -25,6 +25,8 @@ import { registerSkillContractCommands } from "./commands/skill-contract.js";
 import { registerRuntimeCommands } from "./commands/runtime/index.js";
 import { registerTriadCommands } from "./commands/client/triad.js";
 
+import { registerKbCommands } from "./commands/kb.js";
+
 const program = new Command();
 const DATA_DIR_OPTION_HELP =
   "Paperclip data directory root (isolates state from ~/.paperclip)";
@@ -148,6 +150,7 @@ registerMissionCellCommands(program);
 registerSkillContractCommands(program);
 registerRuntimeCommands(program);
 registerTriadCommands(program);
+registerKbCommands(program);
 
 const auth = program.command("auth").description("Authentication and bootstrap utilities");
 
