@@ -1,0 +1,35 @@
+{
+  "groupId": "kb-normalize-assertions",
+  "milestone": "normalization",
+  "testedAssertions": [
+    "VAL-NORM-001",
+    "VAL-NORM-002",
+    "VAL-NORM-003",
+    "VAL-NORM-004"
+  ],
+  "results": {
+    "VAL-NORM-001": {
+      "status": "pass",
+      "evidence": "Command `pnpm paperclipai kb normalize` completed with exit code 0, output shows 'Found 20 conversation(s)' and 'Normalization complete: 20 conversation(s) normalized'. Verified 20 .md files exist in normalized/ directory, matching the conversation count.",
+      "testedAt": "2026-04-03T17:12:00Z"
+    },
+    "VAL-NORM-002": {
+      "status": "pass",
+      "evidence": "Inspected normalized file 'astro-keystatic-webdesign-mit-ki-modellen-9f5e6278.md'. Full message content preserved including user questions and assistant responses. Messages contain complete dialog with markdown formatting intact.",
+      "testedAt": "2026-04-03T17:12:00Z"
+    },
+    "VAL-NORM-003": {
+      "status": "pass",
+      "evidence": "Checked frontmatter in normalized file. Contains all required fields: source, imported_at, conversation_uuid (9f5e6278-d8be-40e3-9f1a-17cc9982d50e), title, message_count (18), start_date, end_date, created_at, updated_at. Date range properly extracted.",
+      "testedAt": "2026-04-03T17:12:00Z"
+    },
+    "VAL-NORM-004": {
+      "status": "pass",
+      "evidence": "Glob pattern 'company-hq/kb/normalized/*.md' matched 20 files. All files have .md extension with proper markdown structure (frontmatter + content sections).",
+      "testedAt": "2026-04-03T17:12:00Z"
+    }
+  },
+  "frictions": [],
+  "blockers": [],
+  "toolsUsed": ["CLI", "Glob", "Read"]
+}

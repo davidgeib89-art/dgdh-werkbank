@@ -1,0 +1,21 @@
+{
+  "milestone": "normalization",
+  "round": 1,
+  "status": "pass",
+  "assertionsSummary": {
+    "total": 4,
+    "passed": 4,
+    "failed": 0,
+    "blocked": 0
+  },
+  "passedAssertions": [
+    "VAL-NORM-001",
+    "VAL-NORM-002",
+    "VAL-NORM-003",
+    "VAL-NORM-004"
+  ],
+  "failedAssertions": [],
+  "blockedAssertions": [],
+  "appliedUpdates": [],
+  "previousRound": null
+}
