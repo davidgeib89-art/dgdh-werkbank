@@ -78,6 +78,26 @@ interface IssueArchiveStaleOptions extends BaseClientOptions {
   dryRun?: boolean;
 }
 
+interface IssueNextOptions extends BaseClientOptions {
+  projectId?: string;
+  limit?: string;
+}
+
+interface NextTaskItem {
+  id: string;
+  identifier: string | null;
+  title: string;
+  status: string;
+  priority: string;
+  assigneeAgentId: string | null;
+}
+
+interface NextTasksOutput {
+  ready: NextTaskItem[];
+  active: NextTaskItem[];
+  blocked: NextTaskItem[];
+}
+
 export function registerIssueCommands(program: Command): void {
   const issue = program.command("issue").description("Issue operations");
 
@@ -369,6 +389,50 @@ export function registerIssueCommands(program: Command): void {
           handleCommandError(err);
         }
       }),
+  );
+
+  addCommonClientOptions(
+    issue
+      .command("next")
+      .description("Show next tasks grouped by ready/active/blocked status")
+      .option("-C, --company-id <id>", "Company ID")
+      .option("--project-id <id>", "Filter by project ID")
+      .option("--limit <n>", "Max issues per category", "10")
+      .action(async (opts: IssueNextOptions) => {
+        try {
+          const ctx = resolveCommandContext(opts, { requireCompany: true });
+          const limit = parseInt(opts.limit || "10", 10);
+
+          // Fetch issues by status categories
+          const [readyIssues, activeIssues, blockedIssues] = await Promise.all([
+            // Ready: todo status
+            fetchIssuesByStatus(ctx.api, ctx.companyId!, "todo", opts.projectId, limit),
+            // Active: in_progress and in_review
+            Promise.all([
+              fetchIssuesByStatus(ctx.api, ctx.companyId!, "in_progress", opts.projectId, limit),
+              fetchIssuesByStatus(ctx.api, ctx.companyId!, "in_review", opts.projectId, limit),
+            ]).then(([inProgress, inReview]) => [...inProgress, ...inReview]),
+            // Blocked: blocked status
+            fetchIssuesByStatus(ctx.api, ctx.companyId!, "blocked", opts.projectId, limit),
+          ]);
+
+          const output: NextTasksOutput = {
+            ready: readyIssues,
+            active: activeIssues,
+            blocked: blockedIssues,
+          };
+
+          if (ctx.json) {
+            printOutput(output, { json: true });
+            return;
+          }
+
+          printNextTasksHumanReadable(output);
+        } catch (err) {
+          handleCommandError(err);
+        }
+      }),
+    { includeCompany: false },
   );
 }
 
@@ -684,6 +748,96 @@ function formatClassification(
     default:
       return classification;
   }
+}
+
+async function fetchIssuesByStatus(
+  api: PaperclipApiClient,
+  companyId: string,
+  status: string,
+  projectId: string | undefined,
+  limit: number,
+): Promise<NextTaskItem[]> {
+  const params = new URLSearchParams();
+  params.set("status", status);
+  if (projectId) params.set("projectId", projectId);
+
+  const query = params.toString();
+  const path = `/api/companies/${companyId}/issues${query ? `?${query}` : ""}`;
+  const issues = (await api.get<Issue[]>(path)) ?? [];
+
+  return issues.slice(0, limit).map((issue) => ({
+    id: issue.id,
+    identifier: issue.identifier,
+    title: issue.title,
+    status: issue.status,
+    priority: issue.priority,
+    assigneeAgentId: issue.assigneeAgentId,
+  }));
+}
+
+function printNextTasksHumanReadable(output: NextTasksOutput): void {
+  console.log(pc.bold("═══ NEXT TASKS ════════════════════════════════════════════════════════════════"));
+  console.log("");
+
+  // Ready section
+  console.log(pc.bold(pc.green("► READY (todo)")));
+  if (output.ready.length === 0) {
+    console.log(pc.dim("  (none)"));
+  } else {
+    for (const issue of output.ready) {
+      printTaskItem(issue, "ready");
+    }
+  }
+  console.log("");
+
+  // Active section
+  console.log(pc.bold(pc.blue("► ACTIVE (in progress/review)")));
+  if (output.active.length === 0) {
+    console.log(pc.dim("  (none)"));
+  } else {
+    for (const issue of output.active) {
+      printTaskItem(issue, "active");
+    }
+  }
+  console.log("");
+
+  // Blocked section
+  console.log(pc.bold(pc.red("► BLOCKED")));
+  if (output.blocked.length === 0) {
+    console.log(pc.dim("  (none)"));
+  } else {
+    for (const issue of output.blocked) {
+      printTaskItem(issue, "blocked");
+    }
+  }
+  console.log("");
+
+  // Summary
+  const total = output.ready.length + output.active.length + output.blocked.length;
+  console.log(pc.dim(`Total: ${total} (${output.ready.length} ready, ${output.active.length} active, ${output.blocked.length} blocked)`));
+}
+
+function printTaskItem(issue: NextTaskItem, category: "ready" | "active" | "blocked"): void {
+  const id = issue.identifier ?? issue.id.slice(0, 8);
+  const assignee = issue.assigneeAgentId ? ` @${issue.assigneeAgentId.slice(0, 8)}` : "";
+  const priority = issue.priority !== "medium" ? ` (${issue.priority})` : "";
+
+  let statusColor: (text: string) => string;
+  switch (category) {
+    case "ready":
+      statusColor = pc.green;
+      break;
+    case "active":
+      statusColor = pc.blue;
+      break;
+    case "blocked":
+      statusColor = pc.red;
+      break;
+    default:
+      statusColor = pc.white;
+  }
+
+  console.log(`  ${statusColor(id)}: ${issue.title}${priority}${pc.dim(assignee)}`);
 }
 
 function parseCsv(value: string | undefined): string[] {

@@ -162,4 +162,133 @@ describe("issue commands", () => {
     exitSpy.mockRestore();
     consoleErrorSpy.mockRestore();
   });
+
+  it("shows next tasks grouped by status", async () => {
+    const program = new Command();
+    registerIssueCommands(program);
+
+    // Mock API to return different issues for different status queries
+    mockApi.get.mockImplementation((path: string) => {
+      if (path.includes("status=todo")) {
+        return Promise.resolve([
+          { id: "1", identifier: "PC-1", title: "Ready Task", status: "todo", priority: "high", assigneeAgentId: null },
+        ]);
+      }
+      if (path.includes("status=in_progress")) {
+        return Promise.resolve([
+          { id: "2", identifier: "PC-2", title: "Active Task", status: "in_progress", priority: "medium", assigneeAgentId: VALID_AGENT_ID },
+        ]);
+      }
+      if (path.includes("status=in_review")) {
+        return Promise.resolve([]);
+      }
+      if (path.includes("status=blocked")) {
+        return Promise.resolve([
+          { id: "3", identifier: "PC-3", title: "Blocked Task", status: "blocked", priority: "low", assigneeAgentId: null },
+        ]);
+      }
+      return Promise.resolve([]);
+    });
+
+    const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+
+    await program.parseAsync(["node", "test", "issue", "next", "--company-id", "test-company"]);
+
+    // Verify API was called for all three status categories
+    expect(mockApi.get).toHaveBeenCalledWith("/api/companies/test-company/issues?status=todo");
+    expect(mockApi.get).toHaveBeenCalledWith("/api/companies/test-company/issues?status=in_progress");
+    expect(mockApi.get).toHaveBeenCalledWith("/api/companies/test-company/issues?status=in_review");
+    expect(mockApi.get).toHaveBeenCalledWith("/api/companies/test-company/issues?status=blocked");
+
+    // Verify output contains the sections
+    const output = consoleSpy.mock.calls.map((call) => call[0]).join("\n");
+    expect(output).toContain("READY");
+    expect(output).toContain("ACTIVE");
+    expect(output).toContain("BLOCKED");
+    expect(output).toContain("Ready Task");
+    expect(output).toContain("Active Task");
+    expect(output).toContain("Blocked Task");
+
+    consoleSpy.mockRestore();
+  });
+
+  it("supports json output for next command", async () => {
+    const program = new Command();
+    registerIssueCommands(program);
+
+    (common.resolveCommandContext as any).mockReturnValue({
+      api: mockApi,
+      companyId: "test-company",
+      json: true,
+    });
+
+    mockApi.get.mockResolvedValue([]);
+
+    const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+
+    await program.parseAsync(["node", "test", "issue", "next", "--company-id", "test-company", "--json"]);
+
+    // Verify JSON output with correct structure
+    const outputCall = consoleSpy.mock.calls[0]?.[0];
+    expect(outputCall).toBeDefined();
+    const parsed = JSON.parse(outputCall as string);
+    expect(parsed).toHaveProperty("ready");
+    expect(parsed).toHaveProperty("active");
+    expect(parsed).toHaveProperty("blocked");
+    expect(Array.isArray(parsed.ready)).toBe(true);
+    expect(Array.isArray(parsed.active)).toBe(true);
+    expect(Array.isArray(parsed.blocked)).toBe(true);
+
+    consoleSpy.mockRestore();
+  });
+
+  it("filters next tasks by project ID", async () => {
+    const program = new Command();
+    registerIssueCommands(program);
+
+    mockApi.get.mockResolvedValue([]);
+
+    await program.parseAsync([
+      "node",
+      "test",
+      "issue",
+      "next",
+      "--company-id",
+      "test-company",
+      "--project-id",
+      "test-project",
+    ]);
+
+    // Verify API calls include project filter
+    expect(mockApi.get).toHaveBeenCalledWith("/api/companies/test-company/issues?status=todo&projectId=test-project");
+    expect(mockApi.get).toHaveBeenCalledWith("/api/companies/test-company/issues?status=in_progress&projectId=test-project");
+    expect(mockApi.get).toHaveBeenCalledWith("/api/companies/test-company/issues?status=in_review&projectId=test-project");
+    expect(mockApi.get).toHaveBeenCalledWith("/api/companies/test-company/issues?status=blocked&projectId=test-project");
+  });
+
+  it("handles API error on next command and exits with code 1", async () => {
+    const program = new Command();
+    registerIssueCommands(program);
+
+    mockApi.get.mockRejectedValue({
+      status: 500,
+      message: "Internal Server Error",
+    });
+
+    const exitSpy = vi.spyOn(process, "exit").mockImplementation(() => {
+      throw new Error("Process exit called");
+    });
+    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    try {
+      await program.parseAsync(["node", "test", "issue", "next", "--company-id", "test-company"]);
+    } catch (err) {
+      // Expected
+    }
+
+    expect(exitSpy).toHaveBeenCalledWith(1);
+
+    exitSpy.mockRestore();
+    consoleErrorSpy.mockRestore();
+  });
 });
