@@ -1,0 +1,44 @@
+{
+  "milestone": "m2-cli-verification",
+  "round": 1,
+  "status": "pass",
+  "assertionsSummary": {
+    "total": 5,
+    "passed": 5,
+    "failed": 0,
+    "blocked": 0
+  },
+  "passedAssertions": [
+    "VAL-CLI-001",
+    "VAL-CLI-002",
+    "VAL-CLI-003",
+    "VAL-CROSS-001",
+    "VAL-CROSS-002"
+  ],
+  "failedAssertions": [],
+  "blockedAssertions": [],
+  "appliedUpdates": [],
+  "previousRound": null,
+  "testDetails": {
+    "VAL-CLI-001": {
+      "tool": "cli",
+      "evidence": "paperclipai issue --help shows 'next [options] Show next tasks grouped by ready/active/blocked status'"
+    },
+    "VAL-CLI-002": {
+      "tool": "cli",
+      "evidence": "Command output groups issues into three categories: READY (todo), ACTIVE (in progress/review), BLOCKED"
+    },
+    "VAL-CLI-003": {
+      "tool": "cli",
+      "evidence": "Each task item output includes: identifier (or id), title, status (via category), priority, and assigneeAgentId"
+    },
+    "VAL-CROSS-001": {
+      "tool": "cli",
+      "evidence": "GitHub templates exist (.github/ISSUE_TEMPLATE/), task-discovery doc exists (doc/TASK-DISCOVERY.md), CLI command registered and functional"
+    },
+    "VAL-CROSS-002": {
+      "tool": "read",
+      "evidence": "doc/TASK-DISCOVERY.md contains 'Where Work Enters' section explaining GitHub issue templates flow, and 'Flow Summary' showing complete workflow"
+    }
+  }
+}
