@@ -1,3 +1,4 @@
+export { closeoutTruthService } from "./closeout-truth.js";
 export { companyService } from "./companies.js";
 export { agentService, deduplicateAgentName } from "./agents.js";
 export { assetService } from "./assets.js";

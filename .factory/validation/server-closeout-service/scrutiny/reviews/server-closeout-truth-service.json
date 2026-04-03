@@ -1,0 +1,50 @@
+{
+  "featureId": "server-closeout-truth-service",
+  "milestone": "server-closeout-service",
+  "reviewedAt": "2026-04-03T08:30:00.000Z",
+  "commitId": "HEAD",
+  "transcriptSkeletonReviewed": true,
+  "diffReviewed": true,
+  "status": "pass",
+  "codeReview": {
+    "summary": "The CloseoutTruthService implementation is complete and correct. The service combines mission state, feature graph truth, validation state, git truth, and explicit classification as required. All 5 classification states (clean, local, parked, blocked, unknown) are properly implemented with correct priority ordering. The GET /api/issues/:id/closeout-truth endpoint returns the complete payload structure with proper 404 handling for non-existent issues.",
+    "issues": [
+      {
+        "file": "server/src/services/closeout-truth.ts",
+        "line": 175,
+        "severity": "non_blocking",
+        "description": "Git status parsing could be more robust - the regex pattern matching for untracked files uses both startsWith('?? ') and regex match which is slightly redundant but harmless"
+      },
+      {
+        "file": "server/src/routes/issues.ts",
+        "line": 1079,
+        "severity": "non_blocking",
+        "description": "Route uses generic error handling via next(err) - could benefit from more specific error classification for different failure modes (e.g., git execution failures vs file system errors)"
+      }
+    ]
+  },
+  "sharedStateObservations": [
+    {
+      "area": "conventions",
+      "observation": "The mission-specific AGENTS.md (in .factory/missions/f07c6cdb-8c66-4cb5-9e4d-fab7fe4c09ab/) documents closeout truth conventions comprehensively, but these conventions should be promoted to the repo-wide AGENTS.md for discoverability by future workers",
+      "evidence": "Mission AGENTS.md contains detailed classification states, missing data handling rules, and testing guidance not present in repo root AGENTS.md"
+    },
+    {
+      "area": "library",
+      "observation": "The architecture.md in .factory/library/ accurately documents the closeout truth system components, data flows, and invariants. This is well-maintained shared state.",
+      "evidence": "architecture.md correctly describes: CloseoutTruthService inputs/outputs, API endpoint, classification logic with 5 states, and invariants"
+    },
+    {
+      "area": "skills",
+      "observation": "Worker followed backend-worker patterns correctly. The skill documentation for backend-worker was not found at expected path .factory/skills/backend-worker/SKILL.md, but worker inferred correct patterns from existing code.",
+      "evidence": "Service follows established patterns: uses db parameter injection, exports factory function, uses promisify for execFile, follows error handling with notFound() helper"
+    },
+    {
+      "area": "services",
+      "observation": "services.yaml correctly documents postgres and server services. No new services were added that need documentation.",
+      "evidence": "services.yaml shows postgres on 5432, server on 3100 - both used by the closeout endpoint"
+    }
+  ],
+  "addressesFailureFrom": null,
+  "summary": "PASS - The server-closeout-truth-service feature is fully implemented and meets all requirements. The CloseoutTruthService correctly combines mission state, feature graph truth, validation state, git truth, and explicit classification. All 5 classification states work correctly with proper priority ordering (local > blocked > parked > clean > unknown). The GET /api/issues/:id/closeout-truth endpoint returns complete payload with classification, reasons, gitStatus, featureState, and validationState. Missing validation-state.json and features.json are handled gracefully without 500 errors. 404 is returned for non-existent issues. All 14 test cases pass covering all classifications and edge cases."
+}
