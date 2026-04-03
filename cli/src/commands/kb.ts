@@ -8,6 +8,7 @@ import yaml from "yaml";
 const KB_ROOT = "company-hq/kb";
 const KB_RAW = path.join(KB_ROOT, "raw");
 const KB_NORMALIZED = path.join(KB_ROOT, "normalized");
+const KB_WIKI = path.join(KB_ROOT, "wiki");
 
 /**
  * Find the repository root by looking for the company-hq directory
@@ -215,11 +216,11 @@ export async function helpCommand(): Promise<void> {
 }
 
 /**
- * Placeholder for kb:compile (to be implemented)
+ * Placeholder for kb:output (to be implemented)
  */
-export async function compileCommand(): Promise<void> {
-  p.intro(pc.bgCyan(pc.black(" kb:compile ")));
-  p.log.warn(pc.yellow("kb:compile is not yet implemented"));
+export async function outputCommand(opts: { question?: string }): Promise<void> {
+  p.intro(pc.bgCyan(pc.black(" kb:output ")));
+  p.log.warn(pc.yellow("kb:output is not yet implemented"));
   p.outro("Done");
 }
 
