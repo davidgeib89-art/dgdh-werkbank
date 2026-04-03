@@ -59,6 +59,16 @@ describe("mission closeout-truth command", () => {
       );
       expect(result).toEqual(transformServerCloseoutTruth(serverResponse, "test-mission-id"));
     });
+
+    it("fails clearly on invalid response shape instead of crashing", async () => {
+      mockGet.mockResolvedValueOnce({ error: "Mission not found" });
+
+      const api = createMockApiClient();
+
+      await expect(
+        fetchCloseoutTruthFromServer(api, "test-mission-id", "company-123"),
+      ).rejects.toThrow(/response shape is invalid/i);
+    });
   });
 
   describe("classification states", () => {

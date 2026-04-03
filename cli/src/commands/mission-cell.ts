@@ -84,8 +84,45 @@ export interface CloseoutTruth {
   blockers: string[];
 }
 
+function isServerCloseoutTruth(value: unknown): value is ServerCloseoutTruth {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const candidate = value as Partial<ServerCloseoutTruth>;
+  return (
+    typeof candidate.classification === "string" &&
+    Array.isArray(candidate.reasons) &&
+    !!candidate.gitStatus &&
+    typeof candidate.gitStatus === "object" &&
+    typeof candidate.gitStatus.isClean === "boolean" &&
+    typeof candidate.gitStatus.uncommittedChanges === "boolean" &&
+    typeof candidate.gitStatus.untrackedFiles === "boolean" &&
+    !!candidate.featureState &&
+    typeof candidate.featureState === "object" &&
+    typeof candidate.featureState.total === "number" &&
+    typeof candidate.featureState.completed === "number" &&
+    typeof candidate.featureState.pending === "number" &&
+    typeof candidate.featureState.status === "string" &&
+    !!candidate.validationState &&
+    typeof candidate.validationState === "object" &&
+    typeof candidate.validationState.total === "number" &&
+    typeof candidate.validationState.passed === "number" &&
+    typeof candidate.validationState.failed === "number" &&
+    typeof candidate.validationState.blocked === "number" &&
+    typeof candidate.validationState.pending === "number" &&
+    typeof candidate.validationState.status === "string"
+  );
+}
+
 // Transform server response to CLI format
-export function transformServerCloseoutTruth(serverTruth: ServerCloseoutTruth, missionId: string): CloseoutTruth {
+export function transformServerCloseoutTruth(serverTruth: unknown, missionId: string): CloseoutTruth {
+  if (!isServerCloseoutTruth(serverTruth)) {
+    throw new Error(
+      "Closeout truth response shape is invalid. Check that the API base points at a current Paperclip server /api endpoint.",
+    );
+  }
+
   const modified: string[] = [];
   const untracked: string[] = [];
   const staged: string[] = [];
@@ -493,8 +530,7 @@ export function registerMissionCellCommands(program: Command): void {
   const closeoutTruthCmd = mission
     .command("closeout-truth")
     .description("Show honest closeout truth for a DROID mission")
-    .argument("<missionId>", "DROID mission directory ID")
-    .option("--json", "Output raw JSON");
+    .argument("<missionId>", "DROID mission directory ID");
 
   addCommonClientOptions(closeoutTruthCmd, { includeCompany: true });
 
