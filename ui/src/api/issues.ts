@@ -1,6 +1,7 @@
 import type {
   Approval,
   CompanyRunChain,
+  CloseoutTruth,
   DocumentRevision,
   Issue,
   IssueAttachment,
@@ -92,4 +93,5 @@ export const issuesApi = {
     api.post<Approval[]>(`/issues/${id}/approvals`, { approvalId }),
   unlinkApproval: (id: string, approvalId: string) =>
     api.delete<{ ok: true }>(`/issues/${id}/approvals/${approvalId}`),
+  getCloseoutTruth: (id: string) => api.get<CloseoutTruth>(`/issues/${id}/closeout-truth`),
 };

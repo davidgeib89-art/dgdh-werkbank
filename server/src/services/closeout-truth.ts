@@ -54,6 +54,11 @@ interface ValidationStateJson {
   assertions?: Record<string, { status?: string }>;
 }
 
+interface MissionStateJson {
+  state?: string;
+  workingDirectory?: string;
+}
+
 function getMissionsHome(): string {
   const home = process.env.HOME || process.env.USERPROFILE;
   if (!home) {
@@ -77,6 +82,24 @@ async function readValidationStateJson(missionDir: string): Promise<ValidationSt
     return JSON.parse(content) as ValidationStateJson;
   } catch {
     return null;
+  }
+}
+
+async function readMissionStateJson(missionDir: string): Promise<MissionStateJson | null> {
+  try {
+    const content = await fs.readFile(path.join(missionDir, "state.json"), "utf-8");
+    return JSON.parse(content) as MissionStateJson;
+  } catch {
+    return null;
+  }
+}
+
+async function pathExists(targetPath: string): Promise<boolean> {
+  try {
+    await fs.access(targetPath);
+    return true;
+  } catch {
+    return false;
   }
 }
 
@@ -181,42 +204,71 @@ function calculateValidationState(validationJson: ValidationStateJson | null): V
   };
 }
 
-function determineClassification(
+export function determineClassification(
   gitStatus: GitStatus,
   featureState: FeatureState,
   validationState: ValidationState,
-  issueStatus: string
+  issueStatus: string | null,
 ): { classification: CloseoutClassification; reasons: string[] } {
   const reasons: string[] = [];
+  const blockingReasons: string[] = [];
+  const parkedReasons: string[] = [];
+  const pausedStatuses = new Set(["backlog", "todo", "blocked", "cancelled"]);
+  const isPaused = issueStatus ? pausedStatuses.has(issueStatus) : false;
 
-  // Check for local changes first (highest priority for "local")
+  if (validationState.failed > 0 || validationState.blocked > 0) {
+    if (validationState.failed > 0) {
+      blockingReasons.push(`${validationState.failed} validation assertion(s) failed`);
+    }
+    if (validationState.blocked > 0) {
+      blockingReasons.push(`${validationState.blocked} validation assertion(s) blocked`);
+    }
+  }
+
+  if (featureState.pending > 0) {
+    const message = `${featureState.pending} feature(s) still pending`;
+    if (isPaused) {
+      parkedReasons.push(`${featureState.pending} feature(s) pending with issue in ${issueStatus} status`);
+    } else {
+      blockingReasons.push(message);
+    }
+  }
+
+  if (validationState.pending > 0) {
+    const message = `${validationState.pending} validation assertion(s) pending`;
+    if (isPaused) {
+      parkedReasons.push(message);
+    } else {
+      blockingReasons.push(message);
+    }
+  }
+
+  if (featureState.status === "missing") {
+    reasons.push("features.json not found");
+  }
+  if (validationState.status === "missing") {
+    reasons.push("validation-state.json not found");
+  }
+  if (validationState.status === "error") {
+    reasons.push("validation-state.json could not be parsed");
+  }
+
+  if (blockingReasons.length > 0) {
+    return { classification: "blocked", reasons: [...blockingReasons, ...reasons] };
+  }
+
+  if (parkedReasons.length > 0) {
+    return { classification: "parked", reasons: [...parkedReasons, ...reasons] };
+  }
+
   if (!gitStatus.isClean) {
-    reasons.push("Git working directory has uncommitted changes");
+    reasons.unshift("Git working directory has uncommitted changes");
     if (gitStatus.untrackedFiles) {
       reasons.push("Untracked files present");
     }
     return { classification: "local", reasons };
   }
 
-  // Check for blocked assertions
-  if (validationState.failed > 0 || validationState.blocked > 0) {
-    if (validationState.failed > 0) {
-      reasons.push(`${validationState.failed} validation assertion(s) failed`);
-    }
-    if (validationState.blocked > 0) {
-      reasons.push(`${validationState.blocked} validation assertion(s) blocked`);
-    }
-    return { classification: "blocked", reasons };
-  }
-
-  // Check for pending features (parked)
-  const pausedStatuses = ["backlog", "todo", "blocked", "cancelled"];
-  if (featureState.pending > 0 && pausedStatuses.includes(issueStatus)) {
-    reasons.push(`${featureState.pending} feature(s) pending with issue in ${issueStatus} status`);
-    return { classification: "parked", reasons };
-  }
-
-  // Check for clean state
   if (
     gitStatus.isClean &&
     featureState.status === "complete" &&
@@ -227,26 +279,6 @@ function determineClassification(
     return { classification: "clean", reasons };
   }
 
-  // Check for incomplete features
-  if (featureState.pending > 0) {
-    reasons.push(`${featureState.pending} feature(s) still pending`);
-  }
-
-  // Check for incomplete validations
-  if (validationState.pending > 0) {
-    reasons.push(`${validationState.pending} validation assertion(s) pending`);
-  }
-
-  // If validation-state is missing, that's a reason
-  if (validationState.status === "missing") {
-    reasons.push("validation-state.json not found");
-  }
-
-  // If features.json is missing
-  if (featureState.status === "missing") {
-    reasons.push("features.json not found");
-  }
-
   // Default to unknown if we can't determine a clear state
   if (reasons.length === 0) {
     reasons.push("Unable to determine closeout state");
@@ -255,9 +287,77 @@ function determineClassification(
   return { classification: "unknown", reasons };
 }
 
+async function resolveMissionDirFromIssue(issueId: string, parentIssueId: string | null): Promise<string | null> {
+  const missionsHome = getMissionsHome();
+  const issueMissionDir = path.join(missionsHome, issueId);
+  if (await pathExists(issueMissionDir)) {
+    return issueMissionDir;
+  }
+
+  if (parentIssueId) {
+    const parentMissionDir = path.join(missionsHome, parentIssueId);
+    if (await pathExists(parentMissionDir)) {
+      return parentMissionDir;
+    }
+  }
+
+  return null;
+}
+
+function resolveRepoPath(input: {
+  executionWorkspaceSettings: Record<string, unknown> | null;
+  missionState: MissionStateJson | null;
+}): string {
+  const workspaceSettings = input.executionWorkspaceSettings;
+  if (workspaceSettings?.repoPath && typeof workspaceSettings.repoPath === "string") {
+    return workspaceSettings.repoPath;
+  }
+
+  if (typeof input.missionState?.workingDirectory === "string" && input.missionState.workingDirectory.length > 0) {
+    return input.missionState.workingDirectory;
+  }
+
+  return process.cwd();
+}
+
+async function buildCloseoutTruth(input: {
+  missionDir: string | null;
+  issueStatus: string | null;
+  executionWorkspaceSettings: Record<string, unknown> | null;
+}): Promise<CloseoutTruth> {
+  const [featuresJson, validationJson, missionState] = input.missionDir
+    ? await Promise.all([
+        readFeaturesJson(input.missionDir),
+        readValidationStateJson(input.missionDir),
+        readMissionStateJson(input.missionDir),
+      ])
+    : [null, null, null];
+
+  const featureState = calculateFeatureState(featuresJson);
+  const validationState = calculateValidationState(validationJson);
+  const repoPath = resolveRepoPath({
+    executionWorkspaceSettings: input.executionWorkspaceSettings,
+    missionState,
+  });
+  const gitStatus = await getGitStatus(repoPath);
+  const { classification, reasons } = determineClassification(
+    gitStatus,
+    featureState,
+    validationState,
+    input.issueStatus,
+  );
+
+  return {
+    classification,
+    reasons,
+    gitStatus,
+    featureState,
+    validationState,
+  };
+}
+
 export function closeoutTruthService(db: Db) {
-  async function getCloseoutTruth(issueId: string): Promise<CloseoutTruth> {
-    // Get issue from database
+  async function getIssueCloseoutTruth(issueId: string): Promise<CloseoutTruth> {
     const issue = await db
       .select({
         id: issues.id,
@@ -273,72 +373,30 @@ export function closeoutTruthService(db: Db) {
       throw notFound("Issue not found");
     }
 
-    // Get mission directory
-    const missionsHome = getMissionsHome();
-    const missionDir = path.join(missionsHome, issueId);
+    const missionDir = await resolveMissionDirFromIssue(issue.id, issue.parentId ?? null);
 
-    // Check if mission directory exists, fall back to checking parent issue if this is a child
-    let targetMissionDir = missionDir;
-    try {
-      await fs.access(missionDir);
-    } catch {
-      // Mission directory doesn't exist for this issue
-      // Check if this is a child issue by looking for parent
-      const parentIssue = await db
-        .select({ id: issues.id })
-        .from(issues)
-        .where(eq(issues.id, issue.parentId ?? ""))
-        .then((rows) => rows[0] ?? null);
+    return buildCloseoutTruth({
+      missionDir,
+      issueStatus: issue.status,
+      executionWorkspaceSettings: issue.executionWorkspaceSettings as Record<string, unknown> | null,
+    });
+  }
 
-      if (parentIssue?.id) {
-        // Try parent's mission directory
-        const parentMissionDir = path.join(missionsHome, parentIssue.id);
-        try {
-          await fs.access(parentMissionDir);
-          targetMissionDir = parentMissionDir;
-        } catch {
-          // Neither directory exists, use original
-        }
-      }
+  async function getMissionCloseoutTruth(missionId: string): Promise<CloseoutTruth> {
+    const missionDir = path.join(getMissionsHome(), missionId);
+    if (!(await pathExists(missionDir))) {
+      throw notFound("Mission not found");
     }
 
-    // Read mission files
-    const [featuresJson, validationJson] = await Promise.all([
-      readFeaturesJson(targetMissionDir),
-      readValidationStateJson(targetMissionDir),
-    ]);
-
-    // Calculate states
-    const featureState = calculateFeatureState(featuresJson);
-    const validationState = calculateValidationState(validationJson);
-
-    // Get git status from repo path if available
-    let repoPath = process.cwd();
-    const workspaceSettings = issue.executionWorkspaceSettings as Record<string, unknown> | null;
-    if (workspaceSettings?.repoPath && typeof workspaceSettings.repoPath === "string") {
-      repoPath = workspaceSettings.repoPath;
-    }
-
-    const gitStatus = await getGitStatus(repoPath);
-
-    // Determine classification
-    const { classification, reasons } = determineClassification(
-      gitStatus,
-      featureState,
-      validationState,
-      issue.status
-    );
-
-    return {
-      classification,
-      reasons,
-      gitStatus,
-      featureState,
-      validationState,
-    };
+    return buildCloseoutTruth({
+      missionDir,
+      issueStatus: null,
+      executionWorkspaceSettings: null,
+    });
   }
 
   return {
-    getCloseoutTruth,
+    getIssueCloseoutTruth,
+    getMissionCloseoutTruth,
   };
 }

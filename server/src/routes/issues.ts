@@ -31,6 +31,7 @@ import {
   logActivity,
   projectService,
   companyService,
+  closeoutTruthService,
 } from "../services/index.js";
 import { logger } from "../middleware/logger.js";
 import { forbidden, HttpError, unauthorized } from "../errors.js";
@@ -1073,6 +1074,47 @@ export function issueRoutes(db: Db, storage: StorageService) {
           new Date(left.createdAt).getTime() - new Date(right.createdAt).getTime(),
       ),
     );
+  });
+
+  router.get("/missions/:missionId/closeout-truth", async (req, res, next) => {
+    const missionId = req.params.missionId as string;
+    const companyId =
+      typeof req.query.companyId === "string" && req.query.companyId.trim().length > 0
+        ? req.query.companyId.trim()
+        : null;
+
+    if (!companyId) {
+      res.status(400).json({ error: "companyId query parameter is required" });
+      return;
+    }
+
+    assertCompanyAccess(req, companyId);
+
+    try {
+      const closeoutSvc = closeoutTruthService(db);
+      const truth = await closeoutSvc.getMissionCloseoutTruth(missionId);
+      res.json(truth);
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  router.get("/issues/:id/closeout-truth", async (req, res, next) => {
+    const id = req.params.id as string;
+    const issue = await svc.getById(id);
+    if (!issue) {
+      res.status(404).json({ error: "Issue not found" });
+      return;
+    }
+    assertCompanyAccess(req, issue.companyId);
+
+    try {
+      const closeoutSvc = closeoutTruthService(db);
+      const truth = await closeoutSvc.getIssueCloseoutTruth(id);
+      res.json(truth);
+    } catch (err) {
+      next(err);
+    }
   });
 
   router.get("/issues/:id/company-run-chain", async (req, res) => {

@@ -87,6 +87,11 @@ export type {
   WorkerHandoffSummary,
   IssueAttachment,
   IssueLabel,
+  CloseoutTruth,
+  CloseoutTruthGitStatus,
+  CloseoutTruthFeatureState,
+  CloseoutTruthValidationState,
+  CloseoutClassification,
 } from "./issue.js";
 export type { Goal } from "./goal.js";
 export type { Approval, ApprovalComment } from "./approval.js";

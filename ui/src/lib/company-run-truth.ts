@@ -133,8 +133,7 @@ export function getRunContextHealth(input: {
 export function hasVisibleCompanyRunChainTruth(
   chain: CompanyRunChain | null | undefined,
 ): chain is CompanyRunChain {
-  if (!chain) return false;
-  return chain.children.length > 0 || Boolean(chain.parentBlocker?.blockerClass);
+  return Boolean(chain);
 }
 
 export function hasRecoverableState(chain: CompanyRunChain | null | undefined): boolean {

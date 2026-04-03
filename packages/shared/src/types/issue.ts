@@ -326,6 +326,40 @@ export interface CompanyRunChain {
   children: CompanyRunChainChild[];
 }
 
+// Closeout truth types
+export type CloseoutClassification = "clean" | "local" | "parked" | "blocked" | "unknown";
+
+export interface CloseoutTruthGitStatus {
+  isClean: boolean;
+  branch: string | null;
+  uncommittedChanges: boolean;
+  untrackedFiles: boolean;
+}
+
+export interface CloseoutTruthFeatureState {
+  total: number;
+  completed: number;
+  pending: number;
+  status: "complete" | "incomplete" | "missing";
+}
+
+export interface CloseoutTruthValidationState {
+  total: number;
+  passed: number;
+  failed: number;
+  blocked: number;
+  pending: number;
+  status: "complete" | "incomplete" | "missing" | "error";
+}
+
+export interface CloseoutTruth {
+  classification: CloseoutClassification;
+  reasons: string[];
+  gitStatus: CloseoutTruthGitStatus;
+  featureState: CloseoutTruthFeatureState;
+  validationState: CloseoutTruthValidationState;
+}
+
 export interface IssueAttachment {
   id: string;
   companyId: string;

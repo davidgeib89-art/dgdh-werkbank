@@ -263,6 +263,11 @@ export type {
   PluginJobRecord,
   PluginJobRunRecord,
   PluginWebhookDeliveryRecord,
+  CloseoutTruth,
+  CloseoutTruthGitStatus,
+  CloseoutTruthFeatureState,
+  CloseoutTruthValidationState,
+  CloseoutClassification,
 } from "./types/index.js";
 
 export {

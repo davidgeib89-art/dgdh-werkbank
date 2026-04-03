@@ -1,11 +1,19 @@
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import { Command } from "commander";
+import pc from "picocolors";
 import {
   missionCellContractSchema,
   type MissionCellContractInput,
 } from "@paperclipai/shared";
-import { handleCommandError, printOutput } from "./client/common.js";
+import { ApiRequestError, PaperclipApiClient } from "../client/http.js";
+import {
+  handleCommandError,
+  printOutput,
+  resolveCommandContext,
+  addCommonClientOptions,
+  type BaseClientOptions,
+} from "./client/common.js";
 
 interface MissionCellValidateOptions {
   json?: boolean;
@@ -20,6 +28,206 @@ interface MissionCellListOptions {
 interface MissionCellUseOptions {
   dir?: string;
   json?: boolean;
+}
+
+// Server closeout truth types
+export interface ServerCloseoutTruth {
+  classification: "clean" | "local" | "parked" | "blocked" | "unknown";
+  reasons: string[];
+  gitStatus: {
+    isClean: boolean;
+    branch: string | null;
+    uncommittedChanges: boolean;
+    untrackedFiles: boolean;
+  };
+  featureState: {
+    total: number;
+    completed: number;
+    pending: number;
+    status: "complete" | "incomplete" | "missing";
+  };
+  validationState: {
+    total: number;
+    passed: number;
+    failed: number;
+    blocked: number;
+    pending: number;
+    status: "complete" | "incomplete" | "missing" | "error";
+  };
+}
+
+// CLI closeout truth types
+export interface CloseoutTruth {
+  missionId: string;
+  classification: "clean" | "local" | "parked" | "blocked" | "unknown";
+  gitStatus: {
+    clean: boolean;
+    modified: string[];
+    untracked: string[];
+    staged: string[];
+  };
+  validationState: {
+    exists: boolean;
+    totalAssertions: number;
+    passed: number;
+    failed: number;
+    pending: number;
+    blocked: number;
+  };
+  featureCompletion: {
+    exists: boolean;
+    totalFeatures: number;
+    completed: number;
+    pending: number;
+    cancelled: number;
+  };
+  blockers: string[];
+}
+
+// Transform server response to CLI format
+export function transformServerCloseoutTruth(serverTruth: ServerCloseoutTruth, missionId: string): CloseoutTruth {
+  const modified: string[] = [];
+  const untracked: string[] = [];
+  const staged: string[] = [];
+
+  if (serverTruth.gitStatus.uncommittedChanges) {
+    modified.push("uncommitted changes");
+  }
+  if (serverTruth.gitStatus.untrackedFiles) {
+    untracked.push("untracked files");
+  }
+
+  return {
+    missionId,
+    classification: serverTruth.classification,
+    gitStatus: {
+      clean: serverTruth.gitStatus.isClean,
+      modified,
+      untracked,
+      staged,
+    },
+    validationState: {
+      exists: serverTruth.validationState.status !== "missing",
+      totalAssertions: serverTruth.validationState.total,
+      passed: serverTruth.validationState.passed,
+      failed: serverTruth.validationState.failed,
+      pending: serverTruth.validationState.pending,
+      blocked: serverTruth.validationState.blocked,
+    },
+    featureCompletion: {
+      exists: serverTruth.featureState.status !== "missing",
+      totalFeatures: serverTruth.featureState.total,
+      completed: serverTruth.featureState.completed,
+      pending: serverTruth.featureState.pending,
+      cancelled: 0,
+    },
+    blockers: serverTruth.reasons.filter((r) =>
+      r.includes("failed") || r.includes("blocked") || r.includes("pending") || r.includes("missing"),
+    ),
+  };
+}
+
+export async function fetchCloseoutTruthFromServer(
+  api: PaperclipApiClient,
+  missionId: string,
+  companyId = "test-company",
+): Promise<CloseoutTruth | null> {
+  const serverTruth = await api.get<ServerCloseoutTruth>(
+    `/missions/${encodeURIComponent(missionId)}/closeout-truth?companyId=${encodeURIComponent(companyId)}`,
+  );
+  if (!serverTruth) {
+    return null;
+  }
+  return transformServerCloseoutTruth(serverTruth, missionId);
+}
+
+function formatClassification(
+  classification: CloseoutTruth["classification"],
+): string {
+  switch (classification) {
+    case "clean":
+      return pc.green("clean");
+    case "local":
+      return pc.yellow("local");
+    case "parked":
+      return pc.blue("parked");
+    case "blocked":
+      return pc.red("blocked");
+    case "unknown":
+      return pc.dim("unknown");
+    default:
+      return classification;
+  }
+}
+
+function printMissionCloseoutTruth(truth: CloseoutTruth): void {
+  console.log(pc.bold(`\n=== CLOSEOUT TRUTH: ${truth.missionId} ===`));
+  console.log(`Classification: ${formatClassification(truth.classification)}`);
+  console.log("");
+
+  console.log(pc.bold("Git Status:"));
+  if (truth.gitStatus.clean) {
+    console.log(pc.green("  OK Working tree clean"));
+  } else {
+    console.log(pc.red("  DIRTY Working tree dirty"));
+    if (truth.gitStatus.staged.length > 0) {
+      console.log(`  Staged: ${truth.gitStatus.staged.join(", ")}`);
+    }
+    if (truth.gitStatus.modified.length > 0) {
+      console.log(`  Modified: ${truth.gitStatus.modified.join(", ")}`);
+    }
+    if (truth.gitStatus.untracked.length > 0) {
+      console.log(`  Untracked: ${truth.gitStatus.untracked.join(", ")}`);
+    }
+  }
+  console.log("");
+
+  console.log(pc.bold("Validation State:"));
+  if (!truth.validationState.exists) {
+    console.log(pc.dim("  (no validation-state.json found)"));
+  } else {
+    console.log(`  Total assertions: ${truth.validationState.totalAssertions}`);
+    if (truth.validationState.passed > 0) {
+      console.log(pc.green(`  Passed: ${truth.validationState.passed}`));
+    }
+    if (truth.validationState.failed > 0) {
+      console.log(pc.red(`  Failed: ${truth.validationState.failed}`));
+    }
+    if (truth.validationState.pending > 0) {
+      console.log(pc.yellow(`  Pending: ${truth.validationState.pending}`));
+    }
+    if (truth.validationState.blocked > 0) {
+      console.log(pc.red(`  Blocked: ${truth.validationState.blocked}`));
+    }
+  }
+  console.log("");
+
+  console.log(pc.bold("Feature Completion:"));
+  if (!truth.featureCompletion.exists) {
+    console.log(pc.dim("  (no features.json found)"));
+  } else {
+    console.log(`  Total features: ${truth.featureCompletion.totalFeatures}`);
+    if (truth.featureCompletion.completed > 0) {
+      console.log(pc.green(`  Completed: ${truth.featureCompletion.completed}`));
+    }
+    if (truth.featureCompletion.pending > 0) {
+      console.log(pc.yellow(`  Pending: ${truth.featureCompletion.pending}`));
+    }
+    if (truth.featureCompletion.cancelled > 0) {
+      console.log(pc.dim(`  Cancelled: ${truth.featureCompletion.cancelled}`));
+    }
+  }
+  console.log("");
+
+  if (truth.blockers.length > 0) {
+    console.log(pc.bold(pc.red("Blockers:")));
+    for (const blocker of truth.blockers) {
+      console.log(pc.red(`  - ${blocker}`));
+    }
+    console.log("");
+  }
+
+  console.log(pc.dim(`Closeout classification: ${truth.classification}`));
 }
 
 export interface MissionCellContractSummary {
@@ -280,4 +488,52 @@ export function registerMissionCellCommands(program: Command): void {
         handleCommandError(err);
       }
     });
+
+  // Closeout truth command
+  const closeoutTruthCmd = mission
+    .command("closeout-truth")
+    .description("Show honest closeout truth for a DROID mission")
+    .argument("<missionId>", "DROID mission directory ID")
+    .option("--json", "Output raw JSON");
+
+  addCommonClientOptions(closeoutTruthCmd, { includeCompany: true });
+
+  closeoutTruthCmd.action(async (missionId: string, opts: BaseClientOptions & { json?: boolean }) => {
+    try {
+      const ctx = resolveCommandContext(opts, { requireCompany: true });
+
+      // Fetch closeout truth from server API
+      const closeoutTruth = await fetchCloseoutTruthFromServer(
+        ctx.api,
+        missionId,
+        ctx.companyId!,
+      );
+
+      if (!closeoutTruth) {
+        console.error(pc.red(`Mission not found: ${missionId}`));
+        process.exit(1);
+      }
+
+      if (opts.json) {
+        printOutput(closeoutTruth, { json: true });
+        return;
+      }
+
+      // Human-readable output
+      printMissionCloseoutTruth(closeoutTruth);
+    } catch (err) {
+      if (err instanceof ApiRequestError) {
+        if (err.status === 404) {
+          console.error(pc.red(`Mission not found: ${missionId}`));
+          process.exit(1);
+        }
+        if (err.status === 0 || err.status === 503 || err.message.includes("Connection refused")) {
+          console.error(pc.red(`API unavailable: Unable to connect to server`));
+          console.error(pc.dim(`Check that the Paperclip server is running at the configured API base URL.`));
+          process.exit(1);
+        }
+      }
+      handleCommandError(err);
+    }
+  });
 }
