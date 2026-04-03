@@ -222,6 +222,11 @@ The repo contains `.github/copilot-instructions.md`. Its rules should be treated
   - clear runtime truth before live claims
   - packet truth before execution
   - narrow mechanical verification before broad review
+- Mission entry truth for `/enter-mission`:
+  - a bounded mission prompt must first produce either a mission proposal or one exact blocker
+  - before proposal acceptance and successful `StartMissionRun`, do not begin free repo execution, broad exploration, or worker implementation in chat mode
+  - before mission creation, limit yourself to the smallest readiness probes that directly answer whether the mission can be created now
+  - if runtime, triad preflight, or another prerequisite is not ready, stop with blocker truth instead of bypassing mission creation
 - Mission closeout truth must stay mechanically grounded:
   - do not claim `user-testing passed` unless a corresponding feature exists in `features.json` and is actually completed
   - do not claim `all assertions fulfilled` when `validation-state.json` still shows assertions as `pending` or otherwise incomplete

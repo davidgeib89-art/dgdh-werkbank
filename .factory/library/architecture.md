@@ -29,6 +29,15 @@ Validators are tested indirectly through server/CLI tests.
 - Direct test coverage for issue validators
 - Vitest configuration for the shared package
 
+## Mission Entry Truth
+
+For `/enter-mission`, mission creation truth comes before implementation truth.
+
+- A bounded mission prompt must first yield either a proposal for approval or one exact blocker
+- Before proposal acceptance and successful `StartMissionRun`, do not drift into free repo execution, broad exploration, or worker implementation
+- Before mission creation, only run the smallest readiness probes needed to answer whether the mission can start now
+- If readiness is red, stop with blocker truth instead of continuing the task in chat mode
+
 ## Mission Closeout Truth
 
 Mission completion must be mechanically verified, not inferred from one green step.
