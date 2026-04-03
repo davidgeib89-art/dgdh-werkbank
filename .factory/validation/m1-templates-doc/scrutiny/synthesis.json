@@ -1,13 +1,13 @@
 {
   "milestone": "m1-templates-doc",
-  "round": 2,
+  "round": 3,
   "status": "pass",
   "validatorsRun": {
     "test": {
       "passed": false,
       "command": "pnpm test",
       "exitCode": 1,
-      "note": "6 failed tests in unrelated CLI tests (issue-archive-stale-command, issue-liveness, e2e/onboarding). Pre-existing baseline failures not related to M1 features."
+      "note": "7 failed tests in unrelated baseline tests: issue-archive-stale-command (4), issue-liveness (2), paperclip-runtime-hook-support (1), e2e/onboarding (1). Pre-existing baseline failures not related to M1 features."
     },
     "typecheck": {
       "passed": false,
@@ -58,12 +58,17 @@
       {
         "file": "cli/src/__tests__/issue-liveness.test.ts",
         "failures": 2,
-        "note": "Help text and triad reviewer packet tests failing"
+        "note": "Help text and triad reviewer packet tests failing (expected 'liveness' in output, got empty)"
       },
       {
         "file": "tests/e2e/onboarding.spec.ts",
         "failures": 1,
-        "note": "Playwright configuration issue"
+        "note": "Playwright configuration issue - test.describe() called in wrong context"
+      },
+      {
+        "file": "server/src/__tests__/paperclip-runtime-hook-support.test.js",
+        "failures": 1,
+        "note": "Missing hook file: .factory/hooks/paperclip-runtime-support.mjs"
       }
     ],
     "note": "All baseline failures are pre-existing and unrelated to M1-templates-doc milestone features. M1 features are file-creation tasks (GitHub templates, documentation) that do not affect TypeScript types or CLI command structure."
