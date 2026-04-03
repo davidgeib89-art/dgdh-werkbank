@@ -1,0 +1,55 @@
+{
+  "featureId": "m1-task-discovery-doc",
+  "reviewerSessionId": "87951ef9-ac0d-458f-87ce-fa992b971bfa",
+  "milestone": "m1-templates-doc",
+  "status": "pass",
+  "assertions": [
+    {
+      "id": "VAL-LABEL-001",
+      "status": "pass",
+      "evidence": "doc/TASK-DISCOVERY.md documents the 6-label taxonomy"
+    },
+    {
+      "id": "VAL-LABEL-002",
+      "status": "pass",
+      "evidence": "Labels match exactly: kind:feature, kind:bug, kind:chore, status:ready, status:blocked, status:active"
+    },
+    {
+      "id": "VAL-DOC-001",
+      "status": "pass",
+      "evidence": "doc/TASK-DISCOVERY.md exists at correct path"
+    },
+    {
+      "id": "VAL-DOC-002",
+      "status": "pass",
+      "evidence": "Doc explains 'Where Work Enters' section with GitHub issues flow"
+    },
+    {
+      "id": "VAL-DOC-003",
+      "status": "pass",
+      "evidence": "Doc explains 'Label Taxonomy' section with status labels for classification"
+    },
+    {
+      "id": "VAL-DOC-004",
+      "status": "pass",
+      "evidence": "Doc explains 'How Bounded Mountains Are Cut' section with CLI liveness command"
+    },
+    {
+      "id": "VAL-DOC-005",
+      "status": "pass",
+      "evidence": "Doc references AGENTS.md, CURRENT.md, MEMORY.md, and company-hq/AI-CONTEXT-START-HERE.md"
+    }
+  ],
+  "issues": [],
+  "sharedStateObservations": [
+    {
+      "observation": "doc/TASK-DISCOVERY.md references CLI commands that are part of M2 milestone (paperclipai issue liveness)",
+      "suggestedTarget": "library",
+      "reason": "The doc explains CLI discovery commands but those commands are in M2. This is correct cross-milestone reference, not a blocker."
+    }
+  ],
+  "filesReviewed": [
+    "doc/TASK-DISCOVERY.md"
+  ],
+  "summary": "Task-discovery documentation complete. All validation assertions pass. Doc properly references existing canon (AGENTS.md, CURRENT.md, company-hq) without duplicating content. Label taxonomy is minimal and practical (6 labels exactly)."
+}
