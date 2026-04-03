@@ -29,6 +29,22 @@ This means:
 - then turn value creation into more quotas, better hardware, more independence, and stronger future projects
 - and only after that claim anything larger about the world
 
+## Long-Term Workbench Direction
+
+Werkbank should eventually do more than execute tasks.
+It should carry an increasingly true, LLM-maintained working memory of David, DGDH, and their shared direction.
+
+This does not mean simulating David through persona prose.
+It means compiling real source material into usable knowledge:
+
+- raw David signals, values, style, and yes/no patterns
+- real decisions with context
+- mission postmortems showing what carried and what drifted
+- linked wiki-like knowledge that compounds with every serious question
+
+The standard is not performance of understanding, but evidence of understanding.
+Not persona, but compiled reality.
+
 ## Soul Direction
 
 DGDH is not built on the assumption that humans, AI, and nature are enemies.

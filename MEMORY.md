@@ -22,6 +22,7 @@
 - Proof-Reihenfolge dieser Phase: zuerst an DGDH selbst beweisen, dass eine menschlich abgestimmte AI-Firma unter Mission, Seele und Governance reale Wertschoepfung und steigende Autonomie tragen kann.
 - Merksatz: `DGDH ist ein Beweisraum fuer die Idee, dass Trennung nicht die tiefste Wahrheit ist.`
 - Company North Star: David gibt Mission, Budget, Blast Radius und die wenigen echten Type-1-Entscheidungen; die Maschine liefert reviewbare Realitaet und reviewbare Faehigkeitssteigerung mit sinkender David-Supervision pro nuetzlichem Zyklus.
+- Langfristige Werkbank-Richtung: Werkbank soll nicht nur Aufgaben erledigen, sondern ein immer wahrer werdendes, LLM-pflegbares Arbeitsgedaechtnis ueber David, DGDH und ihre gemeinsame Richtung tragen; nicht Persona simulieren, sondern reale Quellen zu belastbarer Wissenslage verdichten.
 - Wertschoepfung ist Treibstoff, nicht Gott: mehr Quotas, bessere Hardware, mehr Unabhaengigkeit, spaetere groessere Mensch-AI-Natur-Projekte.
 - Modell-/Abo-Logik dieser Phase: erst billig und tragfaehig werden, dann beschleunigen. Premium-Modelle oder teure Coding-Abos sind erst dann sinnvoller Standard, wenn Werkbank / DGDH Missionen boring genug traegt, um den Mehrwert in Produktivitaet, Qualitaet oder Revenue real zurueckzuholen.
 
