@@ -394,7 +394,7 @@ export function registerIssueCommands(program: Command): void {
   addCommonClientOptions(
     issue
       .command("next")
-      .description("Show next tasks grouped by ready/active/blocked status")
+      .description("Show issues grouped by Paperclip ready/active/blocked runtime status")
       .option("-C, --company-id <id>", "Company ID")
       .option("--project-id <id>", "Filter by project ID")
       .option("--limit <n>", "Max issues per category", "10")

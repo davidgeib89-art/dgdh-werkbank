@@ -3,9 +3,11 @@ import * as p from "@clack/prompts";
 import pc from "picocolors";
 import { promises as fs } from "node:fs";
 import * as path from "node:path";
+import yaml from "yaml";
 
 const KB_ROOT = "company-hq/kb";
 const KB_RAW = path.join(KB_ROOT, "raw");
+const KB_NORMALIZED = path.join(KB_ROOT, "normalized");
 
 /**
  * Find the repository root by looking for the company-hq directory
@@ -222,12 +224,293 @@ export async function compileCommand(): Promise<void> {
 }
 
 /**
- * Placeholder for kb:normalize (to be implemented)
+ * Claude conversation message structure
+ */
+interface ClaudeMessage {
+  uuid: string;
+  text?: string;
+  content?: unknown[];
+  sender: string;
+  created_at?: string;
+  updated_at?: string;
+  attachments?: unknown[];
+  files?: { file_name?: string }[];
+}
+
+/**
+ * Claude conversation structure
+ */
+interface ClaudeConversation {
+  uuid: string;
+  name?: string;
+  summary?: string;
+  created_at?: string;
+  updated_at?: string;
+  account?: unknown;
+  chat_messages?: ClaudeMessage[];
+}
+
+/**
+ * Format ISO date to readable string
+ */
+function formatDate(isoDate: string): string {
+  try {
+    const date = new Date(isoDate);
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  } catch {
+    return isoDate;
+  }
+}
+
+/**
+ * Format ISO timestamp to readable string
+ */
+function formatTimestamp(isoDate: string | undefined): string {
+  if (!isoDate) return "Unknown";
+  try {
+    const date = new Date(isoDate);
+    return date.toLocaleString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  } catch {
+    return isoDate;
+  }
+}
+
+/**
+ * Normalize a single conversation into markdown format
+ */
+function normalizeConversation(
+  conversation: ClaudeConversation,
+  sourceName: string,
+  importedAt: string,
+): string {
+  const messages = conversation.chat_messages || [];
+  const messageCount = messages.length;
+
+  // Extract date range
+  let startDate: string | null = null;
+  let endDate: string | null = null;
+
+  if (messages.length > 0) {
+    const dates = messages
+      .map((m) => m.created_at)
+      .filter((d): d is string => !!d)
+      .sort();
+    if (dates.length > 0) {
+      startDate = dates[0];
+      endDate = dates[dates.length - 1];
+    }
+  }
+
+  // Build frontmatter
+  const frontmatter: Record<string, unknown> = {
+    source: sourceName,
+    imported_at: importedAt,
+    conversation_uuid: conversation.uuid,
+    title: conversation.name || "Untitled",
+    message_count: messageCount,
+  };
+
+  if (startDate) {
+    frontmatter.start_date = startDate;
+  }
+  if (endDate) {
+    frontmatter.end_date = endDate;
+  }
+  if (conversation.created_at) {
+    frontmatter.created_at = conversation.created_at;
+  }
+  if (conversation.updated_at) {
+    frontmatter.updated_at = conversation.updated_at;
+  }
+
+  // Build content
+  let content = "---\n";
+  content += yaml.stringify(frontmatter).trim();
+  content += "\n---\n\n";
+
+  // Add title
+  content += `# ${conversation.name || "Untitled"}\n\n`;
+
+  // Add metadata summary
+  content += `**UUID:** \`${conversation.uuid}\`\n\n`;
+  content += `**Messages:** ${messageCount}\n\n`;
+
+  if (startDate && endDate) {
+    content += `**Date Range:** ${formatDate(startDate)} - ${formatDate(endDate)}\n\n`;
+  }
+
+  if (conversation.summary) {
+    content += `**Summary:** ${conversation.summary}\n\n`;
+  }
+
+  content += "---\n\n";
+
+  // Add messages
+  if (messages.length > 0) {
+    content += "## Messages\n\n";
+
+    for (let i = 0; i < messages.length; i++) {
+      const msg = messages[i];
+      const sender = msg.sender === "human" ? "**User**" : "**Assistant**";
+      const timestamp = formatTimestamp(msg.created_at);
+
+      content += `### Message ${i + 1}\n\n`;
+      content += `${sender} · ${timestamp}\n\n`;
+
+      if (msg.text) {
+        content += `${msg.text}\n\n`;
+      }
+
+      // Add attachments info if present
+      if (msg.attachments && msg.attachments.length > 0) {
+        content += `*Attachments: ${msg.attachments.length} file(s)*\n\n`;
+      }
+
+      if (msg.files && msg.files.length > 0) {
+        const fileNames = msg.files.map((f) => f.file_name).filter(Boolean);
+        if (fileNames.length > 0) {
+          content += `*Files: ${fileNames.join(", ")}*\n\n`;
+        }
+      }
+
+      content += "\n";
+    }
+  } else {
+    content += "*No messages in this conversation.*\n\n";
+  }
+
+  return content;
+}
+
+/**
+ * Sanitize a string for use in a filename
+ */
+function sanitizeFilename(name: string): string {
+  return name
+    .replace(/[^a-zA-Z0-9\s-]/g, "")
+    .trim()
+    .replace(/\s+/g, "-")
+    .substring(0, 50)
+    .toLowerCase();
+}
+
+/**
+ * kb:normalize command - normalize conversations from raw to normalized/
  */
 export async function normalizeCommand(): Promise<void> {
   p.intro(pc.bgCyan(pc.black(" kb:normalize ")));
-  p.log.warn(pc.yellow("kb:normalize is not yet implemented"));
-  p.outro("Done");
+
+  // Find repo root and set up paths
+  const repoRoot = await findRepoRoot();
+  const rawDir = path.join(repoRoot, KB_RAW);
+  const normalizedDir = path.join(repoRoot, KB_NORMALIZED);
+
+  // Check if raw directory exists
+  try {
+    await fs.access(rawDir);
+  } catch {
+    p.log.error(pc.red(`Raw directory not found: ${rawDir}`));
+    throw new Error(`Raw directory not found. Run kb:ingest first.`);
+  }
+
+  // Create normalized directory
+  await fs.mkdir(normalizedDir, { recursive: true });
+  p.log.message(pc.dim(`Normalized directory: ${normalizedDir}`));
+
+  // Find all source directories in raw/
+  const sourceDirs = await fs.readdir(rawDir, { withFileTypes: true });
+  const validSourceDirs = sourceDirs.filter((d) => d.isDirectory());
+
+  if (validSourceDirs.length === 0) {
+    p.log.error(pc.red("No source directories found in raw/"));
+    throw new Error("No source data to normalize. Run kb:ingest first.");
+  }
+
+  p.log.message(pc.dim(`Found ${validSourceDirs.length} source(s) to process`));
+
+  let totalNormalized = 0;
+  let totalErrors = 0;
+
+  for (const sourceDir of validSourceDirs) {
+    const sourceName = sourceDir.name;
+    const sourcePath = path.join(rawDir, sourceName);
+
+    p.log.message(pc.bold(`\nProcessing source: ${sourceName}`));
+
+    // Read manifest to get import timestamp
+    let importedAt = new Date().toISOString();
+    try {
+      const manifestPath = path.join(sourcePath, "manifest.json");
+      const manifestContent = await fs.readFile(manifestPath, "utf-8");
+      const manifest = JSON.parse(manifestContent);
+      importedAt = manifest.imported_at || importedAt;
+    } catch {
+      p.log.warn(pc.yellow(`  No manifest.json found, using current time`));
+    }
+
+    // Check for conversations.json
+    const conversationsPath = path.join(sourcePath, "conversations.json");
+    try {
+      await fs.access(conversationsPath);
+    } catch {
+      p.log.warn(pc.yellow(`  No conversations.json found, skipping`));
+      continue;
+    }
+
+    // Read and parse conversations
+    let conversations: ClaudeConversation[];
+    try {
+      const content = await fs.readFile(conversationsPath, "utf-8");
+      conversations = JSON.parse(content);
+      if (!Array.isArray(conversations)) {
+        throw new Error("conversations.json is not an array");
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      p.log.error(pc.red(`  Failed to parse conversations.json: ${errorMessage}`));
+      totalErrors++;
+      continue;
+    }
+
+    p.log.message(pc.dim(`  Found ${conversations.length} conversation(s)`));
+
+    // Normalize each conversation
+    for (const conversation of conversations) {
+      try {
+        if (!conversation.uuid) {
+          p.log.warn(pc.yellow(`  Skipping conversation without UUID`));
+          continue;
+        }
+
+        const normalized = normalizeConversation(conversation, sourceName, importedAt);
+
+        // Create filename from title and UUID
+        const safeTitle = sanitizeFilename(conversation.name || "untitled");
+        const filename = `${safeTitle}-${conversation.uuid.substring(0, 8)}.md`;
+        const outputPath = path.join(normalizedDir, filename);
+
+        await fs.writeFile(outputPath, normalized, "utf-8");
+        totalNormalized++;
+        p.log.message(pc.dim(`  ✓ ${filename}`));
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : String(err);
+        p.log.error(pc.red(`  ✗ Failed to normalize conversation ${conversation?.uuid}: ${errorMessage}`));
+        totalErrors++;
+      }
+    }
+  }
+
+  p.outro(pc.green(`Normalization complete: ${totalNormalized} conversation(s) normalized, ${totalErrors} error(s)`));
 }
 
 /**

@@ -1,0 +1,11 @@
+{
+  "source": "claude_export",
+  "source_name": "claude-export",
+  "original_path": "C:\\Users\\holyd\\DGDH\\worktrees\\dgdh-droid-sandbox\\company-hq\\kb\\raw\\_samples\\claude-export",
+  "imported_at": "2026-04-03T15:03:23.396Z",
+  "files": [
+    "conversations.json",
+    "projects.json",
+    "users.json"
+  ]
+}

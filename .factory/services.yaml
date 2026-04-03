@@ -1,0 +1,14 @@
+commands:
+  install: pnpm install
+  typecheck: pnpm -r typecheck
+  build: pnpm build
+  test: pnpm test:run
+  lint: pnpm -r typecheck
+
+  # KB Pipeline commands
+  kb-ingest: pnpm paperclipai kb:ingest --source
+  kb-normalize: pnpm paperclipai kb:normalize
+  kb-compile: pnpm paperclipai kb:compile
+  kb-help: pnpm paperclipai kb --help
+
+services: {}

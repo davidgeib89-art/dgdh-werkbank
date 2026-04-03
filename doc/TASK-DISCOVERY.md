@@ -8,7 +8,7 @@ How to find, classify, and cut bounded work in DGDH-Werkbank / Paperclip.
 
 ## Where Work Enters
 
-New work enters through **GitHub issues** created via templates in `.github/ISSUE_TEMPLATE/`:
+New work enters through GitHub issues created via templates in `.github/ISSUE_TEMPLATE/`:
 
 | Template | Use When | Auto-label |
 |----------|----------|------------|
@@ -16,15 +16,15 @@ New work enters through **GitHub issues** created via templates in `.github/ISSU
 | `bug_report.md` | Something is broken | `kind:bug` |
 | `chore.md` | Maintenance, refactoring, cleanup | `kind:chore` |
 
-Issues graduate to **company issues** via the Werkbank runtime and become visible to agents through the CLI.
+Issues then become visible to Paperclip agents through the Werkbank runtime and CLI.
 
 ---
 
 ## Label Taxonomy
 
-We use exactly 6 labels. No more, no less. Labels are for classification, not project management theater.
+We use exactly 6 labels. Labels are for lightweight classification, not project-management theater.
 
-### Kind Labels (What it is)
+### Kind Labels
 
 | Label | Meaning |
 |-------|---------|
@@ -32,84 +32,100 @@ We use exactly 6 labels. No more, no less. Labels are for classification, not pr
 | `kind:bug` | Defect or unexpected behavior |
 | `kind:chore` | Maintenance, refactoring, cleanup |
 
-### Status Labels (Where it stands)
+### Status Labels
 
 | Label | Meaning |
 |-------|---------|
-| `status:ready` | Clear enough to start. Bounded scope. No blockers. |
-| `status:active` | Currently in execution by an agent |
-| `status:blocked` | Waiting on dependency, decision, or external input |
+| `status:ready` | Human planning signal: clear enough to start, bounded enough to review |
+| `status:active` | Human planning signal: currently being worked or intentionally in flight |
+| `status:blocked` | Human planning signal: waiting on a dependency, decision, or external input |
 
-**Rules:**
-- An issue should have exactly one `kind:` and one `status:` label at any time.
-- `status:ready` means the issue is ready to be picked up by `paperclipai issue next`.
-- `status:active` is set automatically when work begins.
-- `status:blocked` requires a comment explaining the blocker.
+### Rules
+
+- An issue should have exactly one `kind:` label.
+- Status labels are optional planning aids, not the canonical runtime truth surface.
+- If `status:blocked` is applied, add a comment explaining the blocker.
+- Do not add `priority:` or `size:` label families.
+
+Important:
+- GitHub labels help humans classify incoming work.
+- Paperclip runtime issue status is the canonical truth used by CLI commands such as `paperclipai issue next`.
 
 ---
 
-## How Bounded Mountains Are Cut
+## CLI Discovery
 
-### CLI Discovery
-
-Use the CLI to see what is ready to work:
+Use the CLI to inspect what exists and what is currently work-ready in Paperclip runtime terms:
 
 ```bash
 # See help for issue commands
 pnpm paperclipai issue --help
 
-# Check a specific issue's readiness (packet truth, chain truth, active-run truth)
+# Check a specific issue's liveness and runtime truth
 pnpm paperclipai issue liveness <issue-id>
+
+# See issues grouped by Paperclip runtime status
+pnpm paperclipai issue next
 ```
 
-### What Makes a "Ready" Mountain
+`paperclipai issue next` currently groups issues as:
 
-A `status:ready` issue should have:
+- `ready`: issues in runtime status `todo`
+- `active`: issues in runtime status `in_progress` or `in_review`
+- `blocked`: issues in runtime status `blocked`
 
-1. **Bounded scope** — Can be described in 2-3 sentences
-2. **Clear entry point** — Where to start, what files to touch
-3. **Clear exit criteria** — What "done" looks like
-4. **No hidden dependencies** — Everything it needs is already true
-5. **Single-file or small surface** — Prefer changes that fit in reviewable diffs
+It is a useful task-discovery surface, but it is still a runtime-status view, not a full automatic "ready to cut" judge.
 
-### Planning Language (Not Labels)
+---
 
-We use these terms in planning documents like [CURRENT.md](../CURRENT.md) and [MEMORY.md](../MEMORY.md):
+## What Makes a Reviewable Mountain
+
+A genuinely reviewable mountain should have:
+
+1. Bounded scope: describable in a few sentences
+2. Clear entry point: where to start and what surface is in play
+3. Clear exit criteria: what done means
+4. No hidden dependency that will explode mid-run
+5. A reviewable blast radius
+
+`status:ready` should be used when a human believes those conditions are substantially true.
+
+---
+
+## Planning Language
+
+We use these terms in planning documents such as [CURRENT.md](../CURRENT.md) and [MEMORY.md](../MEMORY.md):
 
 | Term | Meaning |
 |------|---------|
 | **Core** | Real Werkbank / Paperclip mountains that advance the product |
-| **Smaller** | Bounded harness fixes that remove carrying-path friction |
+| **Smaller** | Bounded fixes that remove real carrying-path friction |
 | **Later** | Valid ideas deferred until a Core mountain needs them |
-| **Slop** | Rejected — adds process without adding reviewable reality |
+| **Slop** | Rejected work that adds process without adding reviewable reality |
 
-These are planning terms, not labels. Do not create `priority:` or `size:` labels.
+These are planning terms, not GitHub labels.
 
 ---
 
 ## Flow Summary
 
-```
-GitHub Issue (template) 
-    ↓
-kind:feature / kind:bug / kind:chore + status:blocked
-    ↓
-Scope clarified → status:ready
-    ↓
-paperclipai issue next → picked up by agent
-    ↓
-status:active → execution → PR → review → merge
-    ↓
-Done (no label needed — closed is the signal)
+```text
+GitHub issue via template
+  -> kind:feature / kind:bug / kind:chore
+  -> optional human planning label: status:ready / status:active / status:blocked
+  -> Paperclip runtime issue exists
+  -> paperclipai issue next shows runtime-ready / runtime-active / runtime-blocked work
+  -> execution, review, merge
+  -> closed issue is the final completion signal
 ```
 
 ---
 
 ## References
 
-- [AGENTS.md](../AGENTS.md) — Execution rules, conventions, and commands
-- [CURRENT.md](../CURRENT.md) — Live baton: what is active now
-- [MEMORY.md](../MEMORY.md) — Stable cross-session truth
-- [company-hq/AI-CONTEXT-START-HERE.md](../company-hq/AI-CONTEXT-START-HERE.md) — Firm direction and canon index
-- [Mission Autonomy Doctrine](../doc/plans/2026-03-27-dgdh-mission-autonomy-doctrine.md) — How missions are structured
-- [Predictive Delivery Doctrine](../doc/plans/2026-03-30-dgdh-predictive-delivery-doctrine.md) — Branch truth, runtime truth, packet truth
+- [AGENTS.md](../AGENTS.md) - execution rules, conventions, and commands
+- [CURRENT.md](../CURRENT.md) - live baton: what is active now
+- [MEMORY.md](../MEMORY.md) - stable cross-session truth
+- [company-hq/AI-CONTEXT-START-HERE.md](../company-hq/AI-CONTEXT-START-HERE.md) - firm direction and canon index
+- [Mission Autonomy Doctrine](../doc/plans/2026-03-27-dgdh-mission-autonomy-doctrine.md) - how missions are structured
+- [Predictive Delivery Doctrine](../doc/plans/2026-03-30-dgdh-predictive-delivery-doctrine.md) - branch truth, runtime truth, packet truth
