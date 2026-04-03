@@ -1,6 +1,6 @@
 import { Command } from "commander";
 import * as p from "@clack/prompts";
-import * as pc from "picocolors";
+import pc from "picocolors";
 import { promises as fs } from "node:fs";
 import * as path from "node:path";
 
