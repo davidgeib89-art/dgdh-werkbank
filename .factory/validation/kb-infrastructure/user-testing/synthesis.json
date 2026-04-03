@@ -1,0 +1,66 @@
+{
+  "milestone": "kb-infrastructure",
+  "round": 1,
+  "status": "pass",
+  "assertionsSummary": {
+    "total": 5,
+    "passed": 5,
+    "failed": 0,
+    "blocked": 0
+  },
+  "passedAssertions": [
+    "VAL-KB-001",
+    "VAL-INGEST-001",
+    "VAL-INGEST-002",
+    "VAL-INGEST-003",
+    "VAL-INGEST-004"
+  ],
+  "failedAssertions": [],
+  "blockedAssertions": [],
+  "appliedUpdates": [
+    {
+      "target": "user-testing.md",
+      "description": "Added Flow Validator Guidance: CLI section with isolation boundaries, resource constraints, test execution sequence, CLI commands, and evidence collection instructions. Updated sample data location from sandbox to werkbank repo.",
+      "source": "setup"
+    }
+  ],
+  "previousRound": null,
+  "testDetails": {
+    "VAL-KB-001": {
+      "description": "KB folder structure exists",
+      "test": "ls company-hq/kb/",
+      "result": "PASS",
+      "evidence": "Directory listing shows: normalized, outputs, raw, wiki"
+    },
+    "VAL-INGEST-001": {
+      "description": "Ingest command copies files to raw/",
+      "test": "Get-ChildItem company-hq/kb/raw/claude-export/",
+      "result": "PASS",
+      "evidence": "Files present: conversations.json (1019697 bytes), projects.json (165827 bytes), users.json (166 bytes)"
+    },
+    "VAL-INGEST-002": {
+      "description": "Ingest attaches metadata",
+      "test": "Get-Content company-hq/kb/raw/claude-export/manifest.json",
+      "result": "PASS",
+      "evidence": "manifest.json contains: source='claude_export', source_name='claude-export', original_path, imported_at='2026-04-03T13:52:26.804Z', files array"
+    },
+    "VAL-INGEST-003": {
+      "description": "Ingest handles sample data without error",
+      "test": "pnpm paperclipai kb ingest --source <sample-data> --force",
+      "result": "PASS",
+      "evidence": "Command completed with exit code 0. Output: 'Ingest complete: 3 JSON file(s) copied'"
+    },
+    "VAL-INGEST-004": {
+      "description": "Ingest validates source format",
+      "test": "pnpm paperclipai kb ingest --source <temp-empty-dir>",
+      "result": "PASS",
+      "evidence": "Command failed with exit code 1. Error: 'Missing required file: conversations.json. This doesn't appear to be a valid Claude export.'"
+    }
+  },
+  "notes": [
+    "All 5 assertions for kb-infrastructure milestone passed.",
+    "VAL-KB-002 (raw folder immutability) was not tested - it is not in the fulfills field of any completed feature for this milestone.",
+    "Flow-validator subagent spawn failed due to model configuration issue - validation was performed directly by user-testing-validator.",
+    "CLI command format is 'paperclipai kb ingest --source <path>' (not 'paperclipai kb:ingest')."
+  ]
+}
