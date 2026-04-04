@@ -221,6 +221,35 @@ Based on normalized file: \`firefox-mcp-ghi789.md\`
     });
 
     it("writes answer with citations to file when output option is set", async () => {
+      createMockNormalizedFile(
+        normalizedDir,
+        "claude-capabilities-jkl012.md",
+        {
+          source: "claude-export",
+          imported_at: "2026-04-04T10:00:00Z",
+          conversation_uuid: "jkl012-uuid",
+          title: "Claude Code Capabilities",
+          message_count: 6,
+          start_date: "2026-04-01T10:00:00Z",
+          end_date: "2026-04-01T10:30:00Z",
+        },
+        `# Claude Code Capabilities
+
+## Messages
+
+### Message 1
+
+**User** · Apr 1, 2026
+
+What can Claude Code do?
+
+### Message 2
+
+**Assistant** · Apr 1, 2026
+
+Claude Code can analyze code, suggest refactors, debug problems, and answer technical questions about a project.`,
+      );
+
       createMockWikiPage(
         wikiDir,
         "claude-capabilities-wiki.md",
@@ -264,8 +293,8 @@ Based on normalized file: \`claude-capabilities-jkl012.md\`
       const outputContent = fs.readFileSync(outputPath, "utf-8");
 
       // Verify the output file has the required sections
-      expect(outputContent).toContain("## Answer");
-      expect(outputContent).toContain("## Sources");
+      expect(outputContent).toContain("# Answer");
+      expect(outputContent).toContain("# Sources");
       expect(outputContent).toContain("Claude Code Capabilities");
 
       // Verify frontmatter
@@ -392,10 +421,10 @@ Based on normalized file: \`kubernetes-stu901.md\``,
       expect(outputContent).toContain("source_count: 0");
 
       // Should have an answer section
-      expect(outputContent).toContain("## Answer");
+      expect(outputContent).toContain("# Answer");
 
       // Sources section should indicate no sources
-      expect(outputContent).toContain("## Sources");
+      expect(outputContent).toContain("# Sources");
     });
   });
 

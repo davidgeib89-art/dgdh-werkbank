@@ -3,12 +3,42 @@ import * as p from "@clack/prompts";
 import pc from "picocolors";
 import { promises as fs } from "node:fs";
 import * as path from "node:path";
-import yaml from "yaml";
 
 const KB_ROOT = "company-hq/kb";
 const KB_RAW = path.join(KB_ROOT, "raw");
 const KB_NORMALIZED = path.join(KB_ROOT, "normalized");
 const KB_WIKI = path.join(KB_ROOT, "wiki");
+
+function stringifyFrontmatter(frontmatter: Record<string, unknown>): string {
+  return Object.entries(frontmatter)
+    .filter(([, value]) => value !== undefined && value !== null)
+    .map(([key, value]) => `${key}: ${JSON.stringify(value)}`)
+    .join("\n");
+}
+
+function parseFrontmatterBlock(rawFrontmatter: string): Record<string, unknown> {
+  return Object.fromEntries(
+    rawFrontmatter
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .map((line) => {
+        const separatorIndex = line.indexOf(":");
+        if (separatorIndex === -1) {
+          return [line, ""];
+        }
+
+        const key = line.slice(0, separatorIndex).trim();
+        const rawValue = line.slice(separatorIndex + 1).trim();
+
+        try {
+          return [key, JSON.parse(rawValue)];
+        } catch {
+          return [key, rawValue.replace(/^"(.*)"$/, "$1")];
+        }
+      }),
+  );
+}
 
 /**
  * Find the repository root by looking for the company-hq directory
@@ -336,7 +366,7 @@ function normalizeConversation(
 
   // Build content
   let content = "---\n";
-  content += yaml.stringify(frontmatter).trim();
+  content += stringifyFrontmatter(frontmatter).trim();
   content += "\n---\n\n";
 
   // Add title
@@ -576,7 +606,7 @@ export async function compileCommand(): Promise<void> {
         continue;
       }
 
-      const frontmatter = yaml.parse(frontmatterMatch[1]) as Record<string, unknown>;
+      const frontmatter = parseFrontmatterBlock(frontmatterMatch[1]);
 
       // Extract required fields
       const title = String(frontmatter.title || "Untitled");
@@ -585,6 +615,12 @@ export async function compileCommand(): Promise<void> {
       const startDate = frontmatter.start_date ? String(frontmatter.start_date) : undefined;
       const endDate = frontmatter.end_date ? String(frontmatter.end_date) : undefined;
       const source = String(frontmatter.source || "unknown");
+
+      if (!uuid) {
+        p.log.warn(pc.yellow(`  Skipping ${file.name}: missing conversation_uuid`));
+        totalErrors++;
+        continue;
+      }
 
       // Generate summary from content (first 1-3 sentences from messages section)
       const summary = extractSummary(content);
@@ -709,7 +745,7 @@ function createWikiPage(params: {
 
   // Build content
   let content = "---\n";
-  content += yaml.stringify(frontmatter).trim();
+  content += stringifyFrontmatter(frontmatter).trim();
   content += "\n---\n\n";
 
   // Title
@@ -759,7 +795,7 @@ async function createWikiIndex(
 
   // Build content
   let content = "---\n";
-  content += yaml.stringify({
+  content += stringifyFrontmatter({
     title: "Knowledge Base Wiki",
     compiled_at: compiledAt,
     page_count: pages.length,
@@ -861,7 +897,7 @@ export async function findRelevantWikiPages(
       continue;
     }
 
-    const frontmatter = yaml.parse(frontmatterMatch[1]) as Record<string, unknown>;
+    const frontmatter = parseFrontmatterBlock(frontmatterMatch[1]);
     const title = String(frontmatter.title || "");
     const sourceFile = String(frontmatter.source_file || "");
     const messageCount = Number(frontmatter.message_count || 0);
@@ -1117,7 +1153,7 @@ function formatAnswerForDisplay(result: AskResult): string {
  */
 export function formatOutputForFile(result: AskResult): string {
   let content = "---\n";
-  content += yaml.stringify({
+  content += stringifyFrontmatter({
     question: result.question,
     timestamp: result.timestamp,
     source_count: result.evidence.length,

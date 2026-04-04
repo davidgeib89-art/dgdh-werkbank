@@ -309,9 +309,9 @@ describe("kb:compile command", () => {
   describe("error handling", () => {
     it("handles empty normalized directory gracefully", async () => {
       // normalizedDir exists but is empty
-      await compileCommand();
+      await expect(compileCommand()).rejects.toThrow("No normalized data to compile. Run kb:normalize first.");
 
-      // Should not throw, just complete with no output
+      // Should not create any wiki output
       const wikiFiles = fs.readdirSync(wikiDir).filter((f) => f.endsWith(".md"));
       expect(wikiFiles.length).toBe(0);
     });

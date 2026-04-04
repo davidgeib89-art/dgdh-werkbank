@@ -1,7 +1,30 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { promises as fs } from "node:fs";
 import * as path from "node:path";
-import yaml from "yaml";
+
+function parseFrontmatterBlock(rawFrontmatter: string): Record<string, unknown> {
+  return Object.fromEntries(
+    rawFrontmatter
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .map((line) => {
+        const separatorIndex = line.indexOf(":");
+        if (separatorIndex === -1) {
+          return [line, ""];
+        }
+
+        const key = line.slice(0, separatorIndex).trim();
+        const rawValue = line.slice(separatorIndex + 1).trim();
+
+        try {
+          return [key, JSON.parse(rawValue)];
+        } catch {
+          return [key, rawValue.replace(/^"(.*)"$/, "$1")];
+        }
+      }),
+  );
+}
 
 // Mock fs and path
 vi.mock("node:fs", () => ({
@@ -339,7 +362,7 @@ Assistant response here.
       const frontmatterMatch = result.match(/^---\n([\s\S]*?)\n---/);
       expect(frontmatterMatch).toBeTruthy();
 
-      const frontmatter = yaml.parse(frontmatterMatch![1]);
+      const frontmatter = parseFrontmatterBlock(frontmatterMatch![1]);
       expect(frontmatter.question).toBe("Test?");
       expect(frontmatter.timestamp).toBe("2026-04-04T12:00:00Z");
       expect(frontmatter.source_count).toBe(0);
