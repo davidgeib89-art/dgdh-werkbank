@@ -47,7 +47,7 @@ Hi
     await compileCommand();
 
     const wikiPage = await readFile(
-      path.join(repoRoot, "company-hq", "kb", "wiki", "hello-world-12345678.md"),
+      path.join(repoRoot, "company-hq", "kb", "wiki", "hello-world-12345678-wiki.md"),
       "utf-8",
     );
     const wikiIndex = await readFile(
@@ -57,9 +57,9 @@ Hi
 
     expect(wikiPage).toContain("# Hello World");
     expect(wikiPage).toContain(
-      "Normalized file: [hello-world-12345678.md](../normalized/hello-world-12345678.md)",
+      "Based on normalized file: `hello-world-12345678.md`",
     );
-    expect(wikiIndex).toContain("# Knowledge Base Index");
-    expect(wikiIndex).toContain("[Hello World](hello-world-12345678.md)");
+    expect(wikiIndex).toContain("# Knowledge Base Wiki");
+    expect(wikiIndex).toContain("[Hello World](./hello-world-12345678-wiki.md)");
   });
 });
