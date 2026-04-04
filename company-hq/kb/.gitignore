@@ -1,0 +1,15 @@
+raw/*
+!raw/.gitkeep
+!raw/_samples/
+raw/_samples/*
+!raw/_samples/.gitkeep
+
+normalized/*
+!normalized/.gitkeep
+
+wiki/*
+!wiki/.gitkeep
+!wiki/index.md
+
+outputs/*
+!outputs/.gitkeep
