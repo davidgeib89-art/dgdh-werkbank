@@ -1,19 +1,19 @@
 {
   "milestone": "root-cause",
-  "round": 2,
+  "round": 3,
   "status": "fail",
   "validatorsRun": {
     "test": {
       "passed": false,
       "command": "pnpm test:run",
       "exitCode": 1,
-      "summary": "6 test failures persist: 2 E2E test suite loading issues (Playwright configuration error, missing hook file .factory/hooks/paperclip-runtime-support.mjs), 4 CLI test failures (issue-archive-stale-command test exit handling, issue-liveness test help flag output and triad reviewer packet)"
+      "summary": "7 test failures persist: E2E tests fail due to Playwright configuration error (test.describe called in wrong context), missing hook file (.factory/hooks/paperclip-runtime-support.mjs), CLI test failures for issue-archive-stale-command (3 tests fail with process.exit error handling), issue-liveness (help flag output missing 'liveness', triad reviewer packet field undefined), and adapter-models test timeout (5000ms). These are pre-existing infrastructure issues unrelated to root-cause milestone."
     },
     "typecheck": {
       "passed": false,
       "command": "pnpm -r typecheck",
       "exitCode": 1,
-      "summary": "drizzle-orm type errors persist in server/src/board-claim.ts and server/src/services/workspace-runtime.ts - package resolution issue with duplicate drizzle-orm versions (0.38.4 with different dependency resolutions: postgres@3.4.5 vs postgres@3.4.8)"
+      "summary": "drizzle-orm type errors persist in server/src/board-claim.ts and server/src/services/workspace-runtime.ts - package resolution issue with duplicate drizzle-orm versions (0.38.4 with different dependency resolutions: postgres@3.4.5 vs postgres@3.4.8). Pre-existing infrastructure issue unrelated to root-cause milestone."
     },
     "lint": {
       "passed": false,
@@ -38,13 +38,13 @@
     {
       "featureId": "scrutiny-validator-root-cause",
       "severity": "blocking",
-      "description": "Test suite has 6 failing tests: E2E tests fail due to Playwright configuration error (test.describe called in wrong context) and missing hook file (.factory/hooks/paperclip-runtime-support.mjs). CLI tests fail for issue-archive-stale-command (command exit handling) and issue-liveness (help flag output, triad reviewer packet). Pre-existing infrastructure issues unrelated to root-cause milestone.",
-      "suggestedFix": "1) Fix Playwright E2E test configuration, 2) Create missing hook file or fix test import, 3) Investigate CLI test failures. These appear to be pre-existing infrastructure issues."
+      "description": "Test suite has 7 failing tests: E2E tests fail due to Playwright configuration error (test.describe called in wrong context) and missing hook file (.factory/hooks/paperclip-runtime-support.mjs). CLI tests fail for issue-archive-stale-command (process.exit error handling) and issue-liveness (help flag output, triad reviewer packet). Adapter model test times out. Pre-existing infrastructure issues unrelated to root-cause milestone.",
+      "suggestedFix": "1) Fix Playwright E2E test configuration, 2) Create missing hook file or fix test import, 3) Investigate CLI test failures for process.exit handling, 4) Investigate test timeouts. These appear to be pre-existing infrastructure issues."
     }
   ],
   "appliedUpdates": [],
   "suggestedGuidanceUpdates": [],
   "rejectedObservations": [],
   "previousRound": ".factory/validation/root-cause/scrutiny/synthesis.json",
-  "notes": "Round 2 re-validation confirms same blocking issues as Round 1. The root-cause milestone work (trace-spawn-code-path and determine-root-cause features) completed successfully and produced documentation in .factory/library/root-cause-setup-time-model-resolution.md (114 lines). The milestone commits only added documentation, no code changes. Validator failures are pre-existing infrastructure issues that have been blocking validation across multiple milestones (see wiki-compile rounds 4-6). The milestone work itself is sound - the root cause analysis correctly identifies that setup-time Task spawn model resolution does not use the same path as execution-time resolution."
+  "notes": "Round 3 re-validation confirms same blocking issues as Rounds 1 and 2. The root-cause milestone work (trace-spawn-code-path and determine-root-cause features) completed successfully and produced documentation in .factory/library/root-cause-setup-time-model-resolution.md. The milestone commits only added documentation, no code changes. Validator failures are pre-existing infrastructure issues that have been blocking validation across multiple milestones (see wiki-compile rounds 4-6, prior root-cause rounds). The milestone work itself is sound - the root cause analysis correctly identifies that setup-time Task spawn model resolution does not use the same path as execution-time resolution. This is a DROID/Factord harness issue requiring a fix outside this repository."
 }
