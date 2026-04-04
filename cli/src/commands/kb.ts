@@ -515,12 +515,277 @@ export async function normalizeCommand(): Promise<void> {
 }
 
 /**
- * Placeholder for kb:output (to be implemented)
+ * kb:compile command - compile normalized data into wiki pages
  */
-export async function outputCommand(opts: { question?: string }): Promise<void> {
-  p.intro(pc.bgCyan(pc.black(" kb:output ")));
-  p.log.warn(pc.yellow("kb:output is not yet implemented"));
-  p.outro("Done");
+export async function compileCommand(): Promise<void> {
+  p.intro(pc.bgCyan(pc.black(" kb:compile ")));
+
+  // Find repo root and set up paths
+  const repoRoot = await findRepoRoot();
+  const normalizedDir = path.join(repoRoot, KB_NORMALIZED);
+  const wikiDir = path.join(repoRoot, KB_WIKI);
+
+  // Check if normalized directory exists
+  try {
+    await fs.access(normalizedDir);
+  } catch {
+    p.log.error(pc.red(`Normalized directory not found: ${normalizedDir}`));
+    throw new Error(`Normalized directory not found. Run kb:normalize first.`);
+  }
+
+  // Create wiki directory
+  await fs.mkdir(wikiDir, { recursive: true });
+  p.log.message(pc.dim(`Wiki directory: ${wikiDir}`));
+
+  // Find all markdown files in normalized/
+  const files = await fs.readdir(normalizedDir, { withFileTypes: true });
+  const mdFiles = files.filter((f) => f.isFile() && f.name.endsWith(".md") && f.name !== ".gitkeep");
+
+  if (mdFiles.length === 0) {
+    p.log.error(pc.red("No normalized markdown files found"));
+    throw new Error("No normalized data to compile. Run kb:normalize first.");
+  }
+
+  p.log.message(pc.dim(`Found ${mdFiles.length} normalized file(s) to compile`));
+
+  const compiledPages: Array<{
+    title: string;
+    filename: string;
+    summary: string;
+    sourceFile: string;
+    uuid: string;
+    messageCount: number;
+    startDate?: string;
+    endDate?: string;
+  }> = [];
+
+  let totalCompiled = 0;
+  let totalErrors = 0;
+
+  for (const file of mdFiles) {
+    const sourcePath = path.join(normalizedDir, file.name);
+
+    try {
+      const content = await fs.readFile(sourcePath, "utf-8");
+
+      // Parse frontmatter
+      const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---\n/);
+      if (!frontmatterMatch) {
+        p.log.warn(pc.yellow(`  Skipping ${file.name}: no frontmatter found`));
+        totalErrors++;
+        continue;
+      }
+
+      const frontmatter = yaml.parse(frontmatterMatch[1]) as Record<string, unknown>;
+
+      // Extract required fields
+      const title = String(frontmatter.title || "Untitled");
+      const uuid = String(frontmatter.conversation_uuid || "");
+      const messageCount = Number(frontmatter.message_count || 0);
+      const startDate = frontmatter.start_date ? String(frontmatter.start_date) : undefined;
+      const endDate = frontmatter.end_date ? String(frontmatter.end_date) : undefined;
+      const source = String(frontmatter.source || "unknown");
+
+      // Generate summary from content (first 1-3 sentences from messages section)
+      const summary = extractSummary(content);
+
+      // Create wiki page
+      const wikiPage = createWikiPage({
+        title,
+        uuid,
+        messageCount,
+        startDate,
+        endDate,
+        source,
+        sourceFile: file.name,
+        summary,
+        normalizedContent: content,
+      });
+
+      // Write wiki page
+      const wikiFilename = file.name.replace(/\.md$/, "-wiki.md");
+      const wikiPath = path.join(wikiDir, wikiFilename);
+      await fs.writeFile(wikiPath, wikiPage, "utf-8");
+
+      compiledPages.push({
+        title,
+        filename: wikiFilename,
+        summary,
+        sourceFile: file.name,
+        uuid,
+        messageCount,
+        startDate,
+        endDate,
+      });
+
+      totalCompiled++;
+      p.log.message(pc.dim(`  ✓ ${wikiFilename}`));
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      p.log.error(pc.red(`  ✗ Failed to compile ${file.name}: ${errorMessage}`));
+      totalErrors++;
+    }
+  }
+
+  // Create index.md
+  if (compiledPages.length > 0) {
+    await createWikiIndex(wikiDir, compiledPages);
+    p.log.message(pc.dim(`  ✓ index.md`));
+  }
+
+  p.outro(pc.green(`Compile complete: ${totalCompiled} page(s) compiled, ${totalErrors} error(s)`));
+}
+
+/**
+ * Extract a summary from normalized content (1-3 sentences)
+ */
+function extractSummary(content: string): string {
+  // Remove frontmatter
+  const withoutFrontmatter = content.replace(/^---\n[\s\S]*?\n---\n/, "");
+
+  // Try to find the first substantial user message
+  const messageMatch = withoutFrontmatter.match(/\*\*User\*\*[\s\S]*?\n\n([^\n]+(?:\n[^\n]+){0,2})/);
+  if (messageMatch) {
+    const firstMessage = messageMatch[1].trim().substring(0, 300);
+    // Clean up the message
+    const cleaned = firstMessage
+      .replace(/\*\*/g, "")
+      .replace(/\*\//g, "")
+      .replace(/```[\s\S]*?```/g, "[code block]")
+      .replace(/`([^`]+)`/g, "$1")
+      .trim();
+
+    if (cleaned.length > 20) {
+      // Return first 1-2 sentences (up to ~200 chars)
+      const sentences = cleaned.split(/(?<=[.!?])\s+/);
+      const summary = sentences.slice(0, 2).join(" ").substring(0, 200);
+      return summary.endsWith(".") ? summary : summary + "...";
+    }
+  }
+
+  // Fallback: extract from title and message count
+  const titleMatch = withoutFrontmatter.match(/^# (.+)$/m);
+  if (titleMatch) {
+    return `Conversation about "${titleMatch[1]}". See messages section for details.`;
+  }
+
+  return "No summary available. See the source file for full content.";
+}
+
+/**
+ * Create a wiki page from normalized data
+ */
+function createWikiPage(params: {
+  title: string;
+  uuid: string;
+  messageCount: number;
+  startDate?: string;
+  endDate?: string;
+  source: string;
+  sourceFile: string;
+  summary: string;
+  normalizedContent: string;
+}): string {
+  const { title, uuid, messageCount, startDate, endDate, source, sourceFile, summary } = params;
+
+  const compiledAt = new Date().toISOString();
+
+  // Build frontmatter
+  const frontmatter: Record<string, unknown> = {
+    title,
+    compiled_at: compiledAt,
+    source_uuid: uuid,
+    source_file: sourceFile,
+    message_count: messageCount,
+    source,
+  };
+
+  if (startDate) {
+    frontmatter.start_date = startDate;
+  }
+  if (endDate) {
+    frontmatter.end_date = endDate;
+  }
+
+  // Build content
+  let content = "---\n";
+  content += yaml.stringify(frontmatter).trim();
+  content += "\n---\n\n";
+
+  // Title
+  content += `# ${title}\n\n`;
+
+  // Summary section
+  content += `## Summary\n\n`;
+  content += `${summary}\n\n`;
+
+  // Metadata
+  content += `## Metadata\n\n`;
+  content += `- **UUID:** \`${uuid}\`\n`;
+  content += `- **Messages:** ${messageCount}\n`;
+  if (startDate && endDate) {
+    content += `- **Date Range:** ${formatDate(startDate)} - ${formatDate(endDate)}\n`;
+  }
+  content += `- **Compiled:** ${formatTimestamp(compiledAt)}\n\n`;
+
+  // Source reference
+  content += `## Source\n\n`;
+  content += `Based on normalized file: \`${sourceFile}\`\n\n`;
+  content += `> This wiki page was automatically compiled from the normalized conversation data.\n\n`;
+
+  return content;
+}
+
+/**
+ * Create wiki index.md listing all pages
+ */
+async function createWikiIndex(
+  wikiDir: string,
+  pages: Array<{
+    title: string;
+    filename: string;
+    summary: string;
+    sourceFile: string;
+    uuid: string;
+    messageCount: number;
+    startDate?: string;
+    endDate?: string;
+  }>,
+): Promise<void> {
+  const compiledAt = new Date().toISOString();
+
+  // Sort pages by title
+  const sortedPages = [...pages].sort((a, b) => a.title.localeCompare(b.title));
+
+  // Build content
+  let content = "---\n";
+  content += yaml.stringify({
+    title: "Knowledge Base Wiki",
+    compiled_at: compiledAt,
+    page_count: pages.length,
+  }).trim();
+  content += "\n---\n\n";
+
+  content += `# Knowledge Base Wiki\n\n`;
+  content += `Compiled on ${formatTimestamp(compiledAt)}\n\n`;
+  content += `This wiki contains ${pages.length} compiled conversation pages from the knowledge base.\n\n`;
+
+  content += `## Pages\n\n`;
+
+  for (const page of sortedPages) {
+    content += `### [${page.title}](./${page.filename})\n\n`;
+    content += `${page.summary}\n\n`;
+    content += `- **Messages:** ${page.messageCount}`;
+    if (page.startDate && page.endDate) {
+      content += ` | **Date Range:** ${formatDate(page.startDate)} - ${formatDate(page.endDate)}`;
+    }
+    content += `\n`;
+    content += `- **Source:** \`${page.sourceFile}\`\n\n`;
+  }
+
+  // Write index
+  const indexPath = path.join(wikiDir, "index.md");
+  await fs.writeFile(indexPath, content, "utf-8");
 }
 
 /**

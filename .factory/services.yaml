@@ -9,6 +9,8 @@ commands:
   kb-ingest: pnpm paperclipai kb:ingest --source
   kb-normalize: pnpm paperclipai kb:normalize
   kb-compile: pnpm paperclipai kb:compile
+  kb-ask: pnpm paperclipai kb ask
   kb-help: pnpm paperclipai kb --help
+  kb-test: pnpm vitest run
 
 services: {}
