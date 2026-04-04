@@ -3,43 +3,12 @@ import * as p from "@clack/prompts";
 import pc from "picocolors";
 import { promises as fs } from "node:fs";
 import * as path from "node:path";
+import yaml from "yaml";
 
 const KB_ROOT = "company-hq/kb";
 const KB_RAW = path.join(KB_ROOT, "raw");
 const KB_NORMALIZED = path.join(KB_ROOT, "normalized");
 const KB_WIKI = path.join(KB_ROOT, "wiki");
-const KB_OUTPUTS = path.join(KB_ROOT, "outputs");
-
-function stringifyFrontmatter(frontmatter: Record<string, unknown>): string {
-  return Object.entries(frontmatter)
-    .filter(([, value]) => value !== undefined && value !== null)
-    .map(([key, value]) => `${key}: ${JSON.stringify(value)}`)
-    .join("\n");
-}
-
-function parseFrontmatterBlock(rawFrontmatter: string): Record<string, unknown> {
-  return Object.fromEntries(
-    rawFrontmatter
-      .split(/\r?\n/)
-      .map((line) => line.trim())
-      .filter(Boolean)
-      .map((line) => {
-        const separatorIndex = line.indexOf(":");
-        if (separatorIndex === -1) {
-          return [line, ""];
-        }
-
-        const key = line.slice(0, separatorIndex).trim();
-        const rawValue = line.slice(separatorIndex + 1).trim();
-
-        try {
-          return [key, JSON.parse(rawValue)];
-        } catch {
-          return [key, rawValue.replace(/^\"(.*)\"$/, "$1")];
-        }
-      }),
-  );
-}
 
 /**
  * Find the repository root by looking for the company-hq directory
@@ -367,7 +336,7 @@ function normalizeConversation(
 
   // Build content
   let content = "---\n";
-  content += stringifyFrontmatter(frontmatter);
+  content += yaml.stringify(frontmatter).trim();
   content += "\n---\n\n";
 
   // Add title
@@ -546,26 +515,6 @@ export async function normalizeCommand(): Promise<void> {
 }
 
 /**
- * Check if an error is a permission-related error
- */
-function isPermissionError(err: unknown): boolean {
-  if (err instanceof Error && 'code' in err) {
-    return err.code === 'EACCES' || err.code === 'EPERM';
-  }
-  return false;
-}
-
-/**
- * Check if an error is a file not found error
- */
-function isNotFoundError(err: unknown): boolean {
-  if (err instanceof Error && 'code' in err) {
-    return err.code === 'ENOENT';
-  }
-  return false;
-}
-
-/**
  * kb:compile command - compile normalized data into wiki pages
  */
 export async function compileCommand(): Promise<void> {
@@ -578,74 +527,23 @@ export async function compileCommand(): Promise<void> {
 
   // Check if normalized directory exists
   try {
-    const normalizedStats = await fs.stat(normalizedDir);
-    if (!normalizedStats.isDirectory()) {
-      p.log.error(pc.red(`Normalized path exists but is not a directory: ${normalizedDir}`));
-      p.outro(pc.red("Compile failed: invalid normalized directory"));
-      process.exit(1);
-    }
-  } catch (err) {
-    if (isPermissionError(err)) {
-      p.log.error(pc.red(`Permission denied accessing normalized directory: ${normalizedDir}`));
-      p.log.message(pc.dim("Check directory permissions and try again."));
-      p.outro(pc.red("Compile failed: permission error"));
-      process.exit(1);
-    }
-    if (isNotFoundError(err)) {
-      p.log.error(pc.red(`Normalized directory not found: ${normalizedDir}`));
-      p.log.message(pc.dim("Run 'kb:normalize' first to create normalized data."));
-      p.outro(pc.red("Compile failed: no normalized data"));
-      process.exit(1);
-    }
-    const errorMessage = err instanceof Error ? err.message : String(err);
-    p.log.error(pc.red(`Cannot access normalized directory: ${errorMessage}`));
-    p.outro(pc.red("Compile failed: directory access error"));
-    process.exit(1);
+    await fs.access(normalizedDir);
+  } catch {
+    p.log.error(pc.red(`Normalized directory not found: ${normalizedDir}`));
+    throw new Error(`Normalized directory not found. Run kb:normalize first.`);
   }
 
   // Create wiki directory
-  try {
-    await fs.mkdir(wikiDir, { recursive: true });
-  } catch (err) {
-    if (isPermissionError(err)) {
-      p.log.error(pc.red(`Permission denied creating wiki directory: ${wikiDir}`));
-      p.outro(pc.red("Compile failed: permission error"));
-      process.exit(1);
-    }
-    const errorMessage = err instanceof Error ? err.message : String(err);
-    p.log.error(pc.red(`Failed to create wiki directory: ${errorMessage}`));
-    p.outro(pc.red("Compile failed: directory creation error"));
-    process.exit(1);
-  }
+  await fs.mkdir(wikiDir, { recursive: true });
   p.log.message(pc.dim(`Wiki directory: ${wikiDir}`));
 
   // Find all markdown files in normalized/
-  let files: fs.Dirent[];
-  try {
-    files = await fs.readdir(normalizedDir, { withFileTypes: true });
-  } catch (err) {
-    if (isPermissionError(err)) {
-      p.log.error(pc.red(`Permission denied reading normalized directory: ${normalizedDir}`));
-      p.outro(pc.red("Compile failed: permission error"));
-      process.exit(1);
-    }
-    const errorMessage = err instanceof Error ? err.message : String(err);
-    p.log.error(pc.red(`Failed to read normalized directory: ${errorMessage}`));
-    p.outro(pc.red("Compile failed: directory read error"));
-    process.exit(1);
-  }
-
+  const files = await fs.readdir(normalizedDir, { withFileTypes: true });
   const mdFiles = files.filter((f) => f.isFile() && f.name.endsWith(".md") && f.name !== ".gitkeep");
 
-  // Handle empty normalized directory gracefully
   if (mdFiles.length === 0) {
-    p.log.warn(pc.yellow("No normalized markdown files found in the normalized directory."));
-    p.log.message(pc.dim("The normalized directory is empty. This can happen when:"));
-    p.log.message(pc.dim("  - No raw data has been ingested yet (run 'kb:ingest' first)"));
-    p.log.message(pc.dim("  - Raw data exists but hasn't been normalized (run 'kb:normalize')"));
-    p.log.message(pc.dim("  - All normalized files were previously deleted or moved"));
-    p.outro(pc.yellow("Compile completed with no output - normalized/ is empty"));
-    return;
+    p.log.error(pc.red("No normalized markdown files found"));
+    throw new Error("No normalized data to compile. Run kb:normalize first.");
   }
 
   p.log.message(pc.dim(`Found ${mdFiles.length} normalized file(s) to compile`));
@@ -663,75 +561,26 @@ export async function compileCommand(): Promise<void> {
 
   let totalCompiled = 0;
   let totalErrors = 0;
-  let totalSkipped = 0;
 
   for (const file of mdFiles) {
     const sourcePath = path.join(normalizedDir, file.name);
 
-    // Check file is readable before processing
     try {
-      await fs.access(sourcePath, fs.constants.R_OK);
-    } catch (err) {
-      if (isPermissionError(err)) {
-        p.log.warn(pc.yellow(`  ⚠ Skipping ${file.name}: permission denied (no read access)`));
-        totalSkipped++;
-        continue;
-      }
-      const errorMessage = err instanceof Error ? err.message : String(err);
-      p.log.warn(pc.yellow(`  ⚠ Skipping ${file.name}: cannot access file (${errorMessage})`));
-      totalSkipped++;
-      continue;
-    }
+      const content = await fs.readFile(sourcePath, "utf-8");
 
-    try {
-      let content: string;
-      try {
-        content = await fs.readFile(sourcePath, "utf-8");
-      } catch (err) {
-        if (isPermissionError(err)) {
-          p.log.warn(pc.yellow(`  ⚠ Skipping ${file.name}: permission denied while reading`));
-          totalSkipped++;
-          continue;
-        }
-        throw err;
-      }
-
-      // Check for empty files
-      if (!content || content.trim().length === 0) {
-        p.log.warn(pc.yellow(`  ⚠ Skipping ${file.name}: file is empty`));
-        totalSkipped++;
-        continue;
-      }
-
-      // Parse frontmatter
-      const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---\n/);
+      // Parse frontmatter - be flexible with line endings (CRLF or LF)
+      const frontmatterMatch = content.match(/^---\r?\n([\s\S]*?)\r?\n---/);
       if (!frontmatterMatch) {
-        p.log.warn(pc.yellow(`  ⚠ Skipping ${file.name}: no valid frontmatter found (file may be corrupted)`));
-        totalSkipped++;
+        p.log.warn(pc.yellow(`  Skipping ${file.name}: no frontmatter found`));
+        totalErrors++;
         continue;
       }
 
-      // Try to parse frontmatter with better error handling
-      let frontmatter: Record<string, unknown>;
-      try {
-        frontmatter = parseFrontmatterBlock(frontmatterMatch[1]);
-      } catch (parseErr) {
-        const yamlError = parseErr instanceof Error ? parseErr.message : String(parseErr);
-        p.log.warn(pc.yellow(`  ⚠ Skipping ${file.name}: corrupted frontmatter (${yamlError})`));
-        totalSkipped++;
-        continue;
-      }
-
-      // Validate required fields
-      if (!frontmatter.conversation_uuid) {
-        p.log.warn(pc.yellow(`  ⚠ Skipping ${file.name}: missing required field 'conversation_uuid'`));
-        totalSkipped++;
-        continue;
-      }
+      const frontmatter = yaml.parse(frontmatterMatch[1]) as Record<string, unknown>;
 
       // Extract required fields
       const title = String(frontmatter.title || "Untitled");
-      const uuid = String(frontmatter.conversation_uuid);
+      const uuid = String(frontmatter.conversation_uuid || "");
       const messageCount = Number(frontmatter.message_count || 0);
       const startDate = frontmatter.start_date ? String(frontmatter.start_date) : undefined;
       const endDate = frontmatter.end_date ? String(frontmatter.end_date) : undefined;
@@ -756,17 +605,7 @@ export async function compileCommand(): Promise<void> {
       // Write wiki page
       const wikiFilename = file.name.replace(/\.md$/, "-wiki.md");
       const wikiPath = path.join(wikiDir, wikiFilename);
-      
-      try {
-        await fs.writeFile(wikiPath, wikiPage, "utf-8");
-      } catch (err) {
-        if (isPermissionError(err)) {
-          p.log.warn(pc.yellow(`  ⚠ Failed to write ${wikiFilename}: permission denied`));
-          totalSkipped++;
-          continue;
-        }
-        throw err;
-      }
+      await fs.writeFile(wikiPath, wikiPage, "utf-8");
 
       compiledPages.push({
         title,
@@ -788,31 +627,13 @@ export async function compileCommand(): Promise<void> {
     }
   }
 
-  // Create index.md only if we have compiled pages
+  // Create index.md
   if (compiledPages.length > 0) {
-    try {
-      await createWikiIndex(wikiDir, compiledPages);
-      p.log.message(pc.dim(`  ✓ index.md`));
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : String(err);
-      p.log.error(pc.red(`  ✗ Failed to create index.md: ${errorMessage}`));
-      totalErrors++;
-    }
-  } else {
-    p.log.warn(pc.yellow("  ⚠ No pages were compiled, skipping index.md creation"));
+    await createWikiIndex(wikiDir, compiledPages);
+    p.log.message(pc.dim(`  ✓ index.md`));
   }
 
-  // Summary message
-  if (totalCompiled === 0 && totalErrors === 0 && totalSkipped > 0) {
-    p.outro(pc.yellow(`Compile completed: ${totalSkipped} file(s) skipped (all files had issues)`));
-  } else if (totalCompiled === 0 && totalErrors === 0 && totalSkipped === 0) {
-    // This shouldn't happen if we handled the empty directory case above, but just in case
-    p.outro(pc.yellow(`Compile completed: no output`));
-  } else if (totalErrors > 0 || totalSkipped > 0) {
-    p.outro(pc.yellow(`Compile complete: ${totalCompiled} page(s) compiled, ${totalSkipped} skipped, ${totalErrors} error(s)`));
-  } else {
-    p.outro(pc.green(`Compile complete: ${totalCompiled} page(s) compiled`));
-  }
+  p.outro(pc.green(`Compile complete: ${totalCompiled} page(s) compiled, ${totalErrors} error(s)`));
 }
 
 /**
@@ -888,7 +709,7 @@ function createWikiPage(params: {
 
   // Build content
   let content = "---\n";
-  content += stringifyFrontmatter(frontmatter);
+  content += yaml.stringify(frontmatter).trim();
   content += "\n---\n\n";
 
   // Title
@@ -938,11 +759,11 @@ async function createWikiIndex(
 
   // Build content
   let content = "---\n";
-  content += stringifyFrontmatter({
+  content += yaml.stringify({
     title: "Knowledge Base Wiki",
     compiled_at: compiledAt,
     page_count: pages.length,
-  });
+  }).trim();
   content += "\n---\n\n";
 
   content += `# Knowledge Base Wiki\n\n`;
@@ -968,357 +789,519 @@ async function createWikiIndex(
 }
 
 /**
- * Wiki page data structure for search
+ * Wiki page metadata structure
  */
-interface WikiPageData {
+interface WikiPage {
   filename: string;
   title: string;
   summary: string;
   sourceFile: string;
-  content: string;
+  messageCount: number;
+  startDate?: string;
+  endDate?: string;
   frontmatter: Record<string, unknown>;
 }
 
 /**
- * Search result with relevance score
+ * Evidence from normalized source
  */
-interface SearchResult {
-  page: WikiPageData;
-  score: number;
-  matchingTerms: string[];
+interface Evidence {
+  sourceFile: string;
+  title: string;
+  snippets: string[];
+  messageCount: number;
 }
 
 /**
- * Load all wiki pages from the wiki directory
+ * Ask result structure
  */
-async function loadWikiPages(wikiDir: string): Promise<WikiPageData[]> {
-  const pages: WikiPageData[] = [];
+interface AskResult {
+  question: string;
+  answer: string | null;
+  evidence: Evidence[];
+  abstainReason?: string;
+  timestamp: string;
+}
 
-  try {
-    const files = await fs.readdir(wikiDir, { withFileTypes: true });
-    const mdFiles = files.filter((f) => f.isFile() && f.name.endsWith(".md") && f.name !== "index.md" && f.name !== ".gitkeep");
+/**
+ * Find relevant wiki pages by matching question against title, summary, and keywords
+ */
+export async function findRelevantWikiPages(
+  wikiDir: string,
+  question: string,
+  limit: number,
+): Promise<WikiPage[]> {
+  const files = await fs.readdir(wikiDir, { withFileTypes: true });
+  const wikiFiles = files.filter(
+    (f) => f.isFile() && f.name.endsWith("-wiki.md") && f.name !== "index.md",
+  );
 
-    for (const file of mdFiles) {
-      try {
-        const filePath = path.join(wikiDir, file.name);
-        const content = await fs.readFile(filePath, "utf-8");
+  if (wikiFiles.length === 0) {
+    return [];
+  }
 
-        // Parse frontmatter
-        const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---\n/);
-        let frontmatter: Record<string, unknown> = {};
-        let bodyContent = content;
+  // Extract keywords from question (lowercase, split on non-alphanumeric, filter short words)
+  const questionLower = question.toLowerCase();
+  const keywords = questionLower
+    .split(/[^a-z0-9äöüß]+/i)
+    .filter((word) => word.length >= 3);
 
-        if (frontmatterMatch) {
-          try {
-            frontmatter = parseFrontmatterBlock(frontmatterMatch[1]);
-            bodyContent = content.slice(frontmatterMatch[0].length);
-          } catch {
-            // Ignore YAML parse errors, use empty frontmatter
-          }
-        }
+  const scoredPages: Array<{ page: WikiPage; score: number }> = [];
 
-        // Extract summary from body if not in frontmatter
-        let summary = String(frontmatter.summary || "");
-        if (!summary) {
-          const summaryMatch = bodyContent.match(/## Summary\n\n([\s\S]*?)(?=\n\n##|$)/);
-          if (summaryMatch) {
-            summary = summaryMatch[1].trim();
-          }
-        }
+  // Add debug logging
+  p.log.message(pc.dim(`  Searching ${wikiFiles.length} wiki files...`));
 
-        pages.push({
-          filename: file.name,
-          title: String(frontmatter.title || file.name.replace("-wiki.md", "").replace(/-/g, " ")),
-          summary,
-          sourceFile: String(frontmatter.source_file || ""),
-          content: bodyContent,
-          frontmatter,
-        });
-      } catch (err) {
-        // Skip files that can't be read
-        p.log.warn(pc.yellow(`  ⚠ Could not read wiki file: ${file.name}`));
+  for (const file of wikiFiles) {
+    const filePath = path.join(wikiDir, file.name);
+    const content = await fs.readFile(filePath, "utf-8");
+
+    // Parse frontmatter - be flexible with line endings (CRLF or LF)
+    const frontmatterMatch = content.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+    if (!frontmatterMatch) {
+      continue;
+    }
+
+    const frontmatter = yaml.parse(frontmatterMatch[1]) as Record<string, unknown>;
+    const title = String(frontmatter.title || "");
+    const sourceFile = String(frontmatter.source_file || "");
+    const messageCount = Number(frontmatter.message_count || 0);
+    const startDate = frontmatter.start_date ? String(frontmatter.start_date) : undefined;
+    const endDate = frontmatter.end_date ? String(frontmatter.end_date) : undefined;
+
+    // Extract summary from content
+    const summary = extractSummaryFromWiki(content);
+
+    // Calculate score based on keyword matches
+    let score = 0;
+    const titleLower = title.toLowerCase();
+    const summaryLower = summary.toLowerCase();
+    const fileNameLower = file.name.toLowerCase();
+
+    // Direct substring match (highest score)
+    if (titleLower.includes(questionLower) || fileNameLower.includes(questionLower)) {
+      score += 100;
+    }
+
+    for (const keyword of keywords) {
+      // Title match is weighted high
+      if (titleLower.includes(keyword)) {
+        score += 10;
+      }
+      // Filename match
+      if (fileNameLower.includes(keyword)) {
+        score += 8;
+      }
+      // Summary match
+      if (summaryLower.includes(keyword)) {
+        score += 5;
+      }
+      // Content match (lower weight)
+      if (content.toLowerCase().includes(keyword)) {
+        score += 2;
       }
     }
+
+    if (score > 0) {
+      p.log.message(pc.dim(`    ${file.name}: score ${score}`));
+      scoredPages.push({
+        page: {
+          filename: file.name,
+          title,
+          summary,
+          sourceFile,
+          messageCount,
+          startDate,
+          endDate,
+          frontmatter,
+        },
+        score,
+      });
+    }
+  }
+
+  // Sort by score descending and take top N
+  scoredPages.sort((a, b) => b.score - a.score);
+  return scoredPages.slice(0, limit).map((sp) => sp.page);
+}
+
+/**
+ * Extract summary from wiki page content
+ */
+export function extractSummaryFromWiki(content: string): string {
+  // Remove frontmatter
+  const withoutFrontmatter = content.replace(/^---\n[\s\S]*?\n---\n/, "");
+
+  // Try to extract from Summary section
+  const summaryMatch = withoutFrontmatter.match(/## Summary\n\n([^#]+)/);
+  if (summaryMatch) {
+    return summaryMatch[1].trim().substring(0, 300);
+  }
+
+  // Fallback to first paragraph
+  const firstPara = withoutFrontmatter.split("\n\n")[0];
+  return firstPara ? firstPara.replace(/^# /, "").trim().substring(0, 200) : "";
+}
+
+/**
+ * Load normalized file referenced by wiki page
+ */
+export async function loadNormalizedFile(
+  normalizedDir: string,
+  sourceFile: string,
+): Promise<{ content: string; exists: boolean; error?: string }> {
+  const filePath = path.join(normalizedDir, sourceFile);
+
+  try {
+    const content = await fs.readFile(filePath, "utf-8");
+    return { content, exists: true };
   } catch (err) {
-    // Directory doesn't exist or can't be read
-    throw new Error(`Cannot read wiki directory: ${err instanceof Error ? err.message : String(err)}`);
+    const errorMessage = err instanceof Error ? err.message : String(err);
+    return { content: "", exists: false, error: errorMessage };
   }
-
-  return pages;
 }
 
 /**
- * Tokenize a string into searchable terms
+ * Extract message content from normalized file
  */
-function tokenize(text: string): string[] {
-  return text
+export function extractMessagesFromNormalized(content: string): Array<{ sender: string; text: string; timestamp?: string }> {
+  const messages: Array<{ sender: string; text: string; timestamp?: string }> = [];
+
+  // Find the Messages section
+  const messagesMatch = content.match(/## Messages\n\n([\s\S]*?)(?=\n## |\n---|$)/);
+  if (!messagesMatch) return messages;
+
+  const messagesSection = messagesMatch[1];
+
+  // Parse each message block - split by message headers (flexible newline matching)
+  const messageBlocks = messagesSection.split(/\n### Message \d+\n+/).filter(Boolean);
+
+  for (const block of messageBlocks) {
+    // Remove any leading "### Message N" header that might remain after split
+    const cleanedBlock = block.replace(/^### Message \d+\n+/, "").trim();
+    if (!cleanedBlock) continue;
+
+    // Extract sender and timestamp from header line (format: **User** · timestamp)
+    const headerMatch = cleanedBlock.match(/^(\*\*User\*\*|\*\*Assistant\*\*) · (.+?)\n/);
+    if (!headerMatch) continue;
+
+    const sender = headerMatch[1].replace(/\*\*/g, "");
+    const timestamp = headerMatch[2].trim();
+
+    // Extract message text (everything after the header line until next blank line or end)
+    const afterHeader = cleanedBlock.substring(headerMatch[0].length);
+    const text = afterHeader.split(/\n\n/)[0].trim();
+
+    if (text) {
+      messages.push({ sender, text, timestamp });
+    }
+  }
+
+  return messages;
+}
+
+/**
+ * Extract relevant snippets from normalized content based on question keywords
+ */
+export function extractRelevantSnippets(
+  content: string,
+  question: string,
+  maxSnippets: number = 3,
+): string[] {
+  const keywords = question
     .toLowerCase()
-    .replace(/[^\w\s]/g, " ")
-    .split(/\s+/)
-    .filter((t) => t.length > 2)
-    .filter((t) => !["the", "and", "for", "are", "but", "not", "you", "all", "can", "her", "was", "one", "our", "out", "day", "get", "has", "him", "his", "how", "its", "may", "new", "now", "old", "see", "two", "way", "who", "boy", "did", "she", "use", "her", "way", "many", "oil", "sit"].includes(t));
-}
+    .split(/[^a-z0-9äöüß]+/i)
+    .filter((word) => word.length >= 3);
 
-/**
- * Calculate relevance score between question and wiki page
- */
-function calculateRelevance(question: string, page: WikiPageData): SearchResult {
-  const questionTerms = tokenize(question);
-  const searchableText = `${page.title} ${page.summary} ${page.content}`.toLowerCase();
+  const messages = extractMessagesFromNormalized(content);
+  const scoredMessages: Array<{ text: string; score: number }> = [];
 
-  let score = 0;
-  const matchingTerms: string[] = [];
+  for (const msg of messages) {
+    const textLower = msg.text.toLowerCase();
+    let score = 0;
 
-  for (const term of questionTerms) {
-    // Check title (highest weight)
-    const titleMatches = (page.title.toLowerCase().match(new RegExp(term, "g")) || []).length;
-    if (titleMatches > 0) {
-      score += titleMatches * 10;
-      if (!matchingTerms.includes(term)) matchingTerms.push(term);
+    for (const keyword of keywords) {
+      if (textLower.includes(keyword)) {
+        score += 1;
+      }
     }
 
-    // Check summary (high weight)
-    const summaryMatches = (page.summary.toLowerCase().match(new RegExp(term, "g")) || []).length;
-    if (summaryMatches > 0) {
-      score += summaryMatches * 5;
-      if (!matchingTerms.includes(term)) matchingTerms.push(term);
+    // Assistant messages may contain more comprehensive answers
+    if (msg.sender === "Assistant") {
+      score *= 1.2;
     }
 
-    // Check full content (lower weight)
-    const contentMatches = (searchableText.match(new RegExp(term, "g")) || []).length;
-    if (contentMatches > 0) {
-      score += contentMatches * 1;
-      if (!matchingTerms.includes(term)) matchingTerms.push(term);
+    if (score > 0) {
+      scoredMessages.push({ text: msg.text, score });
     }
   }
 
-  // Boost score for multi-term matches
-  if (matchingTerms.length > 1) {
-    score *= 1 + (matchingTerms.length * 0.2);
-  }
-
-  return { page, score, matchingTerms };
+  // Sort by score and take top N
+  scoredMessages.sort((a, b) => b.score - a.score);
+  return scoredMessages.slice(0, maxSnippets).map((sm) => sm.text.substring(0, 500));
 }
 
 /**
- * Find relevant wiki pages for a question
+ * Build answer from evidence
  */
-function findRelevantPages(question: string, pages: WikiPageData[]): SearchResult[] {
-  const results = pages.map((page) => calculateRelevance(question, page));
-
-  // Filter and sort by score
-  return results
-    .filter((r) => r.score > 0)
-    .sort((a, b) => b.score - a.score);
-}
-
-/**
- * Generate an answer based on relevant wiki pages
- */
-function generateAnswer(question: string, results: SearchResult[]): { answer: string; sources: string[]; abstain: boolean } {
-  if (results.length === 0) {
+export function buildAnswerFromEvidence(
+  question: string,
+  evidence: Evidence[],
+): { answer: string | null; abstainReason?: string } {
+  if (evidence.length === 0) {
     return {
-      answer: `I found no wiki content relevant to "${question}". The knowledge base does not contain information to answer this question.`,
-      sources: [],
-      abstain: true,
+      answer: null,
+      abstainReason: "No relevant content found in the knowledge base for this question.",
     };
   }
 
-  // Take top results
-  const topResults = results.slice(0, 3);
-  const sources: string[] = [];
-
-  // Build answer from summaries
+  // Combine evidence to form answer
   const parts: string[] = [];
-  parts.push(`Based on the knowledge base, here's what I found:`);
-  parts.push("");
 
-  for (const result of topResults) {
-    const page = result.page;
-    parts.push(`**${page.title}**`);
-
-    if (page.summary) {
-      parts.push(page.summary.substring(0, 300) + (page.summary.length > 300 ? "..." : ""));
+  for (const ev of evidence) {
+    if (ev.snippets.length > 0) {
+      // Use the most relevant snippet as the core of the answer
+      parts.push(ev.snippets[0]);
     }
-
-    parts.push("");
-
-    // Add source citation
-    sources.push(`${page.title} (${page.filename})`);
   }
 
-  const answer = parts.join("\n");
-  return { answer, sources, abstain: false };
+  if (parts.length === 0) {
+    return {
+      answer: null,
+      abstainReason: "Found relevant sources but no matching content for this specific question.",
+    };
+  }
+
+  // Build coherent answer from parts
+  const combined = parts.join("\n\n");
+
+  // Truncate if too long
+  const answer = combined.length > 1500 ? combined.substring(0, 1500) + "..." : combined;
+
+  return { answer };
 }
 
 /**
- * Write answer to file in outputs directory
+ * Format answer for CLI display
  */
-async function writeAnswerToFile(
-  outputsDir: string,
-  question: string,
-  answer: string,
-  sources: string[],
-): Promise<string> {
-  const timestamp = new Date().toISOString();
-  const safeQuestion = question
-    .toLowerCase()
-    .replace(/[^\w\s-]/g, "")
-    .trim()
-    .replace(/\s+/g, "-")
-    .substring(0, 50);
+function formatAnswerForDisplay(result: AskResult): string {
+  let output = "";
 
-  const filename = `${new Date().toISOString().split("T")[0]}-${safeQuestion}.md`;
-  const filePath = path.join(outputsDir, filename);
+  if (result.answer) {
+    output += `${pc.bold("Answer:")}\n${result.answer}\n\n`;
+  } else {
+    output += `${pc.yellow("No answer available")}\n`;
+    if (result.abstainReason) {
+      output += `${pc.dim(result.abstainReason)}\n\n`;
+    }
+  }
 
+  if (result.evidence.length > 0) {
+    output += `${pc.bold("Evidence from sources:")}\n`;
+    for (const ev of result.evidence) {
+      output += `${pc.cyan("•")} ${pc.bold(ev.title)} (${ev.sourceFile})\n`;
+      for (const snippet of ev.snippets.slice(0, 2)) {
+        const truncated = snippet.length > 150 ? snippet.substring(0, 150) + "..." : snippet;
+        output += `  ${pc.dim("→")} ${truncated}\n`;
+      }
+    }
+    output += "\n";
+  }
+
+  output += `${pc.dim(`Sources: ${result.evidence.length} normalized files`)}`;
+
+  return output;
+}
+
+/**
+ * Format output for file writing
+ */
+export function formatOutputForFile(result: AskResult): string {
   let content = "---\n";
-  content += stringifyFrontmatter({
-    question,
-    timestamp,
-    source_count: sources.length,
-  });
+  content += yaml.stringify({
+    question: result.question,
+    timestamp: result.timestamp,
+    source_count: result.evidence.length,
+    abstained: result.answer === null,
+  }).trim();
   content += "\n---\n\n";
 
-  content += `# Question: ${question}\n\n`;
-  content += `**Asked:** ${formatTimestamp(timestamp)}\n\n`;
+  content += "# Question\n\n";
+  content += `${result.question}\n\n`;
 
-  content += `## Answer\n\n`;
-  content += `${answer}\n\n`;
-
-  if (sources.length > 0) {
-    content += `## Sources\n\n`;
-    for (const source of sources) {
-      content += `- ${source}\n`;
-    }
-    content += "\n";
+  content += "# Answer\n\n";
+  if (result.answer) {
+    content += `${result.answer}\n\n`;
   } else {
-    content += `## Sources\n\n*No sources available - question could not be answered from wiki content.*\n\n`;
+    content += "_No answer could be generated from available sources._\n\n";
+    if (result.abstainReason) {
+      content += `**Reason:** ${result.abstainReason}\n\n`;
+    }
   }
 
-  await fs.writeFile(filePath, content, "utf-8");
-  return filePath;
+  content += "# Evidence\n\n";
+  if (result.evidence.length > 0) {
+    for (const ev of result.evidence) {
+      content += `## ${ev.title}\n\n`;
+      content += `**Source:** \`${ev.sourceFile}\`\n\n`;
+      for (let i = 0; i < ev.snippets.length; i++) {
+        content += `> ${ev.snippets[i].replace(/\n/g, "\n> ")}\n\n`;
+      }
+    }
+  } else {
+    content += "_No evidence available._\n\n";
+  }
+
+  content += "# Sources\n\n";
+  for (const ev of result.evidence) {
+    content += `- \`${ev.sourceFile}\` - ${ev.title}\n`;
+  }
+  content += "\n";
+
+  return content;
 }
 
 /**
- * kb:ask command - answer questions using wiki content
+ * kb:ask command - ask a question using the knowledge base
  */
 export async function askCommand(opts: {
   question: string;
-  output?: boolean;
-  outputFile?: string;
+  output: boolean;
+  limit: number;
 }): Promise<void> {
   p.intro(pc.bgCyan(pc.black(" kb:ask ")));
+
+  p.log.message(pc.dim(`Question: ${opts.question}`));
 
   // Find repo root and set up paths
   const repoRoot = await findRepoRoot();
   const wikiDir = path.join(repoRoot, KB_WIKI);
-  const outputsDir = path.join(repoRoot, KB_OUTPUTS);
+  const normalizedDir = path.join(repoRoot, KB_NORMALIZED);
+  const outputsDir = path.join(repoRoot, KB_ROOT, "outputs");
 
   // Check if wiki directory exists
   try {
     await fs.access(wikiDir);
   } catch {
     p.log.error(pc.red(`Wiki directory not found: ${wikiDir}`));
-    p.log.message(pc.dim("Run 'kb:compile' first to create wiki pages."));
-    p.outro(pc.red("Ask failed: no wiki data"));
     throw new Error("Wiki directory not found. Run kb:compile first.");
   }
 
-  p.log.message(pc.dim(`Question: "${opts.question}"`));
-
-  // Load wiki pages
-  let pages: WikiPageData[];
+  // Check if normalized directory exists
   try {
-    pages = await loadWikiPages(wikiDir);
-    p.log.message(pc.dim(`Loaded ${pages.length} wiki page(s)`));
-  } catch (err) {
-    const errorMessage = err instanceof Error ? err.message : String(err);
-    p.log.error(pc.red(`Failed to load wiki pages: ${errorMessage}`));
-    p.outro(pc.red("Ask failed: could not load wiki"));
-    throw err;
+    await fs.access(normalizedDir);
+  } catch {
+    p.log.error(pc.red(`Normalized directory not found: ${normalizedDir}`));
+    throw new Error("Normalized directory not found. Run kb:normalize first.");
   }
 
-  // Check if we have any pages
-  if (pages.length === 0) {
-    p.log.warn(pc.yellow("No wiki pages found. The wiki directory is empty."));
-    p.outro(pc.yellow("Ask completed: no wiki content available"));
+  // Step 1: Find relevant wiki pages
+  p.log.message(pc.dim("Finding relevant wiki pages..."));
+  const relevantPages = await findRelevantWikiPages(wikiDir, opts.question, opts.limit);
+
+  if (relevantPages.length === 0) {
+    const result: AskResult = {
+      question: opts.question,
+      answer: null,
+      evidence: [],
+      abstainReason: "No relevant wiki content found for this question.",
+      timestamp: new Date().toISOString(),
+    };
+
+    if (opts.output) {
+      await fs.mkdir(outputsDir, { recursive: true });
+      const safeQuestion = opts.question.replace(/[^a-z0-9]/gi, "_").substring(0, 50);
+      const outputPath = path.join(outputsDir, `ask-${safeQuestion}-${Date.now()}.md`);
+      await fs.writeFile(outputPath, formatOutputForFile(result), "utf-8");
+      p.log.success(pc.green(`Output written to: ${outputPath}`));
+    }
+
+    p.log.warn(pc.yellow("No relevant wiki pages found for this question."));
+    p.outro("Abstained: insufficient evidence");
     return;
   }
 
-  // Find relevant pages
-  const results = findRelevantPages(opts.question, pages);
+  p.log.message(pc.dim(`Found ${relevantPages.length} relevant wiki page(s)`));
 
-  // Generate answer
-  const { answer, sources, abstain } = generateAnswer(opts.question, results);
+  // Step 2: Load normalized sources from wiki references
+  p.log.message(pc.dim("Loading normalized source files..."));
+  const evidence: Evidence[] = [];
 
-  // Display results
-  p.log.message("");
-  p.log.message(pc.bold("Question:"));
-  p.log.message(opts.question);
-  p.log.message("");
-
-  if (abstain) {
-    p.log.warn(pc.yellow(answer));
-  } else {
-    p.log.message(pc.bold("Answer:"));
-    p.log.message(answer);
-  }
-
-  if (sources.length > 0) {
-    p.log.message("");
-    p.log.message(pc.bold("Sources:"));
-    for (const source of sources) {
-      p.log.message(`  • ${pc.cyan(source)}`);
+  for (const page of relevantPages) {
+    if (!page.sourceFile) {
+      p.log.warn(pc.yellow(`Wiki page ${page.filename} has no source_file reference`));
+      continue;
     }
+
+    const normalizedResult = await loadNormalizedFile(normalizedDir, page.sourceFile);
+
+    if (!normalizedResult.exists) {
+      p.log.warn(pc.yellow(`Normalized file not found: ${page.sourceFile}`));
+      continue;
+    }
+
+    // Extract relevant snippets from normalized content
+    const snippets = extractRelevantSnippets(normalizedResult.content, opts.question, 3);
+
+    evidence.push({
+      sourceFile: page.sourceFile,
+      title: page.title,
+      snippets,
+      messageCount: page.messageCount,
+    });
+
+    p.log.message(pc.dim(`  ✓ ${page.sourceFile} (${snippets.length} snippets)`));
   }
 
-  // Write to file if requested
-  let outputPath: string | undefined;
-  if (opts.output || opts.outputFile) {
-    try {
+  if (evidence.length === 0) {
+    const result: AskResult = {
+      question: opts.question,
+      answer: null,
+      evidence: [],
+      abstainReason: "Wiki pages found but normalized sources are unavailable.",
+      timestamp: new Date().toISOString(),
+    };
+
+    if (opts.output) {
       await fs.mkdir(outputsDir, { recursive: true });
-
-      if (opts.outputFile) {
-        // Use custom filename
-        const customPath = path.join(outputsDir, opts.outputFile);
-        // Create the content
-        const timestamp = new Date().toISOString();
-        let content = "---\n";
-        content += stringifyFrontmatter({
-          question: opts.question,
-          timestamp,
-          source_count: sources.length,
-        });
-        content += "\n---\n\n";
-        content += `# Question: ${opts.question}\n\n`;
-        content += `**Asked:** ${formatTimestamp(timestamp)}\n\n`;
-        content += `## Answer\n\n${answer}\n\n`;
-        if (sources.length > 0) {
-          content += `## Sources\n\n`;
-          for (const source of sources) {
-            content += `- ${source}\n`;
-          }
-        } else {
-          content += `## Sources\n\n*No sources available.*\n`;
-        }
-        await fs.writeFile(customPath, content, "utf-8");
-        outputPath = customPath;
-      } else {
-        outputPath = await writeAnswerToFile(outputsDir, opts.question, answer, sources);
-      }
-
-      p.log.message("");
-      p.log.success(pc.green(`Answer saved to: ${outputPath}`));
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : String(err);
-      p.log.error(pc.red(`Failed to write output file: ${errorMessage}`));
+      const safeQuestion = opts.question.replace(/[^a-z0-9]/gi, "_").substring(0, 50);
+      const outputPath = path.join(outputsDir, `ask-${safeQuestion}-${Date.now()}.md`);
+      await fs.writeFile(outputPath, formatOutputForFile(result), "utf-8");
+      p.log.success(pc.green(`Output written to: ${outputPath}`));
     }
+
+    p.log.warn(pc.yellow("Normalized sources unavailable for relevant wiki pages."));
+    p.outro("Abstained: sources unavailable");
+    return;
   }
 
-  if (abstain) {
-    p.outro(pc.yellow("Ask completed: abstained (no relevant content found)"));
+  // Step 3: Build answer from evidence
+  const { answer, abstainReason } = buildAnswerFromEvidence(opts.question, evidence);
+
+  const result: AskResult = {
+    question: opts.question,
+    answer,
+    evidence,
+    abstainReason,
+    timestamp: new Date().toISOString(),
+  };
+
+  // Step 4: Output result
+  if (opts.output) {
+    await fs.mkdir(outputsDir, { recursive: true });
+    const safeQuestion = opts.question.replace(/[^a-z0-9]/gi, "_").substring(0, 50);
+    const outputPath = path.join(outputsDir, `ask-${safeQuestion}-${Date.now()}.md`);
+    await fs.writeFile(outputPath, formatOutputForFile(result), "utf-8");
+    p.log.success(pc.green(`Output written to: ${outputPath}`));
+  }
+
+  // Display to console
+  p.log.message("");
+  p.log.message(formatAnswerForDisplay(result));
+
+  if (answer) {
+    p.outro(pc.green(`Answer generated from ${evidence.length} source(s)`));
   } else {
-    p.outro(pc.green(`Ask completed: answered using ${sources.length} source(s)`));
+    p.outro(pc.yellow("Abstained: " + (abstainReason || "No answer could be generated")));
   }
 }
 
@@ -1359,13 +1342,18 @@ export function registerKbCommands(program: Command): void {
       await outputCommand(opts);
     });
 
+  // kb ask subcommand
   kb
     .command("ask")
-    .description("Ask a question using the wiki knowledge base")
-    .argument("<question>", "The question to ask")
-    .option("-o, --output", "Save answer to a file in outputs/", false)
-    .option("-f, --output-file <filename>", "Custom filename for output")
-    .action(async (question: string, opts) => {
-      await askCommand({ question, ...opts });
+    .description("Ask a question using the knowledge base")
+    .argument("<question>", "Question to ask")
+    .option("-o, --output", "Write output to a file in outputs/", false)
+    .option("-l, --limit <number>", "Maximum number of sources to include", "5")
+    .action(async (question: string, opts: { output: boolean; limit: string }) => {
+      await askCommand({
+        question,
+        output: opts.output,
+        limit: parseInt(opts.limit, 10),
+      });
     });
 }
